@@ -27,7 +27,7 @@ export function Socials({ iconSize }: { iconSize?: string }) {
   return (
     <Flex row gap="$spacing24" maxHeight={iconSize} alignItems="flex-start">
       <SocialIcon iconColor="#00C32B">
-        <Anchor href="https://github.com/Uniswap" target="_blank">
+        <Anchor href="https://github.com/JuiceSwapxyz" target="_blank">
           <Github size={iconSize} fill="inherit" />
         </Anchor>
       </SocialIcon>
@@ -37,7 +37,7 @@ export function Socials({ iconSize }: { iconSize?: string }) {
         </Anchor>
       </SocialIcon>
       <SocialIcon iconColor="#5F51FF">
-        <Anchor href="https://discord.com/invite/uniswap" target="_blank">
+        <Anchor href="https://discord.com/invite/JuiceSwapxyz" target="_blank">
           <Discord size={iconSize} fill="inherit" />
         </Anchor>
       </SocialIcon>
