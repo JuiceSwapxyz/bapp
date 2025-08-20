@@ -64,10 +64,8 @@ export function Footer() {
   const { t } = useTranslation()
   const { toggleModal: togglePrivacyPolicy } = useModalState(ModalName.PrivacyPolicy)
   const sectionContent = useMenuContent()
-  const productsSection = sectionContent[MenuSectionTitle.Products]
   const protocolSection = sectionContent[MenuSectionTitle.Protocol]
   const companySection = sectionContent[MenuSectionTitle.Company]
-  const needHelpSection = sectionContent[MenuSectionTitle.NeedHelp]
   const brandAssets = {
     label: t('common.brandAssets'),
     href: 'https://github.com/JuiceSwapxyz/brand-assets/raw/main/Juice%20Swap%20Brand%20Assets.zip',
@@ -85,14 +83,12 @@ export function Footer() {
         </Flex>
         <Flex row $md={{ flexDirection: 'column' }} height="100%" gap="$spacing16">
           <Flex row gap="$spacing16" justifyContent="space-between" $md={{ width: 'auto' }}>
-            {productsSection && <FooterSection title={productsSection.title} items={productsSection.items} />}
             {protocolSection && <FooterSection title={protocolSection.title} items={protocolSection.items} />}
           </Flex>
           <Flex row gap="$spacing16" $md={{ width: 'auto' }}>
             {companySection && (
               <FooterSection title={companySection.title} items={[...companySection.items, brandAssets]} />
             )}
-            {needHelpSection && <FooterSection title={needHelpSection.title} items={needHelpSection.items} />}
           </Flex>
         </Flex>
         <Flex $md={{ display: 'flex' }} display="none">

@@ -18,10 +18,8 @@ export interface MenuSection {
 }
 
 export enum MenuSectionTitle {
-  Products = 'Products',
   Protocol = 'Protocol',
   Company = 'Company',
-  NeedHelp = 'NeedHelp',
 }
 
 
@@ -33,10 +31,6 @@ export const useMenuContent = (args?: {
 
   return useMemo(() => {
     const menuContent = {
-      [MenuSectionTitle.Products]: {
-        title: t('common.products'),
-        items: [],
-      },
       [MenuSectionTitle.Protocol]: {
         title: t('common.protocol'),
         items: [
@@ -45,10 +39,6 @@ export const useMenuContent = (args?: {
       },
       [MenuSectionTitle.Company]: {
         title: t('common.company'),
-        items: [],
-      },
-      [MenuSectionTitle.NeedHelp]: {
-        title: t('common.needHelp'),
         items: [],
       },
     }
