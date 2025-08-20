@@ -10,15 +10,12 @@ import { ThemedText } from 'theme/components'
 import { Flex, Image, Text, useSporeColors } from 'ui/src'
 import { BINANCE_WALLET_ICON, UNISWAP_LOGO } from 'ui/src/assets'
 import { Chevron } from 'ui/src/components/icons/Chevron'
-import { Passkey } from 'ui/src/components/icons/Passkey'
 import { ScanQr } from 'ui/src/components/icons/ScanQr'
 import { WalletFilled } from 'ui/src/components/icons/WalletFilled'
 import { UseSporeColorsReturn } from 'ui/src/hooks/useSporeColors'
 import { iconSizes } from 'ui/src/theme'
 import Badge, { BadgeVariant } from 'uniswap/src/components/badge/Badge'
 import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, InterfaceEventName } from 'uniswap/src/features/telemetry/constants'
 import { isMobileWeb } from 'utilities/src/platform'
@@ -32,14 +29,6 @@ function RecentBadge() {
         <Trans i18nKey="common.recent" />
       </ThemedText.LabelMicro>
     </Badge>
-  )
-}
-
-function EmbeddedWalletIcon() {
-  return (
-    <Flex p="$spacing6" backgroundColor="$accent2" borderRadius="$rounded8">
-      <Passkey color="$accent1" size="$icon.20" />
-    </Flex>
   )
 }
 
@@ -69,18 +58,14 @@ function OtherWalletsIcon() {
  */
 function getIcon({
   walletConnectorMeta,
-  isEmbeddedWalletEnabled,
   themeColors,
 }: {
   walletConnectorMeta: WalletConnectorMeta
-  isEmbeddedWalletEnabled: boolean
   themeColors: UseSporeColorsReturn
 }) {
-  const iconSize = isEmbeddedWalletEnabled ? iconSizes.icon32 : iconSizes.icon40
+  const iconSize = iconSizes.icon40
 
-  if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID) {
-    return <EmbeddedWalletIcon />
-  } else if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID) {
+  if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID) {
     return <UniswapMobileIcon iconSize={iconSize} />
   } else if (walletConnectorMeta.wagmi?.id === CONNECTION_PROVIDER_IDS.BINANCE_WALLET_CONNECTOR_ID) {
     return <BinanceWalletIcon iconSize={iconSize} />
@@ -110,8 +95,6 @@ function getConnectorText({
 }) {
   if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID) {
     return t('common.uniswapMobile')
-  } else if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID) {
-    return t('account.passkey.log.in.title')
   } else {
     return walletConnectorMeta.name
   }
@@ -138,7 +121,6 @@ function RightSideDetail({
 
 export function WalletConnectorOption({ walletConnectorMeta }: { walletConnectorMeta: WalletConnectorMeta }) {
   const { t } = useTranslation()
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
 
   const connectionState = useConnectionState()
   const isPendingConnection =
@@ -148,7 +130,7 @@ export function WalletConnectorOption({ walletConnectorMeta }: { walletConnector
   const isRecent = Boolean(recentConnectorId && isEqualWalletConnectorMetaId(walletConnectorMeta, recentConnectorId))
 
   const themeColors = useSporeColors()
-  const icon = getIcon({ walletConnectorMeta, isEmbeddedWalletEnabled, themeColors })
+  const icon = getIcon({ walletConnectorMeta, themeColors })
   const text = getConnectorText({ walletConnectorMeta, t })
   const isDetected = walletConnectorMeta.isInjected
   // TODO(WEB-4173): Remove isIFrame check when we can update wagmi to version >= 2.9.4
@@ -211,11 +193,9 @@ function WalletConnectorOptionBase({
     wallet_type: string
   }
 }) {
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
-
   return (
     <Flex
-      backgroundColor={isEmbeddedWalletEnabled ? 'transparent' : '$surface2'}
+      backgroundColor="$surface2"
       row
       alignItems="center"
       width="100%"
