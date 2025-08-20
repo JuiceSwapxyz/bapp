@@ -1483,7 +1483,7 @@
   "privacy.infura": "The app fetches on-chain data and constructs contract calls with an Infura API.",
   "privacy.thirdPartyApis": "This app uses the following third-party APIs:",
   "privacy.trm": "The app securely collects your wallet address and shares it with TRM Labs Inc. for risk and compliance reasons.",
-  "privacy.uniswaptos": "Uniswap Labs’ Terms of Service",
+  "privacy.uniswaptos": "Juice Swap Terms of Service",
   "privateKeys.export.modal.speedbump.bullet1": "View this in private",
   "privateKeys.export.modal.speedbump.bullet2": "Do not share with anyone",
   "privateKeys.export.modal.speedbump.bullet3": "Never enter it to any websites or applications",
