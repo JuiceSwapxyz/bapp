@@ -32,7 +32,7 @@ export function Socials({ iconSize }: { iconSize?: string }) {
         </Anchor>
       </SocialIcon>
       <SocialIcon iconColor="#20BAFF">
-        <Anchor href="https://x.com/Uniswap" target="_blank">
+        <Anchor href="https://x.com/JuiceSwapXyz" target="_blank">
           <Twitter size={iconSize} fill="inherit" />
         </Anchor>
       </SocialIcon>
