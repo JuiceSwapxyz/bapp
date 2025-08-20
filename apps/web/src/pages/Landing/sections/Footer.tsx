@@ -112,7 +112,7 @@ export function Footer() {
         width="100%"
         justifyContent="space-between"
       >
-        <Text variant="body3">© {currentYear} - Uniswap Labs</Text>
+        <Text variant="body3">© {currentYear} - Juice Swap</Text>
         <Flex row alignItems="center" gap="$spacing16">
           <PolicyLink onPress={togglePrivacyPolicy}>{t('common.privacyPolicy')}</PolicyLink>
           <Anchor textDecorationLine="none" href="https://juiceswap.xyz/trademark" target="_blank">
