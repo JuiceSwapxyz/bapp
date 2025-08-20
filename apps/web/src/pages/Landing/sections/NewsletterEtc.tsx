@@ -138,19 +138,44 @@ export function NewsletterEtc() {
           description={t('landing.docs.description')}
           href={uniswapUrls.docsUrl}
         />
-        <UniverseRow
-          icon={<SpeechBubbles size="$icon.36" color="$neutral1" />}
-          title={t('common.socials')}
-          description={
-            <Trans
-              i18nKey="landing.socials"
-              components={{
-                LinkX: <SocialLink href={uniswapUrls.social.x} />,
-                LinkTelegram: <SocialLink href={uniswapUrls.social.telegram} />,
-              }}
-            />
-          }
-        />
+        <Flex
+          row
+          py="$gap32"
+          borderTopWidth={1}
+          borderTopColor="$surface3"
+          alignItems="center"
+          width="100%"
+          $lg={{ alignItems: 'flex-start' }}
+        >
+          <Flex row gap="$gap24" alignItems="center" flex={1} $lg={{ alignItems: 'flex-start', gap: '$gap16' }}>
+            <Flex flexShrink={0}>
+              <SpeechBubbles size="$icon.36" color="$neutral1" />
+            </Flex>
+            <Flex row alignItems="center" flex={1} gap="$gap16" $lg={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Text
+                variant="heading2"
+                minWidth={220}
+                $xl={{ minWidth: 180 }}
+                $lg={{ flexBasis: 0 }}
+                $md={{ variant: 'heading3', lineHeight: 36 }}
+              >
+                {t('common.socials')}
+              </Text>
+              <Text variant="heading3" $lg={{ ml: -48 }} $md={{ fontSize: 18, lineHeight: 24 }}>
+                <Trans
+                  i18nKey="landing.socials"
+                  components={{
+                    LinkX: <SocialLink href={uniswapUrls.social.x} />,
+                    LinkTelegram: <SocialLink href={uniswapUrls.social.telegram} />,
+                  }}
+                />
+              </Text>
+            </Flex>
+          </Flex>
+          <Flex flexShrink={0}>
+            <ArrowUpRight size="$icon.36" color="$neutral1" />
+          </Flex>
+        </Flex>
       </Flex>
     </SectionLayout>
   )
