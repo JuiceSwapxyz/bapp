@@ -2,7 +2,7 @@ import { MenuItem, MenuSectionTitle, useMenuContent } from 'components/NavBar/Co
 import { MenuLink } from 'components/NavBar/CompanyMenu/MenuDropdown'
 import { Wiggle } from 'components/animations/Wiggle'
 import { useModalState } from 'hooks/useModalState'
-import { Discord, Github, Twitter } from 'pages/Landing/components/Icons'
+import { Github, Twitter } from 'pages/Landing/components/Icons'
 import { useTranslation } from 'react-i18next'
 import { Anchor, Flex, Separator, Text, styled } from 'ui/src'
 import { iconSizes } from 'ui/src/theme'
@@ -34,11 +34,6 @@ export function Socials({ iconSize }: { iconSize?: string }) {
       <SocialIcon iconColor="#20BAFF">
         <Anchor href="https://x.com/JuiceSwapXyz" target="_blank">
           <Twitter size={iconSize} fill="inherit" />
-        </Anchor>
-      </SocialIcon>
-      <SocialIcon iconColor="#5F51FF">
-        <Anchor href="https://discord.com/invite/JuiceSwapxyz" target="_blank">
-          <Discord size={iconSize} fill="inherit" />
         </Anchor>
       </SocialIcon>
     </Flex>
