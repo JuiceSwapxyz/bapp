@@ -130,9 +130,6 @@ export function MenuDropdown({ close }: { close?: () => void }) {
   const menuContent = useMenuContent({
     keys: [MenuSectionTitle.Protocol, MenuSectionTitle.Company],
   })
-  const productSection = useMenuContent({
-    keys: [MenuSectionTitle.Products],
-  })
   const areTabsVisible = useTabsVisible()
   const tabs = useTabsContent()
   const tabsMenuItems = useMemo(() => {
@@ -150,9 +147,6 @@ export function MenuDropdown({ close }: { close?: () => void }) {
     <NavDropdown isOpen={false} dataTestId={TestID.NavCompanyDropdown}>
       <Container>
         <Flex gap="$spacing16">
-          {productSection[MenuSectionTitle.Products] && (
-            <ProductSection items={productSection[MenuSectionTitle.Products].items} />
-          )}
           {!areTabsVisible && <Section title={t('common.app')} items={tabsMenuItems} closeMenu={close} />}
           <Separator />
           <Flex row>

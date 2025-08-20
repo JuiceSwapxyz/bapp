@@ -143,7 +143,13 @@ export function NewsletterEtc() {
             <Flex flexShrink={0}>
               <SpeechBubbles size="$icon.36" color="$neutral1" />
             </Flex>
-            <Flex row alignItems="center" flex={1} gap="$gap16" $lg={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Flex
+              row
+              alignItems="center"
+              flex={1}
+              gap="$gap16"
+              $lg={{ flexDirection: 'column', alignItems: 'flex-start' }}
+            >
               <Text
                 variant="heading2"
                 minWidth={220}

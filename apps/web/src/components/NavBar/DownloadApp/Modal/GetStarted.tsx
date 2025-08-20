@@ -18,11 +18,7 @@ function Header() {
       <Flex centered position="absolute" top="0" left="0" right="0" bottom="0" px="$spacing32" opacity={0.5}>
         <TokenCarousel />
       </Flex>
-      <Flex
-        centered
-        alignSelf="center"
-        p="$spacing12"
-      >
+      <Flex centered alignSelf="center" p="$spacing12">
         <Flex
           centered
           backgroundColor="white"

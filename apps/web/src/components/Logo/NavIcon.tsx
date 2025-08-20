@@ -4,11 +4,11 @@ import { Flex, styled, useSporeColors } from 'ui/src'
 
 function Logo({ color, onClick }: { color: string; onClick?: () => void }) {
   return (
-    <img 
-      src="/images/juiceswap/Juice-swap-Logo.svg" 
-      alt="JuiceSwap" 
-      width="20" 
-      height="20" 
+    <img
+      src="/images/juiceswap/Juice-swap-Logo.svg"
+      alt="JuiceSwap"
+      width="20"
+      height="20"
       onClick={onClick}
       style={{ cursor: 'pointer' }}
     />
@@ -19,11 +19,11 @@ function HolidayLogo({ color, onClick }: { color: string; onClick?: () => void }
   const { t } = useTranslation()
 
   return (
-    <img 
-      src="/images/juiceswap/Juice-swap-Logo.svg" 
-      alt="JuiceSwap Holiday" 
-      width="32" 
-      height="32" 
+    <img
+      src="/images/juiceswap/Juice-swap-Logo.svg"
+      alt="JuiceSwap Holiday"
+      width="32"
+      height="32"
       onClick={onClick}
       style={{ cursor: 'pointer' }}
     />

@@ -22,7 +22,6 @@ export enum MenuSectionTitle {
   Company = 'Company',
 }
 
-
 export const useMenuContent = (args?: {
   keys?: MenuSectionTitle[]
 }): Partial<{ [key in MenuSectionTitle]: MenuSection }> => {
@@ -33,9 +32,7 @@ export const useMenuContent = (args?: {
     const menuContent = {
       [MenuSectionTitle.Protocol]: {
         title: t('common.protocol'),
-        items: [
-          { label: t('common.developers'), href: 'https://docs.juiceswap.xyz/' },
-        ],
+        items: [{ label: t('common.developers'), href: 'https://docs.juiceswap.xyz/' }],
       },
       [MenuSectionTitle.Company]: {
         title: t('common.company'),
