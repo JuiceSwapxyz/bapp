@@ -133,16 +133,6 @@ export function NewsletterEtc() {
           href={uniswapUrls.helpCenterUrl}
         />
         <UniverseRow
-          icon={
-            <Flex p="$gap4">
-              <PenLine size="$icon.28" color="$neutral1" />
-            </Flex>
-          }
-          title={t('common.blog')}
-          description={t('landing.blog.description')}
-          href={uniswapUrls.blogUrl}
-        />
-        <UniverseRow
           icon={<BookOpen size="$icon.36" fill="$neutral1" />}
           title={t('common.docs')}
           description={t('landing.docs.description')}
@@ -156,9 +146,7 @@ export function NewsletterEtc() {
               i18nKey="landing.socials"
               components={{
                 LinkX: <SocialLink href={uniswapUrls.social.x} />,
-                LinkFarcaster: <SocialLink href={uniswapUrls.social.farcaster} />,
-                LinkLinkedIn: <SocialLink href={uniswapUrls.social.linkedin} />,
-                LinkTikTok: <SocialLink href={uniswapUrls.social.tiktok} />,
+                LinkTelegram: <SocialLink href={uniswapUrls.social.telegram} />,
               }}
             />
           }

@@ -110,9 +110,7 @@ export const uniswapUrls = {
   careersUrl: 'https://careers.juiceswap.xyz/',
   social: {
     x: 'https://x.com/JuiceSwapXyz',
-    farcaster: 'https://farcaster.xyz/JuiceSwapXyz',
-    linkedin: 'https://www.linkedin.com/company/JuiceSwapXyz',
-    tiktok: 'https://www.tiktok.com/@JuiceSwapXyz',
+    telegram: 'https://t.me/JuiceSwap',
   },
   termsOfServiceUrl: 'https://juiceswap.xyz/terms-of-service',
   privacyPolicyUrl: 'https://juiceswap.xyz/privacy-policy',
