@@ -3,7 +3,6 @@ import { useRecentConnectorId } from 'components/Web3Provider/constants'
 import { useIsMobile } from 'hooks/screenSize/useIsMobile'
 import { useAccount } from 'hooks/useAccount'
 import { useModalState } from 'hooks/useModalState'
-import { useSignInWithPasskey } from 'hooks/useSignInWithPasskey'
 import { MutableRefObject, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEmbeddedWalletState } from 'state/embeddedWallet/store'
@@ -13,8 +12,6 @@ import { X } from 'ui/src/components/icons/X'
 import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { DisplayNameType } from 'uniswap/src/features/accounts/types'
 import { useOnchainDisplayName } from 'uniswap/src/features/accounts/useOnchainDisplayName'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { shortenAddress } from 'utilities/src/addresses'
 import { useOnClickOutside } from 'utilities/src/react/hooks'
@@ -160,23 +157,16 @@ function RecentlyConnectedModalUI({
 function shouldShowModal({
   walletAddress,
   account,
-  isEmbeddedWalletEnabled,
   isOpenRef,
   recentConnectorId,
 }: {
   walletAddress?: string
   account: ReturnType<typeof useAccount>
-  isEmbeddedWalletEnabled: boolean
   isOpenRef: MutableRefObject<boolean>
   recentConnectorId?: string
 }) {
-  return (
-    !!walletAddress &&
-    !(account.isConnected || account.isConnecting) &&
-    isEmbeddedWalletEnabled &&
-    !isOpenRef.current &&
-    recentConnectorId === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID
-  )
+  // Always return false since we removed passkey functionality
+  return false
 }
 
 export function RecentlyConnectedModal() {
@@ -185,8 +175,6 @@ export function RecentlyConnectedModal() {
   const walletAddress = walletAddressFromState ?? undefined
   const { isOpen, closeModal, openModal } = useModalState(ModalName.RecentlyConnectedModal)
   const isOpenRef = useRef(isOpen)
-  const { signInWithPasskey } = useSignInWithPasskey({ onSuccess: closeModal })
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
   const recentConnectorId = useRecentConnectorId()
 
   const walletDisplay = useWalletDisplay(walletAddress)
@@ -196,7 +184,6 @@ export function RecentlyConnectedModal() {
       shouldShowModal({
         walletAddress,
         account,
-        isEmbeddedWalletEnabled,
         isOpenRef,
         recentConnectorId,
       })
@@ -204,7 +191,7 @@ export function RecentlyConnectedModal() {
       openModal()
       isOpenRef.current = true
     }
-  }, [walletAddress, account, isEmbeddedWalletEnabled, openModal, recentConnectorId])
+  }, [walletAddress, account, openModal, recentConnectorId])
 
   useEffect(() => {
     if (account.isConnected && isOpen) {
@@ -217,7 +204,7 @@ export function RecentlyConnectedModal() {
       isOpen={isOpen}
       walletAddress={walletAddress}
       {...walletDisplay}
-      onSignIn={() => signInWithPasskey()}
+      onSignIn={() => {}}
       onClose={closeModal}
     />
   )
