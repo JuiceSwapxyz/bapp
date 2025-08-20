@@ -110,9 +110,6 @@ export function Footer() {
         <Text variant="body3">© {currentYear} - Juice Swap</Text>
         <Flex row alignItems="center" gap="$spacing16">
           <PolicyLink onPress={togglePrivacyPolicy}>{t('common.privacyPolicy')}</PolicyLink>
-          <Anchor textDecorationLine="none" href="https://juiceswap.xyz/trademark" target="_blank">
-            <PolicyLink>{t('common.trademarkPolicy')}</PolicyLink>
-          </Anchor>
         </Flex>
       </Flex>
     </Flex>
