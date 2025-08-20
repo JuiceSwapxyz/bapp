@@ -4,8 +4,6 @@ import { ClickableTamaguiStyle } from 'theme/components/styles'
 import { Anchor, Flex, Text, styled } from 'ui/src'
 import { ArrowUpRight } from 'ui/src/components/icons/ArrowUpRight'
 import { BookOpen } from 'ui/src/components/icons/BookOpen'
-import { GraduationCap } from 'ui/src/components/icons/GraduationCap'
-import { PenLine } from 'ui/src/components/icons/PenLine'
 import { SpeechBubbles } from 'ui/src/components/icons/SpeechBubbles'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 
@@ -126,12 +124,6 @@ export function NewsletterEtc() {
         {t('landing.exploreUniverse')}
       </Text>
       <Flex width="100%">
-        <UniverseRow
-          icon={<GraduationCap size="$icon.36" fill="$neutral1" />}
-          title={t('common.helpCenter')}
-          description={t('landing.helpCenter.body')}
-          href={uniswapUrls.helpCenterUrl}
-        />
         <UniverseRow
           icon={<BookOpen size="$icon.36" fill="$neutral1" />}
           title={t('common.docs')}
