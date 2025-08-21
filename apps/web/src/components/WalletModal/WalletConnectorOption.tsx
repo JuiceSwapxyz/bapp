@@ -8,7 +8,7 @@ import { isEqualWalletConnectorMetaId } from 'features/wallet/connection/utils'
 import { Trans, useTranslation } from 'react-i18next'
 import { ThemedText } from 'theme/components'
 import { Flex, Image, Text, useSporeColors } from 'ui/src'
-import { BINANCE_WALLET_ICON, UNISWAP_LOGO } from 'ui/src/assets'
+import { BINANCE_WALLET_ICON, RABBY_WALLET_ICON, UNISWAP_LOGO } from 'ui/src/assets'
 import { Chevron } from 'ui/src/components/icons/Chevron'
 import { ScanQr } from 'ui/src/components/icons/ScanQr'
 import { WalletFilled } from 'ui/src/components/icons/WalletFilled'
@@ -69,6 +69,9 @@ function getIcon({
     return <UniswapMobileIcon iconSize={iconSize} />
   } else if (walletConnectorMeta.wagmi?.id === CONNECTION_PROVIDER_IDS.BINANCE_WALLET_CONNECTOR_ID) {
     return <BinanceWalletIcon iconSize={iconSize} />
+  } else if (walletConnectorMeta.name?.toLowerCase().includes('rabby')) {
+    // Special case for Rabby wallet
+    return <Image height={iconSize} source={RABBY_WALLET_ICON} width={iconSize} borderRadius="$rounded8" />
   } else {
     // TODO(WEB-7217): RN Web Image is not properly displaying base64 encoded images (Phantom logo) */
     return (

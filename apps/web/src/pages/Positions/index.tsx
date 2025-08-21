@@ -33,8 +33,6 @@ import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useGetPositionsInfiniteQuery } from 'uniswap/src/data/rest/getPositions'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, UniswapEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
@@ -244,7 +242,7 @@ export default function Pool() {
   const { t } = useTranslation()
   const { address, isConnected } = account
 
-  const isLPIncentivesEnabled = useFeatureFlag(FeatureFlags.LpIncentives) && isConnected
+  const isLPIncentivesEnabled = false // Disabled LP incentives
 
   const [chainFilter, setChainFilter] = useAtom(chainFilterAtom)
   const { chains: currentModeChains } = useEnabledChains()

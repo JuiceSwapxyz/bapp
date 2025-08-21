@@ -121,23 +121,21 @@ export const uniswapUrls = {
   appStoreDownloadUrl: 'https://apps.apple.com/us/app/uniswap-crypto-nft-wallet/id6443944476',
   playStoreDownloadUrl: 'https://play.google.com/store/apps/details?id=com.uniswap.mobile&pcampaignid=web_share',
 
-  // Core API Urls
-  apiOrigin: 'https://api.uniswap.org',
-  apiBaseUrl: config.apiBaseUrlOverride || getCloudflareApiBaseUrl(),
-  apiBaseUrlV2: config.apiBaseUrlV2Override || `${getCloudflareApiBaseUrl()}/v2`,
-  graphQLUrl: config.graphqlUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.GraphQL)}/v1/graphql`,
+  // Core API Urls - Local API with Uniswap fallback
+  apiOrigin: 'http://localhost:8080',
+  apiBaseUrl: config.apiBaseUrlOverride || 'http://localhost:8080',
+  apiBaseUrlV2: config.apiBaseUrlV2Override || 'http://localhost:8080/v2',
+  graphQLUrl: config.graphqlUrlOverride || 'http://localhost:8080/v1/graphql',
 
-  // Proxies
-  amplitudeProxyUrl:
-    config.amplitudeProxyUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.Metrics)}/v1/amplitude-proxy`,
-  statsigProxyUrl: config.statsigProxyUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.Gating)}/v1/statsig-proxy`,
+  // Proxies - Now using local API
+  amplitudeProxyUrl: config.amplitudeProxyUrlOverride || 'http://localhost:8080/v1/amplitude-proxy',
+  statsigProxyUrl: config.statsigProxyUrlOverride || 'http://localhost:8080/v1/statsig-proxy',
 
-  // Feature service URL's
-  unitagsApiUrl: config.unitagsApiUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.Unitags)}/v2/unitags`,
-  scantasticApiUrl:
-    config.scantasticApiUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.Scantastic)}/v2/scantastic`,
-  forApiUrl: config.forApiUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.FOR)}/v2/FOR.v1.FORService`,
-  tradingApiUrl: config.tradingApiUrlOverride || getCloudflareApiBaseUrl(TrafficFlows.TradingApi),
+  // Feature service URL's - Now using local API
+  unitagsApiUrl: config.unitagsApiUrlOverride || 'http://localhost:8080/v2/unitags',
+  scantasticApiUrl: config.scantasticApiUrlOverride || 'http://localhost:8080/v2/scantastic',
+  forApiUrl: config.forApiUrlOverride || 'http://localhost:8080/v2/FOR.v1.FORService',
+  tradingApiUrl: config.tradingApiUrlOverride || 'http://localhost:8080',
 
   // Merkl Docs for LP Incentives
   merklDocsUrl: 'https://docs.merkl.xyz/earn-with-merkl/faq-earn#how-are-aprs-calculated',
@@ -200,7 +198,7 @@ export const uniswapUrls = {
   walletFeedbackForm:
     'https://docs.google.com/forms/d/e/1FAIpQLSepzL5aMuSfRhSgw0zDw_gVmc2aeVevfrb1UbOwn6WGJ--46w/viewform',
 
-  dataApiServiceUrl: `${getCloudflareApiBaseUrl()}/v2/data.v1.DataApiService`,
+  dataApiServiceUrl: 'http://localhost:8080/v2/data.v1.DataApiService',
   dataApiServicePaths: {
     report: '/SubmitReport',
   },

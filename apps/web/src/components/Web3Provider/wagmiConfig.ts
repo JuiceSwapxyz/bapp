@@ -41,7 +41,7 @@ function createWagmiConnectors(params: {
     }),
     ...(isTestEnv() && !isPlaywrightEnv() ? [] : [walletConnect(WC_PARAMS)]),
     coinbaseWallet({
-      appName: 'Uniswap',
+      appName: 'JuiceSwap',
       appLogoUrl: `${UNISWAP_WEB_URL}${UNISWAP_LOGO}`,
       reloadOnDisconnect: false,
     }),

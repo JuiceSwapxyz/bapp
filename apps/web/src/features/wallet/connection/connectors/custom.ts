@@ -8,9 +8,7 @@ import { persistHideMobileAppPromoBannerAtom } from 'state/application/atoms'
 import { CONNECTION_PROVIDER_IDS, CONNECTION_PROVIDER_NAMES } from 'uniswap/src/constants/web3'
 import { useEvent } from 'utilities/src/react/hooks'
 
-const CUSTOM_CONNECTOR_IDS = [
-  CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID,
-] as const
+const CUSTOM_CONNECTOR_IDS = [CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID] as const
 
 /** Type for non-standard wallet connectors that require custom handling. */
 export type CustomConnectorId = (typeof CUSTOM_CONNECTOR_IDS)[number]
@@ -83,4 +81,3 @@ const UNISWAP_WALLET_CONNECTOR_META = {
 function applyUniswapWalletConnectorMeta(walletConnectors: WalletConnectorMeta[]): WalletConnectorMeta[] {
   return [...walletConnectors, UNISWAP_WALLET_CONNECTOR_META]
 }
-

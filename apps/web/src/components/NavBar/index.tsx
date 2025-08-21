@@ -1,5 +1,5 @@
+import { NavIcon } from 'components/Logo/NavIcon'
 import { ChainSelector } from 'components/NavBar/ChainSelector'
-import { CompanyMenu } from 'components/NavBar/CompanyMenu'
 import { PreferenceMenu } from 'components/NavBar/PreferencesMenu'
 import { useTabsVisible } from 'components/NavBar/ScreenSizes'
 import { SearchBar } from 'components/NavBar/SearchBar'
@@ -10,7 +10,8 @@ import Row from 'components/deprecated/Row'
 import { useAccount } from 'hooks/useAccount'
 import { PageType, useIsPage } from 'hooks/useIsPage'
 import deprecatedStyled, { css } from 'lib/styled-components'
-import { Flex, Nav as TamaguiNav, styled, useMedia } from 'ui/src'
+import { Link } from 'react-router'
+import { Flex, Nav as TamaguiNav, Text, styled, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT, breakpoints, zIndexes } from 'ui/src/theme'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 
@@ -86,7 +87,16 @@ export default function Navbar() {
     <Nav>
       <UnpositionedFlex row centered width="100%">
         <Left>
-          <CompanyMenu />
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <Flex row alignItems="center" gap="$gap4">
+              <NavIcon width={48} height={48} />
+              {!media.xl && (
+                <Text variant="subheading1" color="$accent1" userSelect="none">
+                  JuiceSwap
+                </Text>
+              )}
+            </Flex>
+          </Link>
           {areTabsVisible && <Tabs />}
         </Left>
 
