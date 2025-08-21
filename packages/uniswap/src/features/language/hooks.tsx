@@ -204,9 +204,9 @@ export function getLanguageInfo(t: AppTFunction, language: Language): LanguageIn
       locale: getLocale(Language.Serbian),
     },
     [Language.SpanishSpain]: {
-      displayName: t('language.spanishSpain'),
-      originName: t('language.spanishSpain', { lng: getLocale(Language.SpanishSpain) }),
-      loggingName: 'Spanish (Spain)',
+      displayName: t('language.spanish'),
+      originName: t('language.spanish', { lng: getLocale(Language.SpanishSpain) }),
+      loggingName: 'Spanish',
       locale: getLocale(Language.SpanishSpain),
     },
     [Language.SpanishLatam]: {
