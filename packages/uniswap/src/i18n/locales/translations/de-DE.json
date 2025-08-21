@@ -2380,5 +2380,6 @@
   "web.explore.description": "Entdecken und erforschen Sie Token auf {{network}}. Erkunden Sie die Top-Pools. Sehen Sie sich Preise, Handelsvolumen, TVL, Diagramme und Transaktionsdaten in Echtzeit an.",
   "web.explore.title.pools": "Entdecken Sie die Top-Pools auf {{network}} auf Juice Swap",
   "web.explore.title.tokens": "Entdecken Sie die Top-Tokens auf {{network}} auf Juice Swap",
-  "web.explore.title.transactions": "Entdecken Sie die Top-Transaktionen bei {{network}} auf Juice Swap"
+  "web.explore.title.transactions": "Entdecken Sie die Top-Transaktionen bei {{network}} auf Juice Swap",
+  "German": "Deutsch"
 }
