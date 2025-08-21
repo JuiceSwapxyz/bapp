@@ -5,7 +5,7 @@ export function getDeviceLocales(): DeviceLocale[] {
   try {
     // Check if we're in a Chrome extension context
     // eslint-disable-next-line no-restricted-globals
-    if (typeof chrome !== 'undefined' && chrome?.i18n?.getUILanguage) {
+    if (typeof chrome !== 'undefined' && chrome.i18n && chrome.i18n.getUILanguage) {
       // eslint-disable-next-line no-restricted-globals
       const language = chrome.i18n.getUILanguage()
       return [{ languageCode: language, languageTag: language }]

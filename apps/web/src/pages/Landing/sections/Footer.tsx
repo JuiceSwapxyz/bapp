@@ -68,7 +68,7 @@ export function Footer() {
   const companySection = sectionContent[MenuSectionTitle.Company]
   const brandAssets = {
     label: t('common.brandAssets'),
-    href: 'https://github.com/JuiceSwapxyz/brand-assets/raw/main/Juice%20Swap%20Brand%20Assets.zip',
+    href: 'https://github.com/JuiceSwapxyz/documentation/tree/main/media_kit',
     internal: false,
   }
   const currentYear = new Date().getFullYear()
