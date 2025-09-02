@@ -11,10 +11,10 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_ACCOUNT_NAME: stjuiceswapdevweb
-  AZURE_CDN_PROFILE: afd-juiceswap-web-dev
-  AZURE_CDN_ENDPOINT: fde-juiceswap-web-dev
-  AZURE_RESOURCE_GROUP: rg-juiceswap-web-dev
+  AZURE_ACCOUNT_NAME: 'stjswappdev'
+  AZURE_CDN_PROFILE: 'afd-dfx-api-dev'
+  AZURE_CDN_ENDPOINT: 'fde-jsw-swp-dev'
+  AZURE_RESOURCE_GROUP: 'rg-dfx-api-dev'
 
 jobs:
   build-and-deploy:
