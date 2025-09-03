@@ -54,7 +54,7 @@ export function useHomeScreenState(): {
       ownerAddress: address,
       first: 1,
       filter: { filterSpam: true },
-      chains: gqlChains,
+      chains: gqlChains.filter(chain => chain !== 'CITREA_TESTNET') as any,
     },
     pollInterval: EMPTY_WALLET_NFT_POLL_INTERVAL,
     notifyOnNetworkStatusChange: true, // Used to trigger network state / loading on refetch or fetchMore

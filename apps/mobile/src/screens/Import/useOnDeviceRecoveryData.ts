@@ -101,7 +101,7 @@ export function useOnDeviceRecoveryData(mnemonicId: string | undefined): {
     variables: {
       ownerAddresses: addresses,
       valueModifiers,
-      chains: gqlChains,
+      chains: gqlChains.filter(chain => chain !== 'CITREA_TESTNET') as any,
     },
     skip: !addresses.length,
   })
