@@ -68,7 +68,7 @@ export function useRouterConfig(): RouterConfig {
 // SEO titles and descriptions sourced from https://docs.google.com/spreadsheets/d/1_6vSxGgmsx6QGEZ4mdHppv1VkuiJEro3Y_IopxUHGB4/edit#gid=0
 // getTitle and getDescription are used as static metatags for SEO. Dynamic metatags should be set in the page component itself
 const StaticTitlesAndDescriptions = {
-  UniswapTitle: i18n.t('title.uniswapTradeCrypto'),
+  UniswapTitle: i18n.t('title.juiceswapTradeCrypto'),
   SwapTitle: i18n.t('title.buySellTradeEthereum'),
   SwapDescription: i18n.t('title.swappingMadeSimple'),
   DetailsPageBaseTitle: i18n.t('common.buyAndSell'),

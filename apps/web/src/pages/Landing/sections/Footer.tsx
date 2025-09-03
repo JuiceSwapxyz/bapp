@@ -75,7 +75,7 @@ export function Footer() {
   const needHelpSection = sectionContent[MenuSectionTitle.NeedHelp]
   const brandAssets = {
     label: t('common.brandAssets'),
-    href: 'https://github.com/Uniswap/brand-assets/raw/main/Uniswap%20Brand%20Assets.zip',
+    href: 'https://github.com/JuiceSwapxyz/documentation/tree/main/media_kit',
     internal: false,
   }
   const currentYear = new Date().getFullYear()
