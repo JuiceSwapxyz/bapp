@@ -169,7 +169,7 @@ export const routes: RouteDefinition[] = [
           <Route
             path="*"
             Component={() => {
-              window.location.href = 'https://vote.uniswapfoundation.org'
+              window.location.href = 'https://vote.juiceswap.xyz'
               return null
             }}
           ></Route>

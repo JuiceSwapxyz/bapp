@@ -1,4 +1,3 @@
-import { ReactComponent as UniswapLogo } from 'assets/svg/uniswap_app_logo.svg'
 import { useEthersWeb3Provider } from 'hooks/useEthersProvider'
 import { useAtom } from 'jotai'
 import { useAtomValue } from 'jotai/utils'
@@ -40,7 +39,7 @@ const StyledButton = styled(Anchor, {
  * - The user is on a mobile device our app supports
  * - The user is not using Safari (since we don't want to conflict with the Safari-native Smart App Banner)
  * - The user has not dismissed the banner during this session
- * - The user has not clicked the Uniswap wallet or Get Uniswap Wallet buttons in wallet options
+ * - The user has not clicked the JuiceSwap wallet or Get JuiceSwap Wallet buttons in wallet options
  */
 export function useMobileAppPromoBannerEligible(): boolean {
   const hideMobileAppPromoBanner = useAtomValue(hideMobileAppPromoBannerAtom)
@@ -98,7 +97,7 @@ export function MobileAppPromoBanner() {
             setHideMobileAppPromoBanner(true)
           }}
         />
-        <UniswapLogo width="32px" height="32px" />
+        <img src="/images/juiceswap/Juice-swap-Logo.svg" alt="JuiceSwap" width="32px" height="32px" />
         <Flex shrink>
           <Text variant="body3">{t('mobileAppPromo.banner.title')}</Text>
           <Text variant="body4" color="$neutral2">
