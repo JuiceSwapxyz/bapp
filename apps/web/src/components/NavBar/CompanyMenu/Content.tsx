@@ -20,6 +20,8 @@ export interface MenuSection {
 export enum MenuSectionTitle {
   Protocol = 'Protocol',
   Company = 'Company',
+  Products = 'Products',
+  NeedHelp = 'NeedHelp',
 }
 
 export const useMenuContent = (args?: {
@@ -36,6 +38,14 @@ export const useMenuContent = (args?: {
       },
       [MenuSectionTitle.Company]: {
         title: t('common.company'),
+        items: [],
+      },
+      [MenuSectionTitle.Products]: {
+        title: 'Products',
+        items: [],
+      },
+      [MenuSectionTitle.NeedHelp]: {
+        title: 'Need Help',
         items: [],
       },
     }

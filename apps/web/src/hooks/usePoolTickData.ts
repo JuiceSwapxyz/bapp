@@ -57,7 +57,7 @@ function usePaginatedTickQuery({
   const v3Result = useAllV3TicksQuery({
     variables: {
       address: poolId?.toLowerCase() ?? '',
-      chain: toGraphQLChain(supportedChainId ?? defaultChainId),
+      chain: toGraphQLChain(supportedChainId ?? defaultChainId) !== 'CITREA_TESTNET' ? toGraphQLChain(supportedChainId ?? defaultChainId) as any : undefined,
       skip,
       first: MAX_TICK_FETCH_VALUE,
     },
@@ -68,7 +68,7 @@ function usePaginatedTickQuery({
   const v4Result = useAllV4TicksQuery({
     variables: {
       poolId: poolId ?? '',
-      chain: toGraphQLChain(supportedChainId ?? defaultChainId),
+      chain: toGraphQLChain(supportedChainId ?? defaultChainId) !== 'CITREA_TESTNET' ? toGraphQLChain(supportedChainId ?? defaultChainId) as any : undefined,
       skip,
       first: MAX_TICK_FETCH_VALUE,
     },

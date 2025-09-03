@@ -97,7 +97,7 @@ export function usePoolData(
     error: errorV4,
     data: dataV4,
   } = useV4PoolQuery({
-    variables: { chain, poolId: poolIdOrAddress },
+    variables: { chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined, poolId: poolIdOrAddress },
     errorPolicy: 'all',
   })
   const {
@@ -105,7 +105,7 @@ export function usePoolData(
     error: errorV3,
     data: dataV3,
   } = useV3PoolQuery({
-    variables: { chain, address: poolIdOrAddress },
+    variables: { chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined, address: poolIdOrAddress },
     errorPolicy: 'all',
   })
   const {
@@ -113,8 +113,8 @@ export function usePoolData(
     error: errorV2,
     data: dataV2,
   } = useV2PairQuery({
-    variables: { chain, address: poolIdOrAddress },
-    skip: !chainId,
+    variables: { chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined, address: poolIdOrAddress },
+    skip: !chainId || chain === 'CITREA_TESTNET',
     errorPolicy: 'all',
   })
 

@@ -166,7 +166,7 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
   useOnGlobalChainSwitch(
     useCallback(
       (chain: UniverseChainId) => {
-        if (isBackendSupportedChain(toGraphQLChain(chain))) {
+        if (isBackendSupportedChain(toGraphQLChain(chain) !== 'CITREA_TESTNET' ? toGraphQLChain(chain) as any : 'ETHEREUM')) {
           navigate(getTokenExploreURL({ tab, chainUrlParam: getChainUrlParam(chain) }))
         }
       },

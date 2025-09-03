@@ -100,7 +100,7 @@ const PoolDetailsTitle = ({
         <StyledLink
           to={getTokenDetailsURL({
             address: token0?.address,
-            chain: graphQLChain,
+            chain: graphQLChain !== 'CITREA_TESTNET' ? graphQLChain as any : 'ETHEREUM',
           })}
         >
           <Text variant="heading1" fontSize={24} $md={{ variant: 'subheading1' }}>
@@ -110,7 +110,7 @@ const PoolDetailsTitle = ({
         <StyledLink
           to={getTokenDetailsURL({
             address: token1?.address,
-            chain: graphQLChain,
+            chain: graphQLChain !== 'CITREA_TESTNET' ? graphQLChain as any : 'ETHEREUM',
           })}
         >
           <Text variant="heading1" fontSize={24} $md={{ variant: 'subheading1' }}>

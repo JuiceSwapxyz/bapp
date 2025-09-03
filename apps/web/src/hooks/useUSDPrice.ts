@@ -140,7 +140,7 @@ export function useUSDPrice(
   const { data: tokenEthPrice, isLoading: isTokenEthPriceLoading } = useETHPrice(currency)
   const isTokenEthPriced = Boolean(tokenEthPrice || isTokenEthPriceLoading)
   const { data, networkStatus } = useTokenSpotPriceQuery({
-    variables: { chain, address: getNativeTokenDBAddress(chain) },
+    variables: { chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined, address: chain !== 'CITREA_TESTNET' ? getNativeTokenDBAddress(chain) : undefined },
     skip: !isTokenEthPriced || !isWindowVisible,
     pollInterval: PollingInterval.Normal,
     notifyOnNetworkStatusChange: true,

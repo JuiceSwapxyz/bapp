@@ -164,7 +164,7 @@ export function useTrackedTokenPairs(): [Token, Token][] {
   // TODO(WEB-4001): use an "all tokens" query for better LP detection
   const { data: popularTokens } = useTopTokensQuery({
     variables: {
-      chain: toGraphQLChain(supportedChainId ?? defaultChainId),
+      chain: toGraphQLChain(supportedChainId ?? defaultChainId) !== 'CITREA_TESTNET' ? toGraphQLChain(supportedChainId ?? defaultChainId) as any : 'ETHEREUM',
       orderBy: TokenSortableField.Popularity,
       page: 1,
       pageSize: 100,

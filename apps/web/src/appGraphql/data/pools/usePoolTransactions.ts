@@ -83,7 +83,8 @@ export function usePoolTransactions({
   first?: number
 }) {
   const { defaultChainId } = useEnabledChains()
-  const variables = { first, chain: toGraphQLChain(chainId ?? defaultChainId) }
+  const chain = toGraphQLChain(chainId ?? defaultChainId)
+  const variables = { first, chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined }
   const {
     loading: loadingV4,
     error: errorV4,
@@ -94,7 +95,7 @@ export function usePoolTransactions({
       ...variables,
       poolId: address,
     },
-    skip: protocolVersion !== ProtocolVersion.V4,
+    skip: protocolVersion !== ProtocolVersion.V4 || chain === 'CITREA_TESTNET',
   })
   const {
     loading: loadingV3,
@@ -106,7 +107,7 @@ export function usePoolTransactions({
       ...variables,
       address,
     },
-    skip: protocolVersion !== ProtocolVersion.V3,
+    skip: protocolVersion !== ProtocolVersion.V3 || chain === 'CITREA_TESTNET',
   })
   const {
     loading: loadingV2,
@@ -118,7 +119,7 @@ export function usePoolTransactions({
       ...variables,
       address,
     },
-    skip: !chainId || protocolVersion !== ProtocolVersion.V2,
+    skip: !chainId || protocolVersion !== ProtocolVersion.V2 || chain === 'CITREA_TESTNET',
   })
   const loadingMore = useRef(false)
   const { transactions, loading, fetchMore, error } =

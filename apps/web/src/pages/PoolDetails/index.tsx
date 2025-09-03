@@ -234,7 +234,7 @@ export default function PoolDetailsPage() {
                 poolData={poolData}
                 loading={loading}
                 isReversed={isReversed}
-                chain={chainInfo.backendChain.chain}
+                chain={chainInfo.backendChain.chain !== 'CITREA_TESTNET' ? chainInfo.backendChain.chain as any : 'ETHEREUM'}
               />
             </Column>
             <HR />

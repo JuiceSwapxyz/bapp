@@ -56,7 +56,7 @@ const RecentTransactions = memo(function RecentTransactions() {
   const chainInfo = getChainInfo(useChainIdFromUrlParam() ?? UniverseChainId.Mainnet)
   const { t } = useTranslation()
 
-  const { transactions, loading, loadMore, errorV2, errorV3 } = useAllTransactions(chainInfo.backendChain.chain, filter)
+  const { transactions, loading, loadMore, errorV2, errorV3 } = useAllTransactions(chainInfo.backendChain.chain !== 'CITREA_TESTNET' ? chainInfo.backendChain.chain as any : 'ETHEREUM', filter)
   const filteredTransactions = useFilteredTransactions(transactions)
 
   const combinedError =

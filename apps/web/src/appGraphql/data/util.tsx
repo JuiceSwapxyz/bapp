@@ -65,7 +65,7 @@ export type PricePoint = { timestamp: number; value: number }
 export function toContractInput(currency: Currency, fallback: UniverseChainId): ContractInput {
   const supportedChainId = toSupportedChainId(currency.chainId)
   const chain = toGraphQLChain(supportedChainId ?? fallback)
-  return { chain, address: currency.isToken ? currency.address : getNativeTokenDBAddress(chain) }
+  return { chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined, address: currency.isToken ? currency.address : (chain !== 'CITREA_TESTNET' ? getNativeTokenDBAddress(chain) : undefined) }
 }
 
 export function gqlToCurrency(token: DeepPartial<GqlToken | TokenStat>): Currency | undefined {

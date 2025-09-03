@@ -99,7 +99,7 @@ function usePoolTVL(token0: Token | undefined, token1: Token | undefined) {
   const chain = toGraphQLChain(token0?.chainId ?? defaultChainId)
   const { loading, error, data } = useFeeTierDistributionQuery({
     variables: {
-      chain,
+      chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined,
       token0: token0?.address ?? '',
       token1: token1?.address ?? '',
     },
@@ -107,7 +107,7 @@ function usePoolTVL(token0: Token | undefined, token1: Token | undefined) {
   })
 
   const { data: isSubgraphStaleData, error: isSubgraphStaleError } = useIsV3SubgraphStaleQuery({
-    variables: { chain },
+    variables: { chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined },
     pollInterval: ms(`30s`),
   })
 

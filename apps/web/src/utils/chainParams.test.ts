@@ -36,11 +36,11 @@ describe('getChainUrlParam', () => {
 
 describe('getChainIdFromBackendChain', () => {
   it('should return url param for ethereum', () => {
-    expect(getChainIdFromBackendChain(toGraphQLChain(UniverseChainId.Mainnet))).toBe(UniverseChainId.Mainnet)
+    expect(getChainIdFromBackendChain(toGraphQLChain(UniverseChainId.Mainnet) as any)).toBe(UniverseChainId.Mainnet)
   })
 
   it('should return url param for unichain sepolia', () => {
-    expect(getChainIdFromBackendChain(toGraphQLChain(UniverseChainId.UnichainSepolia))).toBe(
+    expect(getChainIdFromBackendChain(toGraphQLChain(UniverseChainId.UnichainSepolia) as any)).toBe(
       UniverseChainId.UnichainSepolia,
     )
   })

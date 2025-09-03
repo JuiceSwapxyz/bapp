@@ -132,7 +132,7 @@ const OtherChainsBalanceSummary = ({
               navigate(
                 getTokenDetailsURL({
                   address: currency.isToken ? currency.address : undefined,
-                  chain: toGraphQLChain(chainId),
+                  chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? toGraphQLChain(chainId) as any : 'ETHEREUM',
                 }),
               )
             }

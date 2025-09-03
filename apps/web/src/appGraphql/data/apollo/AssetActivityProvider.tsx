@@ -32,7 +32,7 @@ function AssetActivityProviderInternal({ children }: PropsWithChildren) {
   const variables = useMemo(
     () => ({
       account: account.address ?? '',
-      chains: gqlChains,
+      chains: gqlChains.filter(chain => chain !== 'CITREA_TESTNET') as any,
       // Backend will return off-chain activities even if gqlChains are all testnets.
       includeOffChain: !isTestnetModeEnabled,
       // Include the externalsessionIDs of all FOR transactions in the local store,

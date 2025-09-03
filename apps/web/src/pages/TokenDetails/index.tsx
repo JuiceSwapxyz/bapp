@@ -127,13 +127,13 @@ function useCreateTDPContext(): PendingTDPContext | LoadedTDPContext {
 
   const isNative = tokenAddress === NATIVE_CHAIN_ID
 
-  const tokenDBAddress = isNative ? getNativeTokenDBAddress(currencyChainInfo.backendChain.chain) : tokenAddress
+  const tokenDBAddress = isNative ? getNativeTokenDBAddress(currencyChainInfo.backendChain.chain !== 'CITREA_TESTNET' ? currencyChainInfo.backendChain.chain as any : 'ETHEREUM') : tokenAddress
 
   const tokenQuery = useTokenWebQuery({
-    variables: { address: tokenDBAddress, chain: currencyChainInfo.backendChain.chain },
+    variables: { address: tokenDBAddress, chain: currencyChainInfo.backendChain.chain !== 'CITREA_TESTNET' ? currencyChainInfo.backendChain.chain as any : 'ETHEREUM' },
     errorPolicy: 'all',
   })
-  const chartState = useCreateTDPChartState(tokenDBAddress, currencyChainInfo.backendChain.chain)
+  const chartState = useCreateTDPChartState(tokenDBAddress, currencyChainInfo.backendChain.chain !== 'CITREA_TESTNET' ? currencyChainInfo.backendChain.chain as any : 'ETHEREUM')
 
   const multiChainMap = useMultiChainMap(tokenQuery)
 
@@ -159,7 +159,7 @@ function useCreateTDPContext(): PendingTDPContext | LoadedTDPContext {
   return useMemo(() => {
     return {
       currency,
-      currencyChain: currencyChainInfo.backendChain.chain,
+      currencyChain: currencyChainInfo.backendChain.chain !== 'CITREA_TESTNET' ? currencyChainInfo.backendChain.chain as any : 'ETHEREUM',
       currencyChainId: currencyChainInfo.id,
       // `currency.address` is checksummed, whereas the `tokenAddress` url param may not be
       address: (currency?.isNative ? NATIVE_CHAIN_ID : currency?.address) ?? tokenAddress,
