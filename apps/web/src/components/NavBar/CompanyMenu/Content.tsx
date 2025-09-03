@@ -75,11 +75,7 @@ export const useMenuContent = (args?: {
       },
       [MenuSectionTitle.Protocol]: {
         title: t('common.protocol'),
-        items: [
-          { label: t('common.vote'), href: uniswapUrls.voteUrl },
-          { label: t('common.governance'), href: uniswapUrls.governanceUrl },
-          { label: t('common.developers'), href: uniswapUrls.developersUrl },
-        ],
+        items: [{ label: t('common.developers'), href: 'https://docs.juiceswap.xyz/' }],
       },
       [MenuSectionTitle.Company]: {
         title: t('common.company'),

@@ -85,11 +85,12 @@ export const colors = {
   blue900: '#040E34',
   blueVibrant: '#587BFF',
   // TODO: add magenta 50-900
-  magenta300: '#FD82FF',
-  magentaVibrant: '#FC72FF',
+  magenta300: '#FF8934',
+  magentaVibrant: '#FF4D00',
   purple300: '#8440F2',
   purple900: '#1C0337',
   purpleVibrant: '#6100FF',
+  promotional: '#FF8934',
   // TODO: add all other vibrant variations
   networkEthereum: '#627EEA',
   networkOptimism: '#FF0420',
@@ -156,6 +157,7 @@ export const colors = {
   critical2_dark: colorsDark.statusCritical2,
   critical2_light: colorsLight.statusCritical2,
   scrim: colorsLight.scrim,
+  brandedGradient: 'linear-gradient(135deg, #FF8934 0%, #FF4D00 100%)',
 }
 
 export type ThemeColors = typeof darkTheme
