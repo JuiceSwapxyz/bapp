@@ -25,9 +25,10 @@ export function ChooseUnitagModal({
   const onContinue = useCallback(
     (unitag: string) => {
       setUnitag(unitag)
-      setPage(Page.PasskeyGeneration)
+      // PasskeyGeneration page removed - functionality no longer exists
+      onClose() // Close modal instead
     },
-    [setPage, setUnitag],
+    [setUnitag, onClose],
   )
 
   return (

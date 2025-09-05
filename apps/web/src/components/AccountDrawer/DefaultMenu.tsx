@@ -4,7 +4,7 @@ import LocalCurrencyMenu from 'components/AccountDrawer/LocalCurrencyMenu'
 import { LimitsMenu } from 'components/AccountDrawer/MiniPortfolio/Limits/LimitsMenu'
 import { UniExtensionPoolsMenu } from 'components/AccountDrawer/MiniPortfolio/Pools/UniExtensionPoolsMenu'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
-import PasskeyMenu from 'components/AccountDrawer/PasskeyMenu/PasskeyMenu'
+// PasskeyMenu removed - functionality no longer exists
 import PortfolioBalanceMenu from 'components/AccountDrawer/PortfolioBalanceMenu'
 import SettingsMenu from 'components/AccountDrawer/SettingsMenu'
 import { MenuState, miniPortfolioMenuStateAtom } from 'components/AccountDrawer/constants'
@@ -110,7 +110,7 @@ function DefaultMenu() {
       case MenuState.POOLS:
         return account.address ? <UniExtensionPoolsMenu account={account.address} onClose={closeLimitsMenu} /> : null
       case MenuState.PASSKEYS:
-        return <PasskeyMenu onClose={openSettings} />
+        return null // PasskeyMenu removed
     }
   }, [
     account.address,

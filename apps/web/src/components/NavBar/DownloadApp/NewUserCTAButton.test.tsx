@@ -1,6 +1,3 @@
-import { NewUserCTAButton } from 'components/NavBar/DownloadApp/NewUserCTAButton'
-import { render, screen } from 'test-utils/render'
-
 vi.mock('uniswap/src/features/gating/hooks', () => ({
   useFeatureFlag: vi.fn(),
   getFeatureFlag: vi.fn(),
@@ -13,11 +10,9 @@ beforeEach(() => {
   }))
 })
 
+// NewUserCTAButton component has been removed
 describe('NewUserCTAButton', () => {
-  it('displays a button with call to action text and icons', () => {
-    const { container } = render(<NewUserCTAButton />)
-
-    expect(container).toMatchSnapshot()
-    expect(screen.getByText('Get the app')).toBeVisible()
+  it.skip('displays a button with call to action text and icons', () => {
+    // Component no longer exists - test skipped
   })
 })

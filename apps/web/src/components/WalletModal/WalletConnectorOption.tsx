@@ -78,9 +78,7 @@ function getIcon({
 }) {
   const iconSize = isEmbeddedWalletEnabled ? iconSizes.icon32 : iconSizes.icon40
 
-  if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID) {
-    return <EmbeddedWalletIcon />
-  } else if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID) {
+  if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID) {
     return <UniswapMobileIcon iconSize={iconSize} />
   } else if (walletConnectorMeta.wagmi?.id === CONNECTION_PROVIDER_IDS.BINANCE_WALLET_CONNECTOR_ID) {
     return <BinanceWalletIcon iconSize={iconSize} />
@@ -110,8 +108,6 @@ function getConnectorText({
 }) {
   if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID) {
     return t('common.uniswapMobile')
-  } else if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID) {
-    return t('account.passkey.log.in.title')
   } else {
     return walletConnectorMeta.name
   }

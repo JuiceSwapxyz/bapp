@@ -1,7 +1,7 @@
 import { SharedEventName } from '@uniswap/analytics-events'
 import { WalletAlertBadge } from 'components/Badge/WalletAlertBadge'
 import { Dialog } from 'components/Dialog/Dialog'
-import { useWalletDisplay } from 'components/Web3Status/RecentlyConnectedModal'
+// useWalletDisplay removed from RecentlyConnectedModal - implementing locally
 import { useAccount } from 'hooks/useAccount'
 import { useDisconnect } from 'hooks/useDisconnect'
 import { useTheme } from 'lib/styled-components'
@@ -9,10 +9,28 @@ import { useTranslation } from 'react-i18next'
 import { Flex, Text } from 'ui/src'
 import { Blocked } from 'ui/src/components/icons/Blocked'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
+import { DisplayNameType } from 'uniswap/src/features/accounts/types'
+import { useOnchainDisplayName } from 'uniswap/src/features/accounts/useOnchainDisplayName'
 import { Trace } from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send.web'
+import { shortenAddress } from 'utilities/src/addresses'
 import { useEvent } from 'utilities/src/react/hooks'
+
+// Local implementation of wallet display logic since useWalletDisplay was removed
+function useWalletDisplay(walletAddress: string | undefined) {
+  const displayName = useOnchainDisplayName(walletAddress, {
+    showShortenedEns: true,
+    includeUnitagSuffix: true,
+  })
+
+  return {
+    displayName: displayName?.name ?? shortenAddress(walletAddress),
+    showUnitagIcon: displayName?.type === DisplayNameType.Unitag,
+    showShortAddress: displayName?.type === DisplayNameType.Unitag || displayName?.type === DisplayNameType.ENS,
+    shortAddress: shortenAddress(walletAddress),
+  }
+}
 
 interface DelegationMismatchModalProps {
   onClose: () => void

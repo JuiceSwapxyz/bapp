@@ -1,6 +1,6 @@
 import { useModalState } from 'hooks/useModalState'
 import styledDep from 'lib/styled-components'
-import { useExternallyConnectableExtensionId } from 'pages/ExtensionPasskeyAuthPopUp/useExternallyConnectableExtensionId'
+// useExternallyConnectableExtensionId removed - functionality no longer exists
 import type { ChangeEvent, PropsWithChildren } from 'react'
 import { useCallback } from 'react'
 import { Button, Flex, ModalCloseIcon, Text, styled } from 'ui/src'
@@ -221,7 +221,7 @@ export default function FeatureFlagModal() {
           <FeatureFlagGroup name="Embedded Wallet">
             <FeatureFlagOption flag={FeatureFlags.EmbeddedWallet} label="Add internal embedded wallet functionality" />
             <DynamicConfigDropdown
-              selected={[useExternallyConnectableExtensionId()]}
+              selected={[]}
               options={TRUSTED_CHROME_EXTENSION_IDS}
               parser={(id) => id}
               config={DynamicConfigs.ExternallyConnectableExtension}

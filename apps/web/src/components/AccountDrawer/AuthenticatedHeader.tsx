@@ -19,7 +19,6 @@ import { useAccount } from 'hooks/useAccount'
 import { useDisconnect } from 'hooks/useDisconnect'
 import { useIsUniExtensionConnected } from 'hooks/useIsUniExtensionConnected'
 import { useModalState } from 'hooks/useModalState'
-import { useSignOutWithPasskey } from 'hooks/useSignOutWithPasskey'
 import { useAtom } from 'jotai'
 import { SendFormModal } from 'pages/Swap/Send/SendFormModal'
 import { useCallback, useState } from 'react'
@@ -37,7 +36,6 @@ import AnimatedNumber, {
 } from 'uniswap/src/components/AnimatedNumber/AnimatedNumber'
 import { RelativeChange } from 'uniswap/src/components/RelativeChange/RelativeChange'
 import { TestnetModeBanner } from 'uniswap/src/components/banners/TestnetModeBanner'
-import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { useUnitagsAddressQuery } from 'uniswap/src/data/apiClients/unitagsApi/useUnitagsAddressQuery'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { usePortfolioTotalValue } from 'uniswap/src/features/dataApi/balances/balances'
@@ -73,9 +71,6 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
 
   const { isTestnetModeEnabled } = useEnabledChains()
   const connectedAccount = useAccount()
-  const connectedWithEmbeddedWallet =
-    connectedAccount.connector?.id === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID
-  const { signOutWithPasskey } = useSignOutWithPasskey()
   const isRightToLeft = i18next.dir() === 'rtl'
 
   const unclaimedAmount: CurrencyAmount<Token> | undefined = useUserUnclaimedAmount(account)
@@ -86,13 +81,10 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
   const dispatch = useDispatch()
 
   const handleDisconnect = useCallback(async () => {
-    if (connectedWithEmbeddedWallet) {
-      await signOutWithPasskey()
-    }
     dispatch(setIsTestnetModeEnabled(false))
     disconnect()
     accountDrawer.close()
-  }, [connectedWithEmbeddedWallet, dispatch, disconnect, accountDrawer, signOutWithPasskey])
+  }, [dispatch, disconnect, accountDrawer])
 
   const handleBuyCryptoClick = useCallback(() => {
     accountDrawer.close()

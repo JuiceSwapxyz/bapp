@@ -138,6 +138,10 @@ export const networkColors = {
     light: '#222222',
     dark: '#FCFF52',
   },
+  citrea: {
+    light: '#FF8934',
+    dark: '#FF8934',
+  },
   monad: {
     light: '#836EF9',
     dark: '#836EF9',
@@ -345,6 +349,7 @@ export const colorsLight = {
   // Testnets
   chain_11155111: networkColors.ethereum.light,
   chain_1301: networkColors.unichain.light,
+  chain_5115: networkColors.citrea.light,
   chain_10143: networkColors.monad.light,
 
   pinkThemed: colors.pinkLight,
@@ -434,6 +439,7 @@ export const colorsDark = {
   // Testnets
   chain_11155111: networkColors.ethereum.dark,
   chain_1301: networkColors.unichain.dark,
+  chain_5115: networkColors.citrea.dark,
   chain_10143: networkColors.monad.dark,
 
   pinkThemed: colors.pinkDark,
