@@ -111,7 +111,7 @@ export function LiquidityRangeInput({
     // If the Pool doesn't exist, the poolId is undefined and we skip this query.
     variables: {
       addressOrId: poolId,
-      chain: chainInfo.backendChain.chain !== 'CITREA_TESTNET' ? chainInfo.backendChain.chain as any : 'ETHEREUM',
+      chain: chainInfo.backendChain.chain !== 'CITREA_TESTNET' ? (chainInfo.backendChain.chain as any) : 'ETHEREUM',
       duration: selectedHistoryDuration,
       isV4: protocolVersion === ProtocolVersion.V4,
       isV3: protocolVersion === ProtocolVersion.V3,

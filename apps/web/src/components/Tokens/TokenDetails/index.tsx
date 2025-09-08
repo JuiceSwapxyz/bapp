@@ -175,7 +175,13 @@ function TDPSwapComponent() {
       const url = getTokenDetailsURL({
         // The function falls back to "NATIVE" if the address is null
         address: newDefaultToken.isNative ? null : newDefaultToken.address,
-        chain: toGraphQLChain(isUniverseChainId(newDefaultToken.chainId) ? newDefaultToken.chainId : currencyChainId) !== 'CITREA_TESTNET' ? toGraphQLChain(isUniverseChainId(newDefaultToken.chainId) ? newDefaultToken.chainId : currencyChainId) as any : 'ETHEREUM',
+        chain:
+          toGraphQLChain(isUniverseChainId(newDefaultToken.chainId) ? newDefaultToken.chainId : currencyChainId) !==
+          'CITREA_TESTNET'
+            ? (toGraphQLChain(
+                isUniverseChainId(newDefaultToken.chainId) ? newDefaultToken.chainId : currencyChainId,
+              ) as any)
+            : 'ETHEREUM',
         inputAddress: inputCurrencyURLAddress,
         outputAddress: outputCurrencyURLAddress,
       })

@@ -74,7 +74,7 @@ function TokenBalancesProviderInternal({ children }: PropsWithChildren) {
     lazyFetch({
       variables: {
         ownerAddress: account.address,
-        chains: gqlChains.filter(chain => chain !== 'CITREA_TESTNET') as any,
+        chains: gqlChains.filter((chain) => chain !== 'CITREA_TESTNET') as any,
         valueModifiers,
       },
     })

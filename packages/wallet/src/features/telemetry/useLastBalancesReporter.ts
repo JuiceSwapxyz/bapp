@@ -61,7 +61,13 @@ export function useLastBalancesReporter({ isOnboarded }: { isOnboarded: boolean 
 
   const portfolioBalancesGraphQLQuery = usePortfolioBalancesQuery({
     fetchPolicy: 'cache-first',
-    variables: account?.address ? { ownerAddress: account.address, chains: gqlChains.filter(chain => chain !== 'CITREA_TESTNET') as any, valueModifiers } : undefined,
+    variables: account?.address
+      ? {
+          ownerAddress: account.address,
+          chains: gqlChains.filter((chain) => chain !== 'CITREA_TESTNET') as any,
+          valueModifiers,
+        }
+      : undefined,
     skip: isRestEnabled || !account?.address,
   })
 

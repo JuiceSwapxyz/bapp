@@ -207,7 +207,10 @@ function TokenTable({
           ),
           link: getTokenDetailsURL({
             address: unwrappedToken.address,
-            chain: toGraphQLChain(chainId ?? defaultChainId) !== 'CITREA_TESTNET' ? toGraphQLChain(chainId ?? defaultChainId) as any : 'ETHEREUM',
+            chain:
+              toGraphQLChain(chainId ?? defaultChainId) !== 'CITREA_TESTNET'
+                ? (toGraphQLChain(chainId ?? defaultChainId) as any)
+                : 'ETHEREUM',
           }),
           analytics: {
             elementName: ElementName.TokensTableRow,

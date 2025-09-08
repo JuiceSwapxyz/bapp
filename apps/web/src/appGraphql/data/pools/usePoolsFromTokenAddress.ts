@@ -39,7 +39,7 @@ export function usePoolsFromTokenAddress({
     variables: {
       first: DEFAULT_QUERY_SIZE,
       tokenAddress: isNative ? DEFAULT_NATIVE_ADDRESS : tokenAddress,
-      chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined,
+      chain: chain !== 'CITREA_TESTNET' ? (chain as any) : undefined,
     },
   })
 
@@ -52,7 +52,7 @@ export function usePoolsFromTokenAddress({
     variables: {
       first: DEFAULT_QUERY_SIZE,
       tokenAddress,
-      chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined,
+      chain: chain !== 'CITREA_TESTNET' ? (chain as any) : undefined,
     },
   })
 
@@ -65,7 +65,7 @@ export function usePoolsFromTokenAddress({
     variables: {
       first: DEFAULT_QUERY_SIZE,
       tokenAddress,
-      chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined,
+      chain: chain !== 'CITREA_TESTNET' ? (chain as any) : undefined,
     },
     skip: !chainId || chain === 'CITREA_TESTNET',
   })

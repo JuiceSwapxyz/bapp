@@ -41,7 +41,7 @@ export function useAvatarSelectionHandler({
       ownerAddress: address,
       first: NUM_FIRST_NFTS,
       filter: { filterSpam: false },
-      chains: gqlChains.filter(chain => chain !== 'CITREA_TESTNET') as any,
+      chains: gqlChains.filter((chain) => chain !== 'CITREA_TESTNET') as any,
     },
   })
   const nftItems = formatNftItems(nftsData)

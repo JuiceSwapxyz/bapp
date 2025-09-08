@@ -151,7 +151,10 @@ const PoolBalanceTokenNames = ({ token, chainId }: { token: TokenFullData; chain
         <StyledLink
           to={getTokenDetailsURL({
             address: unwrappedToken.address,
-            chain: toGraphQLChain(chainId ?? defaultChainId) !== 'CITREA_TESTNET' ? toGraphQLChain(chainId ?? defaultChainId) as any : 'ETHEREUM',
+            chain:
+              toGraphQLChain(chainId ?? defaultChainId) !== 'CITREA_TESTNET'
+                ? (toGraphQLChain(chainId ?? defaultChainId) as any)
+                : 'ETHEREUM',
           })}
         >
           {unwrappedToken.symbol}

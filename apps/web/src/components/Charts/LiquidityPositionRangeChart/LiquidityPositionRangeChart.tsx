@@ -464,7 +464,7 @@ function LiquidityPositionRangeChart({
   const variables = poolAddressOrId
     ? {
         addressOrId: poolAddressOrId,
-        chain: chainInfo.backendChain.chain !== 'CITREA_TESTNET' ? chainInfo.backendChain.chain as any : 'ETHEREUM',
+        chain: chainInfo.backendChain.chain !== 'CITREA_TESTNET' ? (chainInfo.backendChain.chain as any) : 'ETHEREUM',
         duration: duration ?? HistoryDuration.Month,
         isV4,
         isV3,

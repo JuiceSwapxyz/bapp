@@ -84,7 +84,7 @@ export function usePoolTransactions({
 }) {
   const { defaultChainId } = useEnabledChains()
   const chain = toGraphQLChain(chainId ?? defaultChainId)
-  const variables = { first, chain: chain !== 'CITREA_TESTNET' ? chain as any : undefined }
+  const variables = { first, chain: chain !== 'CITREA_TESTNET' ? (chain as any) : undefined }
   const {
     loading: loadingV4,
     error: errorV4,

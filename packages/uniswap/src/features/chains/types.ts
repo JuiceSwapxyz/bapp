@@ -18,6 +18,7 @@ export enum UniverseChainId {
   Bnb = UniswapSDKChainId.BNB,
   Celo = UniswapSDKChainId.CELO,
   MonadTestnet = UniswapSDKChainId.MONAD_TESTNET,
+  CitreaTestnet = 5115,
   Optimism = UniswapSDKChainId.OPTIMISM,
   Polygon = UniswapSDKChainId.POLYGON,
   Sepolia = UniswapSDKChainId.SEPOLIA,
@@ -27,7 +28,6 @@ export enum UniverseChainId {
   WorldChain = UniswapSDKChainId.WORLDCHAIN,
   Zksync = UniswapSDKChainId.ZKSYNC,
   Zora = UniswapSDKChainId.ZORA,
-  CitreaTestnet = 5115,
   Solana = 501000101,
 }
 

@@ -88,7 +88,6 @@ function Section({ title, items, closeMenu }: MenuSection) {
   )
 }
 
-
 export function MenuDropdown({ close }: { close?: () => void }) {
   const { t } = useTranslation()
   const isConversionTrackingEnabled = useFeatureFlag(FeatureFlags.ConversionTracking)

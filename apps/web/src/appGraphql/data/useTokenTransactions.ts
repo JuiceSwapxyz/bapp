@@ -48,7 +48,7 @@ export function useTokenTransactions({
   } = useV4TokenTransactionsQuery({
     variables: {
       address: normalizeTokenAddressForCache(address),
-      chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? toGraphQLChain(chainId) as any : undefined,
+      chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? (toGraphQLChain(chainId) as any) : undefined,
       first: TokenTransactionDefaultQuerySize,
     },
   })
@@ -60,7 +60,7 @@ export function useTokenTransactions({
   } = useV3TokenTransactionsQuery({
     variables: {
       address: normalizeTokenAddressForCache(address),
-      chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? toGraphQLChain(chainId) as any : undefined,
+      chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? (toGraphQLChain(chainId) as any) : undefined,
       first: TokenTransactionDefaultQuerySize,
     },
   })
@@ -73,7 +73,7 @@ export function useTokenTransactions({
     variables: {
       address: normalizeTokenAddressForCache(address),
       first: TokenTransactionDefaultQuerySize,
-      chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? toGraphQLChain(chainId) as any : undefined,
+      chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? (toGraphQLChain(chainId) as any) : undefined,
     },
   })
   const loadingMoreV4 = useRef(false)

@@ -56,7 +56,7 @@ function useGraphQLEagerExternalProfileNavigation(): EagerExternalProfileNavigat
 
   const preload = useCallback(
     async (address: string) => {
-      await load({ variables: { address, chains: gqlChains.filter(chain => chain !== 'CITREA_TESTNET') as any } })
+      await load({ variables: { address, chains: gqlChains.filter((chain) => chain !== 'CITREA_TESTNET') as any } })
     },
     [gqlChains, load],
   )
@@ -102,7 +102,7 @@ function useGraphQLEagerExternalProfileRootNavigation(): EagerExternalProfileRoo
       await load({
         variables: {
           address,
-          chains: gqlChains.filter(chain => chain !== 'CITREA_TESTNET') as any,
+          chains: gqlChains.filter((chain) => chain !== 'CITREA_TESTNET') as any,
         },
       })
     },

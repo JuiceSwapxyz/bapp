@@ -50,7 +50,7 @@ function Token({ chainId, address }: { chainId: UniverseChainId; address: string
   const tokenPromoQuery = useTokenPromoQuery({
     variables: {
       address: currency?.wrapped.address,
-      chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? toGraphQLChain(chainId) as any : 'ETHEREUM',
+      chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? (toGraphQLChain(chainId) as any) : 'ETHEREUM',
     },
   })
   const price = tokenPromoQuery.data?.token?.market?.price?.value ?? 0
@@ -73,7 +73,7 @@ function Token({ chainId, address }: { chainId: UniverseChainId; address: string
         navigate(
           getTokenDetailsURL({
             address: address === 'ETH' ? NATIVE_CHAIN_ID : address,
-            chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? toGraphQLChain(chainId) as any : 'ETHEREUM',
+            chain: toGraphQLChain(chainId) !== 'CITREA_TESTNET' ? (toGraphQLChain(chainId) as any) : 'ETHEREUM',
           }),
         )
       }}
