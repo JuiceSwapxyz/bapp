@@ -22,7 +22,7 @@ export function setupi18n(): undefined {
       resourcesToBackend((locale: string) => {
         // eslint-disable-next-line no-console
         console.log(`CLAUDE DEBUG: Attempting to load locale: ${locale}`)
-        
+
         // not sure why but it tries to load es THEN es-ES, for any language, but we just want the second
         if (!locale.includes('-')) {
           // eslint-disable-next-line no-console
