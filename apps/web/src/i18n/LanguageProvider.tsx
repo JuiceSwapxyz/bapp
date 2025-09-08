@@ -14,18 +14,23 @@ function getStoreLocale(): Locale | undefined {
 
 function setupInitialLanguage() {
   const lngQuery = typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('lng') : ''
+  // eslint-disable-next-line no-console
   console.log(`CLAUDE DEBUG: URL lng parameter: "${lngQuery}"`)
   
   const parsedLocale = parseLocale(lngQuery)
+  // eslint-disable-next-line no-console
   console.log(`CLAUDE DEBUG: Parsed locale: ${parsedLocale}`)
   
   const storeLocale = getStoreLocale()
+  // eslint-disable-next-line no-console
   console.log(`CLAUDE DEBUG: Store locale: ${storeLocale}`)
   
   const navLocale = navigatorLocale()
+  // eslint-disable-next-line no-console
   console.log(`CLAUDE DEBUG: Navigator locale: ${navLocale}`)
   
   const initialLocale = parsedLocale ?? storeLocale ?? navLocale ?? DEFAULT_LOCALE
+  // eslint-disable-next-line no-console
   console.log(`CLAUDE DEBUG: Final initial locale: ${initialLocale}`)
   
   changeLanguage(initialLocale)

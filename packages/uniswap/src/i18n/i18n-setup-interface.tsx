@@ -20,20 +20,24 @@ export function setupi18n(): undefined {
     .use(initReactI18next)
     .use(
       resourcesToBackend((locale: string) => {
+        // eslint-disable-next-line no-console
         console.log(`CLAUDE DEBUG: Attempting to load locale: ${locale}`)
         
         // not sure why but it tries to load es THEN es-ES, for any language, but we just want the second
         if (!locale.includes('-')) {
+          // eslint-disable-next-line no-console
           console.log(`CLAUDE DEBUG: Skipping locale without dash: ${locale}`)
           return undefined
         }
 
         if (locale === Locale.EnglishUnitedStates) {
+          // eslint-disable-next-line no-console
           console.log(`CLAUDE DEBUG: Loading English US locale`)
           return enUsLocale
         }
 
         const fileName = getLocaleTranslationKey(locale)
+        // eslint-disable-next-line no-console
         console.log(`CLAUDE DEBUG: Loading translation file: ./locales/translations/${fileName}.json`)
 
         // eslint-disable-next-line no-unsanitized/method
@@ -42,6 +46,7 @@ export function setupi18n(): undefined {
     )
     // eslint-disable-next-line max-params
     .on('failedLoading', (language, namespace, msg) => {
+      // eslint-disable-next-line no-console
       console.error(`CLAUDE DEBUG: Failed loading language ${language} namespace ${namespace}: ${msg}`)
       logger.error(new Error(`Error loading language ${language} ${namespace}: ${msg}`), {
         tags: {
