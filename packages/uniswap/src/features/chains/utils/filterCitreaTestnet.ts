@@ -8,8 +8,9 @@ import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/t
  * @returns Filtered array without CITREA_TESTNET, properly typed
  */
 export function filterCitreaTestnet<T extends Chain>(chains: readonly T[]): T[] {
-  // Type assertion is safe here because we know the filtered result
-  // will still be a valid subset of the original chain type
+  // Filter out CITREA_TESTNET - the comparison with string literal is intentional
+  // since CITREA_TESTNET is not part of the Chain enum from GraphQL
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return chains.filter((chain): chain is T => chain !== ('CITREA_TESTNET' as any))
 }
 

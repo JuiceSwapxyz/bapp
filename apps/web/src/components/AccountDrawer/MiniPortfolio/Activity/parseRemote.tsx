@@ -142,11 +142,6 @@ function callsV4PositionManagerContract(assetActivity: TransactionActivity) {
     return false
   }
 
-  // citrea testnet does not have v4 support
-  if (supportedChain === UniverseChainId.CitreaTestnet) {
-    return false
-  }
-
   return (
     isEVMChain(supportedChain) &&
     CHAIN_TO_ADDRESSES_MAP[supportedChain]?.v4PositionManagerAddress &&
