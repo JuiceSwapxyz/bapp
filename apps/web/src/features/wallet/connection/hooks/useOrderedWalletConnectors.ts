@@ -4,8 +4,6 @@ import { WalletConnectorMeta } from 'features/wallet/connection/types/WalletConn
 import { getConnectorWithIdWithThrow, isEqualWalletConnectorMetaId } from 'features/wallet/connection/utils'
 import { useCallback, useMemo } from 'react'
 import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { isPlaywrightEnv } from 'utilities/src/environment/env'
 import { isMobileWeb } from 'utilities/src/platform'
 
@@ -146,7 +144,8 @@ export function useOrderedWalletConnectors({
 }: {
   showSecondaryConnectors: boolean
 }): WalletConnectorMeta[] {
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
+  // Embedded wallet feature was removed - always disabled
+  const isEmbeddedWalletEnabled = false
 
   const connectors = useWalletConnectors()
   const recentConnectorId = useRecentConnectorId()
@@ -159,12 +158,8 @@ export function useOrderedWalletConnectors({
       isEmbeddedWalletEnabled,
     })
     const isBinanceBrowser = isBinanceWalletBrowser(connectors)
-    const embeddedWalletConnector = isEmbeddedWalletEnabled
-      ? getConnectorWithIdWithThrow({
-          connectors,
-          id: CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID,
-        })
-      : undefined
+    // Embedded wallet connector was removed - always return undefined
+    const embeddedWalletConnector = undefined
     const coinbaseSdkConnector = getConnectorWithIdWithThrow({
       connectors,
       id: CONNECTION_PROVIDER_IDS.COINBASE_SDK_CONNECTOR_ID,
