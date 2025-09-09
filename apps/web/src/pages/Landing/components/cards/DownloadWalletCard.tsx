@@ -1,40 +1,20 @@
-// import { Alignment, Fit, Layout, useRive } from '@rive-app/react-canvas'
-
 import { Wallet } from 'pages/Landing/components/Icons'
 import { PillButton } from 'pages/Landing/components/cards/PillButton'
 import ValuePropCard from 'pages/Landing/components/cards/ValuePropCard'
+import { Suspense, lazy } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
+import { useIsDarkMode } from 'theme/components/ThemeToggle'
 import { useSporeColors } from 'ui/src'
 import { Star } from 'ui/src/components/icons/Star'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 
+// Lazy load the Rive animation component to avoid SSR issues
+const RiveAnimation = lazy(() => import('./RiveAnimation'))
+
 export function DownloadWalletCard() {
   const theme = useSporeColors()
-  // const isDarkMode = useIsDarkMode()
+  const isDarkMode = useIsDarkMode()
   const { t } = useTranslation()
-
-  // Temporarily disable Rive animations due to hooks error
-  // const [isClient, setIsClient] = useState(false)
-
-  // useEffect(() => {
-  //   setIsClient(true)
-  // }, [])
-
-  // const { rive: lightAnimation, RiveComponent: LightAnimation } = useRive({
-  //   src: '/rive/landing-page.riv',
-  //   artboard: 'Mobile-Light',
-  //   stateMachines: 'Animation',
-  //   layout: new Layout({ fit: Fit.Contain, alignment: Alignment.BottomCenter }),
-  //   autoplay: isClient,
-  // })
-
-  // const { rive: darkAnimation, RiveComponent: DarkAnimation } = useRive({
-  //   src: '/rive/landing-page.riv',
-  //   artboard: 'Mobile-Dark',
-  //   stateMachines: 'Animation',
-  //   layout: new Layout({ fit: Fit.Contain, alignment: Alignment.BottomCenter }),
-  //   autoplay: isClient,
-  // })
 
   return (
     <ValuePropCard
@@ -72,14 +52,9 @@ export function DownloadWalletCard() {
         minHeight: 540,
       }}
     >
-      {/* Temporarily disabled due to Rive hooks error */}
-      {/* <Flex width="100%" height="60%" position="absolute" m="auto" bottom={0} zIndex={1}>
-        {isDarkMode ? (
-          <DarkAnimation onMouseEnter={() => darkAnimation?.play()} />
-        ) : (
-          <LightAnimation onMouseEnter={() => lightAnimation?.play()} />
-        )}
-      </Flex> */}
+      <Suspense fallback={null}>
+        <RiveAnimation isDarkMode={isDarkMode} />
+      </Suspense>
     </ValuePropCard>
   )
 }
