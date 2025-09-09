@@ -106,7 +106,7 @@ export function useDerivedSwapInfo({
     sendPortionEnabled,
     isDebouncing,
     generatePermitAsTransaction,
-    isV4HookPoolsEnabled,
+    isV4HookPoolsEnabled: false,
   })
 
   const displayableTrade = trade.trade ?? trade.indicativeTrade
