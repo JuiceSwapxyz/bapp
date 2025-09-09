@@ -1,10 +1,10 @@
+import { SwapRouter } from '@uniswap/router-sdk'
+import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
+import { Pool as V3Pool, Route as V3Route, Trade as V3Trade } from '@uniswap/v3-sdk'
 import { config } from 'uniswap/src/config'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
-import { Percent, CurrencyAmount, Token } from '@uniswap/sdk-core'
-import { Pool as V3Pool, Route as V3Route, Trade as V3Trade } from '@uniswap/v3-sdk'
-import { SwapRouter } from '@uniswap/router-sdk'
 import {
   Address,
   ApprovalRequest,
@@ -213,34 +213,34 @@ function buildV3Transaction(quote: ClassicQuote): CreateSwapResponse | undefined
       const tokenIn = new Token(
         1, // chainId - this should be extracted from quote
         pool.tokenIn.address || '0x0000000000000000000000000000000000000000',
-        parseInt(pool.tokenIn.decimals || '18'),
+        parseInt(pool.tokenIn.decimals || '18', 10),
         pool.tokenIn.symbol || 'UNKNOWN',
-        pool.tokenIn.symbol || 'Unknown Token'
+        pool.tokenIn.symbol || 'Unknown Token',
       )
 
       const tokenOut = new Token(
         1, // chainId - this should be extracted from quote
         pool.tokenOut.address || '0x0000000000000000000000000000000000000000',
-        parseInt(pool.tokenOut.decimals || '18'),
+        parseInt(pool.tokenOut.decimals || '18', 10),
         pool.tokenOut.symbol || 'UNKNOWN',
-        pool.tokenOut.symbol || 'Unknown Token'
+        pool.tokenOut.symbol || 'Unknown Token',
       )
 
       // Create V3 Pool
       const v3Pool = new V3Pool(
         tokenIn,
         tokenOut,
-        typeof pool.fee === 'string' ? parseInt(pool.fee) : (pool.fee || 0),
+        typeof pool.fee === 'string' ? parseInt(pool.fee, 10) : pool.fee,
         pool.sqrtRatioX96,
         pool.liquidity,
-        typeof pool.tickCurrent === 'string' ? parseInt(pool.tickCurrent) : (pool.tickCurrent || 0)
+        typeof pool.tickCurrent === 'string' ? parseInt(pool.tickCurrent, 10) : pool.tickCurrent,
       )
 
       return {
         pool: v3Pool,
         amountIn: pool.amountIn,
         amountOut: pool.amountOut,
-        originalPool: pool
+        originalPool: pool,
       }
     })
 
@@ -252,22 +252,20 @@ function buildV3Transaction(quote: ClassicQuote): CreateSwapResponse | undefined
       throw new Error('Invalid pool data for route creation')
     }
 
-    const route = new V3Route(v3PoolsData.map(p => p.pool), firstPool.token0, lastPool.token1)
+    const route = new V3Route(
+      v3PoolsData.map((p) => p.pool),
+      firstPool.token0,
+      lastPool.token1,
+    )
 
     // Create trade
-    const amountIn = CurrencyAmount.fromRawAmount(
-      firstPool.token0,
-      quote.input?.amount || '0'
-    )
+    const amountIn = CurrencyAmount.fromRawAmount(firstPool.token0, quote.input?.amount || '0')
 
     const trade = V3Trade.createUncheckedTrade({
       route,
       inputAmount: amountIn,
-      outputAmount: CurrencyAmount.fromRawAmount(
-        lastPool.token1,
-        quote.output?.amount || '0'
-      ),
-      tradeType: 0 // EXACT_INPUT
+      outputAmount: CurrencyAmount.fromRawAmount(lastPool.token1, quote.output?.amount || '0'),
+      tradeType: 0, // EXACT_INPUT
     })
 
     // Build swap parameters using SwapRouter
@@ -287,28 +285,35 @@ function buildV3Transaction(quote: ClassicQuote): CreateSwapResponse | undefined
         value: value.toString(),
         to: '0xE592427A0AEce92De3Edee1F18E0157C05861564', // V3 SwapRouter address
         from: quote.swapper || '0x0000000000000000000000000000000000000000',
-      }
+      },
     }
-
-
   } catch (error) {
-    console.error('Error building V3 transaction:', error)
+    logger.error(error, {
+      tags: {
+        file: 'TradingApiClient',
+        function: 'buildV3Transaction',
+      },
+    })
+    return undefined
   }
 }
 
 export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<CreateSwapResponse> {
   // Build V3 transaction if it's a classic quote
-  if (params.quote && 'route' in params.quote) {
-    return buildV3Transaction(params.quote as ClassicQuote) as CreateSwapResponse
-  } else {
-    return await TradingApiClient.post<CreateSwapResponse>(uniswapUrls.tradingApiPaths.swap, {
-      body: JSON.stringify(params),
-      headers: {
-        ...V4_HEADERS,
-        ...getFeatureFlaggedHeaders(),
-      },
-    })
+  if ('route' in params.quote) {
+    const v3Result = buildV3Transaction(params.quote as ClassicQuote)
+    if (v3Result) {
+      return v3Result
+    }
   }
+
+  return await TradingApiClient.post<CreateSwapResponse>(uniswapUrls.tradingApiPaths.swap, {
+    body: JSON.stringify(params),
+    headers: {
+      ...V4_HEADERS,
+      ...getFeatureFlaggedHeaders(),
+    },
+  })
 }
 
 export async function fetchSwap5792({ ...params }: CreateSwap5792Request): Promise<CreateSwap5792Response> {
