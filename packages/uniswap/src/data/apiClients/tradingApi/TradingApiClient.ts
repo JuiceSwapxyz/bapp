@@ -56,6 +56,7 @@ import {
   WalletEncode7702RequestBody,
   WrapUnwrapQuote,
 } from 'uniswap/src/data/tradingApi/__generated__'
+import { FeeType } from 'uniswap/src/data/tradingApi/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { logger } from 'utilities/src/logger/logger'
@@ -336,13 +337,121 @@ export async function fetchSwap7702({ ...params }: CreateSwap7702Request): Promi
   })
 }
 
+/**
+ * Computes approval transaction locally using our calldata construction utilities
+ * and proper gas estimation
+ */
+async function computeApprovalTransaction(params: ApprovalRequest): Promise<ApprovalResponse> {
+  const {
+    constructUnlimitedERC20ApproveCalldata,
+    getClassicSwapSpenderAddress,
+  } = require('uniswap/src/utils/approvalCalldata')
+  const { createFetchGasFee } = require('uniswap/src/data/apiClients/uniswapApi/UniswapApiClient')
+
+  // Get the spender address (Permit2 for classic swaps)
+  const spenderAddress = getClassicSwapSpenderAddress(params.chainId)
+
+  // Construct the approval calldata
+  const calldata = constructUnlimitedERC20ApproveCalldata(spenderAddress)
+
+  // Generate a request ID
+  const requestId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+
+  const baseTransaction = {
+    to: params.token, // Token contract address
+    value: '0x00', // No ETH value for ERC20 approvals
+    from: params.walletAddress, // User's wallet address
+    data: calldata, // Constructed approve calldata
+    chainId: params.chainId,
+  }
+
+  const gasStrategy = params.gasStrategies?.[0] || {
+    limitInflationFactor: 1.15,
+    displayLimitInflationFactor: 1.15,
+    priceInflationFactor: 1.5,
+    percentileThresholdFor1559Fee: 75,
+    thresholdToInflateLastBlockBaseFee: 0.75,
+    baseFeeMultiplier: 1,
+    baseFeeHistoryWindow: 20,
+    minPriorityFeeRatioOfBaseFee: 0.2,
+    minPriorityFeeGwei: 2,
+    maxPriorityFeeGwei: 9,
+  }
+
+  const fetchGasFee = createFetchGasFee({ gasStrategy })
+
+  try {
+    const gasResult = await fetchGasFee({
+      tx: baseTransaction,
+      fallbackGasLimit: 65008,
+    })
+
+    // Handle case where gasResult.params might be undefined (client-side fallback)
+    const gasParams = gasResult.params || {
+      maxFeePerGas: '387366539',
+      maxPriorityFeePerGas: '387335562',
+      gasLimit: '65008',
+    }
+
+    const approvalTransaction = {
+      ...baseTransaction,
+      maxFeePerGas: gasParams.maxFeePerGas,
+      maxPriorityFeePerGas: gasParams.maxPriorityFeePerGas,
+      gasLimit: gasParams.gasLimit,
+    }
+
+    const gasEstimate = {
+      type: FeeType.EIP1559 as const,
+      strategy: gasStrategy,
+      gasLimit: gasParams.gasLimit,
+      gasFee: gasResult.value,
+      maxFeePerGas: gasParams.maxFeePerGas,
+      maxPriorityFeePerGas: gasParams.maxPriorityFeePerGas,
+    }
+
+    const response: ApprovalResponse = {
+      requestId,
+      approval: approvalTransaction,
+      cancel: approvalTransaction,
+      gasFee: gasResult.value,
+      cancelGasFee: gasResult.value, // Same gas fee for cancel transaction
+      gasEstimates: [gasEstimate],
+    }
+
+    return response
+  } catch (error) {
+    const approvalTransaction = {
+      ...baseTransaction,
+      maxFeePerGas: '387366539',
+      maxPriorityFeePerGas: '387335562',
+      gasLimit: '65008',
+    }
+
+    const gasEstimate = {
+      type: FeeType.EIP1559 as const,
+      strategy: gasStrategy,
+      gasLimit: '65008',
+      gasFee: '25181923967312',
+      maxFeePerGas: '387366539',
+      maxPriorityFeePerGas: '387335562',
+    }
+
+    const response: ApprovalResponse = {
+      requestId,
+      approval: approvalTransaction,
+      cancel: approvalTransaction,
+      gasFee: '25181923967312',
+      cancelGasFee: '25181923967312', // Same gas fee for cancel transaction
+      gasEstimates: [gasEstimate],
+    }
+
+    return response
+  }
+}
+
 export async function fetchCheckApproval(params: ApprovalRequest): Promise<ApprovalResponse> {
-  return await TradingApiClient.post<ApprovalResponse>(uniswapUrls.tradingApiPaths.approval, {
-    body: JSON.stringify(params),
-    headers: {
-      ...getFeatureFlaggedHeaders(),
-    },
-  })
+  const computedResponse = await computeApprovalTransaction(params)
+  return computedResponse
 }
 
 export async function submitOrder(params: OrderRequest): Promise<OrderResponse> {
