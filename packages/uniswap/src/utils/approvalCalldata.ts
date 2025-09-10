@@ -28,7 +28,7 @@ const SPENDER_ADDRESSES = {
  * Determines the appropriate spender address for classic swaps
  * Based on the example response, even classic swaps use Permit2 as the spender
  */
-export function getSpenderAddress(routing: Routing | undefined, chainId: UniverseChainId): string {
+export function getSpenderAddress(routing: Routing | undefined, _chainId: UniverseChainId): string {
   // For classic swaps, based on the example response, use Permit2
   if (routing === Routing.CLASSIC) {
     // The example response shows Permit2 is used even for classic swaps
@@ -43,7 +43,7 @@ export function getSpenderAddress(routing: Routing | undefined, chainId: Univers
  * Gets the spender address specifically for classic swaps
  * Based on the example response, classic swaps use Permit2
  */
-export function getClassicSwapSpenderAddress(chainId: UniverseChainId): string {
+export function getClassicSwapSpenderAddress(_chainId: UniverseChainId): string {
   return SPENDER_ADDRESSES.PERMIT2
 }
 
