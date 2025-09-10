@@ -219,7 +219,7 @@ export function createProcessSwapResponse({ gasStrategy }: { gasStrategy: GasStr
     }
 
     // If swapQuote doesn't have gasFee, we need to estimate it
-    if (!swapQuote?.gasFee && response.transactions[0]) {
+    if (!swapQuote?.gasFee && response?.transactions[0]) {
       // Use a reasonable fallback gas fee for swaps
       // This should be replaced with proper gas estimation in the future
       const fallbackSwapGasFee = '100000000000000' // 0.0001 ETH fallback
