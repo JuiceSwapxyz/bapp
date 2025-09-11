@@ -1,7 +1,8 @@
+import { useQuery } from '@tanstack/react-query'
 import { SearchTokensResponse, SearchType } from '@uniswap/client-search/dist/search/v1/api_pb'
 import { useMemo } from 'react'
 import { ProtectionResult } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
-import { searchTokenToCurrencyInfo, useSearchTokensAndPoolsQuery } from 'uniswap/src/data/rest/searchTokensAndPools'
+import { fetchTokenDataDirectly, searchTokenToCurrencyInfo } from 'uniswap/src/data/rest/searchTokensAndPools'
 import { GqlResult } from 'uniswap/src/data/types'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -105,8 +106,13 @@ export function useSearchTokens({
     error,
     isPending,
     refetch,
-  } = useSearchTokensAndPoolsQuery<CurrencyInfo[]>({
-    input: variables,
+  } = useQuery({
+    queryKey: ['searchTokens-custom', variables],
+    queryFn: async () => {
+      const token = await fetchTokenDataDirectly(variables.searchQuery ?? '', variables.chainIds[0] ?? 1)
+      const response = new SearchTokensResponse({ tokens: token ? [token] : [] })
+      return response
+    },
     enabled: !skip,
     select: tokenSelect,
   })

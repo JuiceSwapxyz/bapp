@@ -206,6 +206,7 @@ export function getEnabledChains({
   platform,
   /**
    * When `true`, it will return all enabled chains, including testnets.
+   * Note: Currently ignored as we always show only testnets.
    */
   includeTestnets = false,
   isTestnetModeEnabled,
@@ -255,6 +256,9 @@ function getDefaultChainId({
   platform?: Platform
   isTestnetModeEnabled: boolean
 }): UniverseChainId {
+  // Kept for API compatibility but currently unused as we always return Sepolia
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _unused2 = isTestnetModeEnabled
   if (platform === Platform.SVM) {
     // TODO(Solana): is there a Solana testnet we can return here?
     return UniverseChainId.Solana
