@@ -166,6 +166,10 @@ export const networkColors = {
     light: '#3667F6',
     dark: '#3667F6',
   },
+  citrea: {
+    light: '#FF8934',
+    dark: '#FF8934',
+  },
 }
 
 const sporeLight = {
@@ -190,11 +194,11 @@ const sporeLight = {
   surface4: 'rgba(19, 19, 19, 0.08)',
   surface5: 'rgba(0,0,0,0.04)',
   surface5Hovered: 'rgba(0,0,0,0.06)',
-  accent1: '#FF37C7',
-  accent1Hovered: '#E500A5',
-  accent2: 'rgba(255, 55, 199, 0.08)',
-  accent2Hovered: 'rgba(255, 55, 199, 0.12)',
-  accent2Solid: '#FFF3FC',
+  accent1: '#F7911A',
+  accent1Hovered: '#E8820F',
+  accent2: 'rgba(247, 145, 26, 0.08)',
+  accent2Hovered: 'rgba(247, 145, 26, 0.12)',
+  accent2Solid: '#FEF8F3',
   accent3: '#222222',
   accent3Hovered: colors.black,
 
@@ -239,12 +243,12 @@ const sporeDark = {
   surface4: 'rgba(255,255,255,0.20)',
   surface5: 'rgba(0,0,0,0.04)',
   surface5Hovered: 'rgba(0,0,0,0.06)',
-  accent1: '#FF37C7',
-  accent1Hovered: '#E500A5',
+  accent1: '#F7911A',
+  accent1Hovered: '#E8820F',
 
-  accent2: 'rgba(255, 55, 199, 0.08)',
-  accent2Hovered: 'rgba(255, 55, 199, 0.12)',
-  accent2Solid: '#261621',
+  accent2: 'rgba(247, 145, 26, 0.08)',
+  accent2Hovered: 'rgba(247, 145, 26, 0.12)',
+  accent2Solid: '#2B1C0F',
   accent3: colors.white,
   accent3Hovered: '#F5F5F5',
 
@@ -346,6 +350,7 @@ export const colorsLight = {
   chain_11155111: networkColors.ethereum.light,
   chain_1301: networkColors.unichain.light,
   chain_10143: networkColors.monad.light,
+  chain_5115: networkColors.citrea.light,
 
   pinkThemed: colors.pinkLight,
 }
@@ -435,6 +440,7 @@ export const colorsDark = {
   chain_11155111: networkColors.ethereum.dark,
   chain_1301: networkColors.unichain.dark,
   chain_10143: networkColors.monad.dark,
+  chain_5115: networkColors.citrea.dark,
 
   pinkThemed: colors.pinkDark,
 }

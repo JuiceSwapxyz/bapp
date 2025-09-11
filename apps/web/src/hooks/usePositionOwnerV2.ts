@@ -19,7 +19,7 @@ export function usePositionOwnerV2({
 }): boolean {
   const resultBalance = useReadContract({
     address: assume0xAddress(address),
-    chainId,
+    chainId: chainId as any, // TODO: fix typings in wagmi
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: account ? [account] : undefined,

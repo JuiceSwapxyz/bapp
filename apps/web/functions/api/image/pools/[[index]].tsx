@@ -1,7 +1,6 @@
 /* eslint-disable react/forbid-elements */
 import { ImageResponse } from '@vercel/og'
 
-import { ProtocolVersion } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import getPool from 'utils/getPool'
 import { WATERMARK_URL } from '../../../constants'
 import getFont from '../../../utils/getFont'
@@ -176,7 +175,7 @@ export const onRequest: PagesFunction = async ({ params, request, env }) => {
                   >
                     {data.name}
                   </div>
-                  {data.poolData?.protocolVersion === ProtocolVersion.V2 && (
+                  {false && ( // V2 removed
                     <div
                       style={{
                         fontFamily: 'Inter',
@@ -189,7 +188,7 @@ export const onRequest: PagesFunction = async ({ params, request, env }) => {
                         alignSelf: 'center',
                       }}
                     >
-                      {data.poolData?.protocolVersion}
+                      {data?.poolData?.protocolVersion}
                     </div>
                   )}
                 </div>
@@ -216,7 +215,7 @@ export const onRequest: PagesFunction = async ({ params, request, env }) => {
                   >
                     {data.poolData?.feeTier}
                   </div>
-                  <img src={WATERMARK_URL} alt="Uniswap" height="72px" width="324px" />
+                  <img src={WATERMARK_URL} alt="JuiceSwap" height="72px" width="324px" />
                 </div>
               </div>
             </div>

@@ -195,7 +195,7 @@ export function usePools(
               },
             ],
             functionName: 'slot0',
-            chainId,
+            chainId: chainId as any, // TODO: fix typings in wagmi
           }) as const,
       )
     }, [poolAddresses, chainId]),
@@ -223,7 +223,7 @@ export function usePools(
               },
             ],
             functionName: 'liquidity',
-            chainId,
+            chainId: chainId as any, // TODO: fix typings in wagmi
           }) as const,
       )
     }, [poolAddresses, chainId]),

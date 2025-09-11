@@ -18,7 +18,7 @@ import { OnboardingRoutes, TopLevelRoutes } from 'src/app/navigation/constants'
 import { navigate } from 'src/app/navigation/state'
 import UAParser from 'ua-parser-js'
 import { Flex, Image, Square, Text, TouchableArea, useSporeColors } from 'ui/src'
-import { DOT_GRID, UNISWAP_LOGO } from 'ui/src/assets'
+import { DOT_GRID, JUICESWAP_LOGO_SVG } from 'ui/src/assets'
 import { FileListLock, Mobile, RotatableChevron, Wifi } from 'ui/src/components/icons'
 import { AnimatedFlex } from 'ui/src/components/layout/AnimatedFlex'
 import { iconSizes, zIndexes } from 'ui/src/theme'
@@ -30,9 +30,9 @@ import { ONE_SECOND_MS } from 'utilities/src/time/time'
 import { useTimeout } from 'utilities/src/time/timing'
 import { ScantasticParamsSchema } from 'wallet/src/features/scantastic/types'
 
-const UNISWAP_LOGO_SIZE = 52
-const UNISWAP_LOGO_SCALE_LOADING = 1.2
-const UNISWAP_LOGO_SCALE_DEFAULT = 1
+const JUICESWAP_LOGO_SIZE = 52
+const JUICESWAP_LOGO_SCALE_LOADING = 1.2
+const JUICESWAP_LOGO_SCALE_DEFAULT = 1
 const QR_CODE_SIZE = 212
 
 function useDocumentVisibility(): boolean {
@@ -151,10 +151,10 @@ export function ScanToOnboard(): JSX.Element {
 
   useTimeout(resetScantastic, expirationTimestamp - Date.now())
 
-  const qrScale = useSharedValue(UNISWAP_LOGO_SCALE_DEFAULT)
+  const qrScale = useSharedValue(JUICESWAP_LOGO_SCALE_DEFAULT)
   useEffect(() => {
     if (!isLoadingUUID) {
-      qrScale.value = UNISWAP_LOGO_SCALE_DEFAULT
+      qrScale.value = JUICESWAP_LOGO_SCALE_DEFAULT
       return undefined
     }
 
@@ -165,8 +165,8 @@ export function ScanToOnboard(): JSX.Element {
     }
     qrScale.value = withRepeat(
       withSequence(
-        withSpring(UNISWAP_LOGO_SCALE_LOADING, springConfig),
-        withSpring(UNISWAP_LOGO_SCALE_DEFAULT, springConfig),
+        withSpring(JUICESWAP_LOGO_SCALE_LOADING, springConfig),
+        withSpring(JUICESWAP_LOGO_SCALE_DEFAULT, springConfig),
       ),
       0,
       true,
@@ -282,15 +282,15 @@ export function ScanToOnboard(): JSX.Element {
                   alignItems="center"
                   backgroundColor={isLoadingUUID ? '$transparent' : '$surface1'}
                   borderRadius="$rounded12"
-                  height={UNISWAP_LOGO_SIZE}
+                  height={JUICESWAP_LOGO_SIZE}
                   justifyContent="center"
                   position="absolute"
                   style={qrAnimatedStyle}
-                  top={`calc(50% - ${UNISWAP_LOGO_SIZE / 2}px)`}
-                  width={UNISWAP_LOGO_SIZE}
+                  top={`calc(50% - ${JUICESWAP_LOGO_SIZE / 2}px)`}
+                  width={JUICESWAP_LOGO_SIZE}
                   zIndex={zIndexes.default}
                 >
-                  <Image height={iconSizes.icon40} source={UNISWAP_LOGO} width={iconSizes.icon40} />
+                  <Image height={iconSizes.icon40} source={JUICESWAP_LOGO_SVG} width={iconSizes.icon40} />
                 </AnimatedFlex>
                 {isLoadingUUID ? (
                   <Image height={QR_CODE_SIZE} source={DOT_GRID} width={QR_CODE_SIZE} />

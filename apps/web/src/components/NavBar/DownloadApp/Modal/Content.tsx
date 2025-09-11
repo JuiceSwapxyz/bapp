@@ -2,7 +2,7 @@ import { PropsWithChildren, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'theme/components/Links'
 import { Flex, FlexProps, Image, ModalCloseIcon, Text, TouchableArea } from 'ui/src'
-import { UNISWAP_LOGO } from 'ui/src/assets'
+import { JUICESWAP_LOGO_SVG } from 'ui/src/assets'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import { iconSizes } from 'ui/src/theme'
 
@@ -45,7 +45,7 @@ export function ModalContent({
         </Flex>
         <Flex alignItems="center" gap="$spacing32" maxWidth="480px" {...rest}>
           <Flex alignItems="center" gap="$spacing12">
-            {header ?? <Image height={iconSizes.icon64} source={UNISWAP_LOGO} width={iconSizes.icon64} />}
+            {header ?? <Image height={iconSizes.icon64} source={JUICESWAP_LOGO_SVG} width={iconSizes.icon64} />}
             <Flex alignItems="center" gap="$spacing12" px="$spacing40">
               <Text variant="heading3" color="$neutral1">
                 {title}

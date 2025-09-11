@@ -172,7 +172,7 @@ export function useUserHasAvailableClaim(account: string | null | undefined): bo
 
   const { data: isClaimed, isLoading: isClaimedLoading } = useReadContract({
     address: assume0xAddress(MERKLE_DISTRIBUTOR_ADDRESS[UniverseChainId.Mainnet]),
-    chainId: UniverseChainId.Mainnet,
+    chainId: UniverseChainId.Mainnet as any, // TODO: fix typings in wagmi
     abi: claimAbi,
     functionName: 'isClaimed',
     args: userClaimData ? [BigInt(userClaimData.index)] : undefined,
