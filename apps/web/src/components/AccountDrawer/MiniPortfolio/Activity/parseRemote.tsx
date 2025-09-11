@@ -1,12 +1,7 @@
 /* eslint-disable max-params */
 import { BigNumber } from '@ethersproject/bignumber'
 import type { Currency } from '@uniswap/sdk-core'
-import {
-  CHAIN_TO_ADDRESSES_MAP,
-  NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
-  TradeType,
-  UNI_ADDRESSES,
-} from '@uniswap/sdk-core'
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES, TradeType, UNI_ADDRESSES } from '@uniswap/sdk-core'
 import { gqlToCurrency, supportedChainIdFromGQLChain } from 'appGraphql/data/util'
 import UniswapXBolt from 'assets/svg/bolt.svg'
 import moonpayLogoSrc from 'assets/svg/moonpay.svg'
@@ -142,10 +137,8 @@ function callsV4PositionManagerContract(assetActivity: TransactionActivity) {
     return false
   }
 
-  return (
-    isEVMChain(supportedChain) &&
-    isSameAddress(assetActivity.details.to, CHAIN_TO_ADDRESSES_MAP[supportedChain].v4PositionManagerAddress)
-  )
+  return isEVMChain(supportedChain)
+  // isSameAddress(assetActivity.details.to, CHAIN_TO_ADDRESSES_MAP[supportedChain].v4PositionManagerAddress)
 }
 function callsPositionManagerContract(assetActivity: TransactionActivity) {
   return callsV3PositionManagerContract(assetActivity) || callsV4PositionManagerContract(assetActivity)

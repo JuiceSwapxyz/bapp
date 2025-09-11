@@ -29,7 +29,6 @@ import {
   useTransactionSettingsStore,
 } from 'uniswap/src/features/transactions/components/settings/stores/transactionSettingsStore/useTransactionSettingsStore'
 import { UniswapXInfo } from 'uniswap/src/features/transactions/swap/components/SwapFormSettings/settingsConfigurations/TradeRoutingPreference/UniswapXInfo'
-import { V4HooksInfo } from 'uniswap/src/features/transactions/swap/components/SwapFormSettings/settingsConfigurations/TradeRoutingPreference/V4HooksInfo'
 import { isDefaultTradeRouteOptions } from 'uniswap/src/features/transactions/swap/components/SwapFormSettings/settingsConfigurations/TradeRoutingPreference/isDefaultTradeRouteOptions'
 import { useV4SwapEnabled } from 'uniswap/src/features/transactions/swap/hooks/useV4SwapEnabled'
 import { useSwapFormStoreDerivedSwapInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
@@ -66,13 +65,8 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
   // We prevent the user from deselecting all options
   const onlyOneProtocolSelected = selectedProtocols.length === 1 && !isV4HookPoolsEnabled
 
-  const classicProtocolsCount = selectedProtocols.filter((p) => {
-    if (!v4SwapEnabled && p === ProtocolItems.V4) {
-      return false
-    }
-
-    return p !== ProtocolItems.UNISWAPX_V2
-  }).length
+  // V3-only strategy - all selected protocols are classic protocols
+  const classicProtocolsCount = selectedProtocols.length
 
   // Prevent the user from deselecting all on-chain protocols (AKA only selecting UniswapX)
   const onlyOneClassicProtocolSelected =
@@ -114,38 +108,9 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
         onSelect={toggleDefault}
       />
       <HeightAnimator open={!isDefault} animationDisabled={isMobileApp || isMobileWeb}>
-        {uniswapXEnabledFlag && (
-          <OptionRow
-            active={
-              isUniswapXSupported === false
-                ? false
-                : uniswapXEnabled && selectedProtocols.includes(ProtocolItems.UNISWAPX_V2)
-            }
-            elementName={ElementName.SwapRoutingPreferenceUniswapX}
-            title={getProtocolTitle(ProtocolItems.UNISWAPX_V2)}
-            cantDisable={onlyOneProtocolSelected}
-            disabled={isUniswapXSupported === false || !uniswapXEnabled}
-            description={!uniswapXEnabled ? restrictionDescription : undefined}
-            onSelect={() => toggleProtocol(ProtocolItems.UNISWAPX_V2)}
-          />
-        )}
-        <OptionRow
-          active={v4SwapEnabled && selectedProtocols.includes(ProtocolItems.V4)}
-          elementName={ElementName.SwapRoutingPreferenceV4}
-          title={getProtocolTitle(ProtocolItems.V4)}
-          cantDisable={onlyOneClassicProtocolSelected}
-          disabled={!v4SwapEnabled}
-          description={!v4SwapEnabled ? restrictionDescription : undefined}
-          onSelect={() => toggleProtocol(ProtocolItems.V4)}
-        />
-        <OptionRow
-          active={isV4HookPoolsEnabled}
-          elementName={ElementName.SwapRoutingPreferenceV4Hooks}
-          title={<V4HooksInfo />}
-          cantDisable={onlyOneClassicProtocolSelected}
-          disabled={!v4SwapEnabled}
-          onSelect={toggleV4Hooks}
-        />
+        {/* UniswapX removed - V3-only strategy */}
+        {/* V4 removed - V3-only strategy */}
+        {/* V4 Hooks removed - V3-only strategy */}
         <OptionRow
           active={selectedProtocols.includes(ProtocolItems.V3)}
           elementName={ElementName.SwapRoutingPreferenceV3}
@@ -153,13 +118,7 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
           cantDisable={onlyOneClassicProtocolSelected}
           onSelect={() => toggleProtocol(ProtocolItems.V3)}
         />
-        <OptionRow
-          active={selectedProtocols.includes(ProtocolItems.V2)}
-          elementName={ElementName.SwapRoutingPreferenceV2}
-          title={getProtocolTitle(ProtocolItems.V2)}
-          cantDisable={onlyOneClassicProtocolSelected}
-          onSelect={() => toggleProtocol(ProtocolItems.V2)}
-        />
+        {/* V2 removed - V3-only strategy */}
       </HeightAnimator>
     </Flex>
   )
@@ -169,49 +128,15 @@ function createGetProtocolTitle(ctx: {
   isUniswapXSupported?: boolean
   t: TFunction
 }): (preference: FrontendSupportedProtocol) => JSX.Element | string {
-  const { isUniswapXSupported, t } = ctx
+  const { t } = ctx
   return (preference: FrontendSupportedProtocol) => {
     switch (preference) {
-      case ProtocolItems.UNISWAPX_V2: {
-        if (isUniswapXSupported === false) {
-          return <UniswapXTitleInfoTooltip />
-        }
-        return <UniswapXInfo tooltipTrigger={<UniswapXInfoTooltipTrigger />} />
-      }
-      case ProtocolItems.V2:
-        return t('swap.settings.routingPreference.option.v2.title')
       case ProtocolItems.V3:
         return t('swap.settings.routingPreference.option.v3.title')
-      case ProtocolItems.V4:
-        return t('swap.settings.routingPreference.option.v4.title')
       default:
         return <></>
     }
   }
-}
-
-function UniswapXTitleInfoTooltip(): JSX.Element {
-  const [forceCloseTooltip, setForceCloseTooltip] = useState(undefined as undefined | true)
-  const [showModal, setShowModal] = useState(false)
-  if (isWeb) {
-    return (
-      <InfoTooltip
-        text={<UniswapXInfoTooltipText onPress={() => setForceCloseTooltip(true)} />}
-        trigger={<UniswapXInfoTooltipTrigger />}
-        placement="top"
-        open={forceCloseTooltip === undefined ? undefined : !forceCloseTooltip}
-      />
-    )
-  }
-
-  return (
-    <>
-      <TouchableArea onPress={() => setShowModal(true)}>
-        <UniswapXInfoTooltipTrigger />
-      </TouchableArea>
-      <UniswapXInfoModal isOpen={showModal} onClose={() => setShowModal(false)} />
-    </>
-  )
 }
 
 function UniswapXInfoTooltipTrigger(): JSX.Element {

@@ -1,10 +1,5 @@
 import { Contract } from '@ethersproject/contracts'
-import {
-  CHAIN_TO_ADDRESSES_MAP,
-  MULTICALL_ADDRESSES,
-  NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
-  V3_MIGRATOR_ADDRESSES,
-} from '@uniswap/sdk-core'
+import { MULTICALL_ADDRESSES, NONFUNGIBLE_POSITION_MANAGER_ADDRESSES, V3_MIGRATOR_ADDRESSES } from '@uniswap/sdk-core'
 import IUniswapV2PairJson from '@uniswap/v2-core/build/IUniswapV2Pair.json'
 import NonfungiblePositionManagerJson from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import V3MigratorJson from '@uniswap/v3-periphery/artifacts/contracts/V3Migrator.sol/V3Migrator.json'
@@ -157,10 +152,10 @@ export function useV4NFTPositionManagerContract(
 
   const contract = useContract<Erc721>({
     // monad testnet does not have v4 support
-    address:
-      chainIdToUse && chainIdToUse !== UniverseChainId.MonadTestnet
-        ? CHAIN_TO_ADDRESSES_MAP[chainIdToUse].v4PositionManagerAddress
-        : undefined,
+    address: undefined,
+    // chainIdToUse && chainIdToUse !== UniverseChainId.MonadTestnet
+    //   ? CHAIN_TO_ADDRESSES_MAP[chainIdToUse].v4PositionManagerAddress
+    //   : undefined,
     ABI: NFTPositionManagerABI,
     withSignerIfPossible,
     chainId: chainIdToUse,

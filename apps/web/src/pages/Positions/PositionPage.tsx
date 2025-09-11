@@ -72,7 +72,6 @@ import { buildCurrencyId, currencyId, currencyIdToAddress } from 'uniswap/src/ut
 import { NumberType } from 'utilities/src/format/types'
 import { isMobileWeb } from 'utilities/src/platform'
 import { useChainIdFromUrlParam } from 'utils/chainParams'
-import { isV4UnsupportedChain } from 'utils/networkSupportsV4'
 
 const BodyWrapper = styled(Main, {
   backgroundColor: '$surface1',
@@ -303,7 +302,7 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
     addressInput2: { address: account.address, chainId: supportedAccountChainId ?? positionInfo.chainId },
   })
 
-  const showV4UnsupportedTooltip = isV4UnsupportedChain(positionInfo.chainId)
+  const showV4UnsupportedTooltip = false // V4 removed, all chains support V3
 
   return (
     <Trace
@@ -350,27 +349,6 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
             />
             {isOwner && (
               <Flex row gap="$gap12" alignItems="center" flexWrap="wrap">
-                {positionInfo.version === ProtocolVersion.V3 && status !== PositionStatus.CLOSED && (
-                  <MouseoverTooltip
-                    text={t('pool.migrateLiquidityDisabledTooltip')}
-                    disabled={!showV4UnsupportedTooltip}
-                    style={media.sm ? { width: '100%', display: 'block' } : {}}
-                  >
-                    <Button
-                      size="small"
-                      emphasis="secondary"
-                      $sm={{ width: '100%' }}
-                      fill={false}
-                      isDisabled={showV4UnsupportedTooltip}
-                      opacity={showV4UnsupportedTooltip ? 0.5 : 1}
-                      onPress={() => {
-                        navigate(`/migrate/v3/${chainInfo?.urlParam}/${tokenIdFromUrl}`)
-                      }}
-                    >
-                      {t('pool.migrateToV4')}
-                    </Button>
-                  </MouseoverTooltip>
-                )}
                 <Button
                   size="small"
                   emphasis="secondary"

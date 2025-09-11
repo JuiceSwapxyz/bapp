@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { StyleSheet } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
 import { Button, Flex, Image, Text, useSporeColors } from 'ui/src'
-import { UNISWAP_LOGO } from 'ui/src/assets'
+import { JUICESWAP_LOGO_SVG } from 'ui/src/assets'
 import { imageSizes } from 'ui/src/theme'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import { NewTag } from 'uniswap/src/components/pill/NewTag'
@@ -172,7 +172,7 @@ function ForceUpgradeModal({
                 <Image
                   height={imageSizes.image64}
                   resizeMode="contain"
-                  source={UNISWAP_LOGO}
+                  source={JUICESWAP_LOGO_SVG}
                   width={imageSizes.image64}
                 />
                 <Flex position="absolute" top={-15} right={-8} transform={[{ rotate: '10deg' }]}>

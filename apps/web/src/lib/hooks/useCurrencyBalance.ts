@@ -38,7 +38,7 @@ export function useRpcTokenBalancesWithLoadingIndicator({
           (token) =>
             ({
               address: assume0xAddress(token.address),
-              chainId,
+              chainId: chainId as any, // TODO: fix typings in wagmi
               abi: erc20Abi,
               functionName: 'balanceOf',
               args: [address],
@@ -93,7 +93,7 @@ function useRpcCurrencyBalances(
   const containsETH: boolean = useMemo(() => currencies?.some((currency) => currency?.isNative) ?? false, [currencies])
   const { data: nativeBalance } = useBalance({
     address: assume0xAddress(account),
-    chainId,
+    chainId: chainId as any, // TODO: fix typings in wagmi
     query: { enabled: containsETH && !!account },
   })
 
