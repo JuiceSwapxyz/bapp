@@ -234,6 +234,13 @@ const getSwapAction = ({
   swapTxContext?: SwapTxAndGasInfo
   warning?: Warning
 }): SwapAction => {
+  console.log('-----> getSwapAction called with:', { 
+    wrapType, 
+    hasApproveTx: Boolean(swapTxContext?.approveTxRequest),
+    approveTxRequest: swapTxContext?.approveTxRequest,
+    hasPermitTx: swapTxContext && isClassic(swapTxContext) ? swapTxContext.permit?.method === PermitMethod.Transaction : false
+  })
+  
   if (wrapType === WrapType.Wrap) {
     return SwapAction.Wrap
   }
@@ -246,6 +253,7 @@ const getSwapAction = ({
   const hasApproveTx = Boolean(swapTxContext?.approveTxRequest)
 
   if (isInterface && (hasPermitTx || hasApproveTx)) {
+    console.log('-----> returning ApproveAndSwap')
     return SwapAction.ApproveAndSwap
   }
   if (isInterface && swapTxContext && isClassic(swapTxContext) && swapTxContext.unsigned) {
@@ -255,5 +263,6 @@ const getSwapAction = ({
     return SwapAction.SwapAnyway
   }
 
+  console.log('-----> returning Swap')
   return SwapAction.Swap
 }

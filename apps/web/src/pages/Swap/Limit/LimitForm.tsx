@@ -256,9 +256,15 @@ function LimitForm({ onCurrencyChange }: LimitFormProps) {
   const hasInsufficientFunds =
     parsedAmounts.input && currencyBalances.input ? currencyBalances.input.lessThan(parsedAmounts.input) : false
 
+  console.log('-----> LimitForm calling usePermit2Allowance with:', { 
+    amount: parsedAmounts.input?.toExact(), 
+    isSupportedChain, 
+    chainId,
+    isNative: parsedAmounts.input?.currency.isNative 
+  })
   const allowance = usePermit2Allowance({
     amount: parsedAmounts.input?.currency.isNative ? undefined : (parsedAmounts.input as CurrencyAmount<Token>),
-    spender: isSupportedChain ? UNIVERSAL_ROUTER_ADDRESS(UniversalRouterVersion.V1_2, chainId) : undefined,
+    spender: isSupportedChain ? '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E' : undefined, // V3 SwapRouter address for Sepolia
     tradeFillType: TradeFillType.UniswapX,
   })
 

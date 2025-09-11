@@ -37,8 +37,17 @@ function useApprovalWillBeBatchedWithSwap(chainId: UniverseChainId, routing: Rou
   const swapDelegationInfo = useUniswapContextSelector((ctx) => ctx.getSwapDelegationInfo?.(chainId))
 
   const isBatchableFlow = Boolean(routing && !isUniswapX({ routing }))
-
-  return Boolean((canBatchTransactions || swapDelegationInfo?.delegationAddress) && isBatchableFlow)
+  const result = Boolean((canBatchTransactions || swapDelegationInfo?.delegationAddress) && isBatchableFlow)
+  
+  console.log('-----> useApprovalWillBeBatchedWithSwap:', { 
+    canBatchTransactions, 
+    swapDelegationInfo: !!swapDelegationInfo?.delegationAddress, 
+    isBatchableFlow, 
+    routing,
+    result 
+  })
+  
+  return result
 }
 
 export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalTxInfo {
@@ -95,13 +104,23 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
   ])
 
   const approvalWillBeBatchedWithSwap = useApprovalWillBeBatchedWithSwap(chainId, routing)
-  const shouldSkip = !approvalRequestArgs || isWrap || !address || approvalWillBeBatchedWithSwap
+  const shouldSkip = !approvalRequestArgs || isWrap || !address
+  
+  console.log('-----> shouldSkip conditions:', { 
+    hasApprovalRequestArgs: !!approvalRequestArgs, 
+    isWrap, 
+    hasAddress: !!address, 
+    approvalWillBeBatchedWithSwap,
+    shouldSkip 
+  })
 
   const { data, isLoading, error } = useCheckApprovalQuery({
     params: shouldSkip ? undefined : approvalRequestArgs,
     staleTime: 15 * ONE_SECOND_MS,
     immediateGcTime: ONE_MINUTE_MS,
   })
+  
+  console.log('-----> useTokenApprovalInfo data:', { data, error, shouldSkip, approvalRequestArgs })
 
   const tokenApprovalInfo: TokenApprovalInfo = useMemo(() => {
     if (error) {
@@ -114,7 +133,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
     }
 
     // Approval is N/A for wrap transactions or unconnected state.
-    if (isWrap || !address || approvalWillBeBatchedWithSwap) {
+    if (isWrap || !address) {
       return {
         action: ApprovalAction.None,
         txRequest: null,
@@ -161,7 +180,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
     }
   }, [address, approvalRequestArgs, approvalWillBeBatchedWithSwap, data, error, isWrap])
 
-  return useMemo(() => {
+  const result = useMemo(() => {
     const gasEstimate = data?.gasEstimates?.[0]
     const noApprovalNeeded = tokenApprovalInfo.action === ApprovalAction.None
     const noRevokeNeeded =
@@ -190,4 +209,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
       },
     }
   }, [gasStrategy, data?.cancelGasFee, data?.gasEstimates, data?.gasFee, isLoading, tokenApprovalInfo])
+  
+  console.log('-----> useTokenApprovalInfo result:', result)
+  return result
 }

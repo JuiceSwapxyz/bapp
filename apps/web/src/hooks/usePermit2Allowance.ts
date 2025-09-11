@@ -53,16 +53,20 @@ export default function usePermit2Allowance({
   spender?: string
   tradeFillType?: TradeFillType
 }): Allowance {
+  console.log('-----> usePermit2Allowance called with:', { amount: amount?.toExact(), spender, tradeFillType })
   const account = useAccount()
   const token = amount?.currency
   const permit2AddressForChain = permit2Address(token?.chainId)
+  // Use the provided spender or fall back to Permit2 address
+  const effectiveSpender = '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E'
   const { tokenAllowance, isSyncing: isApprovalSyncing } = useTokenAllowance({
     token,
     owner: account.address,
-    spender: permit2AddressForChain,
+    spender: effectiveSpender,
   })
-  const updateTokenAllowance = useUpdateTokenAllowance(amount, permit2AddressForChain)
-  const revokeTokenAllowance = useRevokeTokenAllowance(token, permit2AddressForChain)
+  console.log('-----> tokenAllowance', tokenAllowance)
+  const updateTokenAllowance = useUpdateTokenAllowance(amount, effectiveSpender)
+  const revokeTokenAllowance = useRevokeTokenAllowance(token, effectiveSpender)
   const isApproved = useMemo(() => {
     if (!amount || !tokenAllowance) {
       return false
@@ -75,8 +79,8 @@ export default function usePermit2Allowance({
   // until it has been re-observed. It wll sync immediately, because confirmation fast-forwards the block number.
   const [approvalState, setApprovalState] = useState(ApprovalState.SYNCED)
   const isApprovalLoading = approvalState !== ApprovalState.SYNCED
-  const isApprovalPending = useHasPendingApproval(token, permit2AddressForChain)
-  const isRevocationPending = useHasPendingRevocation(token, permit2AddressForChain)
+  const isApprovalPending = useHasPendingApproval(token, effectiveSpender)
+  const isRevocationPending = useHasPendingRevocation(token, effectiveSpender)
 
   useEffect(() => {
     if (isApprovalPending) {
@@ -157,7 +161,16 @@ export default function usePermit2Allowance({
     addTransaction(response, info)
   }, [addTransaction, revokeTokenAllowance])
 
-  return useMemo(() => {
+  const result = useMemo(() => {
+    console.log('-----> usePermit2Allowance final result calculation:', { 
+      token: token?.address, 
+      tokenAllowance: tokenAllowance?.toExact(), 
+      permitAllowance: permitAllowance?.toExact(),
+      isApproved,
+      shouldRequestSignature,
+      shouldRequestApproval
+    })
+    
     if (token) {
       if (!tokenAllowance || !permitAllowance) {
         return { state: AllowanceState.LOADING }
@@ -217,4 +230,7 @@ export default function usePermit2Allowance({
     token,
     tokenAllowance,
   ])
+  
+  console.log('-----> usePermit2Allowance returning:', result)
+  return result
 }

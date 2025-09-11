@@ -19,6 +19,7 @@ export function useTokenAllowance({ token, owner, spender }: { token?: Token; ow
   tokenAllowance?: CurrencyAmount<Token>
   isSyncing: boolean
 } {
+  console.log('-----> useTokenAllowance called with:', { token: token?.address, owner, spender })
   const queryEnabled = !!owner && !!spender
   const {
     data: rawAmount,
@@ -40,6 +41,8 @@ export function useTokenAllowance({ token, owner, spender }: { token?: Token; ow
     () => (token && rawAmount !== undefined ? CurrencyAmount.fromRawAmount(token, rawAmount.toString()) : undefined),
     [token, rawAmount],
   )
+
+  console.log('-----> useTokenAllowance result:', { rawAmount: rawAmount?.toString(), allowance: allowance?.toExact(), isFetching })
 
   return useMemo(() => ({ tokenAllowance: allowance, isSyncing: isFetching }), [allowance, isFetching])
 }
