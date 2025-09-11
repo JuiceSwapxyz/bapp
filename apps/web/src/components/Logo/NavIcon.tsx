@@ -1,8 +1,7 @@
 import { SVGProps, useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Flex, styled, useSporeColors } from 'ui/src'
 
-function Logo({ color, onClick }: { color: string; onClick?: () => void }) {
+function Logo({ color: _color, onClick }: { color: string; onClick?: () => void }) {
   return (
     <img
       src="/images/juiceswap/Juice-swap-Logo.svg"
@@ -15,9 +14,7 @@ function Logo({ color, onClick }: { color: string; onClick?: () => void }) {
   )
 }
 
-function HolidayLogo({ color, onClick }: { color: string; onClick?: () => void }) {
-  const { t } = useTranslation()
-
+function HolidayLogo({ color: _color, onClick }: { color: string; onClick?: () => void }) {
   return (
     <img
       src="/images/juiceswap/Juice-swap-Logo.svg"

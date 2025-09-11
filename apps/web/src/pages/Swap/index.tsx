@@ -205,7 +205,6 @@ const PATHNAME_TO_TAB: { [key: string]: SwapTab } = {
 function UniversalSwapFlow({
   hideHeader = false,
   hideFooter = false,
-  disableTokenInputs = false,
   syncTabToUrl = true,
   prefilledState,
   onCurrencyChange,
@@ -231,11 +230,6 @@ function UniversalSwapFlow({
   const LimitFormWrapper = useDeferredComponent(() =>
     import('pages/Swap/Limit/LimitForm').then((module) => ({
       default: module.LimitFormWrapper,
-    })),
-  )
-  const BuyForm = useDeferredComponent(() =>
-    import('pages/Swap/Buy/BuyForm').then((module) => ({
-      default: module.BuyForm,
     })),
   )
 
@@ -267,15 +261,10 @@ function UniversalSwapFlow({
     [navigate, syncTabToUrl, setCurrentTab],
   )
 
-  const isFiatOffRampEnabled = false // OnRamp disabled
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const isFiatOffRampEnabled = useFeatureFlag(FeatureFlags.FiatOffRamp)
   const SWAP_TAB_OPTIONS: readonly SegmentedControlOption<SwapTab>[] = useMemo(() => {
-    return SWAP_TABS.filter((_tab) => {
-      // if (tab === SwapTab.Sell && !isFiatOffRampEnabled) {
-      //   return false
-      // }
-
-      return true
-    }).map((tab) => ({
+    return SWAP_TABS.map((tab) => ({
       value: tab,
       display: (
         <Text
@@ -288,7 +277,7 @@ function UniversalSwapFlow({
         </Text>
       ),
     }))
-  }, [t, currentTab, isFiatOffRampEnabled])
+  }, [t, currentTab])
 
   const swapSettings = useWebSwapSettings()
   const resetDisableOneClickSwap = useResetOverrideOneClickSwapFlag()

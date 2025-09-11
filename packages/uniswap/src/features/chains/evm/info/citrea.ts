@@ -13,9 +13,6 @@ import {
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 
-// Citrea uses BTC as the native currency but rebranded as cBTC
-const BTC_LOGO = CITREA_LOGO
-
 // Define Citrea Testnet tokens manually
 const CITREA_USDC = new Token(
   UniverseChainId.CitreaTestnet,
@@ -33,16 +30,6 @@ const CITREA_WUSDT = new Token(
   'wUSDT',
   'Wrapped Tether USD',
   DAI_LOGO, // Using DAI logo as placeholder for USDT
-)
-
-// Native cBTC token (similar to wrapped ETH)
-const CITREA_CBTC = new Token(
-  UniverseChainId.CitreaTestnet,
-  DEFAULT_NATIVE_ADDRESS_LEGACY, // Native token address
-  18,
-  'cBTC',
-  'Citrea BTC',
-  BTC_LOGO,
 )
 
 const testnetTokens = buildChainTokens({

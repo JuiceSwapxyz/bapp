@@ -175,8 +175,8 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
   )
 
   return (
-    <Trace logImpression page={InterfacePageName.ExplorePage} properties={{ chainName: chainInfo?.backendChain.chain }}>
-      <ExploreContextProvider chainId={chainInfo?.id}>
+    <Trace logImpression page={InterfacePageName.ExplorePage} properties={{ chainName: chainInfo.backendChain.chain }}>
+      <ExploreContextProvider chainId={chainInfo.id}>
         <Flex width="100%" minWidth={320} pt="$spacing24" pb="$spacing48" px="$spacing40" $md={{ p: '$spacing16' }}>
           <ExploreStatsSection />
           <Flex
@@ -207,7 +207,7 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
               {Pages.map(({ title, loggingElementName, key }, index) => {
                 const url = getTokenExploreURL({
                   tab: key,
-                  chainUrlParam: chainInfo ? getChainUrlParam(chainInfo.id) : '',
+                  chainUrlParam: getChainUrlParam(chainInfo.id),
                 })
                 return (
                   <Trace
@@ -231,7 +231,7 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
                   </Button>
                 </Flex>
               )}
-              <TableNetworkFilter showMultichainOption={currentKey !== ExploreTab.Transactions} />
+              <TableNetworkFilter />
               {currentKey === ExploreTab.Tokens && <VolumeTimeFrameSelector />}
               {/* Protocol filter removed - only V3 pools shown */}
               <SearchBar tab={currentKey} />

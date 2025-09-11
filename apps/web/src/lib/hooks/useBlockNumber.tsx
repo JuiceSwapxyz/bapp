@@ -87,6 +87,7 @@ export function BlockNumberProvider({ children }: PropsWithChildren) {
   // Poll once for the Polygon block number using the network provider.
   useEffect(() => {
     // Only fetch Polygon block number since that's the only supported chain
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (RPC_PROVIDERS[UniverseChainId.Polygon]) {
       RPC_PROVIDERS[UniverseChainId.Polygon]
         .getBlockNumber()

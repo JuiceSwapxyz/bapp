@@ -71,10 +71,7 @@ function useShouldHideChainSelector() {
 }
 
 export default function Navbar() {
-  const isLandingPage = useIsPage(PageType.LANDING)
-
   const media = useMedia()
-  const isSmallScreen = media.md
   const areTabsVisible = useTabsVisible()
   const collapseSearchBar = media.xl
   const account = useAccount()

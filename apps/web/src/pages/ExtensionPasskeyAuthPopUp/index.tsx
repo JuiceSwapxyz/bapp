@@ -37,6 +37,7 @@ enum ReferrerVerification {
   Denied = 'Denied',
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export default function ExtensionPasskeyAuthPopUp() {
   const { t } = useTranslation()
   const extensionId = useExternallyConnectableExtensionId()

@@ -8,10 +8,6 @@ import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { TransactionModalInnerContainer } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModal'
 import { useTransactionModalContext } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
-import {
-  useTransactionSettingsActions,
-  useTransactionSettingsStore,
-} from 'uniswap/src/features/transactions/components/settings/stores/transactionSettingsStore/useTransactionSettingsStore'
 import { TransactionStepFailedError, getErrorContent } from 'uniswap/src/features/transactions/errors'
 import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 import { openUri } from 'uniswap/src/utils/linking'
@@ -32,10 +28,6 @@ export function SwapErrorScreen({
 }): JSX.Element {
   const { t } = useTranslation()
   const { bottomSheetViewStyles } = useTransactionModalContext()
-  const { selectedProtocols } = useTransactionSettingsStore((s) => ({
-    selectedProtocols: s.selectedProtocols,
-  }))
-  const { setSelectedProtocols } = useTransactionSettingsActions()
 
   const { title, message, supportArticleURL, buttonText } = getErrorContent(t, submissionError)
 

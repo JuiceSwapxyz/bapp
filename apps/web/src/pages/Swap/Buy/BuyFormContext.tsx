@@ -121,7 +121,6 @@ function useDerivedBuyFormInfo(state: BuyFormState): BuyInfo {
 
   // OnRamp disabled - don't fetch country options
   const { data: countryOptionsResult } = useFiatOnRampAggregatorCountryListQuery(skipToken)
-  const supportedTokens: FiatOnRampCurrency[] = [] // OnRamp disabled - no supported tokens
   const onRampInputAmount = useMemo(
     () =>
       getOnRampInputAmount({
@@ -133,7 +132,7 @@ function useDerivedBuyFormInfo(state: BuyFormState): BuyInfo {
     [state.rampDirection, inputAmount, amountOut, state.inputInFiat],
   )
 
-  const [sourceCurrencyCode, destinationCurrencyCode] = useMemo(() => {
+  const [_sourceCurrencyCode, _destinationCurrencyCode] = useMemo(() => {
     return state.rampDirection === RampDirection.ONRAMP
       ? [meldSupportedFiatCurrency.code, state.quoteCurrency?.meldCurrencyCode]
       : [state.quoteCurrency?.meldCurrencyCode, meldSupportedFiatCurrency.code]
@@ -242,7 +241,7 @@ function useDerivedBuyFormInfo(state: BuyFormState): BuyInfo {
       amountOutLoading,
       notAvailableInThisRegion,
       meldSupportedFiatCurrency,
-      supportedTokens,
+      supportedTokens: [],
       countryOptionsResult,
       quotes,
       fetchingQuotes,
@@ -257,7 +256,6 @@ function useDerivedBuyFormInfo(state: BuyFormState): BuyInfo {
       meldSupportedFiatCurrency,
       notAvailableInThisRegion,
       quotes,
-      supportedTokens,
     ],
   )
 }

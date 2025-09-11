@@ -38,10 +38,9 @@ const StyledDropdown = {
   px: 0,
 } satisfies FlexProps
 
-export default function TableNetworkFilter({ showMultichainOption = true }: { showMultichainOption?: boolean }) {
+export default function TableNetworkFilter() {
   const [isMenuOpen, toggleMenu] = useState(false)
   const isSupportedChainCallback = useIsSupportedChainIdCallback()
-  const { isTestnetModeEnabled } = useEnabledChains()
   const { chains: enabledChainIds } = useEnabledChains({ includeTestnets: true })
 
   const exploreParams = useExploreParams()
@@ -121,7 +120,6 @@ const TableNetworkItem = memo(function TableNetworkItem({
   const navigate = useNavigate()
   const theme = useTheme()
   const { t } = useTranslation()
-  const exploreParams = useExploreParams()
   const urlChainId = useChainIdFromUrlParam()
   const currentChainInfo = urlChainId ? getChainInfo(urlChainId) : undefined
   const newChains = useNewChainIds()

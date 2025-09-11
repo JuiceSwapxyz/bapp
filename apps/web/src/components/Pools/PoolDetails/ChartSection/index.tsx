@@ -101,7 +101,7 @@ function usePDPChartState({
   poolData,
   isReversed,
   chain,
-  protocolVersion,
+  protocolVersion: _protocolVersion,
 }: {
   poolData: PoolData | undefined
   isReversed: boolean
@@ -112,7 +112,7 @@ function usePDPChartState({
   const [chartType, setChartType] = useState<PoolsDetailsChartType>(ChartType.VOLUME)
 
   const isV2 = false // V2 removed
-  const isV3 = protocolVersion === ProtocolVersion.V3
+  const isV3 = true
   const isV4 = false // V4 removed
   const variables = {
     addressOrId: poolData?.idOrAddress ?? '',

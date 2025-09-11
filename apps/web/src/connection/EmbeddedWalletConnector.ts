@@ -16,6 +16,7 @@ interface EmbeddedWalletParameters {
   onConnect?(): void
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export function embeddedWallet(_parameters: EmbeddedWalletParameters = {}) {
   type Provider = EmbeddedWalletProvider
   type Properties = {

@@ -68,6 +68,7 @@ export function useMeldFiatCurrencyInfo(selectedCountry?: FORCountry): FiatOnRam
   }
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export function useFiatOnRampSupportedTokens(
   fiatCurrency: FiatCurrencyInfo,
   countryCode?: string,
