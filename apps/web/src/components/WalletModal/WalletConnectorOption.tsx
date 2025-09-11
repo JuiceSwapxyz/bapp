@@ -69,7 +69,7 @@ function getIcon({
     return <UniswapMobileIcon iconSize={iconSize} />
   } else if (walletConnectorMeta.wagmi?.id === CONNECTION_PROVIDER_IDS.BINANCE_WALLET_CONNECTOR_ID) {
     return <BinanceWalletIcon iconSize={iconSize} />
-  } else if (walletConnectorMeta.name?.toLowerCase().includes('rabby')) {
+  } else if (walletConnectorMeta.name.toLowerCase().includes('rabby')) {
     // Special case for Rabby wallet
     return <Image height={iconSize} source={RABBY_WALLET_ICON} width={iconSize} borderRadius="$rounded8" />
   } else {

@@ -34,7 +34,7 @@ function _PoolOptionItemContextMenu({
   children,
   poolId,
   chainId,
-  protocolVersion,
+  protocolVersion: _protocolVersion,
   isOpen,
   openMenu,
   closeMenu,
@@ -90,7 +90,7 @@ function _PoolOptionItemContextMenu({
     }
 
     return options
-  }, [actions, protocolVersion, copiedAddress, t, onCopyAddress, onShare, copiedUrl])
+  }, [actions, copiedAddress, t, onCopyAddress, onShare, copiedUrl])
 
   return (
     <ContextMenu

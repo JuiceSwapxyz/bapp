@@ -154,10 +154,10 @@ function RecentlyConnectedModalUI({
 }
 
 function shouldShowModal({
-  walletAddress,
-  account,
-  isOpenRef,
-  recentConnectorId,
+  walletAddress: _walletAddress,
+  account: _account,
+  isOpenRef: _isOpenRef,
+  recentConnectorId: _recentConnectorId,
 }: {
   walletAddress?: string
   account: ReturnType<typeof useAccount>

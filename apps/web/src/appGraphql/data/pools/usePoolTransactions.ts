@@ -5,9 +5,7 @@ import {
   PoolTransactionType,
   ProtocolVersion,
   Token,
-  V2PairTransactionsQuery,
   V3PoolTransactionsQuery,
-  V4PoolTransactionsQuery,
   useV2PairTransactionsQuery,
   useV3PoolTransactionsQuery,
   useV4PoolTransactionsQuery,
@@ -71,7 +69,6 @@ export function usePoolTransactions({
     PoolTableTransactionType.ADD,
   ],
   token0,
-  protocolVersion = ProtocolVersion.V3,
   first = PoolTransactionDefaultQuerySize,
 }: {
   address: string
@@ -85,10 +82,10 @@ export function usePoolTransactions({
   const { defaultChainId } = useEnabledChains()
   const variables = { first, chain: toGraphQLChain(chainId ?? defaultChainId) }
   const {
-    loading: loadingV4,
-    error: errorV4,
-    data: dataV4,
-    fetchMore: fetchMoreV4,
+    loading: _loadingV4,
+    error: _errorV4,
+    data: _dataV4,
+    fetchMore: _fetchMoreV4,
   } = useV4PoolTransactionsQuery({
     variables: {
       ...variables,
@@ -106,13 +103,13 @@ export function usePoolTransactions({
       ...variables,
       address,
     },
-    skip: protocolVersion !== ProtocolVersion.V3,
+    skip: false, // V3 is the only supported protocol now
   })
   const {
-    loading: loadingV2,
-    error: errorV2,
-    data: dataV2,
-    fetchMore: fetchMoreV2,
+    loading: _loadingV2,
+    error: _errorV2,
+    data: _dataV2,
+    fetchMore: _fetchMoreV2,
   } = useV2PairTransactionsQuery({
     variables: {
       ...variables,
@@ -145,41 +142,21 @@ export function usePoolTransactions({
             return prev
           }
           onComplete?.()
-          const mergedData = false // V4 removed
-            ? {
-                v4Pool: {
-                  ...fetchMoreResult.v4Pool,
-                  transactions: [
-                    ...((prev as V4PoolTransactionsQuery).v4Pool?.transactions ?? []),
-                    ...fetchMoreResult.v4Pool.transactions,
-                  ],
-                },
-              }
-            : protocolVersion === ProtocolVersion.V3
-              ? {
-                  v3Pool: {
-                    ...fetchMoreResult.v3Pool,
-                    transactions: [
-                      ...((prev as V3PoolTransactionsQuery).v3Pool?.transactions ?? []),
-                      ...fetchMoreResult.v3Pool.transactions,
-                    ],
-                  },
-                }
-              : {
-                  v2Pair: {
-                    ...fetchMoreResult.v2Pair,
-                    transactions: [
-                      ...((prev as V2PairTransactionsQuery).v2Pair?.transactions ?? []),
-                      ...fetchMoreResult.v2Pair.transactions,
-                    ],
-                  },
-                }
+          const mergedData = {
+            v3Pool: {
+              ...fetchMoreResult.v3Pool,
+              transactions: [
+                ...((prev as V3PoolTransactionsQuery).v3Pool?.transactions ?? []),
+                ...fetchMoreResult.v3Pool.transactions,
+              ],
+            },
+          }
           loadingMore.current = false
           return mergedData
         },
       })
     },
-    [fetchMore, transactions, protocolVersion],
+    [fetchMore, transactions],
   )
 
   const filteredTransactions = useMemo(() => {

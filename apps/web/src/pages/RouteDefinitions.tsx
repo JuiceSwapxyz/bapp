@@ -17,9 +17,6 @@ const Pool = lazy(() => import('pages/Positions'))
 const LegacyPoolRedirects = lazy(() =>
   import('pages/LegacyPool/redirects').then((module) => ({ default: module.LegacyPoolRedirects })),
 )
-const PoolFinderRedirects = lazy(() =>
-  import('pages/LegacyPool/redirects').then((module) => ({ default: module.PoolFinderRedirects })),
-)
 const LegacyPositionPageRedirects = lazy(() =>
   import('pages/LegacyPool/redirects').then((module) => ({ default: module.LegacyPositionPageRedirects })),
 )
@@ -163,21 +160,21 @@ export const routes: RouteDefinition[] = [
     getElement: () => <Navigate to="/vote/create-proposal" replace />,
   }),
   // OnRamp disabled - Buy routes removed
-  /*
-  createRouteDefinition({
-    path: '/buy',
-    getElement: () => <Swap />,
-    getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
-  }),
-  */
+  //
+  // createRouteDefinition({
+  // path: '/buy',
+  // getElement: () => <Swap />,
+  // getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
+  // }),
+  //
   // OnRamp disabled - Sell route removed
-  /*
-  createRouteDefinition({
-    path: '/sell',
-    getElement: () => <Swap />,
-    getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
-  }),
-  */
+  //
+  // createRouteDefinition({
+  // path: '/sell',
+  // getElement: () => <Swap />,
+  // getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
+  // }),
+  //
   createRouteDefinition({
     path: '/send',
     getElement: () => <Swap />,
@@ -194,13 +191,13 @@ export const routes: RouteDefinition[] = [
     getTitle: () => i18n.t('title.placeLimit'),
   }),
   // OnRamp disabled - Buy routes removed
-  /*
-  createRouteDefinition({
-    path: '/buy',
-    getElement: () => <Swap />,
-    getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
-  }),
-  */
+  //
+  // createRouteDefinition({
+  // path: '/buy',
+  // getElement: () => <Swap />,
+  // getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
+  // }),
+  //
   createRouteDefinition({
     path: '/swap',
     getElement: () => <Swap />,

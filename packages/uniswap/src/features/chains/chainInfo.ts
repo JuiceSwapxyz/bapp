@@ -53,9 +53,7 @@ type ConstChainInfo<P extends Platform = Platform> = Extract<(typeof ORDERED_CHA
 function getOrderedEVMChains(): ConstChainInfo<Platform.EVM>[] {
   const evmChains: ConstChainInfo<Platform.EVM>[] = []
   for (const chain of ORDERED_CHAINS) {
-    if (chain.platform === Platform.EVM) {
-      evmChains.push(chain)
-    }
+    evmChains.push(chain)
   }
   return evmChains
 }

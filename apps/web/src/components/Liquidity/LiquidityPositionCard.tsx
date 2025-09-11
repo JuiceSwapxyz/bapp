@@ -42,6 +42,8 @@ import { ContextMenu, MenuOptionItem } from 'uniswap/src/components/menus/Contex
 import { ContextMenuTriggerMode } from 'uniswap/src/components/menus/types'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
+import { FeatureFlags } from 'uniswap/src/features/gating/flags'
+import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { useCurrencyInfo } from 'uniswap/src/features/tokens/useCurrencyInfo'
@@ -185,10 +187,7 @@ function useDropdownOptions({
         }
       : undefined
 
-    const showMigrateV3Option =
-      isOpenLiquidityPosition &&
-      true && // V4 removed, all chains support V3
-      liquidityPosition.version !== ProtocolVersion.V4
+    const showMigrateV3Option = isOpenLiquidityPosition && liquidityPosition.version !== ProtocolVersion.V4
 
     const migrateV3Option: MenuOptionItem | undefined = showMigrateV3Option
       ? {
@@ -241,7 +240,7 @@ export function LiquidityPositionCard({
   const { convertFiatAmountFormatted } = useLocalizationContext()
   const isTouchDevice = useIsTouchDevice()
   const [priceInverted, setPriceInverted] = useState(false)
-  const isLPIncentivesEnabled = false // Disabled LP incentives
+  const isLPIncentivesEnabled = useFeatureFlag(FeatureFlags.LpIncentives)
 
   const [hover, hoverProps] = useHoverProps()
   const media = useMedia()

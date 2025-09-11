@@ -13,6 +13,7 @@ import { useBalance, useReadContracts } from 'wagmi'
 /**
  * Returns a map of token addresses to their eventually consistent token balances for a single account.
  */
+// eslint-disable-next-line import/no-unused-modules
 export function useRpcTokenBalancesWithLoadingIndicator({
   address,
   tokens,

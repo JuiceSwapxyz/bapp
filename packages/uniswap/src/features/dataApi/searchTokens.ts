@@ -122,7 +122,7 @@ export function useSearchTokens({
 
   // Use fallback tokens for non-backend-supported chains
   const fallbackTokens = useMemo(() => {
-    if (isNonBackendChain && chainFilter) {
+    if (isNonBackendChain) {
       return getFallbackTokensForChain(chainFilter, searchQuery)
     }
     return null

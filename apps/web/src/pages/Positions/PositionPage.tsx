@@ -43,7 +43,6 @@ import {
   Text,
   TouchableArea,
   styled,
-  useMedia,
   useSporeColors,
 } from 'ui/src'
 import { ExchangeHorizontal } from 'ui/src/components/icons/ExchangeHorizontal'
@@ -55,7 +54,6 @@ import { CurrencyLogo } from 'uniswap/src/components/CurrencyLogo/CurrencyLogo'
 import { PollingInterval, ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { HistoryDuration } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { useGetPositionQuery } from 'uniswap/src/data/rest/getPosition'
-import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { EVMUniverseChainId, UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
@@ -117,7 +115,6 @@ export default function PositionPageWrapper() {
 function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) {
   const { tokenId: tokenIdFromUrl } = useParams<{ tokenId: string }>()
   const tokenId = parseTokenId(tokenIdFromUrl)
-  const chainInfo = chainId ? getChainInfo(chainId) : undefined
   const account = useAccount()
   const supportedAccountChainId = useSupportedChainId(account.chainId)
   const { pathname } = useLocation()
@@ -146,7 +143,6 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
 
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const media = useMedia()
 
   const { currency0Amount, currency1Amount, status, fee0Amount, fee1Amount } = positionInfo ?? {}
   const fiatFeeValue0 = useUSDCValue(fee0Amount, PollingInterval.Slow)
@@ -301,8 +297,6 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
     addressInput1: { address: positionInfo.owner, chainId: positionInfo.chainId },
     addressInput2: { address: account.address, chainId: supportedAccountChainId ?? positionInfo.chainId },
   })
-
-  const showV4UnsupportedTooltip = false // V4 removed, all chains support V3
 
   return (
     <Trace

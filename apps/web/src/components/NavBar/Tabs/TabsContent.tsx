@@ -25,7 +25,6 @@ export const useTabsContent = (): TabsSection[] => {
   const { t } = useTranslation()
   const { pathname } = useLocation()
   const theme = useTheme()
-  const isFiatOffRampEnabled = false // OnRamp disabled
 
   return [
     {

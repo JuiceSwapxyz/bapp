@@ -175,22 +175,6 @@ export const onRequest: PagesFunction = async ({ params, request, env }) => {
                   >
                     {data.name}
                   </div>
-                  {false && ( // V2 removed
-                    <div
-                      style={{
-                        fontFamily: 'Inter',
-                        fontSize: '48px',
-                        lineHeight: '48px',
-                        backgroundColor: '#FFFFFF12',
-                        borderRadius: '24px',
-                        padding: '12px 20px',
-                        color: '#9B9B9B',
-                        alignSelf: 'center',
-                      }}
-                    >
-                      {data?.poolData?.protocolVersion}
-                    </div>
-                  )}
                 </div>
                 <div
                   style={{

@@ -203,15 +203,15 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
 }
 
 export function getEnabledChains({
-  platform,
+  platform: _platform,
   /**
    * When `true`, it will return all enabled chains, including testnets.
    * Note: Currently ignored as we always show only testnets.
    */
   includeTestnets = false,
   isTestnetModeEnabled,
-  featureFlaggedChainIds,
-  connectedWalletChainIds,
+  featureFlaggedChainIds: _featureFlaggedChainIds,
+  connectedWalletChainIds: _connectedWalletChainIds,
 }: {
   platform?: Platform
   isTestnetModeEnabled: boolean
@@ -249,24 +249,24 @@ export function getEnabledChains({
   }
 }
 
-function getDefaultChainId({
-  platform,
-  isTestnetModeEnabled,
-}: {
-  platform?: Platform
-  isTestnetModeEnabled: boolean
-}): UniverseChainId {
-  // Kept for API compatibility but currently unused as we always return Sepolia
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _unused2 = isTestnetModeEnabled
-  if (platform === Platform.SVM) {
-    // TODO(Solana): is there a Solana testnet we can return here?
-    return UniverseChainId.Solana
-  }
+// function getDefaultChainId({
+//   platform,
+//   isTestnetModeEnabled,
+// }: {
+//   platform?: Platform
+//   isTestnetModeEnabled: boolean
+// }): UniverseChainId {
+//   // Kept for API compatibility but currently unused as we always return Sepolia
+//   // eslint-disable-next-line import/no-unused-modules
+//   const _unused2 = isTestnetModeEnabled
+//   if (platform === Platform.SVM) {
+//     // TODO(Solana): is there a Solana testnet we can return here?
+//     return UniverseChainId.Solana
+//   }
 
-  // Return Sepolia if testnet mode is enabled, otherwise Polygon
-  return isTestnetModeEnabled ? UniverseChainId.Sepolia : UniverseChainId.Polygon
-}
+//   // Return Sepolia if testnet mode is enabled, otherwise Polygon
+//   return isTestnetModeEnabled ? UniverseChainId.Sepolia : UniverseChainId.Polygon
+// }
 
 /** Returns all stablecoins for a given chainId. */
 export function getStablecoinsForChain(chainId: UniverseChainId): Token[] {

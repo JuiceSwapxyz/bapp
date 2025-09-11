@@ -28,6 +28,8 @@ import { ProtocolVersion, Token } from 'uniswap/src/data/graphql/uniswap-data-ap
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { toGraphQLChain } from 'uniswap/src/features/chains/utils'
+import { FeatureFlags } from 'uniswap/src/features/gating/flags'
+import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { shortenAddress } from 'utilities/src/addresses'
 import { getChainUrlParam } from 'utils/chainParams'
@@ -204,7 +206,7 @@ const PoolDetailsHeaderActions = ({
   poolName,
   token0,
   token1,
-  protocolVersion,
+  protocolVersion: _protocolVersion,
 }: {
   chainId?: number
   poolAddress?: string
@@ -289,7 +291,7 @@ export function PoolDetailsHeader({
     () => (token0 && token1 ? [gqlToCurrency(token0), gqlToCurrency(token1)] : []),
     [token0, token1],
   )
-  const isLPIncentivesEnabled = false // Disabled LP incentives
+  const isLPIncentivesEnabled = useFeatureFlag(FeatureFlags.LpIncentives)
   const showRewards = isLPIncentivesEnabled && rewardsApr && rewardsApr > 0
 
   if (loading) {

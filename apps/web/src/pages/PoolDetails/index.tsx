@@ -26,6 +26,8 @@ import { Flex } from 'ui/src'
 import { breakpoints } from 'ui/src/theme'
 import { ProtocolVersion, Token } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
+import { FeatureFlags } from 'uniswap/src/features/gating/flags'
+import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { useChainIdFromUrlParam } from 'utils/chainParams'
@@ -94,7 +96,7 @@ const LinksContainer = styled(Column)`
 function getUnwrappedPoolToken({
   poolData,
   chainId,
-  protocolVersion,
+  protocolVersion: _protocolVersion,
 }: {
   poolData?: PoolData
   chainId?: number
@@ -120,7 +122,7 @@ export default function PoolDetailsPage() {
     protocolVersion: poolData?.protocolVersion,
   })
   const [token0, token1] = isReversed ? [unwrappedTokens[1], unwrappedTokens[0]] : unwrappedTokens
-  const isLPIncentivesEnabled = false // Disabled LP incentives
+  const isLPIncentivesEnabled = useFeatureFlag(FeatureFlags.LpIncentives)
 
   const poolApr = useMemo(
     () =>

@@ -34,7 +34,6 @@ import { useExploreContextTopPools } from 'state/explore/topPools'
 import { PoolStat } from 'state/explore/types'
 import { Flex, Text, styled, useMedia } from 'ui/src'
 import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { getNativeAddress } from 'uniswap/src/constants/addresses'
 import { BIPS_BASE } from 'uniswap/src/constants/misc'
 import { UNI } from 'uniswap/src/constants/tokens'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
@@ -253,9 +252,6 @@ export function PoolsTable({
         const poolSortRank = index + 1
         const isGqlPool = 'hash' in pool
         const chainId = supportedChainIdFromGQLChain(pool.token0?.chain as Chain) ?? defaultChainId
-
-        const token0Address = pool.token0?.address || getNativeAddress(chainId)
-        const token1Address = pool.token1?.address || getNativeAddress(chainId)
         // V4 removed, no need for special handling
         const currency0Id = undefined
         const currency1Id = undefined

@@ -3,10 +3,9 @@ import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Flex, HeightAnimator, Switch, Text, TouchableArea, UniswapXText, useSporeColors, type FlexProps } from 'ui/src'
-import { InfoCircleFilled } from 'ui/src/components/icons/InfoCircleFilled'
 import { Lightning } from 'ui/src/components/icons/Lightning'
 import { UniswapX } from 'ui/src/components/icons/UniswapX'
-import { spacing, zIndexes } from 'ui/src/theme'
+import { zIndexes } from 'ui/src/theme'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningModal } from 'uniswap/src/components/modals/WarningModal/WarningModal'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
@@ -16,7 +15,6 @@ import WarningIcon from 'uniswap/src/components/warnings/WarningIcon'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useUniswapContextSelector } from 'uniswap/src/contexts/UniswapContext'
 import { ProtocolItems } from 'uniswap/src/data/tradingApi/__generated__'
-import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
@@ -59,11 +57,6 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
   const isUniswapXSupported = getIsUniswapXSupported?.(chainId)
   const uniswapXEnabled = uniswapXEnabledFlag && chainId !== UniverseChainId.MonadTestnet
   const v4SwapEnabled = useV4SwapEnabled(chainId)
-  const chainName = getChainInfo(chainId).name
-  const restrictionDescription = t('swap.settings.protection.subtitle.unavailable', { chainName })
-
-  // We prevent the user from deselecting all options
-  const onlyOneProtocolSelected = selectedProtocols.length === 1 && !isV4HookPoolsEnabled
 
   // V3-only strategy - all selected protocols are classic protocols
   const classicProtocolsCount = selectedProtocols.length
@@ -71,10 +64,6 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
   // Prevent the user from deselecting all on-chain protocols (AKA only selecting UniswapX)
   const onlyOneClassicProtocolSelected =
     (classicProtocolsCount === 1 && !isV4HookPoolsEnabled) || (classicProtocolsCount === 0 && isV4HookPoolsEnabled)
-
-  const toggleV4Hooks = useCallback(() => {
-    setIsV4HookPoolsEnabled(!isV4HookPoolsEnabled)
-  }, [setIsV4HookPoolsEnabled, isV4HookPoolsEnabled])
 
   const toggleDefault = useCallback(() => {
     setIsDefault(!isDefault)
@@ -139,30 +128,6 @@ function createGetProtocolTitle(ctx: {
   }
 }
 
-function UniswapXInfoTooltipTrigger(): JSX.Element {
-  return (
-    <Text
-      alignItems="center"
-      color="$neutral2"
-      variant="subheading2"
-      flexDirection="row"
-      flexShrink={0}
-      display="inline-flex"
-      gap="$gap4"
-      // This is to offset the left padding built-into the UniswapX icon
-      left={-spacing.spacing2}
-    >
-      <Trans
-        components={{
-          icon: <UniswapX size="$icon.16" />,
-          gradient: <UniswapXText height={18} variant="subheading2" />,
-          info: <InfoCircleFilled color="$neutral3" size="$icon.16" />,
-        }}
-        i18nKey="uniswapx.item"
-      />
-    </Text>
-  )
-}
 type OptionRowProps = {
   title: JSX.Element | string
   active: boolean

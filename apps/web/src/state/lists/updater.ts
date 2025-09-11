@@ -53,6 +53,7 @@ export default function Updater(): null {
     })
     DEFAULT_INACTIVE_LIST_URLS.forEach((listUrl) => {
       const list = lists[listUrl]
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (list && !list.current && !list.loadingRequestId && !list.error) {
         fetchList(listUrl, /* isUnsupportedList= */ true).catch((error) =>
           logger.debug('lists/updater', 'Updater', 'list added fetching error', error),
