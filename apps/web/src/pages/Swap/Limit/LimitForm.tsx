@@ -1,5 +1,4 @@
 import { Currency, CurrencyAmount, Token } from '@uniswap/sdk-core'
-import { UNIVERSAL_ROUTER_ADDRESS, UniversalRouterVersion } from '@uniswap/universal-router-sdk'
 import { OpenLimitOrdersButton } from 'components/AccountDrawer/MiniPortfolio/Limits/OpenLimitOrdersButton'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { MenuState, miniPortfolioMenuStateAtom } from 'components/AccountDrawer/constants'
@@ -256,12 +255,6 @@ function LimitForm({ onCurrencyChange }: LimitFormProps) {
   const hasInsufficientFunds =
     parsedAmounts.input && currencyBalances.input ? currencyBalances.input.lessThan(parsedAmounts.input) : false
 
-  console.log('-----> LimitForm calling usePermit2Allowance with:', { 
-    amount: parsedAmounts.input?.toExact(), 
-    isSupportedChain, 
-    chainId,
-    isNative: parsedAmounts.input?.currency.isNative 
-  })
   const allowance = usePermit2Allowance({
     amount: parsedAmounts.input?.currency.isNative ? undefined : (parsedAmounts.input as CurrencyAmount<Token>),
     spender: isSupportedChain ? '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E' : undefined, // V3 SwapRouter address for Sepolia

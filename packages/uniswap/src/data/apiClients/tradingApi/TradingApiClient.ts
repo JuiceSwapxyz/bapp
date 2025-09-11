@@ -1,7 +1,5 @@
-import { SwapRouter } from '@uniswap/router-sdk'
-import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
-import { Pool as V3Pool, Route as V3Route, Trade as V3Trade } from '@uniswap/v3-sdk'
-import { utils } from "ethers"
+/* eslint-disable max-lines */
+import { parseUnits } from 'ethers/lib/utils'
 import { config } from 'uniswap/src/config'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
@@ -51,7 +49,6 @@ import {
   TradeType,
   TransactionHash,
   UniversalRouterVersion,
-  V3PoolInRoute,
   WalletCheckDelegationRequestBody,
   WalletCheckDelegationResponseBody,
   WalletEncode7702RequestBody,
@@ -184,44 +181,52 @@ export async function fetchIndicativeQuote(params: IndicativeQuoteRequest): Prom
 
 export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<CreateSwapResponse> {
   const quote = params.quote
-  const route = quote.route?.[0]?.[0]
+  const route = (quote as ClassicQuote).route?.[0]?.[0]
   const tokenIn = route?.tokenIn
   const tokenOut = route?.tokenOut
-  const connectedWallet = quote.swapper || params.from
+  const connectedWallet = quote.swapper
 
   const body = {
     tokenOutAddress: tokenOut?.address,
-    tokenOutDecimals: parseInt(tokenOut?.decimals || '18'),
+    tokenOutDecimals: parseInt(tokenOut?.decimals || '18', 10),
     tokenInChainId: tokenIn?.chainId,
     tokenInAddress: tokenIn?.address,
-    tokenInDecimals: parseInt(tokenIn?.decimals || '18'),
+    tokenInDecimals: parseInt(tokenIn?.decimals || '18', 10),
     tokenOutChainId: tokenOut?.chainId,
-    amount: quote.amount,
-    type: "exactIn",
+    amount: (quote as { amount: string }).amount,
+    type: 'exactIn',
     recipient: connectedWallet,
     from: connectedWallet,
-    slippageTolerance: params.slippageTolerance || "5",
-    deadline: params.deadline || "1800",
+    slippageTolerance: '5',
+    deadline: params.deadline || '1800',
     chainId: tokenIn?.chainId,
   }
 
-  const response = await CustomQuoteApiClient.post<CreateSwapResponse>(uniswapUrls.tradingApiPaths.swap, {
+  const response = await CustomQuoteApiClient.post<{
+    data: string
+    to: string
+    value: string
+  }>(uniswapUrls.tradingApiPaths.swap, {
     body: JSON.stringify(body),
     headers: {
       ...V4_HEADERS,
       ...getFeatureFlaggedHeaders(),
     },
   })
-  
+
+  if (!tokenIn?.chainId || !connectedWallet) {
+    throw new Error('Missing required chainId or connectedWallet')
+  }
+
   return {
     requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
     swap: {
-      chainId: tokenIn?.chainId,
+      chainId: tokenIn.chainId,
       data: response.data,
       from: connectedWallet,
       to: response.to,
       value: response.value,
-    }
+    },
   }
 }
 
@@ -250,10 +255,7 @@ export async function fetchSwap7702({ ...params }: CreateSwap7702Request): Promi
  * and proper gas estimation
  */
 async function computeApprovalTransaction(params: ApprovalRequest): Promise<ApprovalResponse> {
-  const {
-    constructUnlimitedERC20ApproveCalldata,
-    getClassicSwapSpenderAddress,
-  } = require('uniswap/src/utils/approvalCalldata')
+  const { constructUnlimitedERC20ApproveCalldata } = require('uniswap/src/utils/approvalCalldata')
   const { createFetchGasFee } = require('uniswap/src/data/apiClients/uniswapApi/UniswapApiClient')
   const { Contract } = require('ethers')
   const ERC20_ABI = require('uniswap/src/abis/erc20.json')
@@ -261,7 +263,7 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
   const { tradingApiToUniverseChainId } = require('uniswap/src/features/transactions/swap/utils/tradingApi')
 
   // Get the spender address (V3 SwapRouter for classic swaps)
-  const spenderAddress = '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E';
+  const spenderAddress = '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E'
 
   // Check if enough approval is already granted
   try {
@@ -275,20 +277,20 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
     }
     const tokenContract = new Contract(params.token, ERC20_ABI, provider)
     const currentAllowance = await tokenContract.callStatic.allowance(params.walletAddress, spenderAddress)
-    
+
     // Convert params.amount to BigNumber with proper decimals
     // params.amount is likely already in wei format, so we use parseUnits with 0 decimals
-    const requiredAmount = utils.parseUnits(params.amount, 0)
+    const requiredAmount = parseUnits(params.amount, 0)
 
     // If current allowance is greater than or equal to the required amount, no approval needed
     if (currentAllowance.gte(requiredAmount)) {
       return {
-        requestId: "",
+        requestId: '',
         approval: null,
-        cancel: null
+        cancel: null,
       } as unknown as ApprovalResponse
     }
-  } catch (error) { }
+  } catch (error) {}
 
   // Construct the approval calldata
   const calldata = constructUnlimitedERC20ApproveCalldata(spenderAddress)
@@ -390,7 +392,6 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
 
 export async function fetchCheckApproval(params: ApprovalRequest): Promise<ApprovalResponse> {
   const computedResponse = await computeApprovalTransaction(params)
-  console.log('-----> computedResponse', computedResponse)
   return computedResponse
 }
 

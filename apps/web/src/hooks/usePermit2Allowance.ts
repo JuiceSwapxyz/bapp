@@ -1,4 +1,3 @@
-import { permit2Address } from '@uniswap/permit2-sdk'
 import { CurrencyAmount, Token } from '@uniswap/sdk-core'
 import { useAccount } from 'hooks/useAccount'
 import { PermitSignature, usePermitAllowance, useUpdatePermitAllowance } from 'hooks/usePermitAllowance'
@@ -53,10 +52,8 @@ export default function usePermit2Allowance({
   spender?: string
   tradeFillType?: TradeFillType
 }): Allowance {
-  console.log('-----> usePermit2Allowance called with:', { amount: amount?.toExact(), spender, tradeFillType })
   const account = useAccount()
   const token = amount?.currency
-  const permit2AddressForChain = permit2Address(token?.chainId)
   // Use the provided spender or fall back to Permit2 address
   const effectiveSpender = '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E'
   const { tokenAllowance, isSyncing: isApprovalSyncing } = useTokenAllowance({
@@ -64,7 +61,6 @@ export default function usePermit2Allowance({
     owner: account.address,
     spender: effectiveSpender,
   })
-  console.log('-----> tokenAllowance', tokenAllowance)
   const updateTokenAllowance = useUpdateTokenAllowance(amount, effectiveSpender)
   const revokeTokenAllowance = useRevokeTokenAllowance(token, effectiveSpender)
   const isApproved = useMemo(() => {
@@ -161,16 +157,7 @@ export default function usePermit2Allowance({
     addTransaction(response, info)
   }, [addTransaction, revokeTokenAllowance])
 
-  const result = useMemo(() => {
-    console.log('-----> usePermit2Allowance final result calculation:', { 
-      token: token?.address, 
-      tokenAllowance: tokenAllowance?.toExact(), 
-      permitAllowance: permitAllowance?.toExact(),
-      isApproved,
-      shouldRequestSignature,
-      shouldRequestApproval
-    })
-    
+  const result = useMemo((): Allowance => {
     if (token) {
       if (!tokenAllowance || !permitAllowance) {
         return { state: AllowanceState.LOADING }
@@ -207,11 +194,8 @@ export default function usePermit2Allowance({
       }
     }
     return {
-      token,
       state: AllowanceState.ALLOWED,
       permitSignature: !isPermitted && isSigned ? signature : undefined,
-      needsSetupApproval: false,
-      needsPermitSignature: false,
     }
   }, [
     approve,
@@ -230,7 +214,6 @@ export default function usePermit2Allowance({
     token,
     tokenAllowance,
   ])
-  
-  console.log('-----> usePermit2Allowance returning:', result)
+
   return result
 }
