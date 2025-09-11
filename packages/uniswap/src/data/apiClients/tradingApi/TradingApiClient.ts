@@ -1,6 +1,5 @@
-import { SwapRouter } from '@uniswap/router-sdk'
-import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
-import { Pool as V3Pool, Route as V3Route, Trade as V3Trade } from '@uniswap/v3-sdk'
+/* eslint-disable max-lines */
+import { parseUnits } from 'ethers/lib/utils'
 import { config } from 'uniswap/src/config'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
@@ -50,7 +49,6 @@ import {
   TradeType,
   TransactionHash,
   UniversalRouterVersion,
-  V3PoolInRoute,
   WalletCheckDelegationRequestBody,
   WalletCheckDelegationResponseBody,
   WalletEncode7702RequestBody,
@@ -181,140 +179,55 @@ export async function fetchIndicativeQuote(params: IndicativeQuoteRequest): Prom
   return fetchQuote(quoteRequest)
 }
 
-// Helper function to build V3 transaction using SDK
-function buildV3Transaction(quote: ClassicQuote): CreateSwapResponse | undefined {
-  try {
-    // Only build transaction for quotes with route data
-    if (!quote.route || quote.route.length === 0) {
-      return undefined
-    }
-
-    // Find V3 pools in the route
-    const v3Pools: V3PoolInRoute[] = []
-
-    for (const routePath of quote.route) {
-      for (const pool of routePath) {
-        if (pool.type === 'v3-pool') {
-          v3Pools.push(pool as V3PoolInRoute)
-        }
-      }
-    }
-
-    if (v3Pools.length === 0) {
-      return undefined
-    }
-
-    // Create V3 pools from route data
-    const v3PoolsData = v3Pools.map((pool) => {
-      if (!pool.tokenIn || !pool.tokenOut || !pool.fee || !pool.sqrtRatioX96 || !pool.liquidity || !pool.tickCurrent) {
-        throw new Error('Incomplete V3 pool data')
-      }
-
-      // Create Token objects for V3 SDK
-      const tokenIn = new Token(
-        1, // chainId - this should be extracted from quote
-        pool.tokenIn.address || '0x0000000000000000000000000000000000000000',
-        parseInt(pool.tokenIn.decimals || '18', 10),
-        pool.tokenIn.symbol || 'UNKNOWN',
-        pool.tokenIn.symbol || 'Unknown Token',
-      )
-
-      const tokenOut = new Token(
-        1, // chainId - this should be extracted from quote
-        pool.tokenOut.address || '0x0000000000000000000000000000000000000000',
-        parseInt(pool.tokenOut.decimals || '18', 10),
-        pool.tokenOut.symbol || 'UNKNOWN',
-        pool.tokenOut.symbol || 'Unknown Token',
-      )
-
-      // Create V3 Pool
-      const v3Pool = new V3Pool(
-        tokenIn,
-        tokenOut,
-        typeof pool.fee === 'string' ? parseInt(pool.fee, 10) : pool.fee,
-        pool.sqrtRatioX96,
-        pool.liquidity,
-        typeof pool.tickCurrent === 'string' ? parseInt(pool.tickCurrent, 10) : pool.tickCurrent,
-      )
-
-      return {
-        pool: v3Pool,
-        amountIn: pool.amountIn,
-        amountOut: pool.amountOut,
-        originalPool: pool,
-      }
-    })
-
-    // Create route from pools
-    const firstPool = v3PoolsData[0]?.pool
-    const lastPool = v3PoolsData[v3PoolsData.length - 1]?.pool
-
-    if (!firstPool || !lastPool) {
-      throw new Error('Invalid pool data for route creation')
-    }
-
-    const route = new V3Route(
-      v3PoolsData.map((p) => p.pool),
-      firstPool.token0,
-      lastPool.token1,
-    )
-
-    // Create trade
-    const amountIn = CurrencyAmount.fromRawAmount(firstPool.token0, quote.input?.amount || '0')
-
-    const trade = V3Trade.createUncheckedTrade({
-      route,
-      inputAmount: amountIn,
-      outputAmount: CurrencyAmount.fromRawAmount(lastPool.token1, quote.output?.amount || '0'),
-      tradeType: 0, // EXACT_INPUT
-    })
-
-    // Build swap parameters using SwapRouter
-    const swapOptions = {
-      slippageTolerance: new Percent(50, 10_000), // 0.5% slippage
-      deadline: Math.floor(Date.now() / 1000) + 1800, // 30 minutes
-      recipient: quote.swapper || '0x0000000000000000000000000000000000000000',
-    }
-
-    const { calldata, value } = SwapRouter.swapCallParameters(trade, swapOptions)
-
-    return {
-      requestId: Math.random().toString(36).substring(2, 15),
-      swap: {
-        chainId: ChainId._11155111,
-        data: calldata,
-        value: value.toString(),
-        to: '0xE592427A0AEce92De3Edee1F18E0157C05861564', // V3 SwapRouter address
-        from: quote.swapper || '0x0000000000000000000000000000000000000000',
-      },
-    }
-  } catch (error) {
-    logger.error(error, {
-      tags: {
-        file: 'TradingApiClient',
-        function: 'buildV3Transaction',
-      },
-    })
-    return undefined
-  }
-}
-
 export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<CreateSwapResponse> {
-  // Build V3 transaction if it's a classic quote
-  if ('route' in params.quote) {
-    const v3Result = buildV3Transaction(params.quote as ClassicQuote)
-    if (v3Result) {
-      return v3Result
-    }
+  const quote = params.quote
+  const route = (quote as ClassicQuote).route?.[0]?.[0]
+  const tokenIn = route?.tokenIn
+  const tokenOut = route?.tokenOut
+  const connectedWallet = quote.swapper
+
+  const body = {
+    tokenOutAddress: tokenOut?.address,
+    tokenOutDecimals: parseInt(tokenOut?.decimals || '18', 10),
+    tokenInChainId: tokenIn?.chainId,
+    tokenInAddress: tokenIn?.address,
+    tokenInDecimals: parseInt(tokenIn?.decimals || '18', 10),
+    tokenOutChainId: tokenOut?.chainId,
+    amount: (quote as { amount: string }).amount,
+    type: 'exactIn',
+    recipient: connectedWallet,
+    from: connectedWallet,
+    slippageTolerance: '5',
+    deadline: params.deadline || '1800',
+    chainId: tokenIn?.chainId,
   }
 
-  return await TradingApiClient.post<CreateSwapResponse>(uniswapUrls.tradingApiPaths.swap, {
-    body: JSON.stringify(params),
+  const response = await CustomQuoteApiClient.post<{
+    data: string
+    to: string
+    value: string
+  }>(uniswapUrls.tradingApiPaths.swap, {
+    body: JSON.stringify(body),
     headers: {
       ...V4_HEADERS,
       ...getFeatureFlaggedHeaders(),
     },
   })
+
+  if (!tokenIn?.chainId || !connectedWallet) {
+    throw new Error('Missing required chainId or connectedWallet')
+  }
+
+  return {
+    requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+    swap: {
+      chainId: tokenIn.chainId,
+      data: response.data,
+      from: connectedWallet,
+      to: response.to,
+      value: response.value,
+    },
+  }
 }
 
 export async function fetchSwap5792({ ...params }: CreateSwap5792Request): Promise<CreateSwap5792Response> {
@@ -342,14 +255,42 @@ export async function fetchSwap7702({ ...params }: CreateSwap7702Request): Promi
  * and proper gas estimation
  */
 async function computeApprovalTransaction(params: ApprovalRequest): Promise<ApprovalResponse> {
-  const {
-    constructUnlimitedERC20ApproveCalldata,
-    getClassicSwapSpenderAddress,
-  } = require('uniswap/src/utils/approvalCalldata')
+  const { constructUnlimitedERC20ApproveCalldata } = require('uniswap/src/utils/approvalCalldata')
   const { createFetchGasFee } = require('uniswap/src/data/apiClients/uniswapApi/UniswapApiClient')
+  const { Contract } = require('ethers')
+  const ERC20_ABI = require('uniswap/src/abis/erc20.json')
+  const { createEthersProvider } = require('uniswap/src/features/providers/createEthersProvider')
+  const { tradingApiToUniverseChainId } = require('uniswap/src/features/transactions/swap/utils/tradingApi')
 
-  // Get the spender address (Permit2 for classic swaps)
-  const spenderAddress = getClassicSwapSpenderAddress(params.chainId)
+  // Get the spender address (V3 SwapRouter for classic swaps)
+  const spenderAddress = '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E'
+
+  // Check if enough approval is already granted
+  try {
+    const universeChainId = tradingApiToUniverseChainId(params.chainId)
+    if (!universeChainId) {
+      throw new Error('Unsupported chain ID')
+    }
+    const provider = createEthersProvider({ chainId: universeChainId })
+    if (!provider) {
+      throw new Error('Failed to create provider')
+    }
+    const tokenContract = new Contract(params.token, ERC20_ABI, provider)
+    const currentAllowance = await tokenContract.callStatic.allowance(params.walletAddress, spenderAddress)
+
+    // Convert params.amount to BigNumber with proper decimals
+    // params.amount is likely already in wei format, so we use parseUnits with 0 decimals
+    const requiredAmount = parseUnits(params.amount, 0)
+
+    // If current allowance is greater than or equal to the required amount, no approval needed
+    if (currentAllowance.gte(requiredAmount)) {
+      return {
+        requestId: '',
+        approval: null,
+        cancel: null,
+      } as unknown as ApprovalResponse
+    }
+  } catch (error) {}
 
   // Construct the approval calldata
   const calldata = constructUnlimitedERC20ApproveCalldata(spenderAddress)

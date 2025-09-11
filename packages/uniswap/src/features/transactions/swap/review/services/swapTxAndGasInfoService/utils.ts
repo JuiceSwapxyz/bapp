@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { providers } from 'ethers/lib/ethers'
 import { useMemo } from 'react'
 import type {
