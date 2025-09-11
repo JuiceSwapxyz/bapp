@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Generate AJV validators
+        run: yarn workspace @juiceswap/interface ajv
+
       - name: Build web app
         run: yarn web build:production
         env:
