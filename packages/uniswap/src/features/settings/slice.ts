@@ -21,7 +21,7 @@ export const initialUserSettingsState: UserSettingsState = {
   currentCurrency: FiatCurrency.UnitedStatesDollar,
   hideSmallBalances: true,
   hideSpamTokens: true,
-  isTestnetModeEnabled: true,
+  isTestnetModeEnabled: true, // Enable testnet by default
   hapticsEnabled: true,
 }
 

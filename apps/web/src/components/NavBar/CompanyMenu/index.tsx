@@ -19,6 +19,7 @@ const ArrowDownWrapper = styled(Text, {
   },
 })
 
+// eslint-disable-next-line import/no-unused-modules
 export function CompanyMenu() {
   const popoverRef = useRef<Popover>(null)
   const media = useMedia()
@@ -51,7 +52,7 @@ export function CompanyMenu() {
               <NavIcon />
               {isLargeScreen && (
                 <Text variant="subheading1" color="$accent1" userSelect="none">
-                  Uniswap
+                  JuiceSwap
                 </Text>
               )}
             </Flex>

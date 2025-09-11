@@ -12,7 +12,7 @@ export const manualChainOutageAtom = atomWithReset<ChainOutageData | undefined>(
 export function useUpdateManualOutage({
   chainId,
   errorV3,
-  errorV2,
+  errorV2: _errorV2, // V2 removed, no need to handle V2 errors
 }: {
   chainId?: UniverseChainId
   errorV3?: ApolloError
@@ -24,7 +24,5 @@ export function useUpdateManualOutage({
   if (errorV3 && chainId) {
     setManualOutage({ chainId })
   }
-  if (errorV2 && chainId) {
-    setManualOutage({ chainId, version: ProtocolVersion.V2 })
-  }
+  // V2 removed, no need to handle V2 errors
 }

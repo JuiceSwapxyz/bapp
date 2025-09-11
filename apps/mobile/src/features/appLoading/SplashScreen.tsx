@@ -1,7 +1,7 @@
 import React from 'react'
 import { Image, StyleSheet } from 'react-native'
 import { Flex, useIsDarkMode } from 'ui/src'
-import { UNISWAP_MONO_LOGO_LARGE } from 'ui/src/assets'
+import { JUICESWAP_LOGO_SVG } from 'ui/src/assets'
 import { useDeviceDimensions } from 'ui/src/hooks/useDeviceDimensions'
 import { isAndroid } from 'utilities/src/platform'
 
@@ -24,7 +24,7 @@ export function SplashScreen(): JSX.Element {
         alignContent: 'center',
       }}
     >
-      <Image source={UNISWAP_MONO_LOGO_LARGE} style={fixedStyle.logoStyle} />
+      <Image source={JUICESWAP_LOGO_SVG} style={fixedStyle.logoStyle} />
     </Flex>
   )
 }

@@ -43,7 +43,6 @@ import {
   Text,
   TouchableArea,
   styled,
-  useMedia,
   useSporeColors,
 } from 'ui/src'
 import { ExchangeHorizontal } from 'ui/src/components/icons/ExchangeHorizontal'
@@ -55,7 +54,6 @@ import { CurrencyLogo } from 'uniswap/src/components/CurrencyLogo/CurrencyLogo'
 import { PollingInterval, ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { HistoryDuration } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { useGetPositionQuery } from 'uniswap/src/data/rest/getPosition'
-import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { EVMUniverseChainId, UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
@@ -72,7 +70,6 @@ import { buildCurrencyId, currencyId, currencyIdToAddress } from 'uniswap/src/ut
 import { NumberType } from 'utilities/src/format/types'
 import { isMobileWeb } from 'utilities/src/platform'
 import { useChainIdFromUrlParam } from 'utils/chainParams'
-import { isV4UnsupportedChain } from 'utils/networkSupportsV4'
 
 const BodyWrapper = styled(Main, {
   backgroundColor: '$surface1',
@@ -118,7 +115,6 @@ export default function PositionPageWrapper() {
 function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) {
   const { tokenId: tokenIdFromUrl } = useParams<{ tokenId: string }>()
   const tokenId = parseTokenId(tokenIdFromUrl)
-  const chainInfo = chainId ? getChainInfo(chainId) : undefined
   const account = useAccount()
   const supportedAccountChainId = useSupportedChainId(account.chainId)
   const { pathname } = useLocation()
@@ -147,7 +143,6 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
 
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const media = useMedia()
 
   const { currency0Amount, currency1Amount, status, fee0Amount, fee1Amount } = positionInfo ?? {}
   const fiatFeeValue0 = useUSDCValue(fee0Amount, PollingInterval.Slow)
@@ -303,8 +298,6 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
     addressInput2: { address: account.address, chainId: supportedAccountChainId ?? positionInfo.chainId },
   })
 
-  const showV4UnsupportedTooltip = isV4UnsupportedChain(positionInfo.chainId)
-
   return (
     <Trace
       logImpression
@@ -350,27 +343,6 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
             />
             {isOwner && (
               <Flex row gap="$gap12" alignItems="center" flexWrap="wrap">
-                {positionInfo.version === ProtocolVersion.V3 && status !== PositionStatus.CLOSED && (
-                  <MouseoverTooltip
-                    text={t('pool.migrateLiquidityDisabledTooltip')}
-                    disabled={!showV4UnsupportedTooltip}
-                    style={media.sm ? { width: '100%', display: 'block' } : {}}
-                  >
-                    <Button
-                      size="small"
-                      emphasis="secondary"
-                      $sm={{ width: '100%' }}
-                      fill={false}
-                      isDisabled={showV4UnsupportedTooltip}
-                      opacity={showV4UnsupportedTooltip ? 0.5 : 1}
-                      onPress={() => {
-                        navigate(`/migrate/v3/${chainInfo?.urlParam}/${tokenIdFromUrl}`)
-                      }}
-                    >
-                      {t('pool.migrateToV4')}
-                    </Button>
-                  </MouseoverTooltip>
-                )}
                 <Button
                   size="small"
                   emphasis="secondary"

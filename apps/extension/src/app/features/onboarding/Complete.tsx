@@ -10,7 +10,7 @@ import { OnboardingMessageType } from 'src/background/messagePassing/types/Exten
 import { openSidePanel } from 'src/background/utils/chromeSidePanelUtils'
 import { terminateStoreSynchronization } from 'src/store/storeSynchronization'
 import { Button, Flex, Image, Text } from 'ui/src'
-import { UNISWAP_LOGO } from 'ui/src/assets'
+import { JUICESWAP_LOGO_SVG } from 'ui/src/assets'
 import { RightArrow } from 'ui/src/components/icons'
 import { iconSizes } from 'ui/src/theme'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
@@ -84,7 +84,7 @@ export function Complete({
       <Flex alignItems="center">
         <Flex alignItems="center" gap="$spacing24" justifyContent="center">
           <Flex alignItems="center" gap="$spacing12" justifyContent="center">
-            <Image height={iconSizes.icon64} source={UNISWAP_LOGO} width={iconSizes.icon64} />
+            <Image height={iconSizes.icon64} source={JUICESWAP_LOGO_SVG} width={iconSizes.icon64} />
             <Text color="$neutral1" variant="heading3">
               {t('onboarding.complete.title')}
             </Text>

@@ -12,7 +12,6 @@ import { manualChainOutageAtom } from 'featureFlags/flags/outageBanner'
 import { useOnGlobalChainSwitch } from 'hooks/useGlobalChainSwitch'
 import { useResetAtom } from 'jotai/utils'
 import ExploreStatsSection from 'pages/Explore/ExploreStatsSection'
-import ProtocolFilter from 'pages/Explore/ProtocolFilter'
 import { ExploreTab } from 'pages/Explore/constants'
 import { useExploreParams } from 'pages/Explore/redirects'
 import RecentTransactions from 'pages/Explore/tables/RecentTransactions'
@@ -150,7 +149,8 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
 
   const urlChainId = useChainIdFromUrlParam()
   const chainInfo = useMemo(() => {
-    return urlChainId ? getChainInfo(urlChainId) : undefined
+    // Always use Polygon if no chain is specified or if an unsupported chain is requested
+    return urlChainId ? getChainInfo(urlChainId) : getChainInfo(UniverseChainId.Polygon)
   }, [urlChainId])
   useEffect(() => {
     const tabIndex = Pages.findIndex((page) => page.key === tab)
@@ -175,8 +175,8 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
   )
 
   return (
-    <Trace logImpression page={InterfacePageName.ExplorePage} properties={{ chainName: chainInfo?.backendChain.chain }}>
-      <ExploreContextProvider chainId={chainInfo?.id}>
+    <Trace logImpression page={InterfacePageName.ExplorePage} properties={{ chainName: chainInfo.backendChain.chain }}>
+      <ExploreContextProvider chainId={chainInfo.id}>
         <Flex width="100%" minWidth={320} pt="$spacing24" pb="$spacing48" px="$spacing40" $md={{ p: '$spacing16' }}>
           <ExploreStatsSection />
           <Flex
@@ -207,7 +207,7 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
               {Pages.map(({ title, loggingElementName, key }, index) => {
                 const url = getTokenExploreURL({
                   tab: key,
-                  chainUrlParam: chainInfo ? getChainUrlParam(chainInfo.id) : '',
+                  chainUrlParam: getChainUrlParam(chainInfo.id),
                 })
                 return (
                   <Trace
@@ -231,9 +231,9 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
                   </Button>
                 </Flex>
               )}
-              <TableNetworkFilter showMultichainOption={currentKey !== ExploreTab.Transactions} />
+              <TableNetworkFilter />
               {currentKey === ExploreTab.Tokens && <VolumeTimeFrameSelector />}
-              {currentKey === ExploreTab.Pools && <ProtocolFilter />}
+              {/* Protocol filter removed - only V3 pools shown */}
               <SearchBar tab={currentKey} />
             </Flex>
           </Flex>

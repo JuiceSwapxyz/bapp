@@ -9,7 +9,7 @@ import { PropsWithChildren } from 'react'
 import { Trans } from 'react-i18next'
 import { persistHideMobileAppPromoBannerAtom } from 'state/application/atoms'
 import { Flex, Image, Text } from 'ui/src'
-import { UNISWAP_LOGO } from 'ui/src/assets'
+import { JUICESWAP_LOGO_SVG } from 'ui/src/assets'
 import { AppStoreLogo } from 'ui/src/components/icons/AppStoreLogo'
 import { PhoneDownload } from 'ui/src/components/icons/PhoneDownload'
 import { ScanQr } from 'ui/src/components/icons/ScanQr'
@@ -69,7 +69,7 @@ export function UniswapWalletOptions() {
         {uniswapExtensionConnector ? (
           // If the extension is detected, show the option to connect
           <OptionContainer onPress={() => connect(uniswapExtensionConnector)} testID="connect-uniswap-extension">
-            <Image height={iconSizes.icon40} source={UNISWAP_LOGO} width={iconSizes.icon40} />
+            <Image height={iconSizes.icon40} source={JUICESWAP_LOGO_SVG} width={iconSizes.icon40} />
             <Flex row gap={4}>
               <Text variant="buttonLabel2" color="$neutral1" whiteSpace="nowrap">
                 <Trans i18nKey="common.extension" />
@@ -82,7 +82,7 @@ export function UniswapWalletOptions() {
         ) : null}
         <OptionContainer onPress={() => connect(uniswapWalletConnector)}>
           {isMobileWeb ? (
-            <Image height={iconSizes.icon40} source={UNISWAP_LOGO} width={iconSizes.icon40} />
+            <Image height={iconSizes.icon40} source={JUICESWAP_LOGO_SVG} width={iconSizes.icon40} />
           ) : (
             <ScanQr
               size={iconSizes.icon40}

@@ -64,10 +64,11 @@ export function useMeldFiatCurrencyInfo(selectedCountry?: FORCountry): FiatOnRam
 
   return {
     meldSupportedFiatCurrency,
-    notAvailableInThisRegion: supportedFiatCurrencies?.fiatCurrencies.length === 0,
+    notAvailableInThisRegion: true, // OnRamp disabled
   }
 }
 
+// eslint-disable-next-line import/no-unused-modules
 export function useFiatOnRampSupportedTokens(
   fiatCurrency: FiatCurrencyInfo,
   countryCode?: string,

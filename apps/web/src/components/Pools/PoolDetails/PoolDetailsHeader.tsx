@@ -206,7 +206,7 @@ const PoolDetailsHeaderActions = ({
   poolName,
   token0,
   token1,
-  protocolVersion,
+  protocolVersion: _protocolVersion,
 }: {
   chainId?: number
   poolAddress?: string
@@ -239,9 +239,8 @@ const PoolDetailsHeaderActions = ({
         alignRight
       >
         <>
-          {protocolVersion !== ProtocolVersion.V4 && (
-            <ContractsDropdownRow address={poolAddress} chainId={chainId} tokens={[token0, token1]} />
-          )}
+          {/* V4 removed, always show pool contract */}
+          <ContractsDropdownRow address={poolAddress} chainId={chainId} tokens={[token0, token1]} />
           <ContractsDropdownRow address={token0?.address} chainId={chainId} tokens={[token0]} />
           <ContractsDropdownRow address={token1?.address} chainId={chainId} tokens={[token1]} />
         </>

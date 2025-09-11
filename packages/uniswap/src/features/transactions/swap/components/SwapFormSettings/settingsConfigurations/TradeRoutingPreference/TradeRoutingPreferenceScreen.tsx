@@ -3,10 +3,9 @@ import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Flex, HeightAnimator, Switch, Text, TouchableArea, UniswapXText, useSporeColors, type FlexProps } from 'ui/src'
-import { InfoCircleFilled } from 'ui/src/components/icons/InfoCircleFilled'
 import { Lightning } from 'ui/src/components/icons/Lightning'
 import { UniswapX } from 'ui/src/components/icons/UniswapX'
-import { spacing, zIndexes } from 'ui/src/theme'
+import { zIndexes } from 'ui/src/theme'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningModal } from 'uniswap/src/components/modals/WarningModal/WarningModal'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
@@ -16,7 +15,6 @@ import WarningIcon from 'uniswap/src/components/warnings/WarningIcon'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useUniswapContextSelector } from 'uniswap/src/contexts/UniswapContext'
 import { ProtocolItems } from 'uniswap/src/data/tradingApi/__generated__'
-import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
@@ -29,7 +27,6 @@ import {
   useTransactionSettingsStore,
 } from 'uniswap/src/features/transactions/components/settings/stores/transactionSettingsStore/useTransactionSettingsStore'
 import { UniswapXInfo } from 'uniswap/src/features/transactions/swap/components/SwapFormSettings/settingsConfigurations/TradeRoutingPreference/UniswapXInfo'
-import { V4HooksInfo } from 'uniswap/src/features/transactions/swap/components/SwapFormSettings/settingsConfigurations/TradeRoutingPreference/V4HooksInfo'
 import { isDefaultTradeRouteOptions } from 'uniswap/src/features/transactions/swap/components/SwapFormSettings/settingsConfigurations/TradeRoutingPreference/isDefaultTradeRouteOptions'
 import { useV4SwapEnabled } from 'uniswap/src/features/transactions/swap/hooks/useV4SwapEnabled'
 import { useSwapFormStoreDerivedSwapInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
@@ -60,27 +57,13 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
   const isUniswapXSupported = getIsUniswapXSupported?.(chainId)
   const uniswapXEnabled = uniswapXEnabledFlag && chainId !== UniverseChainId.MonadTestnet
   const v4SwapEnabled = useV4SwapEnabled(chainId)
-  const chainName = getChainInfo(chainId).name
-  const restrictionDescription = t('swap.settings.protection.subtitle.unavailable', { chainName })
 
-  // We prevent the user from deselecting all options
-  const onlyOneProtocolSelected = selectedProtocols.length === 1 && !isV4HookPoolsEnabled
-
-  const classicProtocolsCount = selectedProtocols.filter((p) => {
-    if (!v4SwapEnabled && p === ProtocolItems.V4) {
-      return false
-    }
-
-    return p !== ProtocolItems.UNISWAPX_V2
-  }).length
+  // V3-only strategy - all selected protocols are classic protocols
+  const classicProtocolsCount = selectedProtocols.length
 
   // Prevent the user from deselecting all on-chain protocols (AKA only selecting UniswapX)
   const onlyOneClassicProtocolSelected =
     (classicProtocolsCount === 1 && !isV4HookPoolsEnabled) || (classicProtocolsCount === 0 && isV4HookPoolsEnabled)
-
-  const toggleV4Hooks = useCallback(() => {
-    setIsV4HookPoolsEnabled(!isV4HookPoolsEnabled)
-  }, [setIsV4HookPoolsEnabled, isV4HookPoolsEnabled])
 
   const toggleDefault = useCallback(() => {
     setIsDefault(!isDefault)
@@ -114,38 +97,9 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
         onSelect={toggleDefault}
       />
       <HeightAnimator open={!isDefault} animationDisabled={isMobileApp || isMobileWeb}>
-        {uniswapXEnabledFlag && (
-          <OptionRow
-            active={
-              isUniswapXSupported === false
-                ? false
-                : uniswapXEnabled && selectedProtocols.includes(ProtocolItems.UNISWAPX_V2)
-            }
-            elementName={ElementName.SwapRoutingPreferenceUniswapX}
-            title={getProtocolTitle(ProtocolItems.UNISWAPX_V2)}
-            cantDisable={onlyOneProtocolSelected}
-            disabled={isUniswapXSupported === false || !uniswapXEnabled}
-            description={!uniswapXEnabled ? restrictionDescription : undefined}
-            onSelect={() => toggleProtocol(ProtocolItems.UNISWAPX_V2)}
-          />
-        )}
-        <OptionRow
-          active={v4SwapEnabled && selectedProtocols.includes(ProtocolItems.V4)}
-          elementName={ElementName.SwapRoutingPreferenceV4}
-          title={getProtocolTitle(ProtocolItems.V4)}
-          cantDisable={onlyOneClassicProtocolSelected}
-          disabled={!v4SwapEnabled}
-          description={!v4SwapEnabled ? restrictionDescription : undefined}
-          onSelect={() => toggleProtocol(ProtocolItems.V4)}
-        />
-        <OptionRow
-          active={isV4HookPoolsEnabled}
-          elementName={ElementName.SwapRoutingPreferenceV4Hooks}
-          title={<V4HooksInfo />}
-          cantDisable={onlyOneClassicProtocolSelected}
-          disabled={!v4SwapEnabled}
-          onSelect={toggleV4Hooks}
-        />
+        {/* UniswapX removed - V3-only strategy */}
+        {/* V4 removed - V3-only strategy */}
+        {/* V4 Hooks removed - V3-only strategy */}
         <OptionRow
           active={selectedProtocols.includes(ProtocolItems.V3)}
           elementName={ElementName.SwapRoutingPreferenceV3}
@@ -153,13 +107,7 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
           cantDisable={onlyOneClassicProtocolSelected}
           onSelect={() => toggleProtocol(ProtocolItems.V3)}
         />
-        <OptionRow
-          active={selectedProtocols.includes(ProtocolItems.V2)}
-          elementName={ElementName.SwapRoutingPreferenceV2}
-          title={getProtocolTitle(ProtocolItems.V2)}
-          cantDisable={onlyOneClassicProtocolSelected}
-          onSelect={() => toggleProtocol(ProtocolItems.V2)}
-        />
+        {/* V2 removed - V3-only strategy */}
       </HeightAnimator>
     </Flex>
   )
@@ -169,75 +117,17 @@ function createGetProtocolTitle(ctx: {
   isUniswapXSupported?: boolean
   t: TFunction
 }): (preference: FrontendSupportedProtocol) => JSX.Element | string {
-  const { isUniswapXSupported, t } = ctx
+  const { t } = ctx
   return (preference: FrontendSupportedProtocol) => {
     switch (preference) {
-      case ProtocolItems.UNISWAPX_V2: {
-        if (isUniswapXSupported === false) {
-          return <UniswapXTitleInfoTooltip />
-        }
-        return <UniswapXInfo tooltipTrigger={<UniswapXInfoTooltipTrigger />} />
-      }
-      case ProtocolItems.V2:
-        return t('swap.settings.routingPreference.option.v2.title')
       case ProtocolItems.V3:
         return t('swap.settings.routingPreference.option.v3.title')
-      case ProtocolItems.V4:
-        return t('swap.settings.routingPreference.option.v4.title')
       default:
         return <></>
     }
   }
 }
 
-function UniswapXTitleInfoTooltip(): JSX.Element {
-  const [forceCloseTooltip, setForceCloseTooltip] = useState(undefined as undefined | true)
-  const [showModal, setShowModal] = useState(false)
-  if (isWeb) {
-    return (
-      <InfoTooltip
-        text={<UniswapXInfoTooltipText onPress={() => setForceCloseTooltip(true)} />}
-        trigger={<UniswapXInfoTooltipTrigger />}
-        placement="top"
-        open={forceCloseTooltip === undefined ? undefined : !forceCloseTooltip}
-      />
-    )
-  }
-
-  return (
-    <>
-      <TouchableArea onPress={() => setShowModal(true)}>
-        <UniswapXInfoTooltipTrigger />
-      </TouchableArea>
-      <UniswapXInfoModal isOpen={showModal} onClose={() => setShowModal(false)} />
-    </>
-  )
-}
-
-function UniswapXInfoTooltipTrigger(): JSX.Element {
-  return (
-    <Text
-      alignItems="center"
-      color="$neutral2"
-      variant="subheading2"
-      flexDirection="row"
-      flexShrink={0}
-      display="inline-flex"
-      gap="$gap4"
-      // This is to offset the left padding built-into the UniswapX icon
-      left={-spacing.spacing2}
-    >
-      <Trans
-        components={{
-          icon: <UniswapX size="$icon.16" />,
-          gradient: <UniswapXText height={18} variant="subheading2" />,
-          info: <InfoCircleFilled color="$neutral3" size="$icon.16" />,
-        }}
-        i18nKey="uniswapx.item"
-      />
-    </Text>
-  )
-}
 type OptionRowProps = {
   title: JSX.Element | string
   active: boolean

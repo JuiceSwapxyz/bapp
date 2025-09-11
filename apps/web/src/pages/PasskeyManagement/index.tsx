@@ -93,6 +93,7 @@ export function handleRouteToPasskeyManagement({
 
 // A user should only reach this page from a deeplink to passkey management from the Uniswap Wallet
 // This pages falls back to the swap page in the case that a user unintentionally navigates to this page or tries to connect a wallet other than the embedded wallet
+// eslint-disable-next-line import/no-unused-modules
 export default function PasskeyManagement() {
   const account = useAccount()
   const { walletAddress: embeddedWalletAddress } = useParams()

@@ -27,7 +27,6 @@ import { zIndexes } from 'ui/src/theme'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { useIsModeMismatch } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { RampDirection } from 'uniswap/src/features/fiatOnRamp/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useGetPasskeyAuthStatus } from 'uniswap/src/features/passkey/hooks/useGetPasskeyAuthStatus'
@@ -183,28 +182,29 @@ export function Swap({
   )
 }
 
-const SWAP_TABS = [SwapTab.Swap, SwapTab.Limit, SwapTab.Buy, SwapTab.Sell]
+const SWAP_TABS = [SwapTab.Swap, SwapTab.Limit] // OnRamp disabled - Buy and Sell removed
 
 const TAB_TYPE_TO_LABEL = {
   [SwapTab.Swap]: (t: AppTFunction) => t('swap.form.header'),
   [SwapTab.Limit]: (t: AppTFunction) => t('swap.limit'),
   [SwapTab.Send]: (t: AppTFunction) => t('send.title'),
-  [SwapTab.Buy]: (t: AppTFunction) => t('common.buy.label'),
-  [SwapTab.Sell]: (t: AppTFunction) => t('common.sell.label'),
+  // OnRamp disabled
+  // [SwapTab.Buy]: (t: AppTFunction) => t('common.buy.label'),
+  // [SwapTab.Sell]: (t: AppTFunction) => t('common.sell.label'),
 }
 
 const PATHNAME_TO_TAB: { [key: string]: SwapTab } = {
   '/swap': SwapTab.Swap,
   '/send': SwapTab.Send,
   '/limit': SwapTab.Limit,
-  '/buy': SwapTab.Buy,
-  '/sell': SwapTab.Sell,
+  // OnRamp disabled
+  // '/buy': SwapTab.Buy,
+  // '/sell': SwapTab.Sell,
 }
 
 function UniversalSwapFlow({
   hideHeader = false,
   hideFooter = false,
-  disableTokenInputs = false,
   syncTabToUrl = true,
   prefilledState,
   onCurrencyChange,
@@ -230,11 +230,6 @@ function UniversalSwapFlow({
   const LimitFormWrapper = useDeferredComponent(() =>
     import('pages/Swap/Limit/LimitForm').then((module) => ({
       default: module.LimitFormWrapper,
-    })),
-  )
-  const BuyForm = useDeferredComponent(() =>
-    import('pages/Swap/Buy/BuyForm').then((module) => ({
-      default: module.BuyForm,
     })),
   )
 
@@ -266,15 +261,10 @@ function UniversalSwapFlow({
     [navigate, syncTabToUrl, setCurrentTab],
   )
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isFiatOffRampEnabled = useFeatureFlag(FeatureFlags.FiatOffRamp)
   const SWAP_TAB_OPTIONS: readonly SegmentedControlOption<SwapTab>[] = useMemo(() => {
-    return SWAP_TABS.filter((tab) => {
-      if (tab === SwapTab.Sell && !isFiatOffRampEnabled) {
-        return false
-      }
-
-      return true
-    }).map((tab) => ({
+    return SWAP_TABS.map((tab) => ({
       value: tab,
       display: (
         <Text
@@ -287,7 +277,7 @@ function UniversalSwapFlow({
         </Text>
       ),
     }))
-  }, [t, currentTab, isFiatOffRampEnabled])
+  }, [t, currentTab])
 
   const swapSettings = useWebSwapSettings()
   const resetDisableOneClickSwap = useResetOverrideOneClickSwapFlag()
@@ -329,6 +319,7 @@ function UniversalSwapFlow({
         </Flex>
       )}
       {currentTab === SwapTab.Limit && LimitFormWrapper && <LimitFormWrapper onCurrencyChange={onCurrencyChange} />}
+      {/* OnRamp disabled - Buy and Sell forms removed
       {currentTab === SwapTab.Buy && BuyForm && (
         <BuyForm
           rampDirection={RampDirection.ONRAMP}
@@ -343,6 +334,7 @@ function UniversalSwapFlow({
           initialCurrency={prefilledState?.output}
         />
       )}
+      */}
     </Flex>
   )
 }

@@ -9,7 +9,7 @@ import { useTheme } from 'lib/styled-components'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Flex, Image } from 'ui/src'
-import { UNISWAP_LOGO } from 'ui/src/assets'
+import { JUICESWAP_LOGO_SVG } from 'ui/src/assets'
 import { ArrowRightToLine } from 'ui/src/components/icons/ArrowRightToLine'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { TimePast } from 'ui/src/components/icons/TimePast'
@@ -72,7 +72,7 @@ export function ExtensionDeeplinks({ account }: { account: string }) {
   return (
     <Flex gap="$spacing8">
       <DeepLinkButton
-        Icon={<Image height={iconSizes.icon20} source={UNISWAP_LOGO} width={iconSizes.icon20} />}
+        Icon={<Image height={iconSizes.icon20} source={JUICESWAP_LOGO_SVG} width={iconSizes.icon20} />}
         Label={t('extension.open')}
         onPress={() => {
           uniswapExtensionConnector.extensionRequest(ExtensionRequestMethods.OPEN_SIDEBAR, 'Tokens')

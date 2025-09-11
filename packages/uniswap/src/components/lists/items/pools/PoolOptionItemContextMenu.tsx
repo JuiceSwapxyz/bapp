@@ -34,7 +34,7 @@ function _PoolOptionItemContextMenu({
   children,
   poolId,
   chainId,
-  protocolVersion,
+  protocolVersion: _protocolVersion,
   isOpen,
   openMenu,
   closeMenu,
@@ -69,14 +69,7 @@ function _PoolOptionItemContextMenu({
     const options: MenuOptionItem[] = []
 
     if (actions.includes(PoolContextMenuAction.CopyAddress)) {
-      const label =
-        protocolVersion === ProtocolVersion.V4
-          ? copiedAddress
-            ? t('notification.copied.poolId')
-            : t('common.copy.poolId')
-          : copiedAddress
-            ? t('notification.copied.address')
-            : t('common.copy.address')
+      const label = copiedAddress ? t('notification.copied.address') : t('common.copy.address')
       options.push({
         onPress: onCopyAddress,
         label,
@@ -97,7 +90,7 @@ function _PoolOptionItemContextMenu({
     }
 
     return options
-  }, [actions, protocolVersion, copiedAddress, t, onCopyAddress, onShare, copiedUrl])
+  }, [actions, copiedAddress, t, onCopyAddress, onShare, copiedUrl])
 
   return (
     <ContextMenu

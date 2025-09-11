@@ -2,7 +2,7 @@ import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { Token } from '@uniswap/sdk-core'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
-import { ALL_CHAIN_IDS, ORDERED_CHAINS, getChainInfo } from 'uniswap/src/features/chains/chainInfo'
+import { ALL_CHAIN_IDS, getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { EnabledChainsInfo, GqlChainId, NetworkLayer, UniverseChainId } from 'uniswap/src/features/chains/types'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 
@@ -203,15 +203,15 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
 }
 
 export function getEnabledChains({
-  platform,
+  platform: _platform,
   /**
    * When `true`, it will return all enabled chains, including testnets.
    * Note: Currently ignored as we always show only testnets.
    */
   includeTestnets = false,
   isTestnetModeEnabled,
-  featureFlaggedChainIds,
-  connectedWalletChainIds,
+  featureFlaggedChainIds: _featureFlaggedChainIds,
+  connectedWalletChainIds: _connectedWalletChainIds,
 }: {
   platform?: Platform
   isTestnetModeEnabled: boolean
@@ -219,66 +219,54 @@ export function getEnabledChains({
   connectedWalletChainIds?: UniverseChainId[]
   includeTestnets?: boolean
 }): EnabledChainsInfo {
-  // Kept for API compatibility but currently unused as we always show testnets
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _unused1 = includeTestnets
-  const enabledChainInfos = ORDERED_CHAINS.filter((chainInfo) => {
-    // Filter by platform
-    if (platform !== undefined && platform !== chainInfo.platform) {
-      return false
-    }
+  // Only Polygon and Sepolia enabled
+  const enabledChains: UniverseChainId[] = []
+  const gqlChains: GqlChainId[] = []
 
-    // ALWAYS filter to only show testnets, regardless of settings
-    // This ensures mainnet chains are never available
-    if (!isTestnetChain(chainInfo.id)) {
-      return false
-    }
+  // Always include Polygon (mainnet)
+  if (!isTestnetModeEnabled || includeTestnets) {
+    enabledChains.push(UniverseChainId.Polygon)
+    gqlChains.push(getChainInfo(UniverseChainId.Polygon).backendChain.chain)
+  }
 
-    // Filter by feature flags
-    if (!featureFlaggedChainIds.includes(chainInfo.id)) {
-      return false
-    }
+  // Include Sepolia and Citrea Testnet if testnet mode is enabled
+  if (isTestnetModeEnabled || includeTestnets) {
+    enabledChains.push(UniverseChainId.Sepolia)
+    gqlChains.push(getChainInfo(UniverseChainId.Sepolia).backendChain.chain)
 
-    // Filter by connected wallet chains if provided
-    if (connectedWalletChainIds && !connectedWalletChainIds.includes(chainInfo.id)) {
-      return false
-    }
+    enabledChains.push(UniverseChainId.CitreaTestnet)
+    // Note: Citrea is not yet supported in GraphQL backend, so we skip adding to gqlChains
+  }
 
-    return true
-  })
+  // Default chain based on testnet mode
+  const defaultChainId = isTestnetModeEnabled ? UniverseChainId.Sepolia : UniverseChainId.Polygon
 
-  // Extract chain IDs and GQL chains from filtered results
-  const chains = enabledChainInfos.map((chainInfo) => chainInfo.id)
-  const gqlChains = enabledChainInfos.map((chainInfo) => chainInfo.backendChain.chain)
-
-  const result = {
-    chains,
+  return {
+    chains: enabledChains,
     gqlChains,
-    defaultChainId: getDefaultChainId({ platform, isTestnetModeEnabled }),
+    defaultChainId,
     isTestnetModeEnabled,
   }
-
-  return result
 }
 
-function getDefaultChainId({
-  platform,
-  isTestnetModeEnabled,
-}: {
-  platform?: Platform
-  isTestnetModeEnabled: boolean
-}): UniverseChainId {
-  // Kept for API compatibility but currently unused as we always return Sepolia
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _unused2 = isTestnetModeEnabled
-  if (platform === Platform.SVM) {
-    // TODO(Solana): is there a Solana testnet we can return here?
-    return UniverseChainId.Solana
-  }
+// function getDefaultChainId({
+//   platform,
+//   isTestnetModeEnabled,
+// }: {
+//   platform?: Platform
+//   isTestnetModeEnabled: boolean
+// }): UniverseChainId {
+//   // Kept for API compatibility but currently unused as we always return Sepolia
+//   // eslint-disable-next-line import/no-unused-modules
+//   const _unused2 = isTestnetModeEnabled
+//   if (platform === Platform.SVM) {
+//     // TODO(Solana): is there a Solana testnet we can return here?
+//     return UniverseChainId.Solana
+//   }
 
-  // Always return Sepolia as default chain since we only support testnets
-  return UniverseChainId.Sepolia
-}
+//   // Return Sepolia if testnet mode is enabled, otherwise Polygon
+//   return isTestnetModeEnabled ? UniverseChainId.Sepolia : UniverseChainId.Polygon
+// }
 
 /** Returns all stablecoins for a given chainId. */
 export function getStablecoinsForChain(chainId: UniverseChainId): Token[] {

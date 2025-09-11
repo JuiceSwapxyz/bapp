@@ -53,7 +53,6 @@ import { buildCurrencyId, currencyAddress } from 'uniswap/src/utils/currencyId'
 import { getPoolDetailsURL } from 'uniswap/src/utils/linking'
 import { NumberType } from 'utilities/src/format/types'
 import { useBooleanState } from 'utilities/src/react/useBooleanState'
-import { isV4UnsupportedChain } from 'utils/networkSupportsV4'
 
 export function LiquidityPositionCardLoader() {
   return (
@@ -188,10 +187,7 @@ function useDropdownOptions({
         }
       : undefined
 
-    const showMigrateV3Option =
-      isOpenLiquidityPosition &&
-      !isV4UnsupportedChain(liquidityPosition.chainId) &&
-      liquidityPosition.version !== ProtocolVersion.V4
+    const showMigrateV3Option = isOpenLiquidityPosition && liquidityPosition.version !== ProtocolVersion.V4
 
     const migrateV3Option: MenuOptionItem | undefined = showMigrateV3Option
       ? {

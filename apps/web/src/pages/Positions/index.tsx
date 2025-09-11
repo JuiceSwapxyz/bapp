@@ -1,7 +1,7 @@
 import { PositionStatus, ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
-import PROVIDE_LIQUIDITY from 'assets/images/provideLiquidity.png'
+import PROVIDE_LIQUIDITY from 'assets/images/provideLiquidity.svg'
 import tokenLogo from 'assets/images/token-logo.png'
-import V4_HOOK from 'assets/images/v4Hooks.png'
+import V4_HOOK from 'assets/images/v4Hooks.svg'
 import { ExpandoRow } from 'components/AccountDrawer/MiniPortfolio/ExpandoRow'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ExternalArrowLink } from 'components/Liquidity/ExternalArrowLink'
@@ -69,7 +69,7 @@ function DisconnectedWalletView() {
           {t('positions.welcome.connect.description')}
         </Text>
         <Flex row gap="$gap8">
-          <Button variant="default" size="small" emphasis="secondary" onPress={() => navigate('/positions/create/v4')}>
+          <Button variant="default" size="small" emphasis="secondary" onPress={() => navigate('/positions/create/v3')}>
             {t('position.new')}
           </Button>
           <Button variant="default" size="small" width={160} onPress={accountDrawer.open}>
@@ -244,7 +244,7 @@ export default function Pool() {
   const { t } = useTranslation()
   const { address, isConnected } = account
 
-  const isLPIncentivesEnabled = useFeatureFlag(FeatureFlags.LpIncentives) && isConnected
+  const isLPIncentivesEnabled = useFeatureFlag(FeatureFlags.LpIncentives)
 
   const [chainFilter, setChainFilter] = useAtom(chainFilterAtom)
   const { chains: currentModeChains } = useEnabledChains()

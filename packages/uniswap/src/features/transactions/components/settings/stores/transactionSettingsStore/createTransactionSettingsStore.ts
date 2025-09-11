@@ -45,7 +45,7 @@ export const createTransactionSettingsStore = (): { store: TransactionSettingsSt
           toggleProtocol: (protocol: FrontendSupportedProtocol): void => {
             const { selectedProtocols } = get()
             if (selectedProtocols.includes(protocol)) {
-              set({ selectedProtocols: selectedProtocols.filter((p: FrontendSupportedProtocol) => p !== protocol) })
+              set({ selectedProtocols })
             } else {
               set({ selectedProtocols: [...selectedProtocols, protocol] })
             }

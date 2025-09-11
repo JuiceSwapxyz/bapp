@@ -19,7 +19,6 @@ import {
 import { useAppSelector } from 'state/hooks'
 import { PositionField } from 'types/position'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
-import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { useCheckLpApprovalQuery } from 'uniswap/src/data/apiClients/tradingApi/useCheckLpApprovalQuery'
 import { useIncreaseLpPositionCalldataQuery } from 'uniswap/src/data/apiClients/tradingApi/useIncreaseLpPositionCalldataQuery'
 import {
@@ -66,8 +65,6 @@ export function IncreaseLiquidityTxContextProvider({ children }: PropsWithChildr
   }))
   const [transactionError, setTransactionError] = useState<string | boolean>(false)
 
-  const generatePermitAsTransaction = useUniswapContext().getCanSignPermits?.(positionInfo?.chainId)
-
   const { currencyAmounts, error } = derivedIncreaseLiquidityInfo
   const { exactField } = increaseLiquidityState
 
@@ -86,10 +83,9 @@ export function IncreaseLiquidityTxContextProvider({ children }: PropsWithChildr
       token1: getTokenOrZeroAddress(positionInfo.currency1Amount.currency),
       amount0: currencyAmounts.TOKEN0.quotient.toString(),
       amount1: currencyAmounts.TOKEN1.quotient.toString(),
-      generatePermitAsTransaction:
-        positionInfo.version === ProtocolVersion.V4 ? generatePermitAsTransaction : undefined,
+      generatePermitAsTransaction: undefined,
     }
-  }, [positionInfo, account.address, currencyAmounts, generatePermitAsTransaction])
+  }, [positionInfo, account.address, currencyAmounts])
 
   const {
     data: increaseLiquidityTokenApprovals,
@@ -200,7 +196,6 @@ export function IncreaseLiquidityTxContextProvider({ children }: PropsWithChildr
           token1: token1.isNative ? ZERO_ADDRESS : token1.address,
           fee: positionInfo.feeTier?.feeAmount,
           tickSpacing: positionInfo.tickSpacing ? Number(positionInfo.tickSpacing) : undefined,
-          hooks: positionInfo.v4hook,
         },
       },
       slippageTolerance: customSlippageTolerance,

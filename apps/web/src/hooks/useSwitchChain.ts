@@ -25,7 +25,7 @@ export function useSwitchChain() {
       return new Promise<void>((resolve, reject) => {
         dispatch(startSwitchingChain(chainId))
         switchChain(
-          { chainId },
+          { chainId: chainId as any }, // TODO: fix typings in wagmi
           {
             onSettled(_, error) {
               dispatch(endSwitchingChain())

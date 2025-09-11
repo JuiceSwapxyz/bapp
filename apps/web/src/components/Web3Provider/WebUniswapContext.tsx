@@ -24,7 +24,6 @@ import { useNavigateToNftExplorerLink } from 'uniswap/src/features/nfts/hooks/us
 import { useSetActiveChainId } from 'uniswap/src/features/smartWallet/delegation/hooks/useSetActiveChainId'
 import { DelegatedState } from 'uniswap/src/features/smartWallet/delegation/types'
 import { MismatchContextProvider } from 'uniswap/src/features/smartWallet/mismatch/MismatchContext'
-import { useHasAccountMismatchCallback } from 'uniswap/src/features/smartWallet/mismatch/hooks'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { useGetCanSignPermits } from 'uniswap/src/features/transactions/hooks/useGetCanSignPermits'
 import { currencyIdToAddress, currencyIdToChain } from 'uniswap/src/utils/currencyId'
@@ -108,13 +107,9 @@ function WebUniswapProviderInner({ children }: PropsWithChildren) {
     [navigate, closeSearchModal],
   )
 
-  const getHasMismatch = useHasAccountMismatchCallback()
-  const isPermitMismatchUxEnabled = useFeatureFlag(FeatureFlags.EnablePermitMismatchUX)
-  const getIsUniswapXSupported = useEvent((innerChainId?: UniverseChainId) => {
-    if (isPermitMismatchUxEnabled) {
-      return !getHasMismatch(innerChainId)
-    }
-    return true
+  const getIsUniswapXSupported = useEvent((_innerChainId?: UniverseChainId) => {
+    // Disable UniswapX to avoid Trading API dependency
+    return false
   })
   const getCanSignPermits = useGetCanSignPermits()
 

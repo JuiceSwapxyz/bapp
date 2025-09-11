@@ -8,6 +8,7 @@ import { assume0xAddress } from 'utils/wagmi'
 import { erc20Abi } from 'viem'
 import { useReadContract } from 'wagmi'
 
+// eslint-disable-next-line import/no-unused-modules
 export function usePositionOwnerV2({
   account,
   address,
@@ -19,7 +20,7 @@ export function usePositionOwnerV2({
 }): boolean {
   const resultBalance = useReadContract({
     address: assume0xAddress(address),
-    chainId,
+    chainId: chainId as any, // TODO: fix typings in wagmi
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: account ? [account] : undefined,
