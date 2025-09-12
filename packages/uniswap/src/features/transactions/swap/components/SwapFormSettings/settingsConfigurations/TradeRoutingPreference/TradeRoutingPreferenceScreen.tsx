@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next'
 import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Flex, HeightAnimator, Switch, Text, TouchableArea, UniswapXText, useSporeColors, type FlexProps } from 'ui/src'
+import { Flex, Switch, Text, TouchableArea, UniswapXText, useSporeColors, type FlexProps } from 'ui/src'
 import { InfoCircleFilled } from 'ui/src/components/icons/InfoCircleFilled'
 import { Lightning } from 'ui/src/components/icons/Lightning'
 import { UniswapX } from 'ui/src/components/icons/UniswapX'
@@ -30,13 +30,11 @@ import {
 } from 'uniswap/src/features/transactions/components/settings/stores/transactionSettingsStore/useTransactionSettingsStore'
 import { UniswapXInfo } from 'uniswap/src/features/transactions/swap/components/SwapFormSettings/settingsConfigurations/TradeRoutingPreference/UniswapXInfo'
 import { V4HooksInfo } from 'uniswap/src/features/transactions/swap/components/SwapFormSettings/settingsConfigurations/TradeRoutingPreference/V4HooksInfo'
-import { isDefaultTradeRouteOptions } from 'uniswap/src/features/transactions/swap/components/SwapFormSettings/settingsConfigurations/TradeRoutingPreference/isDefaultTradeRouteOptions'
 import { useV4SwapEnabled } from 'uniswap/src/features/transactions/swap/hooks/useV4SwapEnabled'
 import { useSwapFormStoreDerivedSwapInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 import type { FrontendSupportedProtocol } from 'uniswap/src/features/transactions/swap/utils/protocols'
-import { DEFAULT_PROTOCOL_OPTIONS } from 'uniswap/src/features/transactions/swap/utils/protocols'
 import { openUri } from 'uniswap/src/utils/linking'
-import { isExtension, isInterface, isMobileApp, isMobileWeb, isWeb } from 'utilities/src/platform'
+import { isExtension, isInterface, isWeb } from 'utilities/src/platform'
 import { useEvent } from 'utilities/src/react/hooks'
 
 export function TradeRoutingPreferenceScreen(): JSX.Element {
@@ -48,12 +46,6 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
   }))
   const { setSelectedProtocols, setIsV4HookPoolsEnabled, toggleProtocol } = useTransactionSettingsActions()
 
-  const [isDefault, setIsDefault] = useState(
-    isDefaultTradeRouteOptions({
-      selectedProtocols,
-      isV4HookPoolsEnabled,
-    }),
-  )
   const uniswapXEnabledFlag = useFeatureFlag(FeatureFlags.UniswapX)
 
   const chainId = useSwapFormStoreDerivedSwapInfo((s) => s.chainId)
@@ -82,13 +74,6 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
     setIsV4HookPoolsEnabled(!isV4HookPoolsEnabled)
   }, [setIsV4HookPoolsEnabled, isV4HookPoolsEnabled])
 
-  const toggleDefault = useCallback(() => {
-    setIsDefault(!isDefault)
-    if (!isDefault) {
-      setSelectedProtocols(DEFAULT_PROTOCOL_OPTIONS)
-      setIsV4HookPoolsEnabled(true)
-    }
-  }, [setSelectedProtocols, setIsV4HookPoolsEnabled, isDefault])
 
   const getProtocolTitle = createGetProtocolTitle({
     isUniswapXSupported,
@@ -97,23 +82,6 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
 
   return (
     <Flex gap="$spacing16" my="$spacing16">
-      <OptionRow
-        alignItems="flex-start"
-        active={isDefault}
-        description={<DefaultOptionDescription v4SwapEnabled={v4SwapEnabled} />}
-        elementName={ElementName.SwapRoutingPreferenceDefault}
-        title={<DefaultOptionTitle v4SwapEnabled={v4SwapEnabled} />}
-        cantDisable={false}
-        footerContent={
-          <DefaultOptionFooterContent
-            isUniswapXSupported={isUniswapXSupported}
-            isUniswapXEnabled={uniswapXEnabled}
-            isDefault={isDefault}
-          />
-        }
-        onSelect={toggleDefault}
-      />
-      <HeightAnimator open={!isDefault} animationDisabled={isMobileApp || isMobileWeb}>
         {uniswapXEnabledFlag && (
           <OptionRow
             active={
@@ -160,7 +128,6 @@ export function TradeRoutingPreferenceScreen(): JSX.Element {
           cantDisable={onlyOneClassicProtocolSelected}
           onSelect={() => toggleProtocol(ProtocolItems.V2)}
         />
-      </HeightAnimator>
     </Flex>
   )
 }
@@ -296,97 +263,8 @@ function OptionRow({
   )
 }
 
-function DefaultOptionDescription({ v4SwapEnabled }: { v4SwapEnabled: boolean }): JSX.Element {
-  const { t } = useTranslation()
-  const cheapestRouteText = t('swap.settings.routingPreference.option.default.description.preV4')
-  const cheapestRouteTextV4 = t('swap.settings.routingPreference.option.default.description')
 
-  return (
-    <Text color="$neutral2" variant="body3" textWrap="pretty">
-      {v4SwapEnabled ? cheapestRouteTextV4 : cheapestRouteText}
-    </Text>
-  )
-}
 
-function DefaultOptionFooterContent(props: {
-  isUniswapXSupported?: boolean
-  isUniswapXEnabled: boolean
-  isDefault: boolean
-}): JSX.Element | null {
-  const { isUniswapXSupported, isUniswapXEnabled, isDefault } = props
-  const showIncludesUniswapX = isUniswapXEnabled && isUniswapXSupported && isDefault
-  const showUniswapXNotSupported = isUniswapXSupported === false && isUniswapXEnabled && isDefault
-
-  if (showIncludesUniswapX) {
-    return (
-      <UniswapXInfo
-        tooltipTrigger={
-          <Text
-            alignItems="center"
-            color="$neutral2"
-            variant="body3"
-            flexDirection="row"
-            gap="$gap4"
-            display="inline-flex"
-          >
-            <Trans
-              components={{
-                icon: <UniswapX size="$icon.16" />,
-                gradient: <UniswapXText height={18} variant="body3" />,
-              }}
-              i18nKey="uniswapx.included"
-            />
-          </Text>
-        }
-      />
-    )
-  }
-
-  if (showUniswapXNotSupported) {
-    return <UniswapXNotSupportedDescription />
-  }
-
-  return null
-}
-
-const UniswapXNotSupportedDescription = (): JSX.Element => {
-  const { t } = useTranslation()
-  const [forceCloseTooltip, setForceCloseTooltip] = useState(undefined as undefined | true)
-  const [showModal, setShowModal] = useState(false)
-
-  const trigger = (
-    <Flex cursor="default" gap="$spacing4" alignItems="flex-start" flexDirection="row">
-      <WarningIcon color="$neutral2" size="$icon.16" />
-      <Text color="$neutral2" variant="body3">
-        {t('swap.settings.routingPreference.option.default.description.uniswapXUnavailable')}
-      </Text>
-    </Flex>
-  )
-
-  if (isWeb) {
-    return (
-      <InfoTooltip
-        open={forceCloseTooltip === undefined ? undefined : !forceCloseTooltip}
-        text={
-          <UniswapXInfoTooltipText
-            onPress={() => {
-              setForceCloseTooltip(true)
-            }}
-          />
-        }
-        placement="top"
-        trigger={trigger}
-      />
-    )
-  }
-
-  return (
-    <>
-      <TouchableArea onPress={() => setShowModal(true)}>{trigger}</TouchableArea>
-      <UniswapXInfoModal isOpen={showModal} onClose={() => setShowModal(false)} />
-    </>
-  )
-}
 
 function UniswapXInfoTooltipText(props?: { onPress?: () => void }): JSX.Element {
   const { t } = useTranslation()
@@ -419,36 +297,6 @@ function UniswapXInfoTooltipText(props?: { onPress?: () => void }): JSX.Element 
   )
 }
 
-function DefaultOptionTitle({ v4SwapEnabled }: { v4SwapEnabled: boolean }): JSX.Element {
-  const { t } = useTranslation()
-
-  if (!v4SwapEnabled) {
-    return (
-      <Text color="$neutral1" variant="subheading2">
-        {t('common.default')}
-      </Text>
-    )
-  }
-
-  return (
-    <Flex row gap="$spacing4" alignItems="center">
-      <Text color="$neutral1" variant="subheading2">
-        {t('common.default')}
-      </Text>
-      <WarningInfo
-        modalProps={{
-          caption: t('swap.settings.routingPreference.option.default.tooltip'),
-          rejectText: t('common.button.close'),
-          modalName: ModalName.SwapSettingsDefaultRoutingInfo,
-        }}
-        tooltipProps={{
-          text: t('swap.settings.routingPreference.option.default.tooltip'),
-          placement: 'bottom',
-        }}
-      />
-    </Flex>
-  )
-}
 
 function UniswapXInfoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): JSX.Element {
   const { t } = useTranslation()
