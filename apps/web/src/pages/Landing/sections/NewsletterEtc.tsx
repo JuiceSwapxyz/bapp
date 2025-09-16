@@ -139,22 +139,25 @@ function CollapsibleFAQItem({ question, answer, id }: FAQItemProps) {
 
   return (
     <Flex id={id}>
-      <Flex
-        row
-        alignItems="center"
-        gap="$gap8"
-        onPress={() => setIsOpen(!isOpen)}
+      <Anchor
+        href={`#${id}`}
+        textDecorationLine="none"
+        onPress={(e) => {
+          e.preventDefault() // Prevent navigation
+          setIsOpen(!isOpen)
+        }}
         {...ClickableTamaguiStyle}
         aria-expanded={isOpen}
         aria-controls={`${id}-content`}
         role="button"
-        userSelect="none"
       >
-        <RotatableChevron direction={isOpen ? 'down' : 'end'} color="$neutral1" width={20} height={20} />
-        <Text variant="heading3" $md={{ fontSize: 18, lineHeight: 24 }}>
-          {question}
-        </Text>
-      </Flex>
+        <Flex row alignItems="center" gap="$gap8" userSelect="none">
+          <RotatableChevron direction={isOpen ? 'down' : 'end'} color="$neutral1" width={20} height={20} />
+          <Text variant="heading3" $md={{ fontSize: 18, lineHeight: 24 }}>
+            {question}
+          </Text>
+        </Flex>
+      </Anchor>
       {isOpen && (
         <Flex id={`${id}-content`} pt="$gap8" pl="$gap28">
           <Text variant="heading3" $md={{ fontSize: 18, lineHeight: 24 }} color="$neutral2">
@@ -171,12 +174,12 @@ function FAQList() {
 
   const faqs = [
     {
-      id: 'juice-token',
+      id: 'faq-juice-token',
       question: t('faq.juiceToken.question'),
       answer: t('faq.juiceToken.answer'),
     },
     {
-      id: 'new-questions',
+      id: 'faq-new-questions',
       question: t('faq.newQuestions.question'),
       answer: t('faq.newQuestions.answer'),
     },
