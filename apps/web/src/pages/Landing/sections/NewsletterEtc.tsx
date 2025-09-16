@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { ClickableTamaguiStyle } from 'theme/components/styles'
 import { Anchor, Flex, Text, styled } from 'ui/src'
 import { ArrowUpRight } from 'ui/src/components/icons/ArrowUpRight'
 import { BookOpen } from 'ui/src/components/icons/BookOpen'
+import { HelpCenter } from 'ui/src/components/icons/HelpCenter'
 import { SpeechBubbles } from 'ui/src/components/icons/SpeechBubbles'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 
@@ -115,6 +116,72 @@ const SocialLink = styled(Anchor, {
   },
 })
 
+interface FAQItemProps {
+  question: string
+  answer: string | React.ReactNode
+  isInitiallyOpen?: boolean
+}
+
+function CollapsibleFAQItem({ question, answer, isInitiallyOpen = false }: FAQItemProps) {
+  const [isOpen, setIsOpen] = useState(isInitiallyOpen)
+
+  return (
+    <Flex>
+      <Text
+        variant="heading3"
+        $md={{ fontSize: 18, lineHeight: 24 }}
+        onPress={() => setIsOpen(!isOpen)}
+        {...ClickableTamaguiStyle}
+      >
+        {question}
+      </Text>
+      {isOpen && (
+        <Flex pt="$gap8">
+          <Text variant="heading3" $md={{ fontSize: 18, lineHeight: 24 }} color="$neutral2">
+            {answer}
+          </Text>
+        </Flex>
+      )}
+    </Flex>
+  )
+}
+
+function FAQList() {
+  const { t } = useTranslation()
+  
+  const faqs = [
+    {
+      question: t('faq.juiceToken.question'),
+      answer: t('faq.juiceToken.answer'),
+    },
+    {
+      question: t('faq.newQuestions.question'),
+      answer: t('faq.newQuestions.answer'),
+    },
+  ]
+
+  return (
+    <Flex>
+      {faqs.map((faq, index) => (
+        <Flex key={index}>
+          <CollapsibleFAQItem
+            question={faq.question}
+            answer={faq.answer}
+            isInitiallyOpen={false}
+          />
+          {index < faqs.length - 1 && (
+            <Flex 
+              borderTopWidth={1} 
+              borderTopColor="$surface3" 
+              my="$gap12" 
+            />
+          )}
+        </Flex>
+      ))}
+    </Flex>
+  )
+}
+
 export function NewsletterEtc() {
   const { t } = useTranslation()
 
@@ -148,6 +215,11 @@ export function NewsletterEtc() {
               }}
             />
           }
+        />
+        <UniverseRow
+          icon={<HelpCenter size="$icon.36" fill="$neutral1" />}
+          title={t('common.faq')}
+          description={<FAQList />}
         />
       </Flex>
     </SectionLayout>
