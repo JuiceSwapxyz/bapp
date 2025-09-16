@@ -1,8 +1,7 @@
-import ethereumLogo from 'assets/images/ethereum-logo.png'
 import bitcoinLogo from 'assets/images/coins/bitcoin.png'
 import citreaLogo from 'assets/images/coins/citrea.png'
 import citrusDollarLogo from 'assets/images/coins/citrus-dollar.png'
-import juiceswapLogo from 'assets/images/coins/juiceswap.png'
+import ethereumLogo from 'assets/images/ethereum-logo.png'
 import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 
@@ -39,14 +38,6 @@ export const approvedERC20: InteractiveToken[] = [
     chain: Chain.Ethereum,
     color: '#d4d4d8',
     logoUrl: citreaLogo,
-  },
-  {
-    name: 'JuiceSwap Token',
-    symbol: 'JUICE',
-    address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-    chain: Chain.Ethereum,
-    color: '#ff8c00',
-    logoUrl: juiceswapLogo,
   },
   {
     name: 'Bitcoin',
