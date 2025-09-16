@@ -86,7 +86,8 @@ export default function SettingsMenu({
           />
           <SettingsButton
             title={t('common.language')}
-            currentState={languageInfo.displayName}
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            currentState={languageInfo?.displayName}
             onClick={openLanguageSettings}
             testId={TestID.LanguageSettingsButton}
           />

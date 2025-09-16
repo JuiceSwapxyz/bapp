@@ -111,7 +111,11 @@ export const routes: RouteDefinition[] = [
     getTitle: () => StaticTitlesAndDescriptions.UniswapTitle,
     getDescription: () => StaticTitlesAndDescriptions.SwapDescription,
     getElement: (args) => {
-      return args.browserRouterEnabled && args.hash ? <Navigate to={args.hash.replace('#', '')} replace /> : <Landing />
+      // Only redirect if the hash looks like a route path (starts with /)
+      const hash = args.hash
+      const isRoutePath = hash?.startsWith('#/')
+      const shouldRedirect = args.browserRouterEnabled && isRoutePath && hash
+      return shouldRedirect ? <Navigate to={hash.slice(1)} replace /> : <Landing />
     },
   }),
   createRouteDefinition({
@@ -359,7 +363,7 @@ export const routes: RouteDefinition[] = [
     getTitle: () => StaticTitlesAndDescriptions.PasskeyManagementTitle,
     enabled: (args) => args.isEmbeddedWalletEnabled ?? false,
   }),
-  // Uniswap Extension Uninstall Page
+  // JuiceSwap Extension Uninstall Page
   createRouteDefinition({
     path: CHROME_EXTENSION_UNINSTALL_URL_PATH,
     getElement: () => <ExtensionUninstall />,
