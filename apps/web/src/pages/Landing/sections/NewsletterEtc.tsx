@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router'
 import { ClickableTamaguiStyle } from 'theme/components/styles'
 import { Anchor, Flex, Text, styled } from 'ui/src'
 import { ArrowUpRight } from 'ui/src/components/icons/ArrowUpRight'
@@ -120,13 +121,43 @@ interface FAQItemProps {
   question: string
   answer: string | React.ReactNode
   isInitiallyOpen?: boolean
+  id: string
 }
 
-function CollapsibleFAQItem({ question, answer, isInitiallyOpen = false }: FAQItemProps) {
+function CollapsibleFAQItem({ question, answer, isInitiallyOpen = false, id }: FAQItemProps) {
   const [isOpen, setIsOpen] = useState(isInitiallyOpen)
 
+  useEffect(() => {
+    const checkHash = () => {
+      const hash = window.location.hash.replace('#', '')
+      console.log('Checking hash:', hash, 'for FAQ id:', id)
+      if (hash === id) {
+        console.log('Hash matches! Opening FAQ:', id)
+        setIsOpen(true)
+        // Scroll to this FAQ item after a delay to ensure it's rendered
+        setTimeout(() => {
+          const element = document.getElementById(id)
+          console.log('Found element:', element)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        }, 500)
+      }
+    }
+
+    // Check immediately
+    checkHash()
+    
+    // Also listen for hash changes
+    window.addEventListener('hashchange', checkHash)
+    
+    return () => {
+      window.removeEventListener('hashchange', checkHash)
+    }
+  }, [id])
+
   return (
-    <Flex>
+    <Flex id={id}>
       <Text
         variant="heading3"
         $md={{ fontSize: 18, lineHeight: 24 }}
@@ -148,36 +179,95 @@ function CollapsibleFAQItem({ question, answer, isInitiallyOpen = false }: FAQIt
 
 function FAQList() {
   const { t } = useTranslation()
-  
+  const [searchParams] = useSearchParams()
+
   const faqs = [
     {
+      id: 'Is_there_a_juice_Token',
       question: t('faq.juiceToken.question'),
       answer: t('faq.juiceToken.answer'),
     },
     {
+      id: 'When_will_new_questions_be_added_to_the_FAQ',
       question: t('faq.newQuestions.question'),
       answer: t('faq.newQuestions.answer'),
     },
   ]
 
+  useEffect(() => {
+    const faqParam = searchParams.get('faq')
+    console.log('FAQ List mounted, checking faq param:', faqParam)
+    if (faqParam) {
+      let attempts = 0
+      const maxAttempts = 10
+      
+      const scrollToFAQ = () => {
+        attempts++
+        const element = document.getElementById(faqParam)
+        console.log(`Attempt ${attempts}: Looking for element with ID:`, faqParam, 'Found:', element)
+        
+        if (element) {
+          // Get the element's position relative to the document
+          const rect = element.getBoundingClientRect()
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+          const elementTop = rect.top + scrollTop
+          const offsetPosition = elementTop - 100 // 100px offset from top
+          
+          console.log('Element rect:', rect, 'ScrollTop:', scrollTop, 'ElementTop:', elementTop, 'Will scroll to:', offsetPosition)
+          
+          // Force immediate scroll first, then smooth scroll
+          window.scrollTo(0, offsetPosition)
+          
+          setTimeout(() => {
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            })
+          }, 100)
+        } else if (attempts < maxAttempts) {
+          // If element not found and we haven't exceeded max attempts, try again
+          console.log(`Element not found, retrying in 200ms (attempt ${attempts}/${maxAttempts})`)
+          setTimeout(scrollToFAQ, 200)
+        } else {
+          console.log('Max attempts reached, element not found')
+        }
+      }
+      
+      // Multiple attempts with different delays to catch page at different loading stages
+      setTimeout(scrollToFAQ, 1000)   // First try after 1 second
+      setTimeout(scrollToFAQ, 2500)   // Second try after 2.5 seconds  
+      setTimeout(scrollToFAQ, 4000)   // Third try after 4 seconds
+      
+      // Also try when page is fully loaded
+      if (document.readyState === 'complete') {
+        setTimeout(scrollToFAQ, 500)
+      } else {
+        window.addEventListener('load', () => {
+          setTimeout(scrollToFAQ, 500)
+        }, { once: true })
+      }
+    }
+  }, [searchParams])
+
   return (
     <Flex>
-      {faqs.map((faq, index) => (
-        <Flex key={index}>
-          <CollapsibleFAQItem
-            question={faq.question}
-            answer={faq.answer}
-            isInitiallyOpen={false}
-          />
-          {index < faqs.length - 1 && (
-            <Flex 
-              borderTopWidth={1} 
-              borderTopColor="$surface3" 
-              my="$gap12" 
+      {faqs.map((faq, index) => {
+        const faqParam = searchParams.get('faq')
+        const isInitiallyOpen = faqParam === faq.id
+        console.log('FAQ item:', faq.id, 'FAQ param:', faqParam, 'Initially open:', isInitiallyOpen)
+        
+        return (
+          <Flex key={faq.id}>
+            <CollapsibleFAQItem
+              id={faq.id}
+              question={faq.question}
+              answer={faq.answer}
+              isInitiallyOpen={isInitiallyOpen}
             />
-          )}
-        </Flex>
-      ))}
+            {index < faqs.length - 1 && <Flex borderTopWidth={1} borderTopColor="$surface3" my="$gap12" />}
+          </Flex>
+        )
+      })}
     </Flex>
   )
 }
