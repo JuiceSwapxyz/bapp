@@ -1,5 +1,5 @@
 import { TransactionRequest } from '@ethersproject/providers'
-import { Currency } from '@uniswap/sdk-core'
+import { Currency } from '@juiceswapxyz/sdk-core'
 import { providers } from 'ethers'
 import { ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'

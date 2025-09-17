@@ -1,4 +1,4 @@
-import { TradeType } from '@uniswap/sdk-core'
+import { TradeType } from '@juiceswapxyz/sdk-core'
 import { DAI, USDC } from 'uniswap/src/constants/tokens'
 import { Locale } from 'uniswap/src/features/language/constants'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'

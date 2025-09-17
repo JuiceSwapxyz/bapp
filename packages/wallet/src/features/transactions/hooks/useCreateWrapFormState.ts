@@ -1,4 +1,4 @@
-import { Currency } from '@uniswap/sdk-core'
+import { Currency } from '@juiceswapxyz/sdk-core'
 import { useMemo } from 'react'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useSelectTransaction } from 'uniswap/src/features/transactions/hooks/useSelectTransaction'

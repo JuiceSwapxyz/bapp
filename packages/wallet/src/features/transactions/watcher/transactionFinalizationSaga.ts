@@ -1,5 +1,5 @@
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client'
-import { TradeType } from '@uniswap/sdk-core'
+import { TradeType } from '@juiceswapxyz/sdk-core'
 import { BigNumber } from 'ethers'
 import { call, put, select, takeEvery } from 'typed-redux-saga'
 import { SharedQueryClient } from 'uniswap/src/data/apiClients/SharedQueryClient'

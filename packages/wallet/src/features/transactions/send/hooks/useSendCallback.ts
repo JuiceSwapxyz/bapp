@@ -1,4 +1,4 @@
-import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
+import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { providers } from 'ethers'
 import { useMemo } from 'react'
 import { useDispatch } from 'react-redux'

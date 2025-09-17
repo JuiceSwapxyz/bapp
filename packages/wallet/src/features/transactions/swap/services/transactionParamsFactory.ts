@@ -1,5 +1,5 @@
+import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { permit2Address } from '@uniswap/permit2-sdk'
-import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { DutchQuoteV2, DutchQuoteV3, PriorityQuote, Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
 import { GasEstimate } from 'uniswap/src/data/tradingApi/types'
 import { ValidatedSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'

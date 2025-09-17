@@ -1,4 +1,4 @@
-import { CurrencyAmount } from '@uniswap/sdk-core'
+import { CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { WarningLabel } from 'uniswap/src/components/modals/WarningModal/types'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import { AssetType } from 'uniswap/src/entities/assets'

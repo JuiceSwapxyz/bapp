@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
+import { MaxUint256, TradeType } from '@juiceswapxyz/sdk-core'
 import { call, select } from '@redux-saga/core/effects'
-import { MaxUint256, TradeType } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import { expectSaga } from 'redux-saga-test-plan'
 import { EffectProviders, StaticProvider } from 'redux-saga-test-plan/providers'

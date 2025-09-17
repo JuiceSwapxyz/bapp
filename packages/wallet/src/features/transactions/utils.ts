@@ -1,4 +1,4 @@
-import { Currency } from '@uniswap/sdk-core'
+import { Currency } from '@juiceswapxyz/sdk-core'
 import { BigNumber, providers } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'

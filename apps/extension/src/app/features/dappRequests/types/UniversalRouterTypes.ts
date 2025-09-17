@@ -1,7 +1,7 @@
-import { FeeAmount as FeeAmountV3 } from '@uniswap/v3-sdk'
+import { FeeAmount as FeeAmountV3 } from '@juiceswapxyz/v3-sdk'
 import { BigNumberSchema } from 'src/app/features/dappRequests/types/EthersTypes'
 import { z } from 'zod'
-import { CommandType } from '@uniswap/universal-router-sdk'
+import { CommandType } from '@juiceswapxyz/universal-router-sdk'
 
 // SCHEMAS + TYPES
 const CommandNameSchema = z.enum(

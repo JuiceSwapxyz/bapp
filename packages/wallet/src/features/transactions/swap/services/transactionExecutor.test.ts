@@ -1,5 +1,5 @@
+import { TradeType } from '@juiceswapxyz/sdk-core'
 import { call } from '@redux-saga/core/effects'
-import { TradeType } from '@uniswap/sdk-core'
 import { BigNumber } from 'ethers'
 import { expectSaga } from 'redux-saga-test-plan'
 import * as matchers from 'redux-saga-test-plan/matchers'

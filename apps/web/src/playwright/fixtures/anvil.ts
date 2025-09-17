@@ -1,7 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import { WETH_ADDRESS } from '@juiceswapxyz/universal-router-sdk'
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { test as base } from '@playwright/test'
 import { MaxUint160, MaxUint256, permit2Address } from '@uniswap/permit2-sdk'
-import { WETH_ADDRESS } from '@uniswap/universal-router-sdk'
 import { anvilClient, setErc20BalanceWithMultipleSlots } from 'playwright/anvil/utils'
 import { TEST_WALLET_ADDRESS } from 'playwright/fixtures/wallets'
 import PERMIT2_ABI from 'uniswap/src/abis/permit2'

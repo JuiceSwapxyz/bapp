@@ -1,5 +1,5 @@
-import { Protocol } from '@uniswap/router-sdk'
-import { TradeType } from '@uniswap/sdk-core'
+import { Protocol } from '@juiceswapxyz/router-sdk'
+import { TradeType } from '@juiceswapxyz/sdk-core'
 import { testSaga } from 'redux-saga-test-plan'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import { submitOrder } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'

@@ -1,4 +1,4 @@
-import { REACTOR_ADDRESS_MAPPING } from '@uniswap/uniswapx-sdk'
+import { REACTOR_ADDRESS_MAPPING } from '@juiceswapxyz/uniswapx-sdk'
 import { TypeDefinitionSchema } from 'src/app/features/dappRequests/types/EIP712Types'
 import { z } from 'zod'
 

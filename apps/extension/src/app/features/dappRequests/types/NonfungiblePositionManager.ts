@@ -1,4 +1,4 @@
-import { NonfungiblePositionManager } from '@uniswap/v3-sdk'
+import { NonfungiblePositionManager } from '@juiceswapxyz/v3-sdk'
 import {
   NFPMCommand,
   NfpmCommandSchema,

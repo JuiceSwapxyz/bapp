@@ -37,7 +37,7 @@ jobs:
       - name: Build web app
         run: yarn web build:production
         env:
-          NODE_ENV: production
+          NODE_ENV: develop
 
       - name: Log in to Azure
         uses: azure/login@v2

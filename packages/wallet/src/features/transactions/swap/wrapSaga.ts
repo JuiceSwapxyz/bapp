@@ -1,4 +1,4 @@
-import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
+import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { providers } from 'ethers'
 import { call, put } from 'typed-redux-saga'
 import { GasEstimate } from 'uniswap/src/data/tradingApi/types'

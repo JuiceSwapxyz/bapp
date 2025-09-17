@@ -1,12 +1,12 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { PERMIT2_ADDRESS } from '@uniswap/permit2-sdk'
 import {
   CosignedPriorityOrder,
   CosignedV2DutchOrder,
   CosignedV3DutchOrder,
   DutchOrder,
   getCancelSingleParams,
-} from '@uniswap/uniswapx-sdk'
+} from '@juiceswapxyz/uniswapx-sdk'
+import { PERMIT2_ADDRESS } from '@uniswap/permit2-sdk'
 import { Contract, providers } from 'ethers/lib/ethers'
 import PERMIT2_ABI from 'uniswap/src/abis/permit2.json'
 import { Permit2 } from 'uniswap/src/abis/types'

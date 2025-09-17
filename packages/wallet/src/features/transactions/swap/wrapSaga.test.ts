@@ -1,4 +1,4 @@
-import { CurrencyAmount } from '@uniswap/sdk-core'
+import { CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { testSaga } from 'redux-saga-test-plan'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'

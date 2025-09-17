@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import { ApolloError, NetworkStatus } from '@apollo/client'
-import { Token } from '@uniswap/sdk-core'
+import { Token } from '@juiceswapxyz/sdk-core'
 import { setupSharedApolloCache } from 'uniswap/src/data/cache'
 import {
   Chain,

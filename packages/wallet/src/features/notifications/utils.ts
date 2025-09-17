@@ -1,4 +1,4 @@
-import { Currency, TradeType } from '@uniswap/sdk-core'
+import { Currency, TradeType } from '@juiceswapxyz/sdk-core'
 import { getChainLabel, toSupportedChainId } from 'uniswap/src/features/chains/utils'
 import { LocalizationContextState } from 'uniswap/src/features/language/LocalizationContext'
 import { GQLNftAsset } from 'uniswap/src/features/nfts/types'

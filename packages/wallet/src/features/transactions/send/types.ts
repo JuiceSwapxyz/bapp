@@ -1,4 +1,4 @@
-import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
+import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { GasEstimate } from 'uniswap/src/data/tradingApi/types'
 import { AssetType, NFTAssetType } from 'uniswap/src/entities/assets'
 import { SignerMnemonicAccountMeta } from 'uniswap/src/features/accounts/types'

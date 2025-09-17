@@ -1,4 +1,4 @@
-import { CurrencyAmount, TradeType } from '@uniswap/sdk-core'
+import { CurrencyAmount, TradeType } from '@juiceswapxyz/sdk-core'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'

@@ -1,4 +1,4 @@
-import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
+import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useCallback, useLayoutEffect, useState } from 'react'
 import { NativeSyntheticEvent, TextInputSelectionChangeEventData } from 'react-native'
 import { Flex, FlexProps, Text, TouchableArea } from 'ui/src'

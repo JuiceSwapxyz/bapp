@@ -1,4 +1,4 @@
-import { Currency } from '@uniswap/sdk-core'
+import { Currency } from '@juiceswapxyz/sdk-core'
 import { BigNumber } from 'ethers'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
 

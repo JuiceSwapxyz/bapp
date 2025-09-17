@@ -6,9 +6,9 @@ const sharedRules = {
       message: "Please import from 'tamagui' directly to prevent mismatches.",
     },
     {
-      name: '@uniswap/sdk-core',
+      name: '@juiceswapxyz/sdk-core',
       importNames: ['ChainId'],
-      message: "Don't use ChainId from @uniswap/sdk-core. Use the UniverseChainId from universe/uniswap.",
+      message: "Don't use ChainId from @juiceswapxyz/sdk-core. Use the UniverseChainId from universe/uniswap.",
     },
     {
       name: 'utilities/src/telemetry/trace/Trace',

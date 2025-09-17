@@ -1,4 +1,4 @@
-import { MaxUint256, TradeType } from '@uniswap/sdk-core'
+import { MaxUint256, TradeType } from '@juiceswapxyz/sdk-core'
 import { transactionActions } from 'uniswap/src/features/transactions/slice'
 import { Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
