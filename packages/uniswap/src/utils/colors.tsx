@@ -17,7 +17,7 @@ export function useNetworkColors(chainId: UniverseChainId): {
   const colors = useSporeColors()
   const colorKey = getNetworkColorKey(chainId)
   const colorObject = colors[colorKey]
-  
+
   if (!colorObject) {
     // Fallback to neutral color if chain color is not defined
     const fallbackColor = colors.neutral1?.val || '#000000'
@@ -26,7 +26,7 @@ export function useNetworkColors(chainId: UniverseChainId): {
       background: opacify(10, fallbackColor),
     }
   }
-  
+
   const color = colorObject.val
   assert(color, `Network color is not defined in Theme for chain ${chainId}`)
 
