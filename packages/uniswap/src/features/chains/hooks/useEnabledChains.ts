@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { useConnector } from 'uniswap/src/contexts/UniswapContext'
-import { ALL_CHAIN_IDS } from 'uniswap/src/features/chains/chainInfo'
+import { VISIBLE_CHAIN_IDS } from 'uniswap/src/features/chains/chainInfo'
 import { useFeatureFlaggedChainIds } from 'uniswap/src/features/chains/hooks/useFeatureFlaggedChainIds'
 // This is the only file that should be importing `useOrderedChainIds` directly.
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
@@ -46,9 +46,9 @@ function getConnectorSupportedChains(connector?: Connector): UniverseChainId[] {
       return (connector as WalletConnectConnector).getNamespaceChainsIds?.().length
         ? // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           (connector as WalletConnectConnector).getNamespaceChainsIds?.()
-        : ALL_CHAIN_IDS
+        : VISIBLE_CHAIN_IDS
     default:
-      return ALL_CHAIN_IDS
+      return VISIBLE_CHAIN_IDS
   }
 }
 

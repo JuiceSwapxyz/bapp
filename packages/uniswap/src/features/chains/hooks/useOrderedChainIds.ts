@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ALL_CHAIN_IDS } from 'uniswap/src/features/chains/chainInfo'
+import { VISIBLE_CHAIN_IDS } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ChainsConfigKey, DynamicConfigs } from 'uniswap/src/features/gating/configs'
 import { useDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
@@ -9,7 +9,7 @@ export function useOrderedChainIds(chainIds: UniverseChainId[]): UniverseChainId
   const serverOrderedChains = useDynamicConfigValue({
     config: DynamicConfigs.Chains,
     key: ChainsConfigKey.OrderedChainIds,
-    defaultValue: ALL_CHAIN_IDS,
+    defaultValue: VISIBLE_CHAIN_IDS,
   })
 
   return useMemo(() => {

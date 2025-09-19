@@ -57,7 +57,14 @@ function getOrderedEVMChains(): ConstChainInfo<Platform.EVM>[] {
   return evmChains
 }
 
+// Chains that should be hidden from display
+const HIDDEN_CHAIN_IDS = [UniverseChainId.MonadTestnet, UniverseChainId.UnichainSepolia]
+
 export const ALL_CHAIN_IDS: UniverseChainId[] = ORDERED_CHAINS.map((chain) => chain.id)
+
+// Visible chains for display purposes
+export const VISIBLE_CHAINS = ORDERED_CHAINS.filter((chain) => !HIDDEN_CHAIN_IDS.includes(chain.id))
+export const VISIBLE_CHAIN_IDS: UniverseChainId[] = VISIBLE_CHAINS.map((chain) => chain.id)
 
 // Exported with narrow typing for viem config typing on web. Will throw if no EVM chain is provided in ORDERED_CHAINS.
 export const ORDERED_EVM_CHAINS = getNonEmptyArrayOrThrow(getOrderedEVMChains())

@@ -106,7 +106,7 @@ export default function TableNetworkFilter({ showMultichainOption = true }: { sh
               ? enabledChainIds
                   .filter(isBackendSupportedChainId)
                   .filter(isTestnetChain)
-                  .filter((c) => c !== UniverseChainId.MonadTestnet)
+                  .filter((c) => c !== UniverseChainId.MonadTestnet && c !== UniverseChainId.UnichainSepolia)
                   .map(tableNetworkItemRenderer)
               : null}
             {/* Unsupported non-testnet backend supported chains */}
