@@ -12,48 +12,17 @@ import {
 } from 'uniswap/src/features/chains/types'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
-
-// Citrea uses BTC as the native currency but rebranded as cBTC
-const BTC_LOGO = CITREA_LOGO
-
-// Define Citrea Testnet tokens manually
-const CITREA_USDC = new Token(
-  UniverseChainId.CitreaTestnet,
-  '0x1234567890123456789012345678901234567890', // Placeholder - replace with actual USDC contract address
-  6,
-  'USDC',
-  'USD Coin',
-  USDC_LOGO,
-)
-
-const CITREA_WUSDT = new Token(
-  UniverseChainId.CitreaTestnet,
-  '0x2345678901234567890123456789012345678901', // Placeholder - replace with actual wUSDT contract address
-  6,
-  'wUSDT',
-  'Wrapped Tether USD',
-  DAI_LOGO, // Using DAI logo as placeholder for USDT
-)
-
-// Native cBTC token (similar to wrapped ETH)
-const CITREA_CBTC = new Token(
-  UniverseChainId.CitreaTestnet,
-  DEFAULT_NATIVE_ADDRESS_LEGACY, // Native token address
-  18,
-  'cBTC',
-  'Citrea BTC',
-  BTC_LOGO,
-)
+import { buildCUSD } from 'uniswap/src/features/tokens/stablecoin'
+import { defineChain } from 'viem'
 
 const testnetTokens = buildChainTokens({
   stables: {
-    USDC: CITREA_USDC,
-    USDT: CITREA_WUSDT,
+    USDC: buildCUSD('0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0', UniverseChainId.CitreaTestnet ),
   },
 })
 
-// Define Citrea chain configuration similar to wagmi chain format
-const citreaTestnet = {
+
+const citreaTestnet = defineChain({
   id: UniverseChainId.CitreaTestnet,
   name: 'Citrea Testnet',
   network: 'citrea-testnet',
@@ -79,7 +48,7 @@ const citreaTestnet = {
   },
   contracts: {},
   testnet: true,
-} as const
+})
 
 export const CITREA_TESTNET_CHAIN_INFO = {
   ...citreaTestnet,
@@ -87,7 +56,7 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   platform: Platform.EVM,
   assetRepoNetworkName: undefined,
   backendChain: {
-    chain: BackendChainId.UnknownChain as GqlChainId, // Citrea is not yet supported in backend
+    chain: BackendChainId.UnknownChain as GqlChainId,
     backendSupported: false,
     nativeTokenBackendAddress: undefined,
   },
@@ -131,13 +100,13 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(testnetTokens.USDC, 100e6),
   tokens: testnetTokens,
   statusPage: undefined,
-  supportsV4: false, // Assume V4 is not supported on Citrea yet
+  supportsV4: false,
   urlParam: 'citrea_testnet',
   wrappedNativeCurrency: {
     name: 'Wrapped Citrea BTC',
     symbol: 'WcBTC',
     decimals: 18,
-    address: '0x0000000000000000000000000000000000000000', // Placeholder address
+    address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
   },
   tradingApiPollingIntervalMs: 500,
 } as const satisfies UniverseChainInfo
