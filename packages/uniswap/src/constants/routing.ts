@@ -1,4 +1,4 @@
-import { Currency, Token, WETH9 } from '@uniswap/sdk-core'
+import { Currency, Token, WETH9 } from '@juiceswapxyz/sdk-core'
 import type { ImageSourcePropType } from 'react-native'
 import { CELO_LOGO, ETH_LOGO } from 'ui/src/assets'
 import {
@@ -47,6 +47,7 @@ import {
 } from 'uniswap/src/constants/tokens'
 import { ProtectionResult } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
+import { CITREA_TESTNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/citrea'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo, TokenList } from 'uniswap/src/features/dataApi/types'
 import { buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
@@ -176,6 +177,12 @@ export const COMMON_BASES: ChainCurrencyList = {
     nativeOnChain(UniverseChainId.Zora),
     WRAPPED_NATIVE_CURRENCY[UniverseChainId.Zora] as Token,
     USDC_ZORA,
+  ].map(buildPartialCurrencyInfo),
+
+  [UniverseChainId.CitreaTestnet]: [
+    nativeOnChain(UniverseChainId.CitreaTestnet),
+    WRAPPED_NATIVE_CURRENCY[UniverseChainId.CitreaTestnet] as Token,
+    CITREA_TESTNET_CHAIN_INFO.tokens.USDC,
   ].map(buildPartialCurrencyInfo),
 }
 

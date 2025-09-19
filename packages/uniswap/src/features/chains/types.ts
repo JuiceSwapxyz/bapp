@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { CurrencyAmount, Token, ChainId as UniswapSDKChainId } from '@uniswap/sdk-core'
+import { CurrencyAmount, Token, ChainId as UniswapSDKChainId } from '@juiceswapxyz/sdk-core'
 import type { ImageSourcePropType } from 'react-native'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
@@ -17,6 +16,7 @@ export enum UniverseChainId {
   Blast = UniswapSDKChainId.BLAST,
   Bnb = UniswapSDKChainId.BNB,
   Celo = UniswapSDKChainId.CELO,
+  CitreaTestnet = UniswapSDKChainId.CITREA_TESTNET,
   MonadTestnet = UniswapSDKChainId.MONAD_TESTNET,
   Optimism = UniswapSDKChainId.OPTIMISM,
   Polygon = UniswapSDKChainId.POLYGON,

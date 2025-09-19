@@ -1,4 +1,4 @@
-import { Protocol } from '@uniswap/router-sdk'
+import { Protocol } from '@juiceswapxyz/router-sdk'
 import UniswapXBrandMark from 'components/Logo/UniswapXBrandMark'
 import QuestionHelper from 'components/QuestionHelper'
 import Column from 'components/deprecated/Column'
@@ -54,7 +54,7 @@ const DEFAULT_ROUTE_PREFERENCE_OPTIONS: RoutePreferenceOptionsType = {
 }
 const DEFAULT_ROUTING_PREFERENCE: RoutingPreference = {
   router: RouterPreference.X,
-  protocols: [Protocol.V2, Protocol.V3, Protocol.MIXED],
+  protocols: [Protocol.V3],
 }
 
 const routingPreferencesAtom = atom(DEFAULT_ROUTING_PREFERENCE)
@@ -135,7 +135,7 @@ export default function MultipleRoutingOptions({ chainId }: { chainId?: number }
         setRoutePreferenceOptions(options)
         setRoutingPreferences({
           router: RouterPreference.X,
-          protocols: [Protocol.V2, Protocol.V3, Protocol.MIXED],
+          protocols: [Protocol.V3],
         })
         return
       }

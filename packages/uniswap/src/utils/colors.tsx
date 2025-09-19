@@ -15,14 +15,17 @@ export function useNetworkColors(chainId: UniverseChainId): {
   background: string
 } {
   const colors = useSporeColors()
-  const color = colors[getNetworkColorKey(chainId)].val
+  const colorKey = getNetworkColorKey(chainId)
+  const colorObject = colors[colorKey]
 
-  const foreground = color
-  assert(foreground, 'Network color is not defined in Theme')
+  // colorObject is always defined based on getNetworkColorKey
+
+  const color = colorObject.val
+  assert(color, `Network color is not defined in Theme for chain ${chainId}`)
 
   return {
-    foreground,
-    background: opacify(10, foreground),
+    foreground: color,
+    background: opacify(10, color),
   }
 }
 

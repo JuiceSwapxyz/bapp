@@ -1,5 +1,5 @@
+import { Protocol } from '@juiceswapxyz/router-sdk'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { Protocol } from '@uniswap/router-sdk'
 import ms from 'ms'
 import {
   ClassicAPIConfig,
@@ -29,7 +29,7 @@ if (UNISWAP_GATEWAY_DNS_URL === undefined) {
   throw new Error(`UNISWAP_GATEWAY_DNS_URL must be defined environment variables`)
 }
 
-const protocols: Protocol[] = [Protocol.V2, Protocol.V3, Protocol.MIXED]
+const protocols: Protocol[] = [Protocol.V3]
 
 // routing API quote query params: https://github.com/Uniswap/routing-api/blob/main/lib/handlers/quote/schema/quote-schema.ts
 const DEFAULT_QUERY_PARAMS = {
