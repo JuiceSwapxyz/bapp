@@ -1,0 +1,191 @@
+name: PR Checks (Changed Files)
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-changed
+  cancel-in-progress: true
+
+jobs:
+  # Analyze what changed to determine which checks to run
+  changes:
+    name: Analyze Changes
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+      extension: ${{ steps.filter.outputs.extension }}
+      packages: ${{ steps.filter.outputs.packages }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Path filter
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+            mobile:
+              - 'apps/mobile/**'
+              - 'packages/**'
+            extension:
+              - 'apps/extension/**'
+              - 'packages/**'
+            packages:
+              - 'packages/**'
+
+  # Quick checks for changed files only
+  quick-checks-changed:
+    name: Quick Checks (Changed)
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.packages == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.mobile == 'true' || needs.changes.outputs.extension == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: TypeScript check (changed)
+        run: yarn g:typecheck:changed
+
+      - name: Lint check (changed)
+        run: yarn g:lint:changed
+
+      - name: Format check (changed)
+        run: yarn g:format:changed
+
+  # Build and test Web if changed
+  web-checks:
+    name: Web Checks
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build web
+        run: yarn web build:production
+
+      - name: Run web tests
+        run: yarn web test
+
+  # Test Mobile if changed
+  mobile-checks:
+    name: Mobile Checks
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: TypeScript check mobile
+        run: yarn mobile typecheck
+
+      - name: Run mobile tests
+        run: yarn mobile test
+
+  # Test Extension if changed
+  extension-checks:
+    name: Extension Checks
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.extension == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: TypeScript check extension
+        run: yarn extension typecheck
+
+      - name: Build extension
+        run: yarn extension build:production
+
+      - name: Run extension tests
+        run: yarn extension test
+
+  # Test packages if changed
+  packages-checks:
+    name: Package Checks
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build packages
+        run: |
+          yarn utilities build
+          yarn ui build
+          yarn uniswap build
+          yarn wallet build
+
+      - name: Run package tests
+        run: |
+          yarn utilities test
+          yarn ui test
+          yarn uniswap test
+          yarn wallet test

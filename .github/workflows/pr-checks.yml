@@ -1,0 +1,260 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Quick checks that should pass before running expensive operations
+  quick-checks:
+    name: Quick Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Check dependency mismatches
+        run: yarn g:check:deps:mismatch
+
+      - name: Check dependency formatting
+        run: yarn g:format:deps
+
+  # Type checking across the monorepo
+  typecheck:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run TypeScript check
+        run: yarn g:typecheck
+
+  # Linting check
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run linting
+        run: yarn g:lint
+
+  # Format checking
+  format:
+    name: Format Check
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Check formatting
+        run: yarn g:format
+
+  # Unit tests - split into parallel jobs for faster execution
+  test-packages:
+    name: Test Packages
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run package tests
+        run: yarn g:test:coverage:rest
+
+  test-web:
+    name: Test Web
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    strategy:
+      matrix:
+        test-set: [1, 2, 3, 4]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run web tests set ${{ matrix.test-set }}
+        run: yarn g:test:coverage:web:set${{ matrix.test-set }}
+
+  test-mobile:
+    name: Test Mobile
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run mobile tests
+        run: yarn g:test:coverage:mobile
+
+  test-extension:
+    name: Test Extension
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run extension tests
+        run: yarn g:test:coverage:extension
+
+  # Build check
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, format]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build all packages
+        run: yarn g:build
+
+  # Check for circular dependencies
+  circular-deps:
+    name: Circular Dependencies Check
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Check circular dependencies
+        run: yarn g:check:circular
+
+  # Required status check - all other checks must pass
+  all-checks:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, format, test-packages, test-web, test-mobile, test-extension, build, circular-deps]
+    if: always()
+    steps:
+      - name: Check status
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more required checks failed"
+            exit 1
+          elif [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more required checks were cancelled"
+            exit 1
+          else
+            echo "All required checks passed"
+          fi
