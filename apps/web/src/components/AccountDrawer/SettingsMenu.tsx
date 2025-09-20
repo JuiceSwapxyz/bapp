@@ -1,6 +1,8 @@
 import { AnalyticsToggle } from 'components/AccountDrawer/AnalyticsToggle'
 import { AppVersionRow } from 'components/AccountDrawer/AppVersionRow'
+import { CitreaOnlyToggle } from 'components/AccountDrawer/CitreaOnlyToggle'
 import { SlideOutMenu } from 'components/AccountDrawer/SlideOutMenu'
+import { TestnetModeToggle } from 'components/AccountDrawer/TestnetModeToggle'
 import Column from 'components/deprecated/Column'
 import Row from 'components/deprecated/Row'
 import { useAccount } from 'hooks/useAccount'
@@ -98,6 +100,8 @@ export default function SettingsMenu({
           />
           {connectedWithEmbeddedWallet && <SettingsButton title={t('common.passkeys')} onClick={openPasskeySettings} />}
         </Flex>
+        <TestnetModeToggle />
+        <CitreaOnlyToggle />
         <AnalyticsToggle />
       </Container>
     </SlideOutMenu>
