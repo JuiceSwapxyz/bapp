@@ -44,6 +44,22 @@ function getQuoteOutputAmount<T extends QuoteResponseWithAggregatedOutputs>(quot
     return CurrencyAmount.fromRawAmount(outputCurrency, '0')
   }
 
+  // For Classic quotes without aggregatedOutputs, use the quote field directly
+  if (!quote.quote.aggregatedOutputs && quote.routing === 'CLASSIC') {
+    const quoteData = quote.quote as Record<string, unknown>
+    // The 'quote' field contains the raw amount in smallest unit (wei)
+    const outputAmount = quoteData.quote || quoteData.output || quoteData.outputAmount
+
+    if (outputAmount) {
+      // Ensure we use the integer value, not the decimal string
+      const amountString = typeof outputAmount === 'string' && !outputAmount.includes('.')
+        ? outputAmount
+        : outputAmount.toString()
+
+      return CurrencyAmount.fromRawAmount(outputCurrency, amountString)
+    }
+  }
+
   return quote.quote.aggregatedOutputs?.reduce((acc, output) => acc.add(CurrencyAmount.fromRawAmount(outputCurrency, output.amount ?? '0')), CurrencyAmount.fromRawAmount(outputCurrency, '0')) ?? CurrencyAmount.fromRawAmount(outputCurrency, '0')
 }
 
