@@ -123,7 +123,6 @@ export class UniswapXV2Trade extends V2DutchOrderTrade<Currency, Currency, Trade
     this.slippageTolerance = this.quote.quote.slippageTolerance ?? 0
     this.swapFee = getSwapFee(quote)
 
-
     // TODO(SWAP-235): Cleanup redundancy
     this.maxAmountIn = this.maximumAmountIn()
     this.minAmountOut = this.minimumAmountOut()
