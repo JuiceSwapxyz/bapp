@@ -53,7 +53,7 @@ export const SearchModal = memo(function _SearchModal(): JSX.Element {
     onClose()
   }, [onChangeText, onClose])
 
-  const { chains: enabledChains, isTestnetModeEnabled } = useEnabledChains()
+  const { chains: enabledChains } = useEnabledChains()
   const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
 
   // Tamagui Dialog/Sheets should remove background scroll by default but does not work to disable ArrowUp/Down key scrolling
@@ -95,7 +95,7 @@ export const SearchModal = memo(function _SearchModal(): JSX.Element {
             endAdornment={
               <Flex row alignItems="center">
                 <NetworkFilter
-                  includeAllNetworks={!isTestnetModeEnabled && !isCitreaOnlyEnabled}
+                  includeAllNetworks={!isCitreaOnlyEnabled}
                   chainIds={enabledChains}
                   selectedChain={chainFilter}
                   onPressChain={onChangeChainFilter}
