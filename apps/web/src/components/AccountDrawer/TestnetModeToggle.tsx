@@ -6,11 +6,6 @@ export function TestnetModeToggle() {
     // Toggle does nothing - always stays on
   }, [])
 
-  return (
-    <SettingsToggle
-      title="Testnet mode"
-      isActive={true}
-      toggle={handleToggle}
-    />
-  )
+  return <SettingsToggle title="Testnet mode" isActive={true} toggle={handleToggle} />
 }
+
