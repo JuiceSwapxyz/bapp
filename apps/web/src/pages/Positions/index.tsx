@@ -9,6 +9,7 @@ import { PositionsHeader } from 'components/Liquidity/PositionsHeader'
 import { PositionInfo } from 'components/Liquidity/types'
 import { getPositionUrl } from 'components/Liquidity/utils/getPositionUrl'
 import { parseRestPosition } from 'components/Liquidity/utils/parseFromRest'
+import { getHardcodedPositionsForWallet } from 'constants/hardcodedPositions'
 import { useAccount } from 'hooks/useAccount'
 import { useInfiniteScroll } from 'hooks/useInfiniteScroll'
 import { atom, useAtom } from 'jotai'
@@ -266,9 +267,20 @@ export default function Pool() {
 
   const savedPositions = useRequestPositionsForSavedPairs()
 
+  // Get hardcoded positions for the current wallet
+  const hardcodedPositions = useMemo(() => {
+    return getHardcodedPositionsForWallet(account.address).filter((position) => {
+      const matchesChain = !chainFilter || position.chainId === chainFilter
+      const matchesStatus = statusFilter.includes(position.status)
+      const matchesVersion = versionFilter.includes(position.version)
+      return matchesChain && matchesStatus && matchesVersion
+    })
+  }, [account.address, chainFilter, statusFilter, versionFilter])
+
   const isLoadingPositions = !!account.address && (isLoading || !data)
   const combinedPositions = useMemo(() => {
-    return [
+    // Parse API positions
+    const apiPositions = [
       ...loadedPositions,
       ...savedPositions
         .filter((position) => {
@@ -282,15 +294,20 @@ export default function Pool() {
     ]
       .map(parseRestPosition)
       .filter((position): position is PositionInfo => !!position)
-      .reduce<PositionInfo[]>((unique, position) => {
-        const positionId = `${position.poolId}-${position.tokenId}-${position.chainId}`
-        const exists = unique.some((p) => `${p.poolId}-${p.tokenId}-${p.chainId}` === positionId)
-        if (!exists) {
-          unique.push(position)
-        }
-        return unique
-      }, [])
-  }, [loadedPositions, savedPositions, chainFilter, statusFilter, versionFilter])
+
+    // Combine hardcoded positions (already in PositionInfo format) with parsed API positions
+    const allPositions = [...hardcodedPositions, ...apiPositions]
+
+    // Remove duplicates
+    return allPositions.reduce<PositionInfo[]>((unique, position) => {
+      const positionId = `${position.poolId}-${position.tokenId}-${position.chainId}`
+      const exists = unique.some((p) => `${p.poolId}-${p.tokenId}-${p.chainId}` === positionId)
+      if (!exists) {
+        unique.push(position)
+      }
+      return unique
+    }, [])
+  }, [hardcodedPositions, loadedPositions, savedPositions, chainFilter, statusFilter, versionFilter])
 
   const { visiblePositions, hiddenPositions } = useMemo(() => {
     const visiblePositions: PositionInfo[] = []
