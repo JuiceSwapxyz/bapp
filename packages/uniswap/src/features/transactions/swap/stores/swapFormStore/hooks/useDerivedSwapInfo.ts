@@ -15,6 +15,7 @@ import { useTrade } from 'uniswap/src/features/transactions/swap/hooks/useTrade'
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { getWrapType } from 'uniswap/src/features/transactions/swap/utils/wrap'
 import type { TransactionState } from 'uniswap/src/features/transactions/types/transactionState'
+import { WrapType } from 'uniswap/src/features/transactions/types/wrap'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
@@ -95,6 +96,8 @@ export function useDerivedSwapInfo({
     return ctx.getCanSignPermits?.(chainId) && !ctx.getSwapDelegationInfo?.(chainId).delegationAddress
   })
 
+  const isWrap = wrapType !== WrapType.NotApplicable
+
   const trade = useTrade({
     account,
     amountSpecified,
@@ -106,6 +109,7 @@ export function useDerivedSwapInfo({
     isDebouncing,
     generatePermitAsTransaction,
     isV4HookPoolsEnabled: false,
+    skip: isWrap,
   })
 
   const displayableTrade = trade.trade ?? trade.indicativeTrade
@@ -115,15 +119,35 @@ export function useDerivedSwapInfo({
     ? displayableTrade?.quoteOutputAmount
     : displayableTrade?.outputAmount
 
-  const currencyAmounts = useMemo(
-    () => ({
+  const currencyAmounts = useMemo(() => {
+    // For wraps, output amount equals input amount (1:1 ratio)
+    if (isWrap && amountSpecified) {
+      const wrapOutputAmount = getCurrencyAmount({
+        value: exactAmountToken,
+        valueType: ValueType.Exact,
+        currency: otherCurrency,
+      })
+      return {
+        [CurrencyField.INPUT]: exactCurrencyField === CurrencyField.INPUT ? amountSpecified : wrapOutputAmount,
+        [CurrencyField.OUTPUT]: exactCurrencyField === CurrencyField.OUTPUT ? amountSpecified : wrapOutputAmount,
+      }
+    }
+
+    return {
       [CurrencyField.INPUT]:
         exactCurrencyField === CurrencyField.INPUT ? amountSpecified : displayableTrade?.inputAmount,
       [CurrencyField.OUTPUT]:
         exactCurrencyField === CurrencyField.OUTPUT ? amountSpecified : displayableTradeOutputAmount,
-    }),
-    [exactCurrencyField, amountSpecified, displayableTrade?.inputAmount, displayableTradeOutputAmount],
-  )
+    }
+  }, [
+    exactCurrencyField,
+    amountSpecified,
+    displayableTrade?.inputAmount,
+    displayableTradeOutputAmount,
+    isWrap,
+    exactAmountToken,
+    otherCurrency,
+  ])
 
   const inputCurrencyUSDValue = useUSDCValue(currencyAmounts[CurrencyField.INPUT])
   const outputCurrencyUSDValue = useUSDCValue(currencyAmounts[CurrencyField.OUTPUT])
