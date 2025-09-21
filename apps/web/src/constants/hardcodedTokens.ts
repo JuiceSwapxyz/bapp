@@ -1,57 +1,17 @@
-import { Token } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+// Import tokens from hardcodedPools to avoid duplication
+import { WCBTC, TFC, cUSD, NUSD, USDC } from './hardcodedPools'
 
-// Citrea testnet tokens (same as in hardcodedPools.ts)
-export const WCBTC_TOKEN = new Token(
-  UniverseChainId.CitreaTestnet,
-  '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
-  18,
-  'WCBTC',
-  'Wrapped cBTC',
-)
-
-export const TFC_TOKEN = new Token(
-  UniverseChainId.CitreaTestnet,
-  '0x7c6e99a637fbc887c067ba2f3a2b76499f3a0eaa',
-  18,
-  'TFC',
-  'TaprootFreakCoin',
-)
-
-export const CUSD_TOKEN = new Token(
-  UniverseChainId.CitreaTestnet,
-  '0xb3fc1ddbd87cac45301d0d2e99e5f8f5218c8e33',
-  18,
-  'cUSD',
-  'cUSD',
-)
-
-export const NUSD_TOKEN = new Token(
-  UniverseChainId.CitreaTestnet,
-  '0x1234567890abcdef1234567890abcdef12345678',
-  18,
-  'NUSD',
-  'Nectra USD',
-)
-
-export const USDC_TOKEN = new Token(
-  UniverseChainId.CitreaTestnet,
-  '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0',
-  6,
-  'USDC',
-  'USDC',
-)
-
-// Hardcoded Citrea tokens for the explore page
+// Hardcoded Citrea tokens for the explore page with market data
 export const HARDCODED_CITREA_TOKENS = [
   {
-    id: WCBTC_TOKEN.address,
+    id: WCBTC.address,
     chain: UniverseChainId.CitreaTestnet,
-    address: WCBTC_TOKEN.address,
-    symbol: WCBTC_TOKEN.symbol,
-    name: WCBTC_TOKEN.name,
-    decimals: WCBTC_TOKEN.decimals,
-    project: { name: WCBTC_TOKEN.name },
+    address: WCBTC.address,
+    symbol: WCBTC.symbol,
+    name: WCBTC.name,
+    decimals: WCBTC.decimals,
+    project: { name: WCBTC.name },
     price: 95000,
     pricePercentChange1Hour: 0.5,
     pricePercentChange1Day: 2.3,
@@ -59,13 +19,13 @@ export const HARDCODED_CITREA_TOKENS = [
     marketCap: { value: 1900000000 },
   },
   {
-    id: TFC_TOKEN.address,
+    id: TFC.address,
     chain: UniverseChainId.CitreaTestnet,
-    address: TFC_TOKEN.address,
-    symbol: TFC_TOKEN.symbol,
-    name: TFC_TOKEN.name,
-    decimals: TFC_TOKEN.decimals,
-    project: { name: TFC_TOKEN.name },
+    address: TFC.address,
+    symbol: TFC.symbol,
+    name: TFC.name,
+    decimals: TFC.decimals,
+    project: { name: TFC.name },
     price: 3.2,
     pricePercentChange1Hour: -0.8,
     pricePercentChange1Day: 5.7,
@@ -73,13 +33,13 @@ export const HARDCODED_CITREA_TOKENS = [
     marketCap: { value: 32000000 },
   },
   {
-    id: CUSD_TOKEN.address,
+    id: cUSD.address,
     chain: UniverseChainId.CitreaTestnet,
-    address: CUSD_TOKEN.address,
-    symbol: CUSD_TOKEN.symbol,
-    name: CUSD_TOKEN.name,
-    decimals: CUSD_TOKEN.decimals,
-    project: { name: CUSD_TOKEN.name },
+    address: cUSD.address,
+    symbol: cUSD.symbol,
+    name: cUSD.name,
+    decimals: cUSD.decimals,
+    project: { name: cUSD.name },
     price: 0.999,
     pricePercentChange1Hour: 0.01,
     pricePercentChange1Day: -0.05,
@@ -87,13 +47,13 @@ export const HARDCODED_CITREA_TOKENS = [
     marketCap: { value: 85000000 },
   },
   {
-    id: NUSD_TOKEN.address,
+    id: NUSD.address,
     chain: UniverseChainId.CitreaTestnet,
-    address: NUSD_TOKEN.address,
-    symbol: NUSD_TOKEN.symbol,
-    name: NUSD_TOKEN.name,
-    decimals: NUSD_TOKEN.decimals,
-    project: { name: NUSD_TOKEN.name },
+    address: NUSD.address,
+    symbol: NUSD.symbol,
+    name: NUSD.name,
+    decimals: NUSD.decimals,
+    project: { name: NUSD.name },
     price: 1.001,
     pricePercentChange1Hour: 0.02,
     pricePercentChange1Day: 0.1,
@@ -101,13 +61,13 @@ export const HARDCODED_CITREA_TOKENS = [
     marketCap: { value: 62000000 },
   },
   {
-    id: USDC_TOKEN.address,
+    id: USDC.address,
     chain: UniverseChainId.CitreaTestnet,
-    address: USDC_TOKEN.address,
-    symbol: USDC_TOKEN.symbol,
-    name: USDC_TOKEN.name,
-    decimals: USDC_TOKEN.decimals,
-    project: { name: USDC_TOKEN.name },
+    address: USDC.address,
+    symbol: USDC.symbol,
+    name: USDC.name,
+    decimals: USDC.decimals,
+    project: { name: USDC.name },
     price: 1.0,
     pricePercentChange1Hour: 0.0,
     pricePercentChange1Day: 0.01,
