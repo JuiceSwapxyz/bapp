@@ -43,6 +43,8 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
+import { CitreaHardcodedPools } from 'components/Pools/CitreaHardcodedPools'
+import { useChainIdFromUrlParam } from 'utils/chainParams'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { useCurrencyInfo } from 'uniswap/src/features/tokens/useCurrencyInfo'
@@ -170,6 +172,7 @@ interface TopPoolTableProps {
   isError: boolean
 }
 export const ExploreTopPoolTable = memo(function ExploreTopPoolTable() {
+  const chainId = useChainIdFromUrlParam()
   const sortMethod = useAtomValue(sortMethodAtom)
   const sortAscending = useAtomValue(sortAscendingAtom)
   const selectedProtocol = useAtomValue(exploreProtocolVersionFilterAtom)
@@ -189,6 +192,11 @@ export const ExploreTopPoolTable = memo(function ExploreTopPoolTable() {
     },
     selectedProtocol,
   )
+
+  // Show hardcoded pools for Citrea testnet
+  if (chainId === UniverseChainId.CitreaTestnet) {
+    return <CitreaHardcodedPools />
+  }
 
   return <TopPoolTable topPoolData={{ topPools, isLoading, isError }} />
 })
@@ -277,7 +285,7 @@ export function PoolsTable({
               chainId={chainId}
             />
           ),
-          protocolVersion: pool.protocolVersion?.toLowerCase(),
+          protocolVersion: pool.protocolVersion === ProtocolVersion.V2 ? 'v2' : pool.protocolVersion === ProtocolVersion.V3 ? 'v3' : pool.protocolVersion === ProtocolVersion.V4 ? 'v4' : typeof pool.protocolVersion === 'string' ? pool.protocolVersion.toLowerCase() : undefined,
           feeTier: pool.feeTier,
           tvl: isGqlPool ? pool.tvl : giveExploreStatDefaultValue(pool.totalLiquidity?.value),
           volume24h: isGqlPool ? pool.volume24h : giveExploreStatDefaultValue(pool.volume1Day?.value),
