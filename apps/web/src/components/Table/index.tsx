@@ -10,7 +10,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { useParentSize } from '@visx/responsive'
+import { useParentSize as useParentSizeOriginal } from '@visx/responsive'
 import Loader from 'components/Icons/LoadingSpinner'
 import { ErrorModal } from 'components/Table/ErrorBox'
 import { ScrollButton, ScrollButtonProps } from 'components/Table/ScrollButton'
@@ -153,6 +153,48 @@ const TableBody = forwardRef<HTMLDivElement, TableBodyProps<RowData>>(({ table, 
 
 TableBody.displayName = 'TableBody'
 
+// Safe wrapper for useParentSize to prevent useRef errors
+function useSafeParentSize() {
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0, top: 0, left: 0 })
+  const parentRef = useRef<HTMLDivElement>(null)
+  const [useOriginal, setUseOriginal] = useState(true)
+
+  // Try to use the original hook (will be undefined if it fails)
+  let originalResult: ReturnType<typeof useParentSizeOriginal> | undefined
+  if (useOriginal) {
+    try {
+      originalResult = useParentSizeOriginal()
+    } catch (error) {
+      setUseOriginal(false)
+    }
+  }
+
+  // Fallback dimension tracking
+  useEffect(() => {
+    if (useOriginal || !parentRef.current) {
+      return
+    }
+
+    const updateDimensions = () => {
+      if (parentRef.current) {
+        const rect = parentRef.current.getBoundingClientRect()
+        setDimensions({
+          width: rect.width,
+          height: rect.height,
+          top: rect.top,
+          left: rect.left,
+        })
+      }
+    }
+
+    updateDimensions()
+    window.addEventListener('resize', updateDimensions)
+    return () => window.removeEventListener('resize', updateDimensions)
+  }, [useOriginal])
+
+  return originalResult || { parentRef, ...dimensions }
+}
+
 export function Table<T extends RowData>({
   columns,
   data,
@@ -193,7 +235,7 @@ export function Table<T extends RowData>({
   const canLoadMore = useRef(true)
   const isSticky = useMemo(() => !maxHeight, [maxHeight])
 
-  const { parentRef, width, height, top, left } = useParentSize()
+  const { parentRef, width, height, top, left } = useSafeParentSize()
 
   useEffect(() => {
     const scrollableElement = maxHeight ? tableBodyRef.current : window
