@@ -10,6 +10,7 @@ import { FeeData } from 'components/Liquidity/Create/types'
 import LPIncentiveFeeStatTooltip from 'components/Liquidity/LPIncentives/LPIncentiveFeeStatTooltip'
 import { isDynamicFeeTier } from 'components/Liquidity/utils/feeTiers'
 import CurrencyLogo from 'components/Logo/CurrencyLogo'
+import { CitreaHardcodedPools } from 'components/Pools/CitreaHardcodedPools'
 import { Table } from 'components/Table'
 import { Cell } from 'components/Table/Cell'
 import {
@@ -29,6 +30,7 @@ import { atomWithReset, useAtomValue, useResetAtom, useUpdateAtom } from 'jotai/
 import { exploreProtocolVersionFilterAtom } from 'pages/Explore/ProtocolFilter'
 import { ReactElement, memo, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 import { TABLE_PAGE_SIZE, giveExploreStatDefaultValue } from 'state/explore'
 import { useExploreContextTopPools } from 'state/explore/topPools'
 import { PoolStat } from 'state/explore/types'
@@ -43,14 +45,13 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
-import { CitreaHardcodedPools } from 'components/Pools/CitreaHardcodedPools'
-import { useChainIdFromUrlParam } from 'utils/chainParams'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
+import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { useCurrencyInfo } from 'uniswap/src/features/tokens/useCurrencyInfo'
 import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
 import { NumberType } from 'utilities/src/format/types'
-import { getChainUrlParam } from 'utils/chainParams'
+import { getChainUrlParam, useChainIdFromUrlParam } from 'utils/chainParams'
 
 const TableWrapper = styled(Flex, {
   m: '0 auto',
@@ -176,6 +177,7 @@ export const ExploreTopPoolTable = memo(function ExploreTopPoolTable() {
   const sortMethod = useAtomValue(sortMethodAtom)
   const sortAscending = useAtomValue(sortAscendingAtom)
   const selectedProtocol = useAtomValue(exploreProtocolVersionFilterAtom)
+  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
 
   const resetSortMethod = useResetAtom(sortMethodAtom)
   const resetSortAscending = useResetAtom(sortAscendingAtom)
@@ -193,8 +195,8 @@ export const ExploreTopPoolTable = memo(function ExploreTopPoolTable() {
     selectedProtocol,
   )
 
-  // Show hardcoded pools for Citrea testnet
-  if (chainId === UniverseChainId.CitreaTestnet) {
+  // Show hardcoded pools for Citrea testnet or when Citrea Only toggle is enabled
+  if (chainId === UniverseChainId.CitreaTestnet || isCitreaOnlyEnabled) {
     return <CitreaHardcodedPools />
   }
 
@@ -285,7 +287,16 @@ export function PoolsTable({
               chainId={chainId}
             />
           ),
-          protocolVersion: pool.protocolVersion === ProtocolVersion.V2 ? 'v2' : pool.protocolVersion === ProtocolVersion.V3 ? 'v3' : pool.protocolVersion === ProtocolVersion.V4 ? 'v4' : typeof pool.protocolVersion === 'string' ? pool.protocolVersion.toLowerCase() : undefined,
+          protocolVersion:
+            pool.protocolVersion === ProtocolVersion.V2
+              ? 'v2'
+              : pool.protocolVersion === ProtocolVersion.V3
+                ? 'v3'
+                : pool.protocolVersion === ProtocolVersion.V4
+                  ? 'v4'
+                  : typeof pool.protocolVersion === 'string'
+                    ? pool.protocolVersion.toLowerCase()
+                    : undefined,
           feeTier: pool.feeTier,
           tvl: isGqlPool ? pool.tvl : giveExploreStatDefaultValue(pool.totalLiquidity?.value),
           volume24h: isGqlPool ? pool.volume24h : giveExploreStatDefaultValue(pool.volume1Day?.value),

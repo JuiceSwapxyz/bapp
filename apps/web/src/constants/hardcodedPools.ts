@@ -12,7 +12,7 @@ export const WCBTC = new Token(
 
 export const TFC = new Token(
   UniverseChainId.CitreaTestnet,
-  '0x7c6e99a637fbc887c067ba2f3a2b76499f3a0eaa',  // This address needs to be updated
+  '0x7c6e99a637fbc887c067ba2f3a2b76499f3a0eaa', // This address needs to be updated
   18,
   'TFC',
   'TaprootFreakCoin',
@@ -28,7 +28,7 @@ export const cUSD = new Token(
 
 export const NUSD = new Token(
   UniverseChainId.CitreaTestnet,
-  '0x1234567890abcdef1234567890abcdef12345678',  // This address needs to be updated
+  '0x1234567890abcdef1234567890abcdef12345678', // This address needs to be updated
   18,
   'NUSD',
   'Nectra USD',

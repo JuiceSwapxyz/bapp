@@ -3,7 +3,7 @@ import { PositionStatus, ProtocolVersion } from '@uniswap/client-pools/dist/pool
 import { FeeData } from 'components/Liquidity/Create/types'
 import { V3PositionInfo } from 'components/Liquidity/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { WCBTC, TFC, cUSD, NUSD, USDC } from './hardcodedPools'
+import { NUSD, TFC, USDC, WCBTC, cUSD } from 'constants/hardcodedPools'
 
 const feeTierData: FeeData = {
   isDynamic: false,
@@ -89,5 +89,5 @@ export function getHardcodedPositionsForWallet(walletAddress: string | undefined
 
   // Normalize address to lowercase for comparison
   const normalizedAddress = walletAddress.toLowerCase()
-  return HARDCODED_CITREA_POSITIONS[normalizedAddress] || []
+  return HARDCODED_CITREA_POSITIONS[normalizedAddress] ?? []
 }
