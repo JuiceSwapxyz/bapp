@@ -44,6 +44,7 @@ interface GetActionContext {
   swapRedirectCallback?: SwapRedirectFn
   activeAccount?: AccountDetails
   onConnectWallet?: () => void
+  onInterfaceWrap?: () => void
   isViewOnlyWallet: boolean
   isInterfaceWrap: boolean
   currencies: DerivedSwapInfo['currencies']
@@ -116,7 +117,8 @@ function createGetAction(ctx: GetActionContext): (args: CallbackArgs) => ReviewA
       return { type: ReviewActionType.CONNECT_WALLET }
     } else if (isViewOnlyWallet) {
       return { type: ReviewActionType.SHOW_VIEW_ONLY }
-    } else if (isInterfaceWrap) {
+    } else if (isInterfaceWrap && ctx.onInterfaceWrap) {
+      // Only use interface wrap flow if handler is available
       return { type: ReviewActionType.INTERFACE_WRAP }
     } else if (needsTokenProtectionWarning && !args.skipTokenProtectionWarning) {
       return { type: ReviewActionType.SHOW_TOKEN_WARNING }

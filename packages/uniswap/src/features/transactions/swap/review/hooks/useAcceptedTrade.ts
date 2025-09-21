@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { requireAcceptNewTrade } from 'uniswap/src/features/transactions/swap/utils/trade'
+import { WrapType } from 'uniswap/src/features/transactions/types/wrap'
 import { interruptTransactionFlow } from 'uniswap/src/utils/saga'
 import { isInterface } from 'utilities/src/platform'
 
@@ -21,6 +22,7 @@ export function useAcceptedTrade({
 
   const { trade, indicativeTrade } = derivedSwapInfo?.trade ?? {}
   const acceptedTrade = acceptedDerivedSwapInfo?.trade.trade
+  const isWrap = derivedSwapInfo?.wrapType !== WrapType.NotApplicable
 
   // In wallet, once swap is clicked / submission is in progress, it is too late to prompt user to accept new trade.
   // On interface, we can prompt the user to accept a new trade mid-flow.
@@ -30,6 +32,12 @@ export function useAcceptedTrade({
   const newTradeRequiresAcceptance = !avoidPromptingUserToAcceptNewTrade && requireAcceptNewTrade(acceptedTrade, trade)
 
   useEffect(() => {
+    // For wraps, always accept since there's no trade to compare
+    if (isWrap && derivedSwapInfo) {
+      setAcceptedDerivedSwapInfo(derivedSwapInfo)
+      return
+    }
+
     if ((!trade && !indicativeTrade) || trade === acceptedTrade) {
       return
     }
@@ -43,7 +51,7 @@ export function useAcceptedTrade({
     if (isInterface && newTradeRequiresAcceptance) {
       dispatch(interruptTransactionFlow())
     }
-  }, [trade, acceptedTrade, indicativeTrade, newTradeRequiresAcceptance, derivedSwapInfo, dispatch])
+  }, [trade, acceptedTrade, indicativeTrade, newTradeRequiresAcceptance, derivedSwapInfo, dispatch, isWrap])
 
   const onAcceptTrade = (): undefined => {
     if (!trade) {
