@@ -56,7 +56,6 @@ export function usePrepareSwapTransactionEffect(): void {
             const totalGasFeeWei = gasLimit * gasPrice
             const gasFeeString = totalGasFeeWei.toString()
 
-
             const mockGasFeeResult = {
               value: gasFeeString, // Calculated correctly
               displayValue: gasFeeString, // Same as value, raw wei amount
