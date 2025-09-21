@@ -39,7 +39,11 @@ export function useInterfaceWrap(): {
     }
   })
 
-  const isInterfaceWrap = isInterface && wrapType !== WrapType.NotApplicable
+  // For Citrea (chainId 5115), always treat as regular swap, not interface wrap
+  const inputCurrency = currencyAmounts[CurrencyField.INPUT]?.currency
+  const isCitrea = inputCurrency?.chainId === 5115
+
+  const isInterfaceWrap = isInterface && wrapType !== WrapType.NotApplicable && !isCitrea
 
   const onInterfaceWrap = useMemo(() => {
     const inputCurrencyAmount = currencyAmounts[CurrencyField.INPUT]

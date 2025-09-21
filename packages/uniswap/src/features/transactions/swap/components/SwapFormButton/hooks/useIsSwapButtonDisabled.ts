@@ -11,7 +11,8 @@ import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 
 const useIsReviewButtonDisabled = (): boolean => {
   const isSubmitting = useSwapFormStore((s) => s.isSubmitting)
-  const isTradeMissing = useSwapFormStoreDerivedSwapInfo((s) => !s.trade.trade)
+  const trade = useSwapFormStoreDerivedSwapInfo((s) => s.trade)
+  const isTradeMissing = !trade.trade
 
   const activeAccount = useWallet().evmAccount
   const { blockingWarning } = useParsedSwapWarnings()
@@ -23,7 +24,7 @@ const useIsReviewButtonDisabled = (): boolean => {
   const { isInterfaceWrap, onInterfaceWrap } = useInterfaceWrap()
   const isWrapDisabled = isInterfaceWrap && !onInterfaceWrap
 
-  return (
+  const result =
     !!blockingWarning ||
     isBlockedAccount ||
     isBlockedAccountLoading ||
@@ -31,7 +32,8 @@ const useIsReviewButtonDisabled = (): boolean => {
     isSubmitting ||
     isTradeMissing ||
     isWrapDisabled
-  )
+
+  return result
 }
 
 // TODO(WEB-5090): Simplify logic, deduplicate disabled vs isReviewButtonDisabled

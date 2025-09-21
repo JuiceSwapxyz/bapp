@@ -12,6 +12,13 @@ export function getWrapType(
   }
 
   const inputChainId = inputCurrency.chainId as UniverseChainId
+
+  // For Citrea, use normal swap flow instead of wrap flow
+  // This allows cBTC <-> WcBTC to be handled by the trading API
+  if (inputChainId === UniverseChainId.CitreaTestnet) {
+    return WrapType.NotApplicable
+  }
+
   const wrappedCurrencyId = buildWrappedNativeCurrencyId(inputChainId)
 
   if (inputCurrency.isNative && areCurrencyIdsEqual(currencyId(outputCurrency), wrappedCurrencyId)) {

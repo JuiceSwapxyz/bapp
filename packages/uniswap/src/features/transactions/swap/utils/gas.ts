@@ -5,11 +5,28 @@ export function sumGasFees(gasFees: (string | undefined)[]): string | undefined 
   if (gasFees.length === 0) {
     return undefined
   }
-  return gasFees.reduce((acc, gasFee) => {
-    return BigNumber.from(acc)
-      .add(BigNumber.from(gasFee || '0'))
-      .toString()
-  }, '0')
+
+  // Check if any value contains a decimal point (USD values)
+  const hasDecimalValues = gasFees.some((fee) => fee && fee.includes('.'))
+
+  if (hasDecimalValues) {
+    // Handle as USD values - sum as floats
+    const sum = gasFees.reduce((acc, gasFee) => {
+      if (!gasFee) {
+        return acc
+      }
+      return acc + parseFloat(gasFee)
+    }, 0)
+    return sum.toString()
+  } else {
+    // Handle as Wei values - use BigNumber
+    return gasFees.reduce((acc, gasFee) => {
+      if (!gasFee) {
+        return acc
+      }
+      return BigNumber.from(acc).add(BigNumber.from(gasFee)).toString()
+    }, '0')
+  }
 }
 
 /**

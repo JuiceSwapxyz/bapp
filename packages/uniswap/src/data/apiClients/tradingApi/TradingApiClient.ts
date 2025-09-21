@@ -138,24 +138,52 @@ export async function fetchQuote({
   isUSDQuote: _isUSDQuote,
   ...params
 }: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  return await CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
-    body: JSON.stringify({
-      ...params,
-      protocols: [Protocol.V3],
-    }),
-    headers: {
-      ...V4_HEADERS,
-      ...getFeatureFlaggedHeaders(),
-    },
-    on404: () => {
-      logger.warn('TradingApiClient', 'fetchQuote', 'Quote 404', {
-        chainIdIn: params.tokenInChainId,
-        chainIdOut: params.tokenOutChainId,
-        tradeType: params.type,
-        isBridging: params.tokenInChainId !== params.tokenOutChainId,
+  const requestBody = {
+    ...params,
+    protocols: [Protocol.V3],
+  }
+
+  // Debug logging for Citrea
+  if (params.tokenInChainId === 5115 || params.tokenOutChainId === 5115) {
+    logger.debug('TradingApiClient', 'fetchQuote', 'Citrea API Request', {
+      url: uniswapUrls.tradingApiUrl + uniswapUrls.tradingApiPaths.quote,
+      body: requestBody,
+      headers: {
+        ...V4_HEADERS,
+        ...getFeatureFlaggedHeaders(),
+      },
+    })
+  }
+
+  try {
+    return await CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
+      body: JSON.stringify(requestBody),
+      headers: {
+        ...V4_HEADERS,
+        ...getFeatureFlaggedHeaders(),
+      },
+      on404: () => {
+        logger.warn('TradingApiClient', 'fetchQuote', 'Quote 404', {
+          chainIdIn: params.tokenInChainId,
+          chainIdOut: params.tokenOutChainId,
+          tradeType: params.type,
+          isBridging: params.tokenInChainId !== params.tokenOutChainId,
+        })
+      },
+    })
+  } catch (error) {
+    // Debug logging for Citrea errors
+    if (params.tokenInChainId === 5115 || params.tokenOutChainId === 5115) {
+      logger.error('TradingApiClient', 'fetchQuote', 'Citrea API Error', {
+        error,
+        status: (error as any).status,
+        statusText: (error as any).statusText,
+        response: (error as any).response,
+        message: (error as any).message,
       })
-    },
-  })
+    }
+    throw error
+  }
 }
 
 // min parameters needed for indicative quotes

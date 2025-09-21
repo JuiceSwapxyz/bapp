@@ -471,13 +471,40 @@ export function getWrapTxAndGasInfo({
 }): ClassicSwapTxAndGasInfo | WrapSwapTxAndGasInfo {
   const txRequests = validateTransactionRequests(swapTxInfo.txRequests)
 
+  // For Citrea (chainId 5115), use gas data from API response instead of EVM estimation
+  const isCitrea = trade.inputAmount.currency.chainId === 5115
+  let gasFeeResult = swapTxInfo.gasFeeResult
+
+  if (isCitrea && trade.quote.quote.gasFee && trade.quote.quote.gasFeeUSD) {
+    // Convert gasFee to string if it's a number (Wei value)
+    // API might return gasFee as string or number
+    let gasFeeValue: string = trade.quote.quote.gasFee
+    if (typeof gasFeeValue === 'number') {
+      gasFeeValue = String(gasFeeValue)
+    }
+
+    // Convert gasFeeUSD to string if it's a number
+    let gasFeeUSDValue: string = trade.quote.quote.gasFeeUSD
+    if (typeof gasFeeUSDValue === 'number') {
+      gasFeeUSDValue = String(gasFeeUSDValue)
+    }
+
+    // Create a successful gas fee result from API data
+    gasFeeResult = {
+      value: gasFeeValue,
+      displayValue: gasFeeUSDValue,
+      isLoading: false,
+      error: null,
+    }
+  }
+
   return {
     routing: trade.routing,
     trade,
     txRequests,
     approveTxRequest: undefined,
     revocationTxRequest: undefined,
-    gasFee: swapTxInfo.gasFeeResult,
+    gasFee: gasFeeResult,
     gasFeeEstimation: swapTxInfo.gasEstimate,
     includesDelegation: swapTxInfo.includesDelegation,
   }
