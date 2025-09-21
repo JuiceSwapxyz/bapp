@@ -9,7 +9,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 const CampaignCard = styled(Flex, {
   backgroundColor: '$surface2',
   borderRadius: '$rounded32',
-  p: '$spacing24',
+  p: '$spacing48',
   gap: '$spacing8',
   cursor: 'pointer',
   transition: 'all 0.2s ease',
@@ -19,8 +19,14 @@ const CampaignCard = styled(Flex, {
   flexBasis: 'auto',
   minHeight: 240,
   maxWidth: 'calc(50% - 8px)',
+  $xl: {
+    p: '$spacing32',
+  },
   $lg: {
     maxWidth: '100%',
+  },
+  $xs: {
+    p: '$spacing20',
   },
   hoverStyle: {
     transform: 'translateY(-2px)',
@@ -92,7 +98,7 @@ export function CitreaCampaignCard() {
         </Flex>
       </Flex>
 
-      <Flex mt="auto" width="100%" justifyContent="center">
+      <Flex alignSelf="flex-start">
         <PillButton backgroundColor="$surface1" color="#FF9800" label="Join now" />
       </Flex>
     </CampaignCard>
