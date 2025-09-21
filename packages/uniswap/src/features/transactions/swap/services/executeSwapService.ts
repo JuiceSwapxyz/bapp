@@ -98,26 +98,17 @@ export function createExecuteSwapService(ctx: {
   }
 
   function executeWrap(input: ExecuteWrapInput): void {
-    console.log('executeWrap called with input:', input)
     const account = ctx.getAccount?.()
     const swapTxContext = ctx.getSwapTxContext?.()
-    console.log('executeWrap - account:', !!account, 'swapTxContext:', !!swapTxContext)
 
     // validate that the account and swapTxContext are defined
     if (!account || !swapTxContext) {
-      console.log('executeWrap: missing account or swapTxContext')
       return
     }
 
     const txRequest = isWrap(swapTxContext) ? swapTxContext.txRequests?.[0] : undefined
-    console.log('executeWrap - isWrap(swapTxContext):', isWrap(swapTxContext), 'txRequest:', !!txRequest)
 
     if (!txRequest || !input.inputCurrencyAmount || !input.wrapType) {
-      console.log('executeWrap: missing required parameters', {
-        txRequest: !!txRequest,
-        inputCurrencyAmount: !!input.inputCurrencyAmount,
-        wrapType: input.wrapType,
-      })
       return
     }
 
@@ -161,11 +152,6 @@ export function createExecuteSwapService(ctx: {
 
         // For wraps, use the legacy flow as onExecuteSwap doesn't support it yet
         if (isWrapOperation) {
-          console.log('executeSwap: detected wrap operation, calling executeWrap with:', {
-            txId,
-            wrapType,
-            inputCurrencyAmount: !!currencyAmounts.input,
-          })
           executeWrap({
             txId,
             wrapType,

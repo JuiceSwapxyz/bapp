@@ -24,13 +24,6 @@ export function usePrepareSwapTransactionEffect(): void {
   const store = useContext(SwapTxStoreContext)
 
   // Prepare and sign transaction when component mounts or trade changes
-  console.log('usePrepareSwapTransactionEffect: enabled check', {
-    validSwapTxContext: !!validSwapTxContext,
-    isWrap,
-    acceptedDerivedSwapInfo: !!acceptedDerivedSwapInfo,
-    prepareSwapTransaction: !!prepareSwapTransaction,
-    enabled: Boolean((validSwapTxContext || isWrap) && acceptedDerivedSwapInfo && (prepareSwapTransaction || isWrap))
-  })
 
   useQuery({
     queryKey: [
@@ -41,11 +34,6 @@ export function usePrepareSwapTransactionEffect(): void {
       evmAccount?.address,
     ],
     queryFn: async (): Promise<true | null> => {
-      console.log('usePrepareSwapTransactionEffect: queryFn called', {
-        isWrap,
-        validSwapTxContext: !!validSwapTxContext,
-        acceptedDerivedSwapInfo: !!acceptedDerivedSwapInfo,
-      })
       // For Citrea wraps, we need to build the transaction ourselves
       if (isWrap && acceptedDerivedSwapInfo && evmAccount) {
         const wrapType = acceptedDerivedSwapInfo.wrapType
@@ -68,13 +56,6 @@ export function usePrepareSwapTransactionEffect(): void {
             const totalGasFeeWei = gasLimit * gasPrice
             const gasFeeString = totalGasFeeWei.toString()
 
-            console.log('Gas fee calculation:', {
-              gasLimit,
-              gasPrice,
-              totalGasFeeWei,
-              gasFeeString,
-              gasFeeInCBTC: totalGasFeeWei / Math.pow(10, 18)
-            })
 
             const mockGasFeeResult = {
               value: gasFeeString, // Calculated correctly
@@ -104,12 +85,6 @@ export function usePrepareSwapTransactionEffect(): void {
                 wrapEstimate: mockGasFeeResult.gasEstimate,
               },
             }
-            console.log('Setting store state with gas fee:', newState)
-            console.log('Gas fee value breakdown:', {
-              value: mockGasFeeResult.value,
-              displayValue: mockGasFeeResult.displayValue,
-              valueInEth: (parseInt(mockGasFeeResult.value) / 1e18).toFixed(6) + ' cBTC'
-            })
             store.setState(newState)
             return true
           }

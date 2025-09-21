@@ -21,39 +21,18 @@ export function buildCitreaWrapTransaction({
   chainId: number
   walletAddress: string
 }): providers.TransactionRequest | undefined {
-  console.log('buildCitreaWrapTransaction called:', {
-    amount: amount.toExact(),
-    quotient: amount.quotient.toString(),
-    decimals: amount.currency.decimals,
-    wrapType,
-    chainId,
-    walletAddress,
-    currency: {
-      symbol: amount.currency.symbol,
-      name: amount.currency.name,
-      address: amount.currency.isToken ? amount.currency.address : 'Native'
-    }
-  })
 
-  // Der quotient ist bereits in Wei (kleinste Einheit), das ist korrekt für die value
+  // Convert quotient (Wei) to hex format for MetaMask compatibility
   const valueInWei = amount.quotient.toString()
   const valueInHex = '0x' + BigInt(valueInWei).toString(16)
-  console.log('Using value in Wei:', valueInWei, '= ', (parseInt(valueInWei) / Math.pow(10, amount.currency.decimals)).toFixed(6), 'cBTC')
-  console.log('Value in hex:', valueInHex)
-
-  // Verify the conversion
-  const backToDecimal = parseInt(valueInHex, 16)
-  console.log('Hex back to decimal verification:', backToDecimal, 'matches original:', backToDecimal === parseInt(valueInWei))
 
   // Only handle Citrea testnet
   if (chainId !== UniverseChainId.CitreaTestnet) {
-    console.log('Wrong chainId, expected:', UniverseChainId.CitreaTestnet, 'got:', chainId)
     return undefined
   }
 
   // Only handle wrap/unwrap operations
   if (wrapType === WrapType.NotApplicable) {
-    console.log('WrapType.NotApplicable, returning undefined')
     return undefined
   }
 
@@ -73,7 +52,6 @@ export function buildCitreaWrapTransaction({
       gasLimit: '0x' + gasLimit.toString(16), // Convert to hex
       gasPrice: '0x' + gasPrice.toString(16), // Convert to hex (10 gwei)
     }
-    console.log('Built wrap transaction with gas:', txRequest)
     return txRequest
   } else {
     // Unwrapping: call withdraw(amount)
@@ -88,7 +66,6 @@ export function buildCitreaWrapTransaction({
       gasLimit: '0x' + gasLimit.toString(16), // Convert to hex
       gasPrice: '0x' + gasPrice.toString(16), // Convert to hex (10 gwei)
     }
-    console.log('Built unwrap transaction with gas:', txRequest)
     return txRequest
   }
 }
