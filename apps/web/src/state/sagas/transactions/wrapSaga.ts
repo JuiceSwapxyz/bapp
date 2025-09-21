@@ -28,6 +28,7 @@ type WrapParams = WrapCallbackParams & { selectChain: (chainId: number) => Promi
 
 function* wrap(params: WrapParams) {
   try {
+    console.log('wrapSaga: wrap called with params:', params)
     const { account, inputCurrencyAmount, selectChain, txRequest, startChainId, onFailure } = params
 
     // Switch chains if needed

@@ -7,8 +7,9 @@ import type {
   PrepareSwapCallback,
 } from 'uniswap/src/features/transactions/swap/types/swapHandlers'
 import type { SwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
-import { isValidSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
+import { isValidSwapTxContext, ValidatedSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import type { WrapCallback, WrapCallbackParams } from 'uniswap/src/features/transactions/swap/types/wrapCallback'
+import { WrapType } from 'uniswap/src/features/transactions/types/wrap'
 import { getEVMTxRequest, isWrap } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { AccountDetails, isSignerMnemonicAccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 import { CurrencyField } from 'uniswap/src/types/currency'
@@ -97,17 +98,26 @@ export function createExecuteSwapService(ctx: {
   }
 
   function executeWrap(input: ExecuteWrapInput): void {
+    console.log('executeWrap called with input:', input)
     const account = ctx.getAccount?.()
     const swapTxContext = ctx.getSwapTxContext?.()
+    console.log('executeWrap - account:', !!account, 'swapTxContext:', !!swapTxContext)
 
     // validate that the account and swapTxContext are defined
     if (!account || !swapTxContext) {
+      console.log('executeWrap: missing account or swapTxContext')
       return
     }
 
     const txRequest = isWrap(swapTxContext) ? swapTxContext.txRequests?.[0] : undefined
+    console.log('executeWrap - isWrap(swapTxContext):', isWrap(swapTxContext), 'txRequest:', !!txRequest)
 
     if (!txRequest || !input.inputCurrencyAmount || !input.wrapType) {
+      console.log('executeWrap: missing required parameters', {
+        txRequest: !!txRequest,
+        inputCurrencyAmount: !!input.inputCurrencyAmount,
+        wrapType: input.wrapType,
+      })
       return
     }
 
@@ -135,11 +145,13 @@ export function createExecuteSwapService(ctx: {
         const swapTxContext = ctx.getSwapTxContext?.()
         const account = ctx.getAccount?.()
 
+        const isWrapOperation = !!wrapType
+
         if (
           !account ||
           !swapTxContext ||
           !isSignerMnemonicAccountDetails(account) ||
-          !isValidSwapTxContext(swapTxContext)
+          (!isValidSwapTxContext(swapTxContext) && !isWrapOperation)
         ) {
           ctx.onFailure(new Error('Invalid account or swap context'))
           return
@@ -147,27 +159,41 @@ export function createExecuteSwapService(ctx: {
 
         const { presetPercentage, preselectAsset } = ctx.getPresetInfo()
 
-        ctx
-          .onExecuteSwap({
-            account,
-            swapTxContext,
-            currencyInAmountUSD: currencyAmountsUSDValue[CurrencyField.INPUT] ?? undefined,
-            currencyOutAmountUSD: currencyAmountsUSDValue[CurrencyField.OUTPUT] ?? undefined,
-            isAutoSlippage: !customSlippageTolerance,
-            presetPercentage,
-            preselectAsset,
-            onSuccess: ctx.onSuccess,
-            onFailure: ctx.onFailure,
-            onPending: ctx.onPending,
+        // For wraps, use the legacy flow as onExecuteSwap doesn't support it yet
+        if (isWrapOperation) {
+          console.log('executeSwap: detected wrap operation, calling executeWrap with:', {
             txId,
-            setCurrentStep: ctx.setCurrentStep,
-            setSteps: ctx.setSteps,
-            isFiatInputMode: ctx.getIsFiatMode?.(),
-            // Wrap-specific parameters (will be undefined for regular swaps)
+            wrapType,
+            inputCurrencyAmount: !!currencyAmounts.input,
+          })
+          executeWrap({
+            txId,
             wrapType,
             inputCurrencyAmount: currencyAmounts.input ?? undefined,
           })
-          .catch(ctx.onFailure)
+        } else {
+          ctx
+            .onExecuteSwap({
+              account,
+              swapTxContext: swapTxContext as ValidatedSwapTxContext,
+              currencyInAmountUSD: currencyAmountsUSDValue[CurrencyField.INPUT] ?? undefined,
+              currencyOutAmountUSD: currencyAmountsUSDValue[CurrencyField.OUTPUT] ?? undefined,
+              isAutoSlippage: !customSlippageTolerance,
+              presetPercentage,
+              preselectAsset,
+              onSuccess: ctx.onSuccess,
+              onFailure: ctx.onFailure,
+              onPending: ctx.onPending,
+              txId,
+              setCurrentStep: ctx.setCurrentStep,
+              setSteps: ctx.setSteps,
+              isFiatInputMode: ctx.getIsFiatMode?.(),
+              // Wrap-specific parameters (will be undefined for regular swaps)
+              wrapType,
+              inputCurrencyAmount: currencyAmounts.input ?? undefined,
+            })
+            .catch(ctx.onFailure)
+        }
       } else {
         // Legacy pattern: Direct callback execution
         const { currencyAmounts, currencyAmountsUSDValue, txId, wrapType } = ctx.getDerivedSwapInfo()
