@@ -17,8 +17,14 @@ export function TopPoolsCard({ pool }: { pool: PoolStat }) {
   const { formatPercent } = useLocalizationContext()
 
   const chainId = supportedChainIdFromGQLChain(pool.chain as Chain) ?? defaultChainId
-  const token0 = pool.token0 ? gqlToCurrency(unwrapToken(chainId, pool.token0)) : undefined
-  const token1 = pool.token1 ? gqlToCurrency(unwrapToken(chainId, pool.token1)) : undefined
+
+  // For Citrea pools (UNKNOWN_CHAIN), use tokens directly without processing
+  const token0 = pool.chain === Chain.UnknownChain && pool.token0?.symbol
+    ? pool.token0 as any
+    : pool.token0 ? gqlToCurrency(unwrapToken(chainId, pool.token0)) : undefined
+  const token1 = pool.chain === Chain.UnknownChain && pool.token1?.symbol
+    ? pool.token1 as any
+    : pool.token1 ? gqlToCurrency(unwrapToken(chainId, pool.token1)) : undefined
 
   const formattedApr = pool.boostedApr ? formatPercent(pool.boostedApr) : null
 
