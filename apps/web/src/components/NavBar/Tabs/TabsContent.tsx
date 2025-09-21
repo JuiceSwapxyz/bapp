@@ -5,10 +5,13 @@ import { MenuItem } from 'components/NavBar/CompanyMenu/Content'
 import { useTheme } from 'lib/styled-components'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
+import { Text } from 'ui/src'
 import { CoinConvert } from 'ui/src/components/icons/CoinConvert'
 import { Compass } from 'ui/src/components/icons/Compass'
 import { Pools } from 'ui/src/components/icons/Pools'
 import { ReceiveAlt } from 'ui/src/components/icons/ReceiveAlt'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 
@@ -30,8 +33,10 @@ export const useTabsContent = (): TabsSection[] => {
   const { pathname } = useLocation()
   const theme = useTheme()
   const isFiatOffRampEnabled = useFeatureFlag(FeatureFlags.FiatOffRamp)
+  const { defaultChainId } = useEnabledChains()
+  const showBAppsTab = defaultChainId === UniverseChainId.CitreaTestnet
 
-  return [
+  const baseItems = [
     {
       title: t('common.trade'),
       href: '/swap',
@@ -102,4 +107,19 @@ export const useTabsContent = (): TabsSection[] => {
       ],
     },
   ]
+
+  // Add bApps tab if on Citrea Testnet
+  if (showBAppsTab) {
+    return [
+      ...baseItems,
+      {
+        title: '₿apps',
+        href: 'https://bapps.citrea.xyz',
+        isActive: false,
+        icon: <Text fontSize={16}>₿</Text>,
+      },
+    ]
+  }
+
+  return baseItems
 }

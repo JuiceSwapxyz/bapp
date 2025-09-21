@@ -3,6 +3,7 @@ import { useCurrency } from 'hooks/Tokens'
 import { useScroll } from 'hooks/useScroll'
 import { TokenCloud } from 'pages/Landing/components/TokenCloud'
 import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
+import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { Swap } from 'pages/Swap'
 import { Fragment, useCallback, useMemo } from 'react'
 import { ChevronDown } from 'react-feather'
@@ -144,6 +145,14 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             />
           </Flex>
         </RiseIn>
+
+        {defaultChainId === UniverseChainId.CitreaTestnet && (
+          <RiseIn delay={0.5}>
+            <Flex width={480} maxWidth="100%" pointerEvents="auto" mt="$spacing20" p="$padding8">
+              <BAppsCard />
+            </Flex>
+          </RiseIn>
+        )}
 
         <RiseIn delay={0.3}>
           <Text variant="body1" textAlign="center" maxWidth={430} color="$neutral2" $short={{ variant: 'body2' }}>

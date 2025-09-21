@@ -3,6 +3,7 @@ import { PrefetchBalancesWrapper } from 'appGraphql/data/apollo/AdaptiveTokenBal
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { SwapBottomCard } from 'components/SwapBottomCard'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
+import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
 import { useDeferredComponent } from 'hooks/useDeferredComponent'
@@ -325,6 +326,7 @@ function UniversalSwapFlow({
               passkeyAuthStatus={passkeyAuthStatus}
             />
           </SwapDependenciesStoreContextProvider>
+          <CitreaCampaignProgress />
           <SwapBottomCard />
         </Flex>
       )}
