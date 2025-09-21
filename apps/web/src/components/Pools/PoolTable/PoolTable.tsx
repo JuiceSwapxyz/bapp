@@ -10,7 +10,7 @@ import { FeeData } from 'components/Liquidity/Create/types'
 import LPIncentiveFeeStatTooltip from 'components/Liquidity/LPIncentives/LPIncentiveFeeStatTooltip'
 import { isDynamicFeeTier } from 'components/Liquidity/utils/feeTiers'
 import CurrencyLogo from 'components/Logo/CurrencyLogo'
-import { CitreaHardcodedPools } from 'components/Pools/CitreaHardcodedPools'
+import { HARDCODED_CITREA_POOLS } from 'constants/hardcodedPools'
 import { Table } from 'components/Table'
 import { Cell } from 'components/Table/Cell'
 import {
@@ -197,7 +197,26 @@ export const ExploreTopPoolTable = memo(function ExploreTopPoolTable() {
 
   // Show hardcoded pools for Citrea testnet or when Citrea Only toggle is enabled
   if (chainId === UniverseChainId.CitreaTestnet || isCitreaOnlyEnabled) {
-    return <CitreaHardcodedPools />
+    // Convert hardcoded pools to PoolStat format
+    const citreaPools = HARDCODED_CITREA_POOLS.map((pool) => ({
+      id: pool.id,
+      chain: Chain.CitreaTestnet,
+      token0: pool.token0,
+      token1: pool.token1,
+      feeTier: {
+        feeAmount: pool.feeTier,
+        tickSpacing: 60,
+        isDynamic: false,
+      } as FeeData,
+      totalLiquidity: { value: pool.tvlUSD },
+      volume1Day: { value: pool.volume24hUSD },
+      volume30Day: { value: pool.volume24hUSD * 30 }, // Estimated
+      apr: new Percent(Math.floor(pool.apr * 100), 10000),
+      volOverTvl: pool.volume24hUSD / pool.tvlUSD,
+      protocolVersion: ProtocolVersion.V3,
+    })) as PoolStat[]
+
+    return <TopPoolTable topPoolData={{ topPools: citreaPools, isLoading: false, isError: false }} />
   }
 
   return <TopPoolTable topPoolData={{ topPools, isLoading, isError }} />
