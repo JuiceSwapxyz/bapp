@@ -1,3 +1,4 @@
+import CitreaLogo from 'assets/images/coins/citrea.png'
 import { FeatureFlags } from 'constants/featureFlags'
 import { PillButton } from 'pages/Landing/components/cards/PillButton'
 import { useCallback, useState } from 'react'
@@ -108,7 +109,7 @@ export function BAppsCard() {
         <BitcoinGradient />
         <Flex gap="$spacing12" zIndex={1} width="100%">
           <Flex row gap="$spacing8" alignItems="center">
-            <Text fontSize={28}>₿</Text>
+            <img src={CitreaLogo} alt="Citrea" width={28} height={28} />
             <Text variant="heading3" color="$neutral1">
               Citrea ₿apps Campaign
             </Text>
@@ -145,7 +146,7 @@ export function BAppsCard() {
         <Flex p="$spacing24" gap="$spacing20" maxWidth={480}>
           <Flex gap="$spacing12">
             <Flex row alignItems="center" gap="$spacing8">
-              <Text fontSize={24}>₿</Text>
+              <img src={CitreaLogo} alt="Citrea" width={24} height={24} />
               <Text variant="heading3">Complete Campaign Tasks</Text>
             </Flex>
             <Text variant="body3" color="$neutral2">

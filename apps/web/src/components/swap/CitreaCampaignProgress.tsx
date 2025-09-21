@@ -1,3 +1,4 @@
+import CitreaLogo from 'assets/images/coins/citrea.png'
 import { useAccount } from 'hooks/useAccount'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
@@ -92,7 +93,7 @@ export function CitreaCampaignProgress() {
       <Flex row justifyContent="space-between" alignItems="center" width="100%">
         <Flex gap="$spacing4">
           <Flex row gap="$spacing8" alignItems="center">
-            <Text fontSize={20}>₿</Text>
+            <img src={CitreaLogo} alt="Citrea" width={20} height={20} />
             <Text variant="body2" fontWeight="$semibold">
               ₿apps Campaign Progress
             </Text>

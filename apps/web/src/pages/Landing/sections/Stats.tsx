@@ -1,4 +1,3 @@
-import { CitreaCampaignCard } from 'components/explore/CitreaCampaignCard'
 import { LiveIcon, StatCard } from 'pages/Landing/components/StatCard'
 import { useInView } from 'pages/Landing/sections/useInView'
 import { parseToRgb } from 'polished'

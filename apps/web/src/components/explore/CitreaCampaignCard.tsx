@@ -1,34 +1,39 @@
+import CitreaLogo from 'assets/images/coins/citrea.png'
 import { FeatureFlags } from 'constants/featureFlags'
+import { PillButton } from 'pages/Landing/components/cards/PillButton'
 import { useEffect, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 const CampaignCard = styled(Flex, {
-  backgroundColor: '$surface1',
-  borderRadius: '$rounded20',
-  p: '$spacing16',
+  backgroundColor: '$surface2',
+  borderRadius: '$rounded32',
+  p: '$spacing24',
   gap: '$spacing8',
-  borderWidth: 1,
-  borderStyle: 'solid',
-  borderColor: '$surface3',
-  maxWidth: 280,
   cursor: 'pointer',
   transition: 'all 0.2s ease',
+  width: '100%',
+  flexGrow: 1,
+  flexShrink: 1,
+  flexBasis: 'auto',
+  minHeight: 240,
+  maxWidth: 'calc(50% - 8px)',
+  $lg: {
+    maxWidth: '100%',
+  },
   hoverStyle: {
-    borderColor: '#FF9800',
     transform: 'translateY(-2px)',
   },
 })
 
 const TimerText = styled(Text, {
-  fontVariantNumeric: 'tabular-nums',
   fontWeight: '$semibold',
 })
 
 function calculateTimeRemaining() {
   // Campaign end date - adjust this as needed
-  const campaignEndDate = new Date('2025-02-28T23:59:59Z')
+  const campaignEndDate = new Date('2025-12-31T23:59:59Z')
   const now = new Date()
   const difference = campaignEndDate.getTime() - now.getTime()
 
@@ -64,27 +69,31 @@ export function CitreaCampaignCard() {
   }
 
   return (
-    <CampaignCard onPress={handleClick}>
-      <Flex row gap="$spacing8" alignItems="center">
-        <Text fontSize={20}>₿</Text>
-        <Text variant="body2" fontWeight="$semibold" color="$neutral1">
-          Citrea ₿apps Campaign
+    <CampaignCard onPress={handleClick} flexDirection="column" justifyContent="space-between">
+      <Flex gap="$spacing12">
+        <Flex row gap="$spacing8" alignItems="center">
+          <img src={CitreaLogo} alt="Citrea" width={32} height={32} />
+          <Text variant="heading3" color="$neutral1">
+            Citrea ₿apps Campaign
+          </Text>
+        </Flex>
+
+        <Text variant="body2" color="$neutral2">
+          Earn rewards and qualify for the ₿apper Badge NFT
         </Text>
+
+        <Flex flexDirection="column" gap="$spacing4" mt="$spacing12">
+          <Text variant="body3" color="$neutral2">
+            Campaign ends in:
+          </Text>
+          <TimerText variant="heading2" fontSize={32} color="#FF9800">
+            {timeRemaining.days}d {timeRemaining.hours}h {timeRemaining.minutes}m
+          </TimerText>
+        </Flex>
       </Flex>
 
-      <Flex gap="$spacing4">
-        <Text variant="body3" color="$neutral2">
-          Campaign ends in:
-        </Text>
-        <TimerText variant="body2" color="#FF9800">
-          {timeRemaining.days}d {timeRemaining.hours}h {timeRemaining.minutes}m
-        </TimerText>
-      </Flex>
-
-      <Flex row gap="$spacing8" alignItems="center">
-        <Text variant="body3" color="$accent1">
-          Join now →
-        </Text>
+      <Flex mt="auto" width="100%" justifyContent="center">
+        <PillButton backgroundColor="$surface1" color="#FF9800" label="Join now" />
       </Flex>
     </CampaignCard>
   )

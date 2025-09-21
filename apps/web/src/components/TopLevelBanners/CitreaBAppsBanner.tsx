@@ -100,11 +100,7 @@ export function useCitreaBAppsBannerEligible(): boolean {
   const { defaultChainId } = useEnabledChains()
   const [hideBanner] = useAtom(hideCitreaBAppsBannerAtom)
 
-  return (
-    FeatureFlags.CITREA_BAPPS_CAMPAIGN &&
-    !hideBanner &&
-    defaultChainId === UniverseChainId.CitreaTestnet
-  )
+  return FeatureFlags.CITREA_BAPPS_CAMPAIGN && !hideBanner && defaultChainId === UniverseChainId.CitreaTestnet
 }
 
 export function CitreaBAppsBanner() {
