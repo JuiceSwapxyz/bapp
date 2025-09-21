@@ -433,18 +433,6 @@ export default function Pool() {
               <CloseIconWithHover onClose={() => setClosedCTADismissed(true)} size="$icon.20" />
             </Flex>
           )}
-          {isConnected && (
-            <Flex row centered $sm={{ flexDirection: 'column', alignItems: 'flex-start' }} mb="$spacing24" gap="$gap4">
-              <Text variant="body3" color="$neutral2">
-                {t('pool.import.link.description')}
-              </Text>
-              <Anchor href="/pools/v2/find" textDecorationLine="none">
-                <Text variant="body3" color="$neutral1" {...ClickableTamaguiStyle}>
-                  {t('pool.import.positions.v2')}
-                </Text>
-              </Anchor>
-            </Flex>
-          )}
         </Flex>
         <Flex gap="$gap32">
           <TopPools chainId={chainFilter} />
