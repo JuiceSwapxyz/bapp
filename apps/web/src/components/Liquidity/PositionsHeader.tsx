@@ -4,6 +4,7 @@ import { lpStatusConfig } from 'components/Liquidity/constants'
 import { getProtocolStatusLabel, getProtocolVersionLabel } from 'components/Liquidity/utils/protocolVersion'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router'
 import { ClickableTamaguiStyle } from 'theme/components/styles'
 import { Flex, LabeledCheckbox, Text } from 'ui/src'
@@ -12,6 +13,7 @@ import { StatusIndicatorCircle } from 'ui/src/components/icons/StatusIndicatorCi
 import { NetworkFilter } from 'uniswap/src/components/network/NetworkFilter'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 
 const StyledDropdownButton = {
   borderRadius: '$rounded16',
@@ -49,6 +51,7 @@ export function PositionsHeader({
   const { t } = useTranslation()
   const { chains } = useEnabledChains()
   const navigate = useNavigate()
+  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
 
   const statusFilterOptions = useMemo(() => {
     return [PositionStatus.IN_RANGE, PositionStatus.OUT_OF_RANGE, PositionStatus.CLOSED].map((status) => {
@@ -157,7 +160,7 @@ export function PositionsHeader({
                 {...ClickableTamaguiStyle}
               >
                 <NetworkFilter
-                  includeAllNetworks
+                  includeAllNetworks={!isCitreaOnlyEnabled}
                   selectedChain={selectedChain}
                   onPressChain={onChainChange}
                   chainIds={chains}

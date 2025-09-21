@@ -56,7 +56,7 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   assetRepoNetworkName: undefined,
   backendChain: {
     chain: BackendChainId.UnknownChain as GqlChainId,
-    backendSupported: false,
+    backendSupported: true,
     nativeTokenBackendAddress: undefined,
   },
   blockPerMainnetEpochForChainId: 1,
