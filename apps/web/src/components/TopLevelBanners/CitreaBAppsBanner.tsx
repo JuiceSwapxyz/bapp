@@ -1,4 +1,5 @@
 import citreaLogo from 'assets/images/coins/citrea.png'
+import { FeatureFlags } from 'constants/featureFlags'
 import { useAtom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { X } from 'react-feather'
@@ -99,7 +100,11 @@ export function useCitreaBAppsBannerEligible(): boolean {
   const { defaultChainId } = useEnabledChains()
   const [hideBanner] = useAtom(hideCitreaBAppsBannerAtom)
 
-  return !hideBanner && defaultChainId === UniverseChainId.CitreaTestnet
+  return (
+    FeatureFlags.CITREA_BAPPS_CAMPAIGN &&
+    !hideBanner &&
+    defaultChainId === UniverseChainId.CitreaTestnet
+  )
 }
 
 export function CitreaBAppsBanner() {

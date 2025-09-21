@@ -2,6 +2,7 @@ import { CreditCardIcon } from 'components/Icons/CreditCard'
 import { Limit } from 'components/Icons/Limit'
 import { SwapV2 } from 'components/Icons/SwapV2'
 import { MenuItem } from 'components/NavBar/CompanyMenu/Content'
+import { FeatureFlags as AppFeatureFlags } from 'constants/featureFlags'
 import { useTheme } from 'lib/styled-components'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
@@ -34,7 +35,7 @@ export const useTabsContent = (): TabsSection[] => {
   const theme = useTheme()
   const isFiatOffRampEnabled = useFeatureFlag(FeatureFlags.FiatOffRamp)
   const { defaultChainId } = useEnabledChains()
-  const showBAppsTab = defaultChainId === UniverseChainId.CitreaTestnet
+  const showBAppsTab = AppFeatureFlags.CITREA_BAPPS_CAMPAIGN && defaultChainId === UniverseChainId.CitreaTestnet
 
   const baseItems = [
     {

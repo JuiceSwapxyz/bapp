@@ -5,6 +5,7 @@ import { SwapBottomCard } from 'components/SwapBottomCard'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
+import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { useAccount } from 'hooks/useAccount'
 import { useDeferredComponent } from 'hooks/useDeferredComponent'
 import { PageType, useIsPage } from 'hooks/useIsPage'
@@ -327,6 +328,7 @@ function UniversalSwapFlow({
             />
           </SwapDependenciesStoreContextProvider>
           <CitreaCampaignProgress />
+          <BAppsCard />
           <SwapBottomCard />
         </Flex>
       )}

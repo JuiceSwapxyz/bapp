@@ -1,5 +1,5 @@
+import { FeatureFlags } from 'constants/featureFlags'
 import { PillButton } from 'pages/Landing/components/cards/PillButton'
-import ValuePropCard from 'pages/Landing/components/cards/ValuePropCard'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Anchor, Button, Flex, Text, styled, useMedia } from 'ui/src'
@@ -91,22 +91,22 @@ export function BAppsCard() {
     [navigate],
   )
 
-  if (defaultChainId !== UniverseChainId.CitreaTestnet) {
+  if (!FeatureFlags.CITREA_BAPPS_CAMPAIGN || defaultChainId !== UniverseChainId.CitreaTestnet) {
     return null
   }
 
   return (
     <>
-      <ValuePropCard
-        height="auto"
-        alignItems="flex-start"
-        p="$spacing16"
+      <Flex
+        backgroundColor="$surface1"
+        borderRadius="$rounded20"
+        p="$spacing24"
         position="relative"
         overflow="hidden"
         width="100%"
       >
         <BitcoinGradient />
-        <Flex gap="$spacing16" zIndex={1} width="100%">
+        <Flex gap="$spacing12" zIndex={1} width="100%">
           <Flex row gap="$spacing8" alignItems="center">
             <Text fontSize={28}>₿</Text>
             <Text variant="heading3" color="$neutral1">
@@ -139,7 +139,7 @@ export function BAppsCard() {
             />
           </Flex>
         </Flex>
-      </ValuePropCard>
+      </Flex>
 
       <Modal name={ModalName.SwapReview} isModalOpen={showModal} onClose={() => setShowModal(false)}>
         <Flex p="$spacing24" gap="$spacing20" maxWidth={480}>
