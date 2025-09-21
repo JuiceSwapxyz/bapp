@@ -19,6 +19,8 @@ const CampaignCard = styled(Flex, {
   flexBasis: 'auto',
   minHeight: 240,
   maxWidth: 'calc(50% - 8px)',
+  position: 'relative',
+  overflow: 'hidden',
   $xl: {
     p: '$spacing32',
   },
@@ -31,6 +33,14 @@ const CampaignCard = styled(Flex, {
   hoverStyle: {
     transform: 'translateY(-2px)',
   },
+})
+
+const BitcoinGradient = styled(Flex, {
+  position: 'absolute',
+  inset: 0,
+  background:
+    'linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(76, 175, 80, 0.08) 50%, rgba(255, 152, 0, 0.08) 100%)',
+  pointerEvents: 'none',
 })
 
 const TimerText = styled(Text, {
@@ -76,7 +86,8 @@ export function CitreaCampaignCard() {
 
   return (
     <CampaignCard onPress={handleClick} flexDirection="column" justifyContent="space-between">
-      <Flex gap="$spacing12">
+      <BitcoinGradient />
+      <Flex gap="$spacing12" zIndex={1}>
         <Flex row gap="$spacing8" alignItems="center">
           <img src={CitreaLogo} alt="Citrea" width={32} height={32} />
           <Text variant="heading3" color="$neutral1">
@@ -98,7 +109,7 @@ export function CitreaCampaignCard() {
         </Flex>
       </Flex>
 
-      <Flex alignSelf="flex-start">
+      <Flex alignSelf="flex-start" zIndex={1}>
         <PillButton backgroundColor="$surface1" color="#FF9800" label="Join now" />
       </Flex>
     </CampaignCard>
