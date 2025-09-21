@@ -6,12 +6,17 @@ import {
   useSwapFormStore,
   useSwapFormStoreDerivedSwapInfo,
 } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
+import { WrapType } from 'uniswap/src/features/transactions/types/wrap'
 import { useIsBlocked } from 'uniswap/src/features/trm/hooks'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 
 const useIsReviewButtonDisabled = (): boolean => {
   const isSubmitting = useSwapFormStore((s) => s.isSubmitting)
-  const isTradeMissing = useSwapFormStoreDerivedSwapInfo((s) => !s.trade.trade)
+  const { trade, wrapType } = useSwapFormStoreDerivedSwapInfo((s) => ({
+    trade: s.trade,
+    wrapType: s.wrapType,
+  }))
+  const isTradeMissing = !trade.trade && wrapType === WrapType.NotApplicable
 
   const activeAccount = useWallet().evmAccount
   const { blockingWarning } = useParsedSwapWarnings()
