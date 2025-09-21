@@ -2,7 +2,6 @@ import { ColumnCenter } from 'components/deprecated/Column'
 import { FeatureFlags } from 'constants/featureFlags'
 import { useCurrency } from 'hooks/Tokens'
 import { useScroll } from 'hooks/useScroll'
-import { TokenCloud } from 'pages/Landing/components/TokenCloud'
 import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { Swap } from 'pages/Swap'
@@ -94,7 +93,6 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       pt={INTERFACE_NAV_HEIGHT}
       pointerEvents="none"
     >
-      {!media.sm && <TokenCloud />}
 
       <Flex
         alignSelf="center"
