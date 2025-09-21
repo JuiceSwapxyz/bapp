@@ -62,27 +62,31 @@ export function buildCitreaWrapTransaction({
 
   if (isWrap) {
     // Wrapping: call deposit() with value
+    const gasLimit = 50000
+    const gasPrice = 10000000000 // 10 gwei (matching our gas fee calculation)
     const txRequest = {
       to: wcBtcAddress,
       data: wethInterface.encodeFunctionData('deposit'),
       value: valueInHex, // Use the hex value for ethers compatibility
       from: walletAddress,
       chainId: chainId,
-      gasLimit: '50000',
-      gasPrice: '20000000000', // 20 gwei
+      gasLimit: '0x' + gasLimit.toString(16), // Convert to hex
+      gasPrice: '0x' + gasPrice.toString(16), // Convert to hex (10 gwei)
     }
     console.log('Built wrap transaction with gas:', txRequest)
     return txRequest
   } else {
     // Unwrapping: call withdraw(amount)
+    const gasLimit = 50000
+    const gasPrice = 10000000000 // 10 gwei (matching our gas fee calculation)
     const txRequest = {
       to: wcBtcAddress,
       data: wethInterface.encodeFunctionData('withdraw', [valueInWei]), // Use decimal for function parameter
-      value: '0',
+      value: '0x0', // Hex format for no value
       from: walletAddress,
       chainId: chainId,
-      gasLimit: '50000',
-      gasPrice: '20000000000', // 20 gwei
+      gasLimit: '0x' + gasLimit.toString(16), // Convert to hex
+      gasPrice: '0x' + gasPrice.toString(16), // Convert to hex (10 gwei)
     }
     console.log('Built unwrap transaction with gas:', txRequest)
     return txRequest
