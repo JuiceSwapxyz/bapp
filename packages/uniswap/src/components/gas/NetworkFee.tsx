@@ -43,6 +43,15 @@ export function NetworkFee({
     includesDelegation,
   })
 
+  // Debug logging for gas fee formatting
+  console.log('NetworkFee debug:', {
+    chainId,
+    gasFee,
+    gasFeeFormatted,
+    gasFeeUSD,
+    indicative,
+  })
+
   const uniswapXGasFeeInfo = useFormattedUniswapXGasFeeInfo(uniswapXGasBreakdown, chainId)
 
   const gasFeeHighRelativeToValue = useGasFeeHighRelativeToValue(gasFeeUSD, transactionUSDValue)
