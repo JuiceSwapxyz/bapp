@@ -63,6 +63,38 @@ const HARDCODED_CITREA_POSITIONS: Record<string, V3PositionInfo[]> = {
       isHidden: false,
       owner: '0xc89E49490020fc4e8eE681553A2354234Fc3F1D4',
     } as V3PositionInfo,
+    {
+      // NFT Token ID 3 - Pool address 0xD8C7604176475eB8D350bC1EE452dA4442637C09
+      poolId: '0xD8C7604176475eB8D350bC1EE452dA4442637C09',
+      tokenId: '3', // NFT token ID from the Position Manager
+      chainId: UniverseChainId.CitreaTestnet,
+      status: PositionStatus.IN_RANGE,
+      version: ProtocolVersion.V3,
+      feeTier: feeTierData,
+      currency0Amount: CurrencyAmount.fromRawAmount(cBTC, '1000000000000000000'), // 1 cBTC
+      currency1Amount: CurrencyAmount.fromRawAmount(cUSD, '30000000000000000000000'), // 30000 cUSD
+      liquidityAmount: CurrencyAmount.fromRawAmount(cUSD, '2000000000000000000000000'), // liquidity amount
+      apr: 32.7,
+      v4hook: undefined,
+      isHidden: false,
+      owner: '0xc89E49490020fc4e8eE681553A2354234Fc3F1D4',
+    } as V3PositionInfo,
+    {
+      // NFT Token ID 4 - Pool address 0x6006797369E2A595D31Df4ab3691044038AAa7FE
+      poolId: '0x6006797369E2A595D31Df4ab3691044038AAa7FE',
+      tokenId: '4', // NFT token ID from the Position Manager
+      chainId: UniverseChainId.CitreaTestnet,
+      status: PositionStatus.IN_RANGE,
+      version: ProtocolVersion.V3,
+      feeTier: feeTierData,
+      currency0Amount: CurrencyAmount.fromRawAmount(cBTC, '600000000000000000'), // 0.6 cBTC
+      currency1Amount: CurrencyAmount.fromRawAmount(cUSD, '18000000000000000000000'), // 18000 cUSD
+      liquidityAmount: CurrencyAmount.fromRawAmount(cUSD, '1200000000000000000000000'), // liquidity amount
+      apr: 26.8,
+      v4hook: undefined,
+      isHidden: false,
+      owner: '0xc89E49490020fc4e8eE681553A2354234Fc3F1D4',
+    } as V3PositionInfo,
   ],
 }
 
