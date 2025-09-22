@@ -3,7 +3,7 @@ import { FeatureFlags } from 'constants/featureFlags'
 import { PillButton } from 'pages/Landing/components/cards/PillButton'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Anchor, Button, Flex, Text, styled, useMedia } from 'ui/src'
+import { Anchor, Button, Flex, Text, styled } from 'ui/src'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -71,7 +71,6 @@ const CAMPAIGN_TASKS = [
 export function BAppsCard() {
   const { defaultChainId } = useEnabledChains()
   const [showModal, setShowModal] = useState(false)
-  const media = useMedia()
   const navigate = useNavigate()
 
   const handleStartEarning = useCallback(() => {
@@ -84,10 +83,16 @@ export function BAppsCard() {
 
   const handleTaskClick = useCallback(
     (url: string) => {
-      const urlParams = new URL(url)
-      const path = urlParams.pathname + urlParams.search
-      navigate(path)
-      setShowModal(false)
+      try {
+        const urlParams = new URL(url)
+        const path = urlParams.pathname + urlParams.search
+        navigate(path)
+        setShowModal(false)
+      } catch {
+        // Fallback: try to navigate directly if URL parsing fails
+        navigate(url)
+        setShowModal(false)
+      }
     },
     [navigate],
   )

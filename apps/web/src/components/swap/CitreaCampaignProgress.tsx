@@ -66,11 +66,20 @@ export function CitreaCampaignProgress() {
   const account = useAccount()
   const navigate = useNavigate()
 
-  // Mock completed tasks - in production this would come from API/contract
+  // Track completed tasks in localStorage (temporary solution until API integration)
   const completedTasks = useMemo(() => {
-    // This is a mock - replace with actual tracking logic
-    return [] as number[]
-  }, [])
+    if (!account.address) {
+      return []
+    }
+
+    try {
+      const stored = localStorage.getItem(`citrea_bapps_completed_${account.address}`)
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      // Return empty array if there's any error reading from localStorage
+      return []
+    }
+  }, [account.address])
 
   const progress = useMemo(() => {
     return (completedTasks.length / CAMPAIGN_TASKS.length) * 100

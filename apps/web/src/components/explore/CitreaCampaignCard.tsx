@@ -48,20 +48,25 @@ const TimerText = styled(Text, {
 })
 
 function calculateTimeRemaining() {
-  // Campaign end date - adjust this as needed
-  const campaignEndDate = new Date('2025-12-31T23:59:59Z')
-  const now = new Date()
-  const difference = campaignEndDate.getTime() - now.getTime()
+  try {
+    // Campaign end date - adjust this as needed
+    const campaignEndDate = new Date('2025-12-31T23:59:59Z')
+    const now = new Date()
+    const difference = campaignEndDate.getTime() - now.getTime()
 
-  if (difference <= 0) {
+    if (difference <= 0) {
+      return { days: 0, hours: 0, minutes: 0 }
+    }
+
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
+
+    return { days, hours, minutes }
+  } catch {
+    // Return zeros if there's any error with date calculation
     return { days: 0, hours: 0, minutes: 0 }
   }
-
-  const days = Math.floor(difference / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))
-
-  return { days, hours, minutes }
 }
 
 export function CitreaCampaignCard() {

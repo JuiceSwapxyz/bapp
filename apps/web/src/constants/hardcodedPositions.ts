@@ -89,5 +89,6 @@ export function getHardcodedPositionsForWallet(walletAddress: string | undefined
 
   // Normalize address to lowercase for comparison
   const normalizedAddress = walletAddress.toLowerCase()
-  return HARDCODED_CITREA_POSITIONS[normalizedAddress] ?? []
+  const positions = HARDCODED_CITREA_POSITIONS[normalizedAddress]
+  return positions ? positions : []
 }
