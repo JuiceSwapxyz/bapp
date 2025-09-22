@@ -175,7 +175,7 @@ function useSafeParentSize() {
   // Fallback dimension tracking
   useEffect(() => {
     if (useOriginal || !parentRef.current) {
-      return
+      return undefined
     }
 
     const updateDimensions = () => {

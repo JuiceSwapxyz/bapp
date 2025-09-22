@@ -90,5 +90,6 @@ export function getHardcodedPositionsForWallet(walletAddress: string | undefined
   // Normalize address to lowercase for comparison
   const normalizedAddress = walletAddress.toLowerCase()
   const positions = HARDCODED_CITREA_POSITIONS[normalizedAddress]
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return positions ? positions : []
 }

@@ -100,6 +100,7 @@ export function useCitreaBAppsBannerEligible(): boolean {
   const { defaultChainId } = useEnabledChains()
   const [hideBanner] = useAtom(hideCitreaBAppsBannerAtom)
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return FeatureFlags.CITREA_BAPPS_CAMPAIGN && !hideBanner && defaultChainId === UniverseChainId.CitreaTestnet
 }
 

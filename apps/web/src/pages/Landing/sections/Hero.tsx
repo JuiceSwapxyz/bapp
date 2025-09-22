@@ -24,6 +24,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
   const media = useMedia()
   const { height: scrollPosition } = useScroll({ enabled: !media.sm })
   const { defaultChainId } = useEnabledChains()
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const showBAppsContent = FeatureFlags.CITREA_BAPPS_CAMPAIGN && defaultChainId === UniverseChainId.CitreaTestnet
   // Use native token (cBTC on Citrea) as default input currency
   const initialInputCurrency = useCurrency({

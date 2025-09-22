@@ -97,6 +97,7 @@ export function BAppsCard() {
     [navigate],
   )
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!FeatureFlags.CITREA_BAPPS_CAMPAIGN || defaultChainId !== UniverseChainId.CitreaTestnet) {
     return null
   }

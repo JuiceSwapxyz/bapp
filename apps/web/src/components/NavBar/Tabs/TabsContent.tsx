@@ -35,6 +35,7 @@ export const useTabsContent = (): TabsSection[] => {
   const theme = useTheme()
   const isFiatOffRampEnabled = useFeatureFlag(FeatureFlags.FiatOffRamp)
   const { defaultChainId } = useEnabledChains()
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const showBAppsTab = AppFeatureFlags.CITREA_BAPPS_CAMPAIGN && defaultChainId === UniverseChainId.CitreaTestnet
 
   const baseItems = [
