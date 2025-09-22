@@ -211,8 +211,16 @@ You'll need to connect to Citrea Testnet to verify transactions:
 
 ### Swap Detection
 
-Common swap router addresses on Citrea Testnet:
-- JuiceSwap V3 Router: Check deployed contracts
+**JuiceSwap Router Addresses on Citrea Testnet**:
+- **SwapRouter02**: `0x610c98EAD0df13EA906854b6041122e8A8D14413` (Primary V3 Router - used in most swaps)
+- **SwapRouter**: `0xb2A4E33e9A9aC7c46045A2D0318a4F50194dafDE` (Alternative V3 Router)
+- **SwapRouter (Alt)**: `0x3012E9049d05B4B5369D690114D5A5861EbB85cb` (Alternative V3 Router)
+- **UniswapV2Router02**: `0xb45670f668EE53E62b5F170B5B1d3C6701C8d03A` (V2 Router for legacy swaps)
+
+**Important**: Most JuiceSwap transactions on Citrea Testnet will use the SwapRouter02 (`0x610c98EAD0df13EA906854b6041122e8A8D14413`).
+
+**Detection Steps**:
+- Check if `to` address matches one of the router addresses above
 - Look for `Swap` events in transaction logs
 - Verify token addresses match campaign requirements
 
