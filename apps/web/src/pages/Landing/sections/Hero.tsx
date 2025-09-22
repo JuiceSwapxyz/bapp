@@ -90,7 +90,6 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       pt={INTERFACE_NAV_HEIGHT}
       pointerEvents="none"
     >
-
       <Flex
         alignSelf="center"
         maxWidth="85vw"
