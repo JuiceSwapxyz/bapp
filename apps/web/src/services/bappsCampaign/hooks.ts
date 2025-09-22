@@ -61,12 +61,18 @@ export function useBAppsCampaignProgress() {
 
       return success
     },
-    [account.address, defaultChainId, fetchProgress],
+    [account.address, defaultChainId],
   )
 
   // Check if a swap completed a task with enhanced status handling
   const checkSwapTaskCompletion = useCallback(
-    async (txHash: string, retryCount = 0): Promise<number | null> => {
+    async (params: {
+      txHash: string
+      inputToken?: string
+      outputToken?: string
+      retryCount?: number
+    }): Promise<number | null> => {
+      const { txHash, inputToken, outputToken, retryCount = 0 } = params
       if (!account.address) {
         return null
       }
@@ -75,6 +81,8 @@ export function useBAppsCampaignProgress() {
         txHash,
         walletAddress: account.address,
         chainId: defaultChainId,
+        inputToken,
+        outputToken,
       })
 
       // Status information is available in result.status, result.message, and result.confirmations
@@ -86,7 +94,7 @@ export function useBAppsCampaignProgress() {
           // Max 10 retries
           const delay = Math.min(1000 * Math.pow(1.5, retryCount), 10000) // Max 10 seconds
           await new Promise((resolve) => setTimeout(resolve, delay))
-          return checkSwapTaskCompletion(txHash, retryCount + 1)
+          return checkSwapTaskCompletion({ txHash, inputToken, outputToken, retryCount: retryCount + 1 })
         }
 
         // Max retries reached, transaction still pending
@@ -106,7 +114,7 @@ export function useBAppsCampaignProgress() {
 
       return null
     },
-    [account.address, defaultChainId, fetchProgress],
+    [account.address, defaultChainId],
   )
 
   // Fetch progress on mount and when dependencies change
@@ -169,9 +177,10 @@ export function useBAppsSwapTracking() {
   const { defaultChainId } = useEnabledChains()
 
   const trackSwapCompletion = useCallback(
-    async (txHash: string) => {
-      // First check with API which task this swap completed
-      const taskId = await checkSwapTaskCompletion(txHash)
+    async (params: { txHash: string; inputToken?: string; outputToken?: string }) => {
+      const { txHash, inputToken, outputToken } = params
+      // First check which task this swap completed (locally first, then API)
+      const taskId = await checkSwapTaskCompletion({ txHash, inputToken, outputToken })
 
       if (taskId !== null) {
         // Task was identified by API

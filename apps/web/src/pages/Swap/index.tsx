@@ -6,6 +6,7 @@ import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
+import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { useDeferredComponent } from 'hooks/useDeferredComponent'
 import { PageType, useIsPage } from 'hooks/useIsPage'
 import { useModalState } from 'hooks/useModalState'
@@ -16,7 +17,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router'
-import { useBAppsSwapTracking } from 'services/bappsCampaign/hooks'
 import { MultichainContextProvider } from 'state/multichain/MultichainContext'
 import { useSwapCallback } from 'state/sagas/transactions/swapSaga'
 import { useWrapCallback } from 'state/sagas/transactions/wrapSaga'
@@ -228,7 +228,9 @@ function UniversalSwapFlow({
   const navigate = useNavigate()
   const { t } = useTranslation()
   // Store onSubmitSwap callback ref for access in swapCallback
-  const onSubmitSwapRef = useRef<((txHash?: string) => Promise<void> | void) | undefined>()
+  const onSubmitSwapRef = useRef<
+    ((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined
+  >()
 
   const LimitFormWrapper = useDeferredComponent(() =>
     import('pages/Swap/Limit/LimitForm').then((module) => ({
@@ -295,20 +297,39 @@ function UniversalSwapFlow({
   const swapSettings = useWebSwapSettings()
   const resetDisableOneClickSwap = useResetOverrideOneClickSwapFlag()
 
-  // Campaign tracking integration
-  const { trackSwapCompletion } = useBAppsSwapTracking()
+  // Track transaction for campaign monitoring
+  const [currentTransaction, setCurrentTransaction] = useState<{
+    txHash: string
+    chainId: number
+    inputToken: string
+    outputToken: string
+  } | null>(null)
 
-  // Combine one-click swap reset and campaign tracking
+  // Use automatic blockchain confirmation tracking
+  useBAppsSwapTracking({
+    txHash: currentTransaction?.txHash,
+    chainId: currentTransaction?.chainId,
+    inputToken: currentTransaction?.inputToken,
+    outputToken: currentTransaction?.outputToken,
+  })
+
+  // Handle swap submission - store transaction details for monitoring
   const handleSubmitSwap = useCallback(
-    async (txHash?: string) => {
+    // eslint-disable-next-line max-params
+    async (txHash?: string, inputToken?: string, outputToken?: string) => {
       resetDisableOneClickSwap()
 
-      // Track swap completion for campaign if txHash is provided
-      if (txHash) {
-        await trackSwapCompletion(txHash)
+      // Store transaction details for blockchain confirmation tracking
+      if (txHash && inputToken && outputToken) {
+        setCurrentTransaction({
+          txHash,
+          chainId: 5115, // Citrea Testnet
+          inputToken,
+          outputToken,
+        })
       }
     },
-    [resetDisableOneClickSwap, trackSwapCompletion],
+    [resetDisableOneClickSwap],
   )
 
   // Store the callback in ref for access in swapCallback

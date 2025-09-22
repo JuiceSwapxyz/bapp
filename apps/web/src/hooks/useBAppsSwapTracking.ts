@@ -1,29 +1,40 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useBAppsSwapTracking as useTracking } from 'services/bappsCampaign/hooks'
+import { useTransaction } from 'state/transactions/hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
 
 /**
  * Hook to automatically track swap transactions for bApps campaign
  * @internal - Used by swap components
  */
-function useBAppsSwapTracking(txHash?: string, chainId?: UniverseChainId) {
+function useBAppsSwapTracking(options: {
+  txHash?: string
+  chainId?: number
+  inputToken?: string
+  outputToken?: string
+}) {
+  const { txHash, chainId, inputToken, outputToken } = options
   const { trackSwapCompletion } = useTracking()
+  const hasTracked = useRef(new Set<string>())
+
+  // Get transaction status using the existing hook
+  const transaction = useTransaction(txHash)
 
   useEffect(() => {
-    if (!txHash || chainId !== UniverseChainId.CitreaTestnet) {
+    if (!txHash || chainId !== UniverseChainId.CitreaTestnet || !inputToken || !outputToken) {
       return
     }
 
-    // Track the swap after a short delay to ensure transaction is confirmed
-    const timer = setTimeout(() => {
-      trackSwapCompletion(txHash).catch(() => {
+    // Only track when transaction is confirmed as successful and not already tracked
+    if (transaction?.status === TransactionStatus.Success && !hasTracked.current.has(txHash)) {
+      hasTracked.current.add(txHash)
+      trackSwapCompletion({ txHash, inputToken, outputToken }).catch(() => {
         // Silently fail if tracking fails
+        hasTracked.current.delete(txHash) // Allow retry on failure
       })
-    }, 3000) // 3 second delay
-
-    // eslint-disable-next-line consistent-return
-    return () => clearTimeout(timer)
-  }, [txHash, chainId, trackSwapCompletion])
+    }
+  }, [txHash, chainId, inputToken, outputToken, transaction?.status, trackSwapCompletion])
 }
 
 // eslint-disable-next-line import/no-unused-modules
