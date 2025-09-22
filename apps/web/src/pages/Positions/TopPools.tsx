@@ -1,23 +1,20 @@
+import { Percent } from '@juiceswapxyz/sdk-core'
 import { ExploreStatsResponse } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
 import { PoolSortFields } from 'appGraphql/data/pools/useTopPools'
 import { OrderDirection } from 'appGraphql/data/util'
 import { ExternalArrowLink } from 'components/Liquidity/ExternalArrowLink'
+import { HARDCODED_CITREA_POOLS } from 'constants/hardcodedPools'
 import { TopPoolsSection } from 'pages/Positions/TopPoolsSection'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { useTopPools } from 'state/explore/topPools'
+import { PoolStat } from 'state/explore/types'
 import { Flex, useMedia } from 'ui/src'
+import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { ALL_NETWORKS_ARG } from 'uniswap/src/data/rest/base'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
-import { HARDCODED_CITREA_POOLS } from 'constants/hardcodedPools'
-import { ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
-import { PoolStat } from 'state/explore/types'
-import { Percent } from '@juiceswapxyz/sdk-core'
-import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 
 const MAX_BOOSTED_POOLS = 3
 
@@ -34,10 +31,10 @@ export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
     }
 
     // Convert hardcoded pools to minimal format needed for TopPoolsSection
-    const citreaPools = HARDCODED_CITREA_POOLS.map(pool => ({
+    const citreaPools = HARDCODED_CITREA_POOLS.map((pool) => ({
       id: pool.id,
       chain: Chain.UnknownChain, // Use UnknownChain since Citrea is not in the enum
-      protocolVersion: ProtocolVersion.V3,
+      protocolVersion: 'v3',
       token0: {
         address: pool.token0.address,
         symbol: pool.token0.symbol,

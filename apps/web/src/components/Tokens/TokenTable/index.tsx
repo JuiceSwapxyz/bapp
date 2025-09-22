@@ -26,10 +26,12 @@ import {
   useSetSortMethod,
 } from 'components/Tokens/state'
 import { MouseoverTooltip, TooltipSize } from 'components/Tooltip'
+import { HARDCODED_CITREA_TOKENS } from 'constants/hardcodedTokens'
 import useSimplePagination from 'hooks/useSimplePagination'
 import { useAtomValue } from 'jotai/utils'
 import { ReactElement, ReactNode, memo, useMemo } from 'react'
 import { Trans } from 'react-i18next'
+import { useSelector } from 'react-redux'
 import { TABLE_PAGE_SIZE, giveExploreStatDefaultValue } from 'state/explore'
 import { useTopTokens as useRestTopTokens } from 'state/explore/topTokens'
 import { TokenStat } from 'state/explore/types'
@@ -38,15 +40,12 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fromGraphQLChain, toGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
-import { useSelector } from 'react-redux'
 import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
-import { HARDCODED_CITREA_TOKENS } from 'constants/hardcodedTokens'
-import { useChainIdFromUrlParam } from 'utils/chainParams'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
 import { NumberType } from 'utilities/src/format/types'
-import { getChainIdFromChainUrlParam } from 'utils/chainParams'
+import { getChainIdFromChainUrlParam, useChainIdFromUrlParam } from 'utils/chainParams'
 
 const TableWrapper = styled(Flex, {
   m: '0 auto',
@@ -102,11 +101,9 @@ export const TopTokensTable = memo(function TopTokensTable() {
         volume1Day: token.volume1Day,
         marketCap: token.marketCap,
       },
-    })) as TokenStat[]
+    })) as any[]
 
-    const tokenRanks = Object.fromEntries(
-      citreaTokens.map((token, index) => [token.id, index + 1])
-    )
+    const tokenRanks = Object.fromEntries(citreaTokens.map((token, index) => [token.id, index + 1]))
 
     return (
       <TableWrapper data-testid="top-tokens-explore-table">
