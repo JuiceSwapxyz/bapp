@@ -6,6 +6,7 @@ import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
+import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { useDeferredComponent } from 'hooks/useDeferredComponent'
 import { PageType, useIsPage } from 'hooks/useIsPage'
 import { useModalState } from 'hooks/useModalState'
@@ -16,7 +17,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router'
-import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { MultichainContextProvider } from 'state/multichain/MultichainContext'
 import { useSwapCallback } from 'state/sagas/transactions/swapSaga'
 import { useWrapCallback } from 'state/sagas/transactions/wrapSaga'
@@ -228,7 +228,9 @@ function UniversalSwapFlow({
   const navigate = useNavigate()
   const { t } = useTranslation()
   // Store onSubmitSwap callback ref for access in swapCallback
-  const onSubmitSwapRef = useRef<((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined>()
+  const onSubmitSwapRef = useRef<
+    ((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined
+  >()
 
   const LimitFormWrapper = useDeferredComponent(() =>
     import('pages/Swap/Limit/LimitForm').then((module) => ({

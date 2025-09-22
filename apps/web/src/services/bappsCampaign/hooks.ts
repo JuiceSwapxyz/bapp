@@ -66,7 +66,12 @@ export function useBAppsCampaignProgress() {
 
   // Check if a swap completed a task with enhanced status handling
   const checkSwapTaskCompletion = useCallback(
-    async (params: { txHash: string; inputToken?: string; outputToken?: string; retryCount?: number }): Promise<number | null> => {
+    async (params: {
+      txHash: string
+      inputToken?: string
+      outputToken?: string
+      retryCount?: number
+    }): Promise<number | null> => {
       const { txHash, inputToken, outputToken, retryCount = 0 } = params
       if (!account.address) {
         return null

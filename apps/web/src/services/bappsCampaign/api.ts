@@ -119,11 +119,11 @@ class BAppsCampaignAPI {
    * Uses local validation based on token pairs
    */
   async checkSwapTaskCompletion(params: {
-    txHash: string;
-    walletAddress: string;
-    chainId: UniverseChainId;
-    inputToken?: string;
-    outputToken?: string;
+    txHash: string
+    walletAddress: string
+    chainId: UniverseChainId
+    inputToken?: string
+    outputToken?: string
   }): Promise<{
     taskId: number | null
     status?: 'pending' | 'confirmed' | 'failed' | 'not_found' | 'error'

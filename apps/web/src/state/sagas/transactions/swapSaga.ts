@@ -329,7 +329,9 @@ export const swapSaga = createSaga(swap, 'swapSaga')
 
 /** Callback to submit trades and track progress */
 export function useSwapCallback(
-  onSubmitSwapRef?: React.MutableRefObject<((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined>,
+  onSubmitSwapRef?: React.MutableRefObject<
+    ((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined
+  >,
 ): SwapCallback {
   const appDispatch = useDispatch()
   const formatter = useLocalizationContext()
