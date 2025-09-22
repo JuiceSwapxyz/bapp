@@ -1,7 +1,7 @@
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 // API endpoints for bApps campaign
-const BAPPS_API_BASE_URL = process.env.REACT_APP_BAPPS_API_URL || 'https://ponder.juiceswap.com'
+const BAPPS_API_BASE_URL = process.env.REACT_APP_BAPPS_API_URL || 'http://localhost:3003'
 
 // eslint-disable-next-line import/no-unused-modules
 export interface CampaignTask {
