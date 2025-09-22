@@ -2,7 +2,8 @@ import CitreaLogo from 'assets/images/coins/citrea.png'
 import { useAccount } from 'hooks/useAccount'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
-import { Anchor, Button, Flex, Text, styled } from 'ui/src'
+import { useBAppsCampaignProgress } from 'services/bappsCampaign/hooks'
+import { Anchor, Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
@@ -65,25 +66,22 @@ export function CitreaCampaignProgress() {
   const { defaultChainId } = useEnabledChains()
   const account = useAccount()
   const navigate = useNavigate()
+  const { progress: campaignProgress, loading, error } = useBAppsCampaignProgress()
 
-  // Track completed tasks in localStorage (temporary solution until API integration)
+  // Extract completed task IDs from API response
   const completedTasks = useMemo(() => {
-    if (!account.address) {
+    if (!campaignProgress) {
       return []
     }
-
-    try {
-      const stored = localStorage.getItem(`citrea_bapps_completed_${account.address}`)
-      return stored ? JSON.parse(stored) : []
-    } catch {
-      // Return empty array if there's any error reading from localStorage
-      return []
-    }
-  }, [account.address])
+    return campaignProgress.tasks.filter((task) => task.completed).map((task) => task.id)
+  }, [campaignProgress])
 
   const progress = useMemo(() => {
-    return (completedTasks.length / CAMPAIGN_TASKS.length) * 100
-  }, [completedTasks.length])
+    if (!campaignProgress) {
+      return 0
+    }
+    return campaignProgress.progress
+  }, [campaignProgress])
 
   const handleTaskClick = useCallback(
     (url: string) => {
@@ -94,6 +92,25 @@ export function CitreaCampaignProgress() {
 
   // Only show on Citrea Testnet when wallet is connected
   if (defaultChainId !== UniverseChainId.CitreaTestnet || !account.isConnected) {
+    return null
+  }
+
+  // Show loading state
+  if (loading && !campaignProgress) {
+    return (
+      <ProgressContainer>
+        <Flex row gap="$spacing12" alignItems="center" justifyContent="center" width="100%">
+          <SpinningLoader size={20} />
+          <Text variant="body3" color="$neutral2">
+            Loading campaign progress...
+          </Text>
+        </Flex>
+      </ProgressContainer>
+    )
+  }
+
+  // Show error state if API fails but still show UI with fallback data
+  if (error && !campaignProgress) {
     return null
   }
 
