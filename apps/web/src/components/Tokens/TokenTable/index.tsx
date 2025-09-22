@@ -91,7 +91,7 @@ export const TopTokensTable = memo(function TopTokensTable() {
   // Show hardcoded tokens for Citrea testnet or when Citrea Only toggle is enabled
   if (chainId === UniverseChainId.CitreaTestnet || isCitreaOnlyEnabled) {
     // Convert hardcoded tokens to TokenStat format
-    const citreaTokens = HARDCODED_CITREA_TOKENS.map((token, index) => ({
+    const citreaTokens = HARDCODED_CITREA_TOKENS.map((token, _index) => ({
       ...token,
       chain: toGraphQLChain(UniverseChainId.CitreaTestnet),
       market: {

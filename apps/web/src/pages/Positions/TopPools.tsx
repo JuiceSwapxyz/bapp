@@ -10,8 +10,6 @@ import { Flex, useMedia } from 'ui/src'
 import { ALL_NETWORKS_ARG } from 'uniswap/src/data/rest/base'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 import { HARDCODED_CITREA_POOLS } from 'constants/hardcodedPools'
 import { ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
@@ -19,13 +17,26 @@ import { PoolStat } from 'state/explore/types'
 import { Percent } from '@juiceswapxyz/sdk-core'
 import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 
-const MAX_BOOSTED_POOLS = 3
 
 export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
   const { t } = useTranslation()
   const media = useMedia()
   const isBelowXlScreen = !media.xl
   const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
+
+  // Always call hooks at the top level
+  const {
+    data: exploreStatsData,
+    isLoading: exploreStatsLoading,
+    error: exploreStatsError,
+  } = useExploreStatsQuery<ExploreStatsResponse>({
+    input: { chainId: chainId ? chainId.toString() : ALL_NETWORKS_ARG },
+  })
+
+  const { topPools } = useTopPools({
+    topPoolData: { data: exploreStatsData, isLoading: exploreStatsLoading, isError: !!exploreStatsError },
+    sortState: { sortDirection: OrderDirection.Desc, sortBy: PoolSortFields.TVL },
+  })
 
   // If Citrea Only is enabled or Citrea testnet is selected, show hardcoded pools
   if (isCitreaOnlyEnabled || chainId === UniverseChainId.CitreaTestnet) {
@@ -74,19 +85,6 @@ export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
       </Flex>
     )
   }
-
-  const {
-    data: exploreStatsData,
-    isLoading: exploreStatsLoading,
-    error: exploreStatsError,
-  } = useExploreStatsQuery<ExploreStatsResponse>({
-    input: { chainId: chainId ? chainId.toString() : ALL_NETWORKS_ARG },
-  })
-
-  const { topPools } = useTopPools({
-    topPoolData: { data: exploreStatsData, isLoading: exploreStatsLoading, isError: !!exploreStatsError },
-    sortState: { sortDirection: OrderDirection.Desc, sortBy: PoolSortFields.TVL },
-  })
 
   const displayTopPools = topPools && topPools.length > 0
 

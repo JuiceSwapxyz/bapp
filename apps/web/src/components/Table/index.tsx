@@ -159,15 +159,15 @@ function useSafeParentSize() {
   const parentRef = useRef<HTMLDivElement>(null)
   const [useOriginal, setUseOriginal] = useState(true)
 
-  // Try to use the original hook (will be undefined if it fails)
-  let originalResult: ReturnType<typeof useParentSizeOriginal> | undefined
-  if (useOriginal) {
-    try {
-      originalResult = useParentSizeOriginal()
-    } catch (error) {
+  // Always call the hook to maintain hook order
+  const originalResult = useParentSizeOriginal()
+
+  // If original hook fails, we won't get here, but this prevents the conditional hook error
+  useEffect(() => {
+    if (!originalResult && useOriginal) {
       setUseOriginal(false)
     }
-  }
+  }, [originalResult, useOriginal])
 
   // Fallback dimension tracking
   useEffect(() => {
@@ -189,7 +189,9 @@ function useSafeParentSize() {
 
     updateDimensions()
     window.addEventListener('resize', updateDimensions)
-    return () => window.removeEventListener('resize', updateDimensions)
+    return () => {
+      window.removeEventListener('resize', updateDimensions)
+    }
   }, [useOriginal])
 
   return originalResult || { parentRef, ...dimensions }
