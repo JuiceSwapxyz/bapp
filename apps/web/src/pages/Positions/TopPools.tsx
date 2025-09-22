@@ -16,20 +16,33 @@ import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 
-const MAX_BOOSTED_POOLS = 3
-
 export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
   const { t } = useTranslation()
   const media = useMedia()
   const isBelowXlScreen = !media.xl
   const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
 
+  // Always call hooks before any conditional returns
+  const {
+    data: exploreStatsData,
+    isLoading: exploreStatsLoading,
+    error: exploreStatsError,
+  } = useExploreStatsQuery<ExploreStatsResponse>({
+    input: { chainId: chainId ? chainId.toString() : ALL_NETWORKS_ARG },
+  })
+
+  const { topPools } = useTopPools({
+    topPoolData: { data: exploreStatsData, isLoading: exploreStatsLoading, isError: !!exploreStatsError },
+    sortState: { sortDirection: OrderDirection.Desc, sortBy: PoolSortFields.TVL },
+  })
+
+  // Early return if not below XL screen
+  if (!isBelowXlScreen) {
+    return null
+  }
+
   // If Citrea Only is enabled or Citrea testnet is selected, show hardcoded pools
   if (isCitreaOnlyEnabled || chainId === UniverseChainId.CitreaTestnet) {
-    if (!isBelowXlScreen) {
-      return null
-    }
-
     // Convert hardcoded pools to minimal format needed for TopPoolsSection
     const citreaPools = HARDCODED_CITREA_POOLS.map((pool) => ({
       id: pool.id,
@@ -72,24 +85,7 @@ export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
     )
   }
 
-  const {
-    data: exploreStatsData,
-    isLoading: exploreStatsLoading,
-    error: exploreStatsError,
-  } = useExploreStatsQuery<ExploreStatsResponse>({
-    input: { chainId: chainId ? chainId.toString() : ALL_NETWORKS_ARG },
-  })
-
-  const { topPools } = useTopPools({
-    topPoolData: { data: exploreStatsData, isLoading: exploreStatsLoading, isError: !!exploreStatsError },
-    sortState: { sortDirection: OrderDirection.Desc, sortBy: PoolSortFields.TVL },
-  })
-
   const displayTopPools = topPools && topPools.length > 0
-
-  if (!isBelowXlScreen) {
-    return null
-  }
 
   return (
     <Flex gap={48}>

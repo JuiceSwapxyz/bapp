@@ -61,7 +61,7 @@ export function useBAppsCampaignProgress() {
 
       return success
     },
-    [account.address, defaultChainId, fetchProgress],
+    [account.address, defaultChainId],
   )
 
   // Check if a swap completed a task with enhanced status handling
@@ -106,7 +106,7 @@ export function useBAppsCampaignProgress() {
 
       return null
     },
-    [account.address, defaultChainId, fetchProgress],
+    [account.address, defaultChainId],
   )
 
   // Fetch progress on mount and when dependencies change
