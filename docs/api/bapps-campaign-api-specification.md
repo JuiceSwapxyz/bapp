@@ -2,11 +2,11 @@
 
 ## Overview
 
-This document specifies the complete API requirements for the Citrea bApps Campaign tracking system. The API should be hosted at `https://dev.ponder.deuro.com` and will track user progress through swap tasks on the Citrea Testnet.
+This document specifies the complete API requirements for the Citrea bApps Campaign tracking system. The API should be hosted at `https://ponder.juiceswap.com` and will track user progress through swap tasks on the Citrea Testnet.
 
 ## Base Configuration
 
-- **Base URL**: `https://dev.ponder.deuro.com`
+- **Base URL**: `https://ponder.juiceswap.com`
 - **Content-Type**: `application/json`
 - **Chain ID**: `5115` (Citrea Testnet)
 - **CORS**: Must allow origin `http://localhost:3001` and `https://bapp.juiceswap.xyz`

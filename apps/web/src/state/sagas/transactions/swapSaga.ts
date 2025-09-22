@@ -2,6 +2,7 @@ import { useTotalBalancesUsdForAnalytics } from 'appGraphql/data/apollo/useTotal
 import { popupRegistry } from 'components/Popups/registry'
 import { PopupType } from 'components/Popups/types'
 import { DEFAULT_TXN_DISMISS_MS, L2_TXN_DISMISS_MS, ZERO_PERCENT } from 'constants/misc'
+import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import { useAccount } from 'hooks/useAccount'
 import useSelectChain from 'hooks/useSelectChain'
 import { formatSwapSignedAnalyticsEventProperties } from 'lib/utils/analytics'
@@ -328,7 +329,9 @@ export const swapSaga = createSaga(swap, 'swapSaga')
 
 /** Callback to submit trades and track progress */
 export function useSwapCallback(
-  onSubmitSwapRef?: React.MutableRefObject<((txHash?: string) => Promise<void> | void) | undefined>,
+  onSubmitSwapRef?: React.MutableRefObject<
+    ((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined
+  >,
 ): SwapCallback {
   const appDispatch = useDispatch()
   const formatter = useLocalizationContext()
@@ -403,7 +406,14 @@ export function useSwapCallback(
           updateSwapForm({ txHash: hash, txHashReceivedTime: Date.now() })
           // Call onSubmitSwap if provided to trigger campaign tracking
           if (onSubmitSwapRef?.current) {
-            await onSubmitSwapRef.current(hash)
+            // Get input and output token addresses for campaign tracking
+            const inputToken = trade.inputAmount.currency.isNative
+              ? NATIVE_CHAIN_ID
+              : trade.inputAmount.currency.address
+            const outputToken = trade.outputAmount.currency.isNative
+              ? NATIVE_CHAIN_ID
+              : trade.outputAmount.currency.address
+            await onSubmitSwapRef.current(hash, inputToken, outputToken)
           }
         },
       }

@@ -1,6 +1,6 @@
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 // Import tokens from hardcodedPools to avoid duplication
-import { NUSD, TFC, USDC, WCBTC, cUSD } from './hardcodedPools'
+import { NUSD, TFC, USDC, WCBTC, cUSD } from 'constants/hardcodedPools'
 
 // Hardcoded Citrea tokens for the explore page with market data
 export const HARDCODED_CITREA_TOKENS = [
