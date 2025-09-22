@@ -85,20 +85,27 @@ export function getTokenProtectionFeeOnTransfer(currencyInfo: Maybe<CurrencyInfo
 
 // eslint-disable-next-line complexity
 export function getTokenProtectionWarning(currencyInfo?: Maybe<CurrencyInfo>): TokenProtectionWarning {
-  if (!currencyInfo?.currency || !currencyInfo.safetyInfo) {
+  if (!currencyInfo?.currency) {
     return TokenProtectionWarning.NonDefault
   }
-  const { currency, safetyInfo } = currencyInfo
 
-  const { protectionResult, attackType } = safetyInfo
+  const { currency } = currencyInfo
+
   if (currency instanceof NativeCurrency) {
     return TokenProtectionWarning.None
   }
 
-  // Skip warnings for hardcoded trusted tokens
+  // Skip warnings for hardcoded trusted tokens (check this before safetyInfo check)
   if (isHardcodedTrustedToken(currency)) {
     return TokenProtectionWarning.None
   }
+
+  if (!currencyInfo.safetyInfo) {
+    return TokenProtectionWarning.NonDefault
+  }
+
+  const { safetyInfo } = currencyInfo
+  const { protectionResult, attackType } = safetyInfo
 
   const { maxFeePercent: feeOnTransfer } = getTokenProtectionFeeOnTransfer(currencyInfo)
 
