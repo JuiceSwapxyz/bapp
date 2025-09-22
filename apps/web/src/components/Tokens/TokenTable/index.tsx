@@ -90,7 +90,7 @@ export const TopTokensTable = memo(function TopTokensTable() {
   // Show hardcoded tokens for Citrea testnet or when Citrea Only toggle is enabled
   if (chainId === UniverseChainId.CitreaTestnet || isCitreaOnlyEnabled) {
     // Convert hardcoded tokens to TokenStat format
-    const citreaTokens = HARDCODED_CITREA_TOKENS.map((token, index) => ({
+    const citreaTokens = HARDCODED_CITREA_TOKENS.map((token, _index) => ({
       ...token,
       chain: toGraphQLChain(UniverseChainId.CitreaTestnet),
       market: {
@@ -282,9 +282,9 @@ function TokenTable({
                 </Text>
               </HeaderCell>
             ),
-            cell: (index) => (
+            cell: (_index) => (
               <Cell justifyContent="flex-start" loading={showLoadingSkeleton}>
-                <TableText>{index.getValue?.()}</TableText>
+                <TableText>{_index.getValue?.()}</TableText>
               </Cell>
             ),
           })
