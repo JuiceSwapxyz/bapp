@@ -7,6 +7,7 @@ import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/type
 import { ProtectionResult } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { AttackType, CurrencyInfo, TokenList } from 'uniswap/src/features/dataApi/types'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
+import { isHardcodedTrustedToken } from 'uniswap/src/features/tokens/hardcodedTokens'
 import { logger } from 'utilities/src/logger/logger'
 import { isInterface } from 'utilities/src/platform'
 
@@ -91,6 +92,11 @@ export function getTokenProtectionWarning(currencyInfo?: Maybe<CurrencyInfo>): T
 
   const { protectionResult, attackType } = safetyInfo
   if (currency instanceof NativeCurrency) {
+    return TokenProtectionWarning.None
+  }
+
+  // Skip warnings for hardcoded trusted tokens
+  if (isHardcodedTrustedToken(currency)) {
     return TokenProtectionWarning.None
   }
 
