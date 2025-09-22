@@ -57,10 +57,7 @@ export function useBAppsCampaignProgress() {
 
       const success = await bAppsCampaignAPI.submitTaskCompletion(completion)
 
-      // Refresh progress after submission
-      if (success) {
-        await fetchProgress()
-      }
+      // Don't refresh here - will be done in trackSwapCompletion
 
       return success
     },
@@ -103,8 +100,7 @@ export function useBAppsCampaignProgress() {
 
       // Only return taskId if confirmed and valid
       if (result.status === 'confirmed' && result.taskId) {
-        // Task confirmed - refresh progress
-        await fetchProgress()
+        // Task confirmed - DON'T refresh here, will be done in trackSwapCompletion
         return result.taskId
       }
 
@@ -156,7 +152,7 @@ function useIsBAppsCampaignAvailable(): boolean {
  * Hook to track swap completion and update campaign progress
  */
 export function useBAppsSwapTracking() {
-  const { submitTaskCompletion, checkSwapTaskCompletion } = useBAppsCampaignProgress()
+  const { submitTaskCompletion, checkSwapTaskCompletion, refetch } = useBAppsCampaignProgress()
   const account = useAccount()
   const { defaultChainId } = useEnabledChains()
 
@@ -169,12 +165,15 @@ export function useBAppsSwapTracking() {
         // Task was identified by API
         await submitTaskCompletion(taskId, txHash)
 
+        // First refresh the progress to update the UI
+        await refetch()
+
         // Get updated progress to show in notification
         const updatedProgress = await bAppsCampaignAPI.getCampaignProgress(account.address!, defaultChainId)
         const completedTask = updatedProgress.tasks.find((t) => t.id === taskId)
 
         if (completedTask) {
-          // Show success notification
+          // Show success notification with the updated progress
           popupRegistry.addPopup(
             {
               type: PopupType.CampaignTaskCompleted,
@@ -192,7 +191,7 @@ export function useBAppsSwapTracking() {
       // No fallback mapping needed - API handles all task identification
       return null
     },
-    [checkSwapTaskCompletion, submitTaskCompletion, account.address, defaultChainId],
+    [checkSwapTaskCompletion, submitTaskCompletion, account.address, defaultChainId, refetch],
   )
 
   return { trackSwapCompletion, isAvailable: useIsBAppsCampaignAvailable() }
