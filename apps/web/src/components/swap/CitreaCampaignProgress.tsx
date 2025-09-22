@@ -1,4 +1,6 @@
 import CitreaLogo from 'assets/images/coins/citrea.png'
+import { popupRegistry } from 'components/Popups/registry'
+import { PopupType } from 'components/Popups/types'
 import { FeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import { useCallback, useMemo } from 'react'
@@ -85,10 +87,22 @@ export function CitreaCampaignProgress() {
   }, [campaignProgress])
 
   const handleTaskClick = useCallback(
-    (url: string) => {
-      navigate(url)
+    (task: { url: string; name: string; isCompleted: boolean }) => {
+      if (task.isCompleted) {
+        popupRegistry.addPopup(
+          {
+            type: PopupType.CampaignTaskCompleted,
+            taskName: task.name,
+            progress,
+          },
+          `task-completed-${task.name}`,
+          3000,
+        )
+        return
+      }
+      navigate(task.url)
     },
-    [navigate],
+    [navigate, progress],
   )
 
   // Only show if feature flag is enabled, on Citrea Testnet, and wallet is connected
@@ -154,8 +168,7 @@ export function CitreaCampaignProgress() {
               key={task.id}
               size="small"
               emphasis={isCompleted ? 'tertiary' : 'secondary'}
-              onPress={() => !isCompleted && handleTaskClick(task.url)}
-              disabled={isCompleted}
+              onPress={() => handleTaskClick({ url: task.url, name: task.name, isCompleted })}
               flex={1}
             >
               <Flex row gap="$spacing4" alignItems="center">
