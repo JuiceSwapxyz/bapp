@@ -1,3 +1,5 @@
+import { popupRegistry } from 'components/Popups/registry'
+import { PopupType } from 'components/Popups/types'
 import { useAccount } from 'hooks/useAccount'
 import { useCallback, useEffect, useState } from 'react'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -155,6 +157,8 @@ function useIsBAppsCampaignAvailable(): boolean {
  */
 export function useBAppsSwapTracking() {
   const { submitTaskCompletion, checkSwapTaskCompletion } = useBAppsCampaignProgress()
+  const account = useAccount()
+  const { defaultChainId } = useEnabledChains()
 
   const trackSwapCompletion = useCallback(
     async (txHash: string) => {
@@ -164,13 +168,31 @@ export function useBAppsSwapTracking() {
       if (taskId !== null) {
         // Task was identified by API
         await submitTaskCompletion(taskId, txHash)
+
+        // Get updated progress to show in notification
+        const updatedProgress = await bAppsCampaignAPI.getCampaignProgress(account.address!, defaultChainId)
+        const completedTask = updatedProgress.tasks.find((t) => t.id === taskId)
+
+        if (completedTask) {
+          // Show success notification
+          popupRegistry.addPopup(
+            {
+              type: PopupType.CampaignTaskCompleted,
+              taskName: completedTask.name,
+              progress: updatedProgress.progress,
+            },
+            `campaign-task-${taskId}`,
+            10000, // Show for 10 seconds
+          )
+        }
+
         return taskId
       }
 
       // No fallback mapping needed - API handles all task identification
       return null
     },
-    [checkSwapTaskCompletion, submitTaskCompletion],
+    [checkSwapTaskCompletion, submitTaskCompletion, account.address, defaultChainId],
   )
 
   return { trackSwapCompletion, isAvailable: useIsBAppsCampaignAvailable() }
