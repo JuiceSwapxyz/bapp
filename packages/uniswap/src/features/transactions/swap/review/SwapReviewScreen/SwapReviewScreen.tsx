@@ -39,7 +39,7 @@ import { isWeb } from 'utilities/src/platform'
 
 interface SwapReviewScreenProps {
   hideContent: boolean
-  onSubmitSwap?: () => Promise<void> | void
+  onSubmitSwap?: (txHash?: string) => Promise<void> | void
 }
 
 export function SwapReviewScreen({ hideContent, onSubmitSwap }: SwapReviewScreenProps): JSX.Element {

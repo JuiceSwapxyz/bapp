@@ -327,7 +327,9 @@ function* swap(params: SwapParams) {
 export const swapSaga = createSaga(swap, 'swapSaga')
 
 /** Callback to submit trades and track progress */
-export function useSwapCallback(): SwapCallback {
+export function useSwapCallback(
+  onSubmitSwapRef?: React.MutableRefObject<((txHash?: string) => Promise<void> | void) | undefined>,
+): SwapCallback {
   const appDispatch = useDispatch()
   const formatter = useLocalizationContext()
   const swapStartTimestamp = useSelector(selectSwapStartTimestamp)
@@ -397,8 +399,12 @@ export function useSwapCallback(): SwapCallback {
         selectChain,
         startChainId,
         v4Enabled: v4SwapEnabled,
-        onTransactionHash: (hash: string): void => {
+        onTransactionHash: async (hash: string): Promise<void> => {
           updateSwapForm({ txHash: hash, txHashReceivedTime: Date.now() })
+          // Call onSubmitSwap if provided to trigger campaign tracking
+          if (onSubmitSwapRef?.current) {
+            await onSubmitSwapRef.current(hash)
+          }
         },
       }
       appDispatch(swapSaga.actions.trigger(swapParams))
@@ -433,6 +439,7 @@ export function useSwapCallback(): SwapCallback {
       wallet.evmAccount,
       wallet.svmAccount,
       updateSwapForm,
+      onSubmitSwapRef,
     ],
   )
 }

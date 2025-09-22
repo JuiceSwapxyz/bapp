@@ -10,6 +10,7 @@ import { PopupContent, PopupType, SwitchNetworkAction } from 'components/Popups/
 import { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { Flex, Text } from 'ui/src'
+import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { Shuffle } from 'ui/src/components/icons/Shuffle'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
@@ -54,6 +55,24 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
     }
     case PopupType.FORTransaction: {
       return <FORTransactionPopupContent transaction={content.transaction} onClose={onClose} />
+    }
+    case PopupType.CampaignTaskCompleted: {
+      return (
+        <ToastRegularSimple
+          onDismiss={onClose}
+          icon={<CheckCircleFilled color="$statusSuccess" size="$icon.28" />}
+          text={
+            <Flex gap="$gap4" flexWrap="wrap" flex={1}>
+              <Text variant="body2" color="$neutral1">
+                Task Completed!
+              </Text>
+              <Text variant="body3" color="$neutral2">
+                {content.taskName} - Campaign Progress: {Math.round(content.progress)}%
+              </Text>
+            </Flex>
+          }
+        />
+      )
     }
   }
 }
