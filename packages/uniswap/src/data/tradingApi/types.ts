@@ -47,4 +47,6 @@ export type CustomSwapDataForRequest = {
   tokenInDecimals: number
   tokenOutChainId: number
   chainId: number
+  amount?: string
+  type?: string
 }
