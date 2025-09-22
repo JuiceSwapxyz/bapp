@@ -114,6 +114,18 @@ export function useBAppsCampaignProgress() {
     fetchProgress()
   }, [fetchProgress])
 
+  // Listen for campaign update events
+  useEffect(() => {
+    const handleCampaignUpdate = () => {
+      fetchProgress()
+    }
+
+    window.addEventListener('bapps-campaign-updated', handleCampaignUpdate)
+    return () => {
+      window.removeEventListener('bapps-campaign-updated', handleCampaignUpdate)
+    }
+  }, [fetchProgress])
+
   // Refetch progress every 30 seconds if wallet is connected
   useEffect(() => {
     if (!account.address || defaultChainId !== UniverseChainId.CitreaTestnet) {
@@ -152,7 +164,7 @@ function useIsBAppsCampaignAvailable(): boolean {
  * Hook to track swap completion and update campaign progress
  */
 export function useBAppsSwapTracking() {
-  const { submitTaskCompletion, checkSwapTaskCompletion, refetch } = useBAppsCampaignProgress()
+  const { submitTaskCompletion, checkSwapTaskCompletion } = useBAppsCampaignProgress()
   const account = useAccount()
   const { defaultChainId } = useEnabledChains()
 
@@ -165,12 +177,12 @@ export function useBAppsSwapTracking() {
         // Task was identified by API
         await submitTaskCompletion(taskId, txHash)
 
-        // First refresh the progress to update the UI
-        await refetch()
-
         // Get updated progress to show in notification
         const updatedProgress = await bAppsCampaignAPI.getCampaignProgress(account.address!, defaultChainId)
         const completedTask = updatedProgress.tasks.find((t) => t.id === taskId)
+
+        // Dispatch a custom event to trigger all hook instances to refetch
+        window.dispatchEvent(new CustomEvent('bapps-campaign-updated'))
 
         if (completedTask) {
           // Show success notification with the updated progress
@@ -191,7 +203,7 @@ export function useBAppsSwapTracking() {
       // No fallback mapping needed - API handles all task identification
       return null
     },
-    [checkSwapTaskCompletion, submitTaskCompletion, account.address, defaultChainId, refetch],
+    [checkSwapTaskCompletion, submitTaskCompletion, account.address, defaultChainId],
   )
 
   return { trackSwapCompletion, isAvailable: useIsBAppsCampaignAvailable() }
