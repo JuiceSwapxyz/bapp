@@ -1,4 +1,5 @@
 import CitreaLogo from 'assets/images/coins/citrea.png'
+import { FeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
@@ -90,8 +91,8 @@ export function CitreaCampaignProgress() {
     [navigate],
   )
 
-  // Only show on Citrea Testnet when wallet is connected
-  if (defaultChainId !== UniverseChainId.CitreaTestnet || !account.isConnected) {
+  // Only show if feature flag is enabled, on Citrea Testnet, and wallet is connected
+  if (!FeatureFlags.CITREA_BAPPS_CAMPAIGN || defaultChainId !== UniverseChainId.CitreaTestnet || !account.isConnected) {
     return null
   }
 

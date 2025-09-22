@@ -3,6 +3,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 // API endpoints for bApps campaign
 const BAPPS_API_BASE_URL = process.env.REACT_APP_BAPPS_API_URL || 'https://dev.ponder.deuro.com'
 
+// eslint-disable-next-line import/no-unused-modules
 export interface CampaignTask {
   id: number
   name: string
@@ -96,11 +97,12 @@ class BAppsCampaignAPI {
   /**
    * Check if a specific swap transaction completed a task
    */
-  async checkSwapTaskCompletion(
-    txHash: string,
-    walletAddress: string,
-    chainId: UniverseChainId,
-  ): Promise<number | null> {
+  async checkSwapTaskCompletion(params: {
+    txHash: string
+    walletAddress: string
+    chainId: UniverseChainId
+  }): Promise<number | null> {
+    const { txHash, walletAddress, chainId } = params
     try {
       const response = await fetch(`${this.baseUrl}/campaign/check-swap`, {
         method: 'POST',

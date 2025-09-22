@@ -1,11 +1,12 @@
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useBAppsSwapTracking as useTracking } from 'services/bappsCampaign/hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 /**
  * Hook to automatically track swap transactions for bApps campaign
+ * @internal - Used by swap components
  */
-export function useBAppsSwapTracking(txHash?: string, chainId?: UniverseChainId) {
+function useBAppsSwapTracking(txHash?: string, chainId?: UniverseChainId) {
   const { trackSwapCompletion } = useTracking()
 
   useEffect(() => {
@@ -15,42 +16,15 @@ export function useBAppsSwapTracking(txHash?: string, chainId?: UniverseChainId)
 
     // Track the swap after a short delay to ensure transaction is confirmed
     const timer = setTimeout(() => {
-      trackSwapCompletion(txHash).catch((error) => {
+      trackSwapCompletion(txHash).catch(() => {
         // Silently fail if tracking fails
       })
     }, 3000) // 3 second delay
 
+    // eslint-disable-next-line consistent-return
     return () => clearTimeout(timer)
   }, [txHash, chainId, trackSwapCompletion])
 }
 
-/**
- * Hook to manually track a swap with token information
- */
-export function useManualBAppsTracking() {
-  const { trackSwapCompletion } = useTracking()
-
-  const trackSwap = useCallback(
-    async (txHash: string, inputCurrency?: string, outputCurrency?: string) => {
-      try {
-        // Determine token symbols for tracking
-        const inputSymbol = inputCurrency === 'ETH' || inputCurrency === 'NATIVE' ? 'NATIVE' : inputCurrency
-        const outputSymbol = outputCurrency
-
-        const taskId = await trackSwapCompletion(txHash, inputSymbol, outputSymbol)
-
-        if (taskId !== null) {
-          // Task completion tracked successfully
-        }
-
-        return taskId
-      } catch (error) {
-        // Silently fail if tracking fails
-        return null
-      }
-    },
-    [trackSwapCompletion],
-  )
-
-  return { trackSwap }
-}
+// eslint-disable-next-line import/no-unused-modules
+export { useBAppsSwapTracking }

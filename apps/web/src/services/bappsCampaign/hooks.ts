@@ -72,7 +72,11 @@ export function useBAppsCampaignProgress() {
         return null
       }
 
-      const taskId = await bAppsCampaignAPI.checkSwapTaskCompletion(txHash, account.address, defaultChainId)
+      const taskId = await bAppsCampaignAPI.checkSwapTaskCompletion({
+        txHash,
+        walletAddress: account.address,
+        chainId: defaultChainId,
+      })
 
       // If a task was completed, refresh progress
       if (taskId !== null) {
@@ -92,7 +96,7 @@ export function useBAppsCampaignProgress() {
   // Refetch progress every 30 seconds if wallet is connected
   useEffect(() => {
     if (!account.address || defaultChainId !== UniverseChainId.CitreaTestnet) {
-      return
+      return undefined
     }
 
     const interval = setInterval(() => {
@@ -114,8 +118,9 @@ export function useBAppsCampaignProgress() {
 
 /**
  * Hook to check if campaign is available
+ * @internal
  */
-export function useIsBAppsCampaignAvailable(): boolean {
+function useIsBAppsCampaignAvailable(): boolean {
   const { defaultChainId } = useEnabledChains()
   const account = useAccount()
 
@@ -129,7 +134,7 @@ export function useBAppsSwapTracking() {
   const { submitTaskCompletion, checkSwapTaskCompletion } = useBAppsCampaignProgress()
 
   const trackSwapCompletion = useCallback(
-    async (txHash: string, inputToken?: string, outputToken?: string) => {
+    async (txHash: string) => {
       // First check with API which task this swap completed
       const taskId = await checkSwapTaskCompletion(txHash)
 
@@ -139,30 +144,14 @@ export function useBAppsSwapTracking() {
         return taskId
       }
 
-      // Fallback: Try to identify task based on tokens
-      if (!inputToken || !outputToken) {
-        return null
-      }
-
-      // Map token pairs to task IDs
-      const taskMapping: Record<string, number> = {
-        NATIVE_NUSD: 1, // cBTC to NUSD
-        NATIVE_cUSD: 2, // cBTC to cUSD
-        NATIVE_USDC: 3, // cBTC to USDC
-      }
-
-      const key = `${inputToken}_${outputToken}`
-      const mappedTaskId = taskMapping[key]
-
-      if (mappedTaskId) {
-        await submitTaskCompletion(mappedTaskId, txHash)
-        return mappedTaskId
-      }
-
+      // No fallback mapping needed - API handles all task identification
       return null
     },
     [checkSwapTaskCompletion, submitTaskCompletion],
   )
 
-  return { trackSwapCompletion }
+  return { trackSwapCompletion, isAvailable: useIsBAppsCampaignAvailable() }
 }
+
+// eslint-disable-next-line import/no-unused-modules
+export { useIsBAppsCampaignAvailable }
