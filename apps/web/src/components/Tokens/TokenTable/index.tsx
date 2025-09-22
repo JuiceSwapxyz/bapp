@@ -38,6 +38,10 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fromGraphQLChain, toGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
+import { useSelector } from 'react-redux'
+import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
+import { HARDCODED_CITREA_TOKENS } from 'constants/hardcodedTokens'
+import { useChainIdFromUrlParam } from 'utils/chainParams'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
@@ -78,9 +82,45 @@ function TokenDescription({ token }: { token: TokenStat }) {
 }
 
 export const TopTokensTable = memo(function TopTokensTable() {
+  const chainId = useChainIdFromUrlParam()
+  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
   const { topTokens, tokenSortRank, isLoading, sparklines, isError } = useRestTopTokens()
 
   const { page, loadMore } = useSimplePagination()
+
+  // Show hardcoded tokens for Citrea testnet or when Citrea Only toggle is enabled
+  if (chainId === UniverseChainId.CitreaTestnet || isCitreaOnlyEnabled) {
+    // Convert hardcoded tokens to TokenStat format
+    const citreaTokens = HARDCODED_CITREA_TOKENS.map((token, index) => ({
+      ...token,
+      chain: toGraphQLChain(UniverseChainId.CitreaTestnet),
+      market: {
+        id: token.id,
+        price: { value: token.price },
+        pricePercentChange1Hour: { value: token.pricePercentChange1Hour },
+        pricePercentChange1Day: { value: token.pricePercentChange1Day },
+        volume1Day: token.volume1Day,
+        marketCap: token.marketCap,
+      },
+    })) as TokenStat[]
+
+    const tokenRanks = Object.fromEntries(
+      citreaTokens.map((token, index) => [token.id, index + 1])
+    )
+
+    return (
+      <TableWrapper data-testid="top-tokens-explore-table">
+        <TokenTable
+          tokens={citreaTokens.slice(0, page * TABLE_PAGE_SIZE)}
+          tokenSortRank={tokenRanks}
+          sparklines={{}}
+          loading={false}
+          loadMore={citreaTokens.length > page * TABLE_PAGE_SIZE ? loadMore : undefined}
+          error={false}
+        />
+      </TableWrapper>
+    )
+  }
 
   return (
     <TableWrapper data-testid="top-tokens-explore-table">
