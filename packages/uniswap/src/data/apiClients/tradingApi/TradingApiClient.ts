@@ -213,6 +213,13 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
     data: string
     to: string
     value: string
+    swap: {
+      chainId: number
+      data: string
+      from: string
+      to: string
+      value: string
+    }
   }>(uniswapUrls.tradingApiPaths.swap, {
     body: JSON.stringify(body),
     headers: {
@@ -221,16 +228,19 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
     },
   })
 
-  if (!tokenIn?.chainId || !connectedWallet) {
-    throw new Error('Missing required chainId or connectedWallet')
+  if (params.customSwapData?.type === Routing.WRAP || params.customSwapData?.type === Routing.UNWRAP) {
+    return {
+      requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+      ...response,
+    }
   }
 
   return {
     requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
     swap: {
-      chainId: tokenIn.chainId,
+      chainId: tokenIn?.chainId ?? ChainId._5115,
       data: response.data,
-      from: connectedWallet,
+      from: connectedWallet ?? '',
       to: response.to,
       value: response.value,
     },

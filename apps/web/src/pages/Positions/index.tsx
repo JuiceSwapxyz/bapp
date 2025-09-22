@@ -1,6 +1,4 @@
 import { PositionStatus, ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
-import PROVIDE_LIQUIDITY from 'assets/images/provideLiquidity.png'
-import V4_HOOK from 'assets/images/v4Hooks.png'
 import { ExpandoRow } from 'components/AccountDrawer/MiniPortfolio/ExpandoRow'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ExternalArrowLink } from 'components/Liquidity/ExternalArrowLink'
@@ -20,8 +18,7 @@ import { Link, useNavigate } from 'react-router'
 import { FixedSizeList } from 'react-window'
 import { usePendingLPTransactionsChangeListener } from 'state/transactions/hooks'
 import { useRequestPositionsForSavedPairs } from 'state/user/hooks'
-import { ClickableTamaguiStyle } from 'theme/components/styles'
-import { Anchor, Button, Flex, Text, useMedia } from 'ui/src'
+import { Button, Flex, Text, useMedia } from 'ui/src'
 import { CloseIconWithHover } from 'ui/src/components/icons/CloseIconWithHover'
 import { InfoCircleFilled } from 'ui/src/components/icons/InfoCircleFilled'
 import { Pools } from 'ui/src/components/icons/Pools'
@@ -71,22 +68,6 @@ function DisconnectedWalletView() {
           </Button>
         </Flex>
       </Flex>
-      <Flex gap="$gap20" mb="$spacing24">
-        <Flex row gap="$gap12" $sm={{ flexDirection: 'column' }}>
-          <LearnMoreTile
-            width="100%"
-            img={PROVIDE_LIQUIDITY}
-            text={t('liquidity.provideOnProtocols')}
-            link={uniswapUrls.helpArticleUrls.providingLiquidityInfo}
-          />
-          <LearnMoreTile
-            width="100%"
-            img={V4_HOOK}
-            text={t('liquidity.hooks')}
-            link={uniswapUrls.helpArticleUrls.v4HooksInfo}
-          />
-        </Flex>
-      </Flex>
     </Flex>
   )
 }
@@ -125,44 +106,6 @@ function EmptyPositionsView() {
         </Flex>
       </Flex>
     </Flex>
-  )
-}
-
-function LearnMoreTile({
-  img,
-  text,
-  link,
-  width = 344,
-}: {
-  img: string
-  text: string
-  link?: string
-  width?: number | string
-}) {
-  return (
-    <Anchor
-      href={link}
-      textDecorationLine="none"
-      target="_blank"
-      rel="noopener noreferrer"
-      width={width}
-      {...ClickableTamaguiStyle}
-      hoverStyle={{ backgroundColor: '$surface1Hovered', borderColor: '$surface3Hovered' }}
-    >
-      <Flex
-        row
-        borderRadius="$rounded20"
-        borderColor="$surface3"
-        borderWidth="$spacing1"
-        borderStyle="solid"
-        alignItems="center"
-        gap="$gap16"
-        overflow="hidden"
-      >
-        <img src={img} style={{ objectFit: 'cover', width: '72px', height: '72px' }} />
-        <Text variant="subheading2">{text}</Text>
-      </Flex>
-    </Anchor>
   )
 }
 
@@ -433,36 +376,12 @@ export default function Pool() {
               <CloseIconWithHover onClose={() => setClosedCTADismissed(true)} size="$icon.20" />
             </Flex>
           )}
-          {isConnected && (
-            <Flex row centered $sm={{ flexDirection: 'column', alignItems: 'flex-start' }} mb="$spacing24" gap="$gap4">
-              <Text variant="body3" color="$neutral2">
-                {t('pool.import.link.description')}
-              </Text>
-              <Anchor href="/pools/v2/find" textDecorationLine="none">
-                <Text variant="body3" color="$neutral1" {...ClickableTamaguiStyle}>
-                  {t('pool.import.positions.v2')}
-                </Text>
-              </Anchor>
-            </Flex>
-          )}
         </Flex>
         <Flex gap="$gap32">
           <TopPools chainId={chainFilter} />
           {isConnected && (
             <Flex gap="$gap20" mb="$spacing24">
               <Text variant="subheading1">{t('liquidity.learnMoreLabel')}</Text>
-              <Flex gap="$gap12">
-                <LearnMoreTile
-                  img={PROVIDE_LIQUIDITY}
-                  text={t('liquidity.provideOnProtocols')}
-                  link={uniswapUrls.helpArticleUrls.providingLiquidityInfo}
-                />
-                <LearnMoreTile
-                  img={V4_HOOK}
-                  text={t('liquidity.hooks')}
-                  link={uniswapUrls.helpArticleUrls.v4HooksInfo}
-                />
-              </Flex>
               <ExternalArrowLink href={uniswapUrls.helpArticleUrls.positionsLearnMore}>
                 {t('common.button.learn')}
               </ExternalArrowLink>

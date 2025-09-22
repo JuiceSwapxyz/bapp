@@ -7,6 +7,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { memo, useCallback, useState } from 'react'
 import { Check } from 'react-feather'
 import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router'
 import { EllipsisTamaguiStyle } from 'theme/components/styles'
 import type { FlexProps } from 'ui/src'
@@ -21,7 +22,6 @@ import { useIsSupportedChainIdCallback } from 'uniswap/src/features/chains/hooks
 import type { UniverseChainInfo } from 'uniswap/src/features/chains/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { isBackendSupportedChainId, isTestnetChain, toGraphQLChain } from 'uniswap/src/features/chains/utils'
-import { useSelector } from 'react-redux'
 import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
@@ -84,7 +84,9 @@ export default function TableNetworkFilter({ showMultichainOption = true }: { sh
                 <NetworkLogo chainId={null} />
               ) : (
                 <ChainLogo
-                  chainId={isCitreaOnlyEnabled ? UniverseChainId.CitreaTestnet : (currentChainId ?? UniverseChainId.Mainnet)}
+                  chainId={
+                    isCitreaOnlyEnabled ? UniverseChainId.CitreaTestnet : currentChainId ?? UniverseChainId.Mainnet
+                  }
                   size={20}
                   testId={TestID.TokensNetworkFilterSelected}
                 />

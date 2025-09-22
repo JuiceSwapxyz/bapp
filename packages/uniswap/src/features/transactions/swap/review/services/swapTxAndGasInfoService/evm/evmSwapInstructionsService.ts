@@ -59,23 +59,44 @@ interface EVMSwapInstructionsServiceContext {
 const getCustomSwapTokenData = (
   trade: ClassicTrade | BridgeTrade | WrapTrade | UnwrapTrade | undefined,
 ): CustomSwapDataForRequest | undefined => {
-  if (!trade || trade.routing !== Routing.CLASSIC || !trade.swaps[0]) {
+  if (!trade) {
     return undefined
   }
 
-  const swap = trade.swaps[0]
-  const currencyIn = swap.inputAmount.currency
-  const currencyOut = swap.outputAmount.currency
+  if (trade.routing === Routing.CLASSIC && trade.swaps[0]) {
+    const swap = trade.swaps[0]
+    const currencyIn = swap.inputAmount.currency
+    const currencyOut = swap.outputAmount.currency
 
-  return {
-    chainId: currencyIn.chainId,
-    tokenInChainId: currencyIn.chainId,
-    tokenInAddress: currencyIn.isNative ? ZERO_ADDRESS : currencyIn.address,
-    tokenInDecimals: currencyIn.decimals,
-    tokenOutChainId: currencyOut.chainId,
-    tokenOutAddress: currencyOut.isNative ? ZERO_ADDRESS : currencyOut.address,
-    tokenOutDecimals: currencyOut.decimals,
+    return {
+      chainId: currencyIn.chainId,
+      tokenInChainId: currencyIn.chainId,
+      tokenInAddress: currencyIn.isNative ? ZERO_ADDRESS : currencyIn.address,
+      tokenInDecimals: currencyIn.decimals,
+      tokenOutChainId: currencyOut.chainId,
+      tokenOutAddress: currencyOut.isNative ? ZERO_ADDRESS : currencyOut.address,
+      tokenOutDecimals: currencyOut.decimals,
+    }
   }
+
+  if (trade.routing === Routing.WRAP || trade.routing === Routing.UNWRAP) {
+    const currencyIn = trade.inputAmount.currency
+    const currencyOut = trade.outputAmount.currency
+
+    return {
+      chainId: currencyIn.chainId,
+      tokenInChainId: currencyIn.chainId,
+      tokenInAddress: currencyIn.isNative ? ZERO_ADDRESS : currencyIn.address,
+      tokenInDecimals: currencyIn.decimals,
+      tokenOutChainId: currencyOut.chainId,
+      tokenOutAddress: currencyOut.isNative ? ZERO_ADDRESS : currencyOut.address,
+      tokenOutDecimals: currencyOut.decimals,
+      amount: trade.quote.quote.input?.amount,
+      type: trade.routing,
+    }
+  }
+
+  return undefined
 }
 
 function createLegacyEVMSwapInstructionsService(

@@ -10,7 +10,6 @@ import { FeeData } from 'components/Liquidity/Create/types'
 import LPIncentiveFeeStatTooltip from 'components/Liquidity/LPIncentives/LPIncentiveFeeStatTooltip'
 import { isDynamicFeeTier } from 'components/Liquidity/utils/feeTiers'
 import CurrencyLogo from 'components/Logo/CurrencyLogo'
-import { CitreaHardcodedPools } from 'components/Pools/CitreaHardcodedPools'
 import { Table } from 'components/Table'
 import { Cell } from 'components/Table/Cell'
 import {
@@ -24,6 +23,7 @@ import {
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
 import { exploreSearchStringAtom } from 'components/Tokens/state'
 import { MouseoverTooltip, TooltipSize } from 'components/Tooltip'
+import { HARDCODED_CITREA_POOLS } from 'constants/hardcodedPools'
 import useSimplePagination from 'hooks/useSimplePagination'
 import { useAtom } from 'jotai'
 import { atomWithReset, useAtomValue, useResetAtom, useUpdateAtom } from 'jotai/utils'
@@ -197,7 +197,26 @@ export const ExploreTopPoolTable = memo(function ExploreTopPoolTable() {
 
   // Show hardcoded pools for Citrea testnet or when Citrea Only toggle is enabled
   if (chainId === UniverseChainId.CitreaTestnet || isCitreaOnlyEnabled) {
-    return <CitreaHardcodedPools />
+    // Convert hardcoded pools to PoolStat format
+    const citreaPools = HARDCODED_CITREA_POOLS.map((pool) => ({
+      id: pool.id,
+      chain: Chain.UnknownChain,
+      token0: pool.token0 as any,
+      token1: pool.token1 as any,
+      feeTier: {
+        feeAmount: pool.feeTier,
+        tickSpacing: 60,
+        isDynamic: false,
+      } as FeeData,
+      totalLiquidity: { value: pool.tvlUSD },
+      volume1Day: { value: pool.volume24hUSD },
+      volume30Day: { value: pool.volume24hUSD * 30 }, // Estimated
+      apr: new Percent(Math.floor(pool.apr * 100), 10000),
+      volOverTvl: pool.volume24hUSD / pool.tvlUSD,
+      protocolVersion: 'v3',
+    })) as PoolStat[]
+
+    return <TopPoolTable topPoolData={{ topPools: citreaPools, isLoading: false, isError: false }} />
   }
 
   return <TopPoolTable topPoolData={{ topPools, isLoading, isError }} />

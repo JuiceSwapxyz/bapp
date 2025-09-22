@@ -19,7 +19,7 @@ export function CurrentScreen({
   tokenColor,
 }: {
   settings: TransactionSettingConfig[]
-  onSubmitSwap?: () => Promise<void> | void
+  onSubmitSwap?: (txHash?: string) => Promise<void> | void
   tokenColor?: string
 }): JSX.Element {
   const { screen, setScreen } = useTransactionModalContext()

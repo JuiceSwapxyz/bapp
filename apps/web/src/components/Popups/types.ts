@@ -10,6 +10,7 @@ export enum PopupType {
   Bridge = 'bridge',
   Mismatch = 'mismatch',
   FORTransaction = 'forTransaction',
+  CampaignTaskCompleted = 'campaignTaskCompleted',
 }
 
 export enum SwitchNetworkAction {
@@ -52,4 +53,9 @@ export type PopupContent =
       type: PopupType.FORTransaction
       transaction: FORTransaction
       currencyId: CurrencyId
+    }
+  | {
+      type: PopupType.CampaignTaskCompleted
+      taskName: string
+      progress: number
     }

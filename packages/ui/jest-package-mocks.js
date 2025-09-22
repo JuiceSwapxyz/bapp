@@ -22,6 +22,9 @@ jest.mock('ui/src/assets', () => {
     assets[key] = `mock-asset-${key}.png`
   })
 
+  // Ensure CITREA_LOGO is included
+  assets.CITREA_LOGO = `mock-asset-CITREA_LOGO.png`
+
   return assets
 })
 
