@@ -96,12 +96,14 @@ class BAppsCampaignAPI {
 
   /**
    * Check if a specific swap transaction completed a task
+   * Now with enhanced status information
    */
-  async checkSwapTaskCompletion(params: {
-    txHash: string
-    walletAddress: string
-    chainId: UniverseChainId
-  }): Promise<number | null> {
+  async checkSwapTaskCompletion(params: { txHash: string; walletAddress: string; chainId: UniverseChainId }): Promise<{
+    taskId: number | null
+    status?: 'pending' | 'confirmed' | 'failed' | 'not_found' | 'error'
+    message?: string
+    confirmations?: number
+  }> {
     const { txHash, walletAddress, chainId } = params
     try {
       const response = await fetch(`${this.baseUrl}/campaign/check-swap`, {
@@ -121,10 +123,21 @@ class BAppsCampaignAPI {
       }
 
       const data = await response.json()
-      return data.taskId || null
+
+      // Return full status information
+      return {
+        taskId: data.taskId || null,
+        status: data.status || 'error',
+        message: data.message,
+        confirmations: data.confirmations,
+      }
     } catch (error) {
-      // Error is handled by returning null
-      return null
+      // Error is handled by returning error status
+      return {
+        taskId: null,
+        status: 'error',
+        message: 'Failed to check transaction status',
+      }
     }
   }
 

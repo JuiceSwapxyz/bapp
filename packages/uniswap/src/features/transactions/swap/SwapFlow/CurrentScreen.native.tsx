@@ -22,7 +22,7 @@ export function CurrentScreen({
   onSubmitSwap,
 }: {
   settings: TransactionSettingConfig[]
-  onSubmitSwap?: () => Promise<void> | void
+  onSubmitSwap?: (txHash?: string) => Promise<void> | void
   tokenColor?: string
 }): JSX.Element {
   const { screen } = useTransactionModalContext()
@@ -65,7 +65,11 @@ function SwapFormScreenDelayedRender({ settings }: { settings: TransactionSettin
 }
 
 // We add a short hardcoded delay to allow the sheet to animate quickly when going from Form -> Review.
-function SwapReviewScreenDelayedRender({ onSubmitSwap }: { onSubmitSwap?: () => Promise<void> | void }): JSX.Element {
+function SwapReviewScreenDelayedRender({
+  onSubmitSwap,
+}: {
+  onSubmitSwap?: (txHash?: string) => Promise<void> | void
+}): JSX.Element {
   const { isContentHidden } = useDelayedRender(SWAP_REVIEW_SCREEN_TRANSITION_DELAY)
 
   return <SwapReviewScreen hideContent={isContentHidden} onSubmitSwap={onSubmitSwap} />

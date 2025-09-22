@@ -12,10 +12,11 @@ import { useModalState } from 'hooks/useModalState'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { useResetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap'
 import { useWebSwapSettings } from 'pages/Swap/settings/useWebSwapSettings'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router'
+import { useBAppsSwapTracking } from 'services/bappsCampaign/hooks'
 import { MultichainContextProvider } from 'state/multichain/MultichainContext'
 import { useSwapCallback } from 'state/sagas/transactions/swapSaga'
 import { useWrapCallback } from 'state/sagas/transactions/wrapSaga'
@@ -226,8 +227,8 @@ function UniversalSwapFlow({
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const swapCallback = useSwapCallback()
-  const wrapCallback = useWrapCallback()
+  // Store onSubmitSwap callback ref for access in swapCallback
+  const onSubmitSwapRef = useRef<((txHash?: string) => Promise<void> | void) | undefined>()
 
   const LimitFormWrapper = useDeferredComponent(() =>
     import('pages/Swap/Limit/LimitForm').then((module) => ({
@@ -294,6 +295,28 @@ function UniversalSwapFlow({
   const swapSettings = useWebSwapSettings()
   const resetDisableOneClickSwap = useResetOverrideOneClickSwapFlag()
 
+  // Campaign tracking integration
+  const { trackSwapCompletion } = useBAppsSwapTracking()
+
+  // Combine one-click swap reset and campaign tracking
+  const handleSubmitSwap = useCallback(
+    async (txHash?: string) => {
+      resetDisableOneClickSwap()
+
+      // Track swap completion for campaign if txHash is provided
+      if (txHash) {
+        await trackSwapCompletion(txHash)
+      }
+    },
+    [resetDisableOneClickSwap, trackSwapCompletion],
+  )
+
+  // Store the callback in ref for access in swapCallback
+  onSubmitSwapRef.current = handleSubmitSwap
+
+  const swapCallback = useSwapCallback(onSubmitSwapRef)
+  const wrapCallback = useWrapCallback()
+
   const connectorId = useAccount().connector?.id
   const passkeyAuthStatus = useGetPasskeyAuthStatus(connectorId)
 
@@ -323,7 +346,7 @@ function UniversalSwapFlow({
               onCurrencyChange={onCurrencyChange}
               prefilledState={prefilledState}
               tokenColor={tokenColor}
-              onSubmitSwap={resetDisableOneClickSwap}
+              onSubmitSwap={handleSubmitSwap}
               passkeyAuthStatus={passkeyAuthStatus}
             />
           </SwapDependenciesStoreContextProvider>

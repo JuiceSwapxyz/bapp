@@ -3,7 +3,7 @@ import { PlatformSplitStubError } from 'utilities/src/errors'
 
 export function CurrentScreen(_props: {
   settings: TransactionSettingConfig[]
-  onSubmitSwap?: () => Promise<void> | void
+  onSubmitSwap?: (txHash?: string) => Promise<void> | void
   tokenColor?: string
 }): JSX.Element {
   throw new PlatformSplitStubError('CurrentScreen')

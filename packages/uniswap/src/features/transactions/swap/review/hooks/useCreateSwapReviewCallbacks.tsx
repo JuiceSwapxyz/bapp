@@ -25,7 +25,7 @@ export function useCreateSwapReviewCallbacks(ctx: {
   resetCurrentStep: () => void
   setScreen: (screen: TransactionScreen) => void
   authTrigger?: AuthTrigger
-  onSubmitSwap?: () => Promise<void> | void
+  onSubmitSwap?: (txHash?: string) => Promise<void> | void
   setSubmissionError: (error?: Error) => void
   setRetrySwap: (onPressRetry?: () => void) => void
   onClose: () => void
@@ -45,7 +45,6 @@ export function useCreateSwapReviewCallbacks(ctx: {
     resetCurrentStep,
     setScreen,
     authTrigger,
-    onSubmitSwap,
     setSubmissionError,
     setRetrySwap,
     onClose,
@@ -83,7 +82,7 @@ export function useCreateSwapReviewCallbacks(ctx: {
     [updateSwapForm, setSubmissionError, resetCurrentStep, setRetrySwap],
   )
 
-  const onSuccess = useCallback(() => {
+  const onSuccess = useCallback(async () => {
     // For Unichain networks, trigger confirmation and branch to stall+fetch logic (ie handle in component)
     if (isFlashblocksEnabled) {
       updateSwapForm({
@@ -165,8 +164,7 @@ export function useCreateSwapReviewCallbacks(ctx: {
     } else {
       submitTransaction()
     }
-    await onSubmitSwap?.()
-  }, [authTrigger, onFailure, submitTransaction, updateSwapForm, onSubmitSwap])
+  }, [authTrigger, onFailure, submitTransaction, updateSwapForm])
 
   const onConfirmWarning = useCallback(() => {
     setWarningAcknowledged(true)

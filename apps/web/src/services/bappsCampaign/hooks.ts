@@ -65,25 +65,48 @@ export function useBAppsCampaignProgress() {
     [account.address, defaultChainId, fetchProgress],
   )
 
-  // Check if a swap completed a task
+  // Check if a swap completed a task with enhanced status handling
   const checkSwapTaskCompletion = useCallback(
-    async (txHash: string): Promise<number | null> => {
+    async (txHash: string, retryCount = 0): Promise<number | null> => {
       if (!account.address) {
         return null
       }
 
-      const taskId = await bAppsCampaignAPI.checkSwapTaskCompletion({
+      const result = await bAppsCampaignAPI.checkSwapTaskCompletion({
         txHash,
         walletAddress: account.address,
         chainId: defaultChainId,
       })
 
-      // If a task was completed, refresh progress
-      if (taskId !== null) {
-        await fetchProgress()
+      // Status information is available in result.status, result.message, and result.confirmations
+
+      // Handle different statuses
+      if (result.status === 'pending') {
+        // Implement automatic retry with exponential backoff
+        if (retryCount < 10) {
+          // Max 10 retries
+          const delay = Math.min(1000 * Math.pow(1.5, retryCount), 10000) // Max 10 seconds
+          await new Promise((resolve) => setTimeout(resolve, delay))
+          return checkSwapTaskCompletion(txHash, retryCount + 1)
+        }
+
+        // Max retries reached, transaction still pending
+        return null
       }
 
-      return taskId
+      if (result.status === 'failed' || result.status === 'not_found') {
+        // Transaction check failed
+        return null
+      }
+
+      // Only return taskId if confirmed and valid
+      if (result.status === 'confirmed' && result.taskId) {
+        // Task confirmed - refresh progress
+        await fetchProgress()
+        return result.taskId
+      }
+
+      return null
     },
     [account.address, defaultChainId, fetchProgress],
   )
