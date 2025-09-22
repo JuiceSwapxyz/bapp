@@ -18,7 +18,7 @@ interface SwapReviewCallbacksContextProviderProps {
   children: ReactNode
   setScreen: (screen: TransactionScreen) => void
   authTrigger?: AuthTrigger
-  onSubmitSwap?: () => Promise<void> | void
+  onSubmitSwap?: (txHash?: string) => Promise<void> | void
   onClose: () => void
   onAcceptTrade: () => void
   getExecuteSwapService: GetExecuteSwapService

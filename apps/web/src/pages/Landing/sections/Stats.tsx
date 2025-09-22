@@ -6,6 +6,8 @@ import { use24hProtocolVolume, useDailyTVLWithChange } from 'state/explore/proto
 import { ExternalLink } from 'theme/components/Links'
 import { Flex, Text, styled, useSporeColors } from 'ui/src'
 import { RightArrow } from 'ui/src/components/icons/RightArrow'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { NumberType } from 'utilities/src/format/types'
@@ -170,19 +172,27 @@ function Cards({ inView }: { inView: boolean }) {
   const { convertFiatAmountFormatted, formatNumberOrString } = useLocalizationContext()
   const { totalVolume } = use24hProtocolVolume()
   const { totalTVL } = useDailyTVLWithChange()
+  const { defaultChainId } = useEnabledChains()
   // Currently hardcoded, BE task [DAT-1435] to make this data available
   const allTimeVolume = 3.3 * 10 ** 12
   const allTimeSwappers = 119 * 10 ** 6
 
+  // Show bApps campaign card for Citrea Testnet
+  const showBAppsCard = defaultChainId === UniverseChainId.CitreaTestnet
+
   return (
     <GridArea>
       <LeftTop>
-        <StatCard
-          title={t('stats.allTimeVolume')}
-          value={convertFiatAmountFormatted(allTimeVolume, NumberType.FiatTokenStats)}
-          delay={0}
-          inView={inView}
-        />
+        {showBAppsCard ? (
+          <StatCard title="₿apps Campaign" value="LIVE" live delay={0} inView={inView} />
+        ) : (
+          <StatCard
+            title={t('stats.allTimeVolume')}
+            value={convertFiatAmountFormatted(allTimeVolume, NumberType.FiatTokenStats)}
+            delay={0}
+            inView={inView}
+          />
+        )}
       </LeftTop>
       <RightTop>
         <StatCard

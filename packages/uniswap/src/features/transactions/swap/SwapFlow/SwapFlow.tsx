@@ -19,7 +19,7 @@ export interface SwapFlowProps extends Omit<TransactionModalProps, 'fullscreen' 
   settings: TransactionSettingConfig[]
   hideHeader?: boolean
   hideFooter?: boolean
-  onSubmitSwap?: () => Promise<void> | void
+  onSubmitSwap?: (txHash?: string) => Promise<void> | void
   tokenColor?: string
 }
 

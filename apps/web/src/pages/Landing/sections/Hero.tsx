@@ -1,4 +1,5 @@
 import { ColumnCenter } from 'components/deprecated/Column'
+import { FeatureFlags } from 'constants/featureFlags'
 import { useCurrency } from 'hooks/Tokens'
 import { useScroll } from 'hooks/useScroll'
 import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
@@ -23,6 +24,8 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
   const media = useMedia()
   const { height: scrollPosition } = useScroll({ enabled: !media.sm })
   const { defaultChainId } = useEnabledChains()
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const showBAppsContent = FeatureFlags.CITREA_BAPPS_CAMPAIGN && defaultChainId === UniverseChainId.CitreaTestnet
   // Use native token (cBTC on Citrea) as default input currency
   const initialInputCurrency = useCurrency({
     address: 'ETH', // This will get the native token for any chain
@@ -90,7 +93,6 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       pt={INTERFACE_NAV_HEIGHT}
       pointerEvents="none"
     >
-
       <Flex
         alignSelf="center"
         maxWidth="85vw"
@@ -152,34 +154,36 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
 
       <Flex flex={1} />
 
-      <Flex
-        position="absolute"
-        width="100%"
-        centered
-        pointerEvents="none"
-        bottom={48}
-        style={{ transform: `translate(0px, ${translateY}px)`, opacity: opacityY }}
-        $lgHeight={{ display: 'none' }}
-      >
-        <RiseIn delay={0.3}>
-          <Flex
-            alignItems="center"
-            justifyContent="flex-start"
-            onPress={() => scrollToRef()}
-            cursor="pointer"
-            width={500}
-          >
-            <Hover>
-              <ColumnCenter>
-                <Text variant="body2">
-                  <Trans i18nKey="hero.scroll" />
-                </Text>
-                <ChevronDown />
-              </ColumnCenter>
-            </Hover>
-          </Flex>
-        </RiseIn>
-      </Flex>
+      {!showBAppsContent && (
+        <Flex
+          position="absolute"
+          width="100%"
+          centered
+          pointerEvents="none"
+          bottom={48}
+          style={{ transform: `translate(0px, ${translateY}px)`, opacity: opacityY }}
+          $lgHeight={{ display: 'none' }}
+        >
+          <RiseIn delay={0.3}>
+            <Flex
+              alignItems="center"
+              justifyContent="flex-start"
+              onPress={() => scrollToRef()}
+              cursor="pointer"
+              width={500}
+            >
+              <Hover>
+                <ColumnCenter>
+                  <Text variant="body2">
+                    <Trans i18nKey="hero.scroll" />
+                  </Text>
+                  <ChevronDown />
+                </ColumnCenter>
+              </Hover>
+            </Flex>
+          </RiseIn>
+        </Flex>
+      )}
     </Flex>
   )
 }
