@@ -4,7 +4,7 @@ import { useAccount } from 'hooks/useAccount'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { useBAppsCampaignProgress } from 'services/bappsCampaign/hooks'
-import { Anchor, Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
+import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
@@ -130,16 +130,9 @@ export function CitreaCampaignProgress() {
           </Text>
         </Flex>
 
-        <Flex row gap="$spacing8" alignItems="center">
-          <Text variant="body3" color="$neutral2">
-            {completedTasks.length}/3 completed
-          </Text>
-          <Anchor href="https://bapps.citrea.xyz" target="_blank" rel="noopener noreferrer" textDecorationLine="none">
-            <Text variant="body4" color="$accent1">
-              View Details →
-            </Text>
-          </Anchor>
-        </Flex>
+        <Text variant="body3" color="$neutral2">
+          {completedTasks.length}/3 completed
+        </Text>
       </Flex>
 
       <ProgressBar>
