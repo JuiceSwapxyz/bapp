@@ -57,6 +57,7 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
       return <FORTransactionPopupContent transaction={content.transaction} onClose={onClose} />
     }
     case PopupType.CampaignTaskCompleted: {
+      const isAlreadyCompleted = content.isAlreadyCompleted ?? false
       return (
         <ToastRegularSimple
           onDismiss={onClose}
@@ -64,10 +65,12 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
           text={
             <Flex gap="$gap4" flexWrap="wrap" flex={1}>
               <Text variant="body2" color="$neutral1">
-                Task bereits erledigt!
+                {isAlreadyCompleted ? 'Task already completed!' : 'Task Completed!'}
               </Text>
               <Text variant="body3" color="$neutral2">
-                {content.taskName} wurde bereits abgeschlossen. Campaign Progress: {Math.round(content.progress)}%
+                {isAlreadyCompleted
+                  ? `${content.taskName} has been completed. Campaign Progress: ${Math.round(content.progress)}%`
+                  : `${content.taskName} - Campaign Progress: ${Math.round(content.progress)}%`}
               </Text>
             </Flex>
           }

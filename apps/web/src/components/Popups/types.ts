@@ -58,4 +58,5 @@ export type PopupContent =
       type: PopupType.CampaignTaskCompleted
       taskName: string
       progress: number
+      isAlreadyCompleted?: boolean
     }

@@ -94,6 +94,7 @@ export function CitreaCampaignProgress() {
             type: PopupType.CampaignTaskCompleted,
             taskName: task.name,
             progress,
+            isAlreadyCompleted: true,
           },
           `task-completed-${task.name}`,
           3000,
