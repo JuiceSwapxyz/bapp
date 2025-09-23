@@ -100,8 +100,14 @@ export function TokenSelectorContent({
   onSelectChain,
   onSelectCurrency,
 }: Omit<TokenSelectorProps, 'isModalOpen'>): JSX.Element {
+  const { chains: enabledChains, isTestnetModeEnabled } = useEnabledChains()
+  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
+
+  // Force Citrea chain filter when Citrea-only mode is enabled
+  const initialChainFilter = isCitreaOnlyEnabled ? UniverseChainId.CitreaTestnet : chainId ?? null
+
   const { onChangeChainFilter, onChangeText, searchFilter, chainFilter, parsedChainFilter, parsedSearchFilter } =
-    useFilterCallbacks(chainId ?? null, flowToModalName(flow))
+    useFilterCallbacks(initialChainFilter, flowToModalName(flow))
   const debouncedSearchFilter = useDebounce(searchFilter)
   const debouncedParsedSearchFilter = useDebounce(parsedSearchFilter)
   const scrollbarStyles = useScrollbarStyles()
@@ -112,8 +118,12 @@ export function TokenSelectorContent({
 
   const [hasClipboardString, setHasClipboardString] = useState(false)
 
-  const { chains: enabledChains, isTestnetModeEnabled } = useEnabledChains()
-  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
+  // Update chain filter when Citrea-only mode changes
+  useEffect(() => {
+    if (isCitreaOnlyEnabled && chainFilter !== UniverseChainId.CitreaTestnet) {
+      onChangeChainFilter(UniverseChainId.CitreaTestnet)
+    }
+  }, [isCitreaOnlyEnabled, chainFilter, onChangeChainFilter])
 
   // Check if user clipboard has any text to show paste button
   useEffect(() => {
@@ -304,12 +314,14 @@ export function TokenSelectorContent({
                 {hasClipboardString && <PasteButton inline textVariant="buttonLabel3" onPress={handlePaste} />}
                 <NetworkFilter
                   includeAllNetworks={!isCitreaOnlyEnabled}
-                  chainIds={chainIds || enabledChains}
+                  chainIds={isCitreaOnlyEnabled ? [UniverseChainId.CitreaTestnet] : chainIds || enabledChains}
                   selectedChain={chainFilter}
                   styles={isExtension || isMobileWeb ? { dropdownZIndex: zIndexes.overlay } : undefined}
                   onPressChain={(newChainId) => {
-                    onChangeChainFilter(newChainId)
-                    onSelectChain?.(newChainId)
+                    if (!isCitreaOnlyEnabled) {
+                      onChangeChainFilter(newChainId)
+                      onSelectChain?.(newChainId)
+                    }
                   }}
                 />
               </Flex>
