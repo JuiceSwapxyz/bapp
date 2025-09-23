@@ -469,7 +469,7 @@ export async function fetchSwappableTokens(params: SwappableTokensParams): Promi
 }
 
 export async function createLpPosition(params: CreateLPPositionRequest): Promise<CreateLPPositionResponse> {
-  return await TradingApiClient.post<CreateLPPositionResponse>(uniswapUrls.tradingApiPaths.createLp, {
+  return await CustomQuoteApiClient.post<CreateLPPositionResponse>(uniswapUrls.tradingApiPaths.createLp, {
     body: JSON.stringify({
       ...params,
     }),
@@ -502,7 +502,7 @@ export async function checkLpApproval(
   params: CheckApprovalLPRequest,
   headers?: Record<string, string>,
 ): Promise<CheckApprovalLPResponse> {
-  return await TradingApiClient.post<CheckApprovalLPResponse>(uniswapUrls.tradingApiPaths.lpApproval, {
+  return await CustomQuoteApiClient.post<CheckApprovalLPResponse>(uniswapUrls.tradingApiPaths.lpApproval, {
     body: JSON.stringify({
       ...params,
     }),
