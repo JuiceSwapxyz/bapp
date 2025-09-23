@@ -59,8 +59,13 @@ export const SearchModalList = memo(function _SearchModalList({
   onSelect,
   searchFilters,
 }: SearchModalListProps): JSX.Element {
-  const { navigateToTokenDetails, navigateToExternalProfile, navigateToNftCollection, navigateToPoolDetails } =
-    useUniswapContext()
+  const {
+    navigateToTokenDetails,
+    navigateToExternalProfile,
+    navigateToNftCollection,
+    navigateToPoolDetails,
+    navigateToSwapFlow,
+  } = useUniswapContext()
   const { registerSearchItem } = useAddToSearchHistory()
 
   const { value: isContextMenuOpen, setFalse: closeContextMenu, toggle: toggleContextMenu } = useBooleanState(false)
@@ -181,7 +186,13 @@ export const SearchModalList = memo(function _SearchModalList({
             onPress={() => {
               registerSearchItem(item)
 
-              navigateToTokenDetails(item.currencyInfo.currencyId)
+              if (isWeb) {
+                // On web, navigate to swap with token as output (buy) token
+                navigateToSwapFlow({ outputCurrencyId: item.currencyInfo.currencyId })
+              } else {
+                // On mobile, navigate to token details as before
+                navigateToTokenDetails(item.currencyInfo.currencyId)
+              }
 
               sendSearchOptionItemClickedAnalytics({
                 item,
