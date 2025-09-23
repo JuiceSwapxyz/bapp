@@ -158,24 +158,40 @@ export function useBAppsCampaignProgress() {
 }
 
 /**
- * Hook to check if campaign is available
+ * Hook to check if campaign is currently active (time-based only)
  * @internal
  */
-function useIsBAppsCampaignAvailable(): boolean {
-  const { defaultChainId } = useEnabledChains()
-  const account = useAccount()
-
+function useIsCampaignTimeActive(): boolean {
   // Campaign start time: September 25, 2025 at 00:00 UTC
-  const isCampaignActive = useMemo(() => {
+  return useMemo(() => {
     const campaignStartTime = new Date('2025-09-25T00:00:00.000Z').getTime()
     const now = Date.now()
     return now >= campaignStartTime
   }, [])
+}
+
+/**
+ * Hook to check if campaign features should be visible (no wallet requirement)
+ */
+export function useIsBAppsCampaignVisible(): boolean {
+  const { defaultChainId } = useEnabledChains()
+  const isCampaignTimeActive = useIsCampaignTimeActive()
 
   const isCorrectChain = defaultChainId === UniverseChainId.CitreaTestnet
+
+  return isCampaignTimeActive && isCorrectChain
+}
+
+/**
+ * Hook to check if campaign is available for user interaction (requires wallet)
+ * @internal
+ */
+function useIsBAppsCampaignAvailable(): boolean {
+  const account = useAccount()
+  const isCampaignVisible = useIsBAppsCampaignVisible()
   const isWalletConnected = account.isConnected
 
-  return isCampaignActive && isCorrectChain && isWalletConnected
+  return isCampaignVisible && isWalletConnected
 }
 
 /**
