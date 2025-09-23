@@ -20,5 +20,17 @@ export default function QueryTokenLogo(
 
   const currencies = useMemo(() => (!isNative ? undefined : [currency]), [currency, isNative])
 
-  return <PortfolioLogo currencies={currencies} chainId={chainId} images={[props.token?.logo]} {...props} />
+  // Use logo URL with fallback to project logo URL for compatibility
+  const logoUrl = useMemo(() => {
+    if (props.token?.logo) {
+      return props.token.logo
+    }
+    // Fallback to project.logo.url structure used in GraphQL responses
+    if (props.token?.project?.logo?.url) {
+      return props.token.project.logo.url
+    }
+    return undefined
+  }, [props.token?.logo, props.token?.project?.logo?.url])
+
+  return <PortfolioLogo currencies={currencies} chainId={chainId} images={[logoUrl]} {...props} />
 }

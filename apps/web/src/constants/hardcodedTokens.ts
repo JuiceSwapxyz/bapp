@@ -11,7 +11,11 @@ export const HARDCODED_CITREA_TOKENS = [
     symbol: WCBTC.symbol,
     name: WCBTC.name,
     decimals: WCBTC.decimals,
-    project: { name: WCBTC.name },
+    project: {
+      name: WCBTC.name,
+      logo: { url: 'https://docs.juiceswap.xyz/media/icons/cbtc.png' }
+    },
+    logo: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
     price: 95000,
     pricePercentChange1Hour: 0.5,
     pricePercentChange1Day: 2.3,
@@ -25,7 +29,11 @@ export const HARDCODED_CITREA_TOKENS = [
     symbol: TFC.symbol,
     name: TFC.name,
     decimals: TFC.decimals,
-    project: { name: TFC.name },
+    project: {
+      name: TFC.name,
+      logo: { url: undefined }
+    },
+    logo: undefined,
     price: 3.2,
     pricePercentChange1Hour: -0.8,
     pricePercentChange1Day: 5.7,
@@ -39,7 +47,11 @@ export const HARDCODED_CITREA_TOKENS = [
     symbol: cUSD.symbol,
     name: cUSD.name,
     decimals: cUSD.decimals,
-    project: { name: cUSD.name },
+    project: {
+      name: cUSD.name,
+      logo: { url: 'https://docs.juiceswap.xyz/media/icons/cusd.png' }
+    },
+    logo: 'https://docs.juiceswap.xyz/media/icons/cusd.png',
     price: 0.999,
     pricePercentChange1Hour: 0.01,
     pricePercentChange1Day: -0.05,
@@ -53,7 +65,11 @@ export const HARDCODED_CITREA_TOKENS = [
     symbol: NUSD.symbol,
     name: NUSD.name,
     decimals: NUSD.decimals,
-    project: { name: NUSD.name },
+    project: {
+      name: NUSD.name,
+      logo: { url: 'https://docs.juiceswap.xyz/media/icons/nusd.png' }
+    },
+    logo: 'https://docs.juiceswap.xyz/media/icons/nusd.png',
     price: 1.001,
     pricePercentChange1Hour: 0.02,
     pricePercentChange1Day: 0.1,
@@ -67,7 +83,11 @@ export const HARDCODED_CITREA_TOKENS = [
     symbol: USDC.symbol,
     name: USDC.name,
     decimals: USDC.decimals,
-    project: { name: USDC.name },
+    project: {
+      name: USDC.name,
+      logo: { url: undefined }
+    },
+    logo: undefined,
     price: 1.0,
     pricePercentChange1Hour: 0.0,
     pricePercentChange1Day: 0.01,
