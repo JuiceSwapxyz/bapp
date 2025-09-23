@@ -31,9 +31,9 @@ export const HARDCODED_CITREA_TOKENS = [
     decimals: TFC.decimals,
     project: {
       name: TFC.name,
-      logo: { url: undefined }
+      logo: { url: 'https://docs.juiceswap.xyz/media/icons/tfc.png' }
     },
-    logo: undefined,
+    logo: 'https://docs.juiceswap.xyz/media/icons/tfc.png',
     price: 3.2,
     pricePercentChange1Hour: -0.8,
     pricePercentChange1Day: 5.7,
@@ -85,9 +85,9 @@ export const HARDCODED_CITREA_TOKENS = [
     decimals: USDC.decimals,
     project: {
       name: USDC.name,
-      logo: { url: undefined }
+      logo: { url: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png' }
     },
-    logo: undefined,
+    logo: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
     price: 1.0,
     pricePercentChange1Hour: 0.0,
     pricePercentChange1Day: 0.01,
