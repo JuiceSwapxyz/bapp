@@ -7,6 +7,10 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { NUMBER_OF_RESULTS_LONG } from 'uniswap/src/features/search/SearchModal/constants'
+import {
+  enrichHardcodedTokenWithSafety,
+  searchHardcodedTokens,
+} from 'uniswap/src/features/tokens/searchHardcodedTokens'
 import { useEvent } from 'utilities/src/react/hooks'
 
 export function useSearchTokens({
@@ -22,6 +26,16 @@ export function useSearchTokens({
 }): GqlResult<CurrencyInfo[]> {
   const { chains: enabledChainIds } = useEnabledChains()
 
+  // Search hardcoded tokens first
+  const hardcodedResults = useMemo(() => {
+    if (skip || !searchQuery) {
+      return []
+    }
+    const results = searchHardcodedTokens(searchQuery, chainFilter)
+    // Enrich with safety information
+    return results.map((token) => enrichHardcodedTokenWithSafety(token))
+  }, [searchQuery, chainFilter, skip])
+
   const variables = useMemo(
     () => ({
       searchQuery: searchQuery ?? undefined,
@@ -34,7 +48,32 @@ export function useSearchTokens({
   )
 
   const tokenSelect = useEvent((data: SearchTokensResponse): CurrencyInfo[] => {
-    return data.tokens.map((token) => searchTokenToCurrencyInfo(token)).filter((c): c is CurrencyInfo => Boolean(c))
+    const onchainTokens = data.tokens
+      .map((token) => searchTokenToCurrencyInfo(token))
+      .filter((c): c is CurrencyInfo => Boolean(c))
+
+    // Merge results: hardcoded tokens first, then on-chain results
+    // Remove duplicates based on currencyId
+    const seen = new Set<string>()
+    const merged: CurrencyInfo[] = []
+
+    // Add hardcoded tokens first (higher priority)
+    for (const token of hardcodedResults) {
+      if (!seen.has(token.currencyId)) {
+        seen.add(token.currencyId)
+        merged.push(token)
+      }
+    }
+
+    // Add on-chain tokens (avoid duplicates)
+    for (const token of onchainTokens) {
+      if (!seen.has(token.currencyId)) {
+        seen.add(token.currencyId)
+        merged.push(token)
+      }
+    }
+
+    return merged.slice(0, size)
   })
 
   const {
@@ -43,11 +82,25 @@ export function useSearchTokens({
     isPending,
     refetch,
   } = useQuery({
-    queryKey: ['searchTokens-custom', variables],
+    queryKey: ['searchTokens-custom', variables, hardcodedResults],
     queryFn: async () => {
-      const token = await fetchTokenDataDirectly(variables.searchQuery ?? '', variables.chainIds[0] ?? 1)
-      const response = new SearchTokensResponse({ tokens: token ? [token] : [] })
-      return response
+      // If we already have hardcoded results and the query doesn't look like an address,
+      // skip the on-chain fetch to improve performance
+      const isLikelyAddress = variables.searchQuery?.startsWith('0x') && variables.searchQuery.length > 10
+
+      if (hardcodedResults.length > 0 && !isLikelyAddress) {
+        // Return empty response, hardcoded results will be merged in tokenSelect
+        return new SearchTokensResponse({ tokens: [] })
+      }
+
+      // Try to fetch on-chain data for addresses or when no hardcoded results
+      try {
+        const token = await fetchTokenDataDirectly(variables.searchQuery ?? '', variables.chainIds[0] ?? 1)
+        return new SearchTokensResponse({ tokens: token ? [token] : [] })
+      } catch {
+        // If on-chain fetch fails, return empty response
+        return new SearchTokensResponse({ tokens: [] })
+      }
     },
     enabled: !skip,
     select: tokenSelect,

@@ -46,7 +46,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'Citrus Dollar',
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0`,
-    logoUrl: '',
+    logoUrl: 'https://docs.juiceswap.xyz/media/icons/cusd.png',
   },
   {
     currency: buildCurrency({
@@ -57,7 +57,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'Wrapped Citrea BTC',
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0`,
-    logoUrl: '',
+    logoUrl: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
   },
   {
     currency: buildCurrency({
@@ -79,7 +79,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'Nectra USD',
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x9B28B690550522608890C3C7e63c0b4A7eBab9AA`,
-    logoUrl: '',
+    logoUrl: 'https://docs.juiceswap.xyz/media/icons/nusd.png',
   },
   {
     currency: buildCurrency({

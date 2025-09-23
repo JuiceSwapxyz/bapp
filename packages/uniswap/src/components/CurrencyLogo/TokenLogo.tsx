@@ -37,6 +37,20 @@ export const TokenLogo = memo(function _TokenLogo({
 }: TokenLogoProps): JSX.Element {
   const isTestnetToken = !!chainId && isTestnetChain(chainId)
 
+  // Override logo URLs for Citrea Testnet tokens
+  let logoUrl = url
+  if (chainId === UniverseChainId.CitreaTestnet) {
+    const tokenLogoOverrides: Record<string, string> = {
+      WcBTC: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
+      cBTC: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
+      cUSD: 'https://docs.juiceswap.xyz/media/icons/cusd.png',
+      NUSD: 'https://docs.juiceswap.xyz/media/icons/nusd.png',
+    }
+    if (symbol && tokenLogoOverrides[symbol]) {
+      logoUrl = tokenLogoOverrides[symbol]
+    }
+  }
+
   // We want to avoid the extra render on mobile when updating the state, so we set this to `true` from the start.
   const [showBackground, setShowBackground] = useState(isMobileApp ? true : false)
 
@@ -124,7 +138,7 @@ export const TokenLogo = memo(function _TokenLogo({
           },
         }}
         testID="token-image"
-        uri={url ?? undefined}
+        uri={logoUrl ?? undefined}
         onLoad={() => setShowBackground(true)}
       />
 

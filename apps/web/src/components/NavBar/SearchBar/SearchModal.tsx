@@ -1,5 +1,5 @@
 import { useModalState } from 'hooks/useModalState'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { Flex, Text, TouchableArea, useMedia, useScrollbarStyles, useSporeColors } from 'ui/src'
@@ -7,6 +7,7 @@ import { Modal } from 'uniswap/src/components/modals/Modal'
 import { useUpdateScrollLock } from 'uniswap/src/components/modals/ScrollLock'
 import { NetworkFilter } from 'uniswap/src/components/network/NetworkFilter'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { SearchModalNoQueryList } from 'uniswap/src/features/search/SearchModal/SearchModalNoQueryList'
@@ -33,8 +34,11 @@ export const SearchModal = memo(function _SearchModal(): JSX.Element {
 
   const [activeTab, setActiveTab] = useState<SearchTab>(poolSearchEnabled ? SearchTab.All : SearchTab.Tokens)
 
+  // Force Citrea chain filter when Citrea-only mode is enabled
+  const initialChainFilter = isCitreaOnlyEnabled ? UniverseChainId.CitreaTestnet : null
+
   const { onChangeChainFilter, onChangeText, searchFilter, chainFilter, parsedChainFilter, parsedSearchFilter } =
-    useFilterCallbacks(null, ModalName.Search)
+    useFilterCallbacks(initialChainFilter, ModalName.Search)
   const debouncedSearchFilter = useDebounce(searchFilter)
   const debouncedParsedSearchFilter = useDebounce(parsedSearchFilter)
 
@@ -55,6 +59,13 @@ export const SearchModal = memo(function _SearchModal(): JSX.Element {
   }, [onChangeText, onClose])
 
   const { chains: enabledChains } = useEnabledChains()
+
+  // Update chain filter when Citrea-only mode changes
+  useEffect(() => {
+    if (isCitreaOnlyEnabled && chainFilter !== UniverseChainId.CitreaTestnet) {
+      onChangeChainFilter(UniverseChainId.CitreaTestnet)
+    }
+  }, [isCitreaOnlyEnabled, chainFilter, onChangeChainFilter])
 
   // Tamagui Dialog/Sheets should remove background scroll by default but does not work to disable ArrowUp/Down key scrolling
   useUpdateScrollLock({ isModalOpen })
@@ -96,7 +107,7 @@ export const SearchModal = memo(function _SearchModal(): JSX.Element {
               <Flex row alignItems="center">
                 <NetworkFilter
                   includeAllNetworks={!isCitreaOnlyEnabled}
-                  chainIds={enabledChains}
+                  chainIds={isCitreaOnlyEnabled ? [UniverseChainId.CitreaTestnet] : enabledChains}
                   selectedChain={chainFilter}
                   onPressChain={onChangeChainFilter}
                 />
