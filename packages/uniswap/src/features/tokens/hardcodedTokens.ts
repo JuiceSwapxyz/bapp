@@ -57,7 +57,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'Wrapped Citrea BTC',
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0`,
-    logoUrl: '',
+    logoUrl: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
   },
   {
     currency: buildCurrency({
