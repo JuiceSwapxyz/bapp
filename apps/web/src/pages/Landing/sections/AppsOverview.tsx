@@ -14,8 +14,8 @@ export function AppsOverview() {
         <H2>{t('landing.appsOverview')}</H2>
         <Flex gap="$gap16">
           <Flex row flexWrap="wrap" height="auto" flex={1} gap="$gap16" $md={{ flexDirection: 'column' }}>
-            <WebappCard />
-            <LiquidityCard />
+            {/* <WebappCard /> */}
+            {/* <LiquidityCard /> */}
             <TradingApiCard />
             <CitreaCampaignCard />
           </Flex>
