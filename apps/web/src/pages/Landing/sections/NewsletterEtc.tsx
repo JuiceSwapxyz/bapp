@@ -32,7 +32,7 @@ const RowContent = React.memo(function RowContent({
   showArrow,
 }: {
   icon: React.ReactNode
-  title: string
+  title: string | React.ReactNode
   description: string | React.ReactNode
   showArrow: boolean
 }) {
@@ -81,7 +81,7 @@ function UniverseRow({
   href,
 }: {
   icon: React.ReactNode
-  title: string
+  title: string | React.ReactNode
   description: string | React.ReactNode
   href?: string
 }) {
@@ -200,6 +200,15 @@ function FAQList() {
 export function NewsletterEtc() {
   const { t } = useTranslation()
 
+  useEffect(() => {
+    // Scroll to FAQ section if hash is #faq
+    if (window.location.hash === '#faq') {
+      setTimeout(() => {
+        document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
+    }
+  }, [])
+
   return (
     <SectionLayout>
       <Text variant="heading1" width="100%" $md={{ variant: 'heading2' }}>
@@ -231,11 +240,17 @@ export function NewsletterEtc() {
             />
           }
         />
-        <UniverseRow
-          icon={<HelpCenter size="$icon.36" fill="$neutral1" />}
-          title={t('common.faq')}
-          description={<FAQList />}
-        />
+        <Flex id="faq">
+          <UniverseRow
+            icon={<HelpCenter size="$icon.36" fill="$neutral1" />}
+            title={
+              <Anchor href="/?intro=true#faq" textDecorationLine="none" color="$neutral1">
+                {t('common.faq')}
+              </Anchor>
+            }
+            description={<FAQList />}
+          />
+        </Flex>
       </Flex>
     </SectionLayout>
   )
