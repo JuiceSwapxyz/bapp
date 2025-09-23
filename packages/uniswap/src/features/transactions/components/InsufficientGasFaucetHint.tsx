@@ -2,23 +2,41 @@ import { useTranslation } from 'react-i18next'
 import { Anchor, Flex, Text, useMedia } from 'ui/src'
 import { AlertTriangle } from 'ui/src/components/icons'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { useParsedSwapWarnings } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/useSwapWarnings'
+import { useSwapFormButtonText } from 'uniswap/src/features/transactions/swap/components/SwapFormButton/hooks/useSwapFormButtonText'
 import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
+import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 
 export function InsufficientGasFaucetHint(): JSX.Element | null {
   const { t } = useTranslation()
-  const { insufficientGasFundsWarning } = useParsedSwapWarnings()
   const chainId = useSwapFormStore((s) => s.derivedSwapInfo.chainId)
+  const buttonText = useSwapFormButtonText()
   const isShort = useMedia().short
 
-  // Only show for Citrea testnet when there's an insufficient gas warning with faucet URL
-  if (
-    !insufficientGasFundsWarning ||
-    !insufficientGasFundsWarning.faucetUrl ||
-    chainId !== UniverseChainId.CitreaTestnet
-  ) {
+  // Get chain info for faucet URL
+  const chainInfo = chainId === UniverseChainId.CitreaTestnet ? getChainInfo(chainId) : null
+  const faucetUrl = chainInfo?.faucetUrl
+
+  // Get native currency symbol from chain info
+  const nativeCurrencySymbol = chainInfo?.nativeCurrency?.symbol ?? 'cBTC'
+  const expectedButtonText = t('common.insufficientTokenBalance.error.simple', {
+    tokenSymbol: nativeCurrencySymbol
+  })
+
+  // Show component if:
+  // - On Citrea testnet AND
+  // - Button shows "Not enough cBTC" (insufficient gas funds) AND
+  // - Has faucet URL available
+  const shouldShow = (
+    chainId === UniverseChainId.CitreaTestnet &&
+    buttonText === expectedButtonText &&
+    faucetUrl
+  )
+
+  if (!shouldShow) {
     return null
   }
+
+  const finalFaucetUrl = faucetUrl
 
   return (
     <Flex
@@ -34,11 +52,11 @@ export function InsufficientGasFaucetHint(): JSX.Element | null {
       <Flex fill gap="$spacing4">
         <Text color="$neutral2" variant="body3">
           {t('swap.warning.insufficientGas.faucet.title', {
-            currencySymbol: insufficientGasFundsWarning.currency?.symbol || 'cBTC',
+            currencySymbol: 'cBTC',
           })}
         </Text>
         <Anchor
-          href={insufficientGasFundsWarning.faucetUrl}
+          href={finalFaucetUrl}
           target="_blank"
           rel="noopener noreferrer"
           textDecorationLine="none"
