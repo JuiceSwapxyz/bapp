@@ -220,6 +220,14 @@ export function useTransactionGasWarning({
     }
     const currencySymbol = nativeCurrencyBalance.currency.symbol ?? ''
 
+    // Get faucet URL for testnet chains
+    let faucetUrl: string | undefined
+    if (chainId === UniverseChainId.CitreaTestnet) {
+      const { getChainInfo } = require('uniswap/src/features/chains/chainInfo')
+      const chainInfo = getChainInfo(chainId)
+      faucetUrl = chainInfo.faucetUrl
+    }
+
     return {
       type: WarningLabel.InsufficientGasFunds,
       severity: WarningSeverity.Medium,
@@ -234,8 +242,9 @@ export function useTransactionGasWarning({
         : undefined,
       message: undefined,
       currency: nativeCurrencyBalance.currency,
+      faucetUrl,
     }
-  }, [gasFee, isSmartContractAddress, balanceInsufficient, nativeCurrencyBalance, hasGasFunds, t])
+  }, [gasFee, isSmartContractAddress, balanceInsufficient, nativeCurrencyBalance, hasGasFunds, t, chainId])
 }
 
 type GasFeeFormattedAmounts<T extends string | undefined> = T extends string

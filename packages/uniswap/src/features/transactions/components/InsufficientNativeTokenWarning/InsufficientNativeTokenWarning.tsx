@@ -125,14 +125,6 @@ function InsufficientNativeTokenWarningContent({
             {modalOrTooltipMainMessage}
           </Text>
 
-          <Flex row py="$spacing12">
-            <LearnMoreLink
-              textColor="$accent3"
-              textVariant="buttonLabel3"
-              url={uniswapUrls.helpArticleUrls.networkFeeInfo}
-            />
-          </Flex>
-
           <Flex width="100%" gap="$spacing12">
             {bridgingTokenWithHighestBalance && (
               <BridgeTokenButton

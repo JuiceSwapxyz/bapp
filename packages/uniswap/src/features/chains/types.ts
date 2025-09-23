@@ -128,6 +128,7 @@ export interface UniverseChainInfo extends WagmiChain {
   readonly subblockTimeMs?: number // in milliseconds, used for subblock balance checks
   readonly supportsV4: boolean
   readonly urlParam: string
+  readonly faucetUrl?: string // URL for testnet faucets
   readonly wrappedNativeCurrency: {
     name: string // 'Wrapped Ether',
     symbol: string // 'WETH',
