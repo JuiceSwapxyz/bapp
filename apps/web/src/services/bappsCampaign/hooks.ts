@@ -165,7 +165,15 @@ function useIsBAppsCampaignAvailable(): boolean {
   const { defaultChainId } = useEnabledChains()
   const account = useAccount()
 
-  return defaultChainId === UniverseChainId.CitreaTestnet && account.isConnected
+  // Campaign start time: September 25, 2025 at 00:00 UTC
+  const campaignStartTime = new Date('2025-09-25T00:00:00.000Z').getTime()
+  const now = Date.now()
+
+  const isCampaignActive = now >= campaignStartTime
+  const isCorrectChain = defaultChainId === UniverseChainId.CitreaTestnet
+  const isWalletConnected = account.isConnected
+
+  return isCampaignActive && isCorrectChain && isWalletConnected
 }
 
 /**

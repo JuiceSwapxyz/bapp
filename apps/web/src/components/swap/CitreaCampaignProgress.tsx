@@ -151,48 +151,48 @@ export function CitreaCampaignProgress() {
       )}
       <ProgressContainer>
         <Flex row justifyContent="space-between" alignItems="center" width="100%">
-        <Flex gap="$spacing4">
-          <Flex row gap="$spacing8" alignItems="center">
-            <img src={CitreaLogo} alt="Citrea" width={20} height={20} />
-            <Text variant="body2" fontWeight="$semibold">
-              ₿apps Campaign Progress
+          <Flex gap="$spacing4">
+            <Flex row gap="$spacing8" alignItems="center">
+              <img src={CitreaLogo} alt="Citrea" width={20} height={20} />
+              <Text variant="body2" fontWeight="$semibold">
+                ₿apps Campaign Progress
+              </Text>
+            </Flex>
+            <Text variant="body4" color="$neutral2">
+              Complete 3 swaps to earn rewards
             </Text>
           </Flex>
-          <Text variant="body4" color="$neutral2">
-            Complete 3 swaps to earn rewards
+
+          <Text variant="body3" color="$neutral2">
+            {completedTasks.length}/3 completed
           </Text>
         </Flex>
 
-        <Text variant="body3" color="$neutral2">
-          {completedTasks.length}/3 completed
-        </Text>
-      </Flex>
+        <ProgressBar>
+          <ProgressFill width={`${progress}%`} />
+        </ProgressBar>
 
-      <ProgressBar>
-        <ProgressFill width={`${progress}%`} />
-      </ProgressBar>
-
-      <Flex row gap="$spacing8" width="100%" justifyContent="space-between">
-        {CAMPAIGN_TASKS.map((task) => {
-          const isCompleted = completedTasks.includes(task.id)
-          return (
-            <TaskButton
-              key={task.id}
-              size="small"
-              emphasis={isCompleted ? 'tertiary' : 'secondary'}
-              onPress={() => !isCompleted && handleTaskClick(task.url)}
-              disabled={isCompleted}
-              flex={1}
-            >
-              <Flex row gap="$spacing4" alignItems="center">
-                {isCompleted && <Text variant="body4">✓</Text>}
-                <Text variant="buttonLabel4">{task.name}</Text>
-              </Flex>
-            </TaskButton>
-          )
-        })}
-      </Flex>
-    </ProgressContainer>
+        <Flex row gap="$spacing8" width="100%" justifyContent="space-between">
+          {CAMPAIGN_TASKS.map((task) => {
+            const isCompleted = completedTasks.includes(task.id)
+            return (
+              <TaskButton
+                key={task.id}
+                size="small"
+                emphasis={isCompleted ? 'tertiary' : 'secondary'}
+                onPress={() => !isCompleted && handleTaskClick(task.url)}
+                disabled={isCompleted}
+                flex={1}
+              >
+                <Flex row gap="$spacing4" alignItems="center">
+                  {isCompleted && <Text variant="body4">✓</Text>}
+                  <Text variant="buttonLabel4">{task.name}</Text>
+                </Flex>
+              </TaskButton>
+            )
+          })}
+        </Flex>
+      </ProgressContainer>
     </>
   )
 }
