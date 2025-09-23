@@ -107,5 +107,6 @@ export const CITREA_TESTNET_CHAIN_INFO = {
     decimals: 18,
     address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
   },
+  faucetUrl: 'https://citrea.xyz/faucet',
   tradingApiPollingIntervalMs: 500,
 } as const satisfies UniverseChainInfo

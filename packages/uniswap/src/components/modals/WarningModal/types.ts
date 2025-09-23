@@ -63,6 +63,7 @@ export interface Warning {
   icon?: GeneratedIcon
   currency?: Currency
   link?: string
+  faucetUrl?: string
 }
 
 export type WarningWithStyle = {
