@@ -301,13 +301,7 @@ function UniversalSwapFlow({
 
   return (
     <Flex>
-      {!hideHeader && (
-        <Flex row gap="$spacing16">
-          <Text variant="heading3" color="$neutral1">
-            {t('swap.form.header')}
-          </Text>
-        </Flex>
-      )}
+      {/* Removed header completely - no tabs or title shown */}
       {currentTab === SwapTab.Swap && (
         <Flex gap="$spacing16">
           <SwapDependenciesStoreContextProvider swapCallback={swapCallback} wrapCallback={wrapCallback}>
