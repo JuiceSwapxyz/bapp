@@ -32,7 +32,7 @@ const RowContent = React.memo(function RowContent({
   showArrow,
 }: {
   icon: React.ReactNode
-  title: string | React.ReactNode
+  title: string
   description: string | React.ReactNode
   showArrow: boolean
 }) {
@@ -79,20 +79,24 @@ function UniverseRow({
   title,
   description,
   href,
+  id,
 }: {
   icon: React.ReactNode
-  title: string | React.ReactNode
+  title: string
   description: string | React.ReactNode
   href?: string
+  id?: string
 }) {
   const showArrow = Boolean(href)
 
   if (href) {
+    const isExternal = href.startsWith('http')
     return (
       <Anchor
+        id={id}
         href={href}
-        target="_blank"
-        rel="noopener noreferrer"
+        target={isExternal ? "_blank" : undefined}
+        rel={isExternal ? "noopener noreferrer" : undefined}
         textDecorationLine="none"
         {...ClickableTamaguiStyle}
       >
@@ -101,7 +105,11 @@ function UniverseRow({
     )
   }
 
-  return <RowContent icon={icon} title={title} description={description} showArrow={showArrow} />
+  return (
+    <Flex id={id} width="100%">
+      <RowContent icon={icon} title={title} description={description} showArrow={showArrow} />
+    </Flex>
+  )
 }
 
 const SocialLink = styled(Anchor, {
@@ -240,17 +248,13 @@ export function NewsletterEtc() {
             />
           }
         />
-        <Flex id="faq">
-          <UniverseRow
-            icon={<HelpCenter size="$icon.36" fill="$neutral1" />}
-            title={
-              <Anchor href="/?intro=true#faq" textDecorationLine="none" color="$neutral1">
-                {t('common.faq')}
-              </Anchor>
-            }
-            description={<FAQList />}
-          />
-        </Flex>
+        <UniverseRow
+          icon={<HelpCenter size="$icon.36" fill="$neutral1" />}
+          title={t('common.faq')}
+          description={<FAQList />}
+          id="faq"
+          href="/?intro=true#faq"
+        />
       </Flex>
     </SectionLayout>
   )
