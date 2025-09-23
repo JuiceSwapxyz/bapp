@@ -1,5 +1,4 @@
 import { Currency } from '@juiceswapxyz/sdk-core'
-import { CBTC_LOGO } from 'ui/src/assets'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
@@ -58,7 +57,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'Wrapped Citrea BTC',
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0`,
-    logoUrl: CBTC_LOGO,
+    logoUrl: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
   },
   {
     currency: buildCurrency({

@@ -1,5 +1,5 @@
 import { CurrencyAmount } from '@uniswap/sdk-core'
-import { CITREA_LOGO } from 'ui/src/assets'
+import { CBTC_LOGO, CITREA_LOGO } from 'ui/src/assets'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { DEFAULT_NATIVE_ADDRESS_LEGACY } from 'uniswap/src/features/chains/evm/rpc'
 import { buildChainTokens } from 'uniswap/src/features/chains/evm/tokens'
@@ -78,7 +78,7 @@ export const CITREA_TESTNET_CHAIN_INFO = {
     decimals: 18,
     address: DEFAULT_NATIVE_ADDRESS_LEGACY,
     explorerLink: 'https://explorer.testnet.citrea.xyz/',
-    logo: CITREA_LOGO,
+    logo: CBTC_LOGO,
   },
   networkLayer: NetworkLayer.L2, // Citrea is a Bitcoin rollup (L2)
   pendingTransactionsRetryOptions: undefined,
