@@ -1,8 +1,8 @@
 import CitreaLogo from 'assets/images/coins/citrea.png'
-import { FeatureFlags } from 'constants/featureFlags'
 import { PillButton } from 'pages/Landing/components/cards/PillButton'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { Anchor, Button, Flex, Text, styled } from 'ui/src'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -69,9 +69,10 @@ const CAMPAIGN_TASKS = [
 ]
 
 export function BAppsCard() {
-  const { defaultChainId } = useEnabledChains()
   const [showModal, setShowModal] = useState(false)
   const navigate = useNavigate()
+  const { defaultChainId } = useEnabledChains()
+  const isCampaignVisible = useIsBAppsCampaignVisible()
 
   const handleStartEarning = useCallback(() => {
     if (defaultChainId === UniverseChainId.CitreaTestnet) {
@@ -97,8 +98,7 @@ export function BAppsCard() {
     [navigate],
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (!FeatureFlags.CITREA_BAPPS_CAMPAIGN || defaultChainId !== UniverseChainId.CitreaTestnet) {
+  if (!isCampaignVisible) {
     return null
   }
 

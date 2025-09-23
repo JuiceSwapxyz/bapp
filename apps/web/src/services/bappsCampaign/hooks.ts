@@ -184,9 +184,8 @@ export function useIsBAppsCampaignVisible(): boolean {
 
 /**
  * Hook to check if campaign is available for user interaction (requires wallet)
- * @internal
  */
-function useIsBAppsCampaignAvailable(): boolean {
+export function useIsBAppsCampaignAvailable(): boolean {
   const account = useAccount()
   const isCampaignVisible = useIsBAppsCampaignVisible()
   const isWalletConnected = account.isConnected
@@ -243,6 +242,3 @@ export function useBAppsSwapTracking() {
 
   return { trackSwapCompletion, isAvailable: useIsBAppsCampaignAvailable() }
 }
-
-// eslint-disable-next-line import/no-unused-modules
-export { useIsBAppsCampaignAvailable }
