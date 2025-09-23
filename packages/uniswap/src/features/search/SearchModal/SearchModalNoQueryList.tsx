@@ -23,6 +23,7 @@ import {
 } from 'uniswap/src/features/search/SearchModal/constants'
 import { useRecentlySearchedOptions } from 'uniswap/src/features/search/SearchModal/hooks/useRecentlySearchedOptions'
 import { SearchTab } from 'uniswap/src/features/search/SearchModal/types'
+import { hardcodedCommonBaseCurrencies } from 'uniswap/src/features/tokens/hardcodedTokens'
 import { isMobileApp, isWeb } from 'utilities/src/platform'
 import noop from 'utilities/src/react/noop'
 
@@ -58,7 +59,20 @@ function useSectionsForNoQuerySearch({
     refetch: refetchTokens,
     loading: loadingTokens,
   } = useTrendingTokensCurrencyInfos(chainFilter, skipTrendingTokensQuery)
-  const trendingTokenOptions = useCurrencyInfosToTokenOptions({ currencyInfos: tokens })
+
+  // Use hardcoded tokens for Citrea when no API data is available
+  const citreaFallbackTokens = useMemo(() => {
+    if (chainFilter === UniverseChainId.CitreaTestnet && (!tokens || tokens.length === 0)) {
+      return hardcodedCommonBaseCurrencies.filter(
+        (currencyInfo) => currencyInfo.currency.chainId === UniverseChainId.CitreaTestnet,
+      )
+    }
+    return undefined
+  }, [chainFilter, tokens])
+
+  const trendingTokenOptions = useCurrencyInfosToTokenOptions({
+    currencyInfos: citreaFallbackTokens || tokens,
+  })
   const trendingTokenSection = useOnchainItemListSection({
     sectionKey: OnchainItemSectionName.TrendingTokens,
     options: trendingTokenOptions?.slice(0, numberOfTrendingTokens),
@@ -117,8 +131,8 @@ function useSectionsForNoQuerySearch({
         sections = [...(recentSearchSection ?? []), ...(trendingTokenSection ?? [])]
         return {
           data: sections,
-          loading: loadingTokens,
-          error: tokensError,
+          loading: loadingTokens && !citreaFallbackTokens,
+          error: citreaFallbackTokens ? undefined : tokensError,
           refetch: refetchTokens,
         }
       case SearchTab.Pools:
@@ -153,8 +167,8 @@ function useSectionsForNoQuerySearch({
 
         return {
           data: sections,
-          loading: loadingTokens,
-          error: tokensError,
+          loading: loadingTokens && !citreaFallbackTokens,
+          error: citreaFallbackTokens ? undefined : tokensError,
           refetch: refetchTokens,
         }
     }
@@ -175,6 +189,7 @@ function useSectionsForNoQuerySearch({
     tokensError,
     trendingPoolSection,
     trendingTokenSection,
+    citreaFallbackTokens,
   ])
 }
 
