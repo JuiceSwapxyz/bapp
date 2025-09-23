@@ -1,7 +1,6 @@
 import { NetworkStatus } from '@apollo/client'
 import { CurrencyAmount, Token } from '@juiceswapxyz/sdk-core'
 import { MultiBlockchainAddressDisplay } from 'components/AccountDetails/MultiBlockchainAddressDisplay'
-import { ActionTile } from 'components/AccountDrawer/ActionTile'
 import { DownloadGraduatedWalletCard } from 'components/AccountDrawer/DownloadGraduatedWalletCard'
 import IconButton, { IconWithConfirmTextButton } from 'components/AccountDrawer/IconButton'
 import { EmptyWallet } from 'components/AccountDrawer/MiniPortfolio/EmptyWallet'
@@ -13,23 +12,18 @@ import { Power } from 'components/Icons/Power'
 import { Settings } from 'components/Icons/Settings'
 import StatusIcon from 'components/Identicon/StatusIcon'
 
-import { ReceiveModalState, receiveCryptoModalStateAtom } from 'components/ReceiveCryptoModal/state'
 import DelegationMismatchModal from 'components/delegation/DelegationMismatchModal'
 import { useAccount } from 'hooks/useAccount'
 import { useDisconnect } from 'hooks/useDisconnect'
 import { useIsUniExtensionConnected } from 'hooks/useIsUniExtensionConnected'
 import { useModalState } from 'hooks/useModalState'
 import { useSignOutWithPasskey } from 'hooks/useSignOutWithPasskey'
-import { useAtom } from 'jotai'
-import { SendFormModal } from 'pages/Swap/Send/SendFormModal'
 import { useCallback, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useUserHasAvailableClaim, useUserUnclaimedAmount } from 'state/claim/hooks'
 import { CopyHelper } from 'theme/components/CopyHelper'
 import { Button, Flex, Text } from 'ui/src'
-import { ArrowDownCircleFilled } from 'ui/src/components/icons/ArrowDownCircleFilled'
-import { SendAction } from 'ui/src/components/icons/SendAction'
 import { Shine } from 'ui/src/loading/Shine'
 import AnimatedNumber, {
   BALANCE_CHANGE_INDICATION_DURATION,
@@ -54,7 +48,6 @@ import i18next from 'uniswap/src/i18n'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { shortenAddress } from 'utilities/src/addresses'
 import { NumberType } from 'utilities/src/format/types'
-import { useEvent } from 'utilities/src/react/hooks'
 
 export default function AuthenticatedHeader({ account, openSettings }: { account: string; openSettings: () => void }) {
   const disconnect = useDisconnect()
@@ -62,8 +55,6 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
   const { t } = useTranslation()
   const navigate = useNavigate()
   const wallet = useWallet()
-
-  const [, setReceiveModalState] = useAtom(receiveCryptoModalStateAtom)
 
   const isUniExtensionConnected = useIsUniExtensionConnected()
   const isExtensionDeeplinkingDisabled = useFeatureFlag(FeatureFlags.DisableExtensionDeeplinks)
@@ -96,15 +87,6 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
     accountDrawer.close()
     navigate(`/buy`, { replace: true })
   }, [accountDrawer, navigate])
-
-  const openAddressQRModal = useEvent(() => setReceiveModalState(ReceiveModalState.QR_CODE))
-  const openCEXTransferModal = useEvent(() => setReceiveModalState(ReceiveModalState.CEX_TRANSFER))
-  const openReceiveCryptoModal = useEvent(() => setReceiveModalState(ReceiveModalState.DEFAULT))
-  const {
-    isOpen: isSendFormModalOpen,
-    openModal: openSendFormModal,
-    closeModal: closeSendFormModal,
-  } = useModalState(ModalName.Send)
 
   const { data, networkStatus, loading } = usePortfolioTotalValue({
     address: account,
@@ -212,27 +194,9 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
           ) : (
             <>
               {isPortfolioZero ? (
-                <EmptyWallet
-                  handleBuyCryptoClick={handleBuyCryptoClick}
-                  handleReceiveCryptoClick={openAddressQRModal}
-                  handleCEXTransferClick={openCEXTransferModal}
-                />
+                <EmptyWallet handleBuyCryptoClick={handleBuyCryptoClick} />
               ) : (
                 <>
-                  <Flex row gap="$gap8">
-                    <ActionTile
-                      dataTestId={TestID.Send}
-                      Icon={<SendAction size={24} color="$accent1" />}
-                      name={t('common.send.button')}
-                      onClick={openSendFormModal}
-                    />
-                    <ActionTile
-                      dataTestId={TestID.WalletReceiveCrypto}
-                      Icon={<ArrowDownCircleFilled size={24} color="$accent1" />}
-                      name={t('common.receive')}
-                      onClick={openReceiveCryptoModal}
-                    />
-                  </Flex>
                   <DownloadGraduatedWalletCard />
                   <MiniPortfolio account={account} />
                 </>
@@ -251,7 +215,6 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
           )}
         </Flex>
       </Flex>
-      {isSendFormModalOpen && <SendFormModal isModalOpen={isSendFormModalOpen} onClose={closeSendFormModal} />}
       {displayDelegationMismatchModal && (
         <DelegationMismatchModal onClose={() => setDisplayDelegationMismatchModal(false)} />
       )}
