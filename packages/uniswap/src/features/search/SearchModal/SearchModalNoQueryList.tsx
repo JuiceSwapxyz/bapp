@@ -14,7 +14,7 @@ import { ALL_NETWORKS_ARG } from 'uniswap/src/data/rest/base'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
 import { GqlResult } from 'uniswap/src/data/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { getHardcodedCitreaPoolsSearchData } from 'uniswap/src/features/pools/hardcodedPools'
+import { getHardcodedCitreaPoolsOptions } from 'uniswap/src/features/pools/hardcodedPools'
 import { ClearRecentSearchesButton } from 'uniswap/src/features/search/ClearRecentSearchesButton'
 import { SearchModalList, SearchModalListProps } from 'uniswap/src/features/search/SearchModal/SearchModalList'
 import {
@@ -102,12 +102,12 @@ function useSectionsForNoQuerySearch({
   // Use hardcoded pools for Citrea when no API data is available
   const citreaFallbackPools = useMemo(() => {
     if (chainFilter === UniverseChainId.CitreaTestnet && (!topPools || topPools.length === 0)) {
-      return getHardcodedCitreaPoolsSearchData()
+      return getHardcodedCitreaPoolsOptions()
     }
     return undefined
   }, [chainFilter, topPools])
 
-  const trendingPoolOptions = usePoolStatsToPoolOptions(citreaFallbackPools || topPools)
+  const trendingPoolOptions = citreaFallbackPools || usePoolStatsToPoolOptions(topPools)
   const trendingPoolSection = useOnchainItemListSection({
     sectionKey: OnchainItemSectionName.TrendingPools,
     options: trendingPoolOptions,
@@ -150,7 +150,7 @@ function useSectionsForNoQuerySearch({
         return {
           data: sections,
           loading:
-            (topPoolsLoading && !citreaFallbackPools) || Boolean(topPools?.length && !trendingPoolOptions.length),
+            (topPoolsLoading && !citreaFallbackPools) || Boolean(topPools?.length && !trendingPoolOptions?.length),
           error: citreaFallbackPools ? undefined : topPoolsError ?? undefined,
           refetch: refetchPools,
         }
@@ -186,7 +186,7 @@ function useSectionsForNoQuerySearch({
   }, [
     activeTab,
     topPools?.length,
-    trendingPoolOptions.length,
+    trendingPoolOptions?.length,
     topPoolsError,
     topPoolsLoading,
     favoriteWalletsSection,
