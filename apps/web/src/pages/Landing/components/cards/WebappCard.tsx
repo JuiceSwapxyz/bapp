@@ -198,7 +198,7 @@ export function WebappCard() {
   const { t } = useTranslation()
   return (
     <ValuePropCard
-      to="/tokens/ethereum"
+      to="/explore/tokens/"
       minHeight={500}
       color={primary}
       $theme-dark={{
