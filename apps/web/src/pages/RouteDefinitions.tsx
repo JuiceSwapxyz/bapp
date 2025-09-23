@@ -40,6 +40,7 @@ const TokenDetails = lazy(() => import('pages/TokenDetails'))
 const ExtensionPasskeyAuthPopUp = lazy(() => import('pages/ExtensionPasskeyAuthPopUp'))
 const PasskeyManagement = lazy(() => import('pages/PasskeyManagement'))
 const ExtensionUninstall = lazy(() => import('pages/ExtensionUninstall/ExtensionUninstall'))
+const Bapps = lazy(() => import('pages/Bapps'))
 
 interface RouterConfig {
   browserRouterEnabled?: boolean
@@ -368,6 +369,13 @@ export const routes: RouteDefinition[] = [
     path: CHROME_EXTENSION_UNINSTALL_URL_PATH,
     getElement: () => <ExtensionUninstall />,
     getTitle: () => i18n.t('title.extension.uninstall'),
+  }),
+  // Citrea bApps Campaign Page
+  createRouteDefinition({
+    path: '/bapps',
+    getElement: () => <Bapps />,
+    getTitle: () => 'Citrea ₿Apps Campaign - JuiceSwap',
+    getDescription: () => 'Complete swap tasks on Citrea Testnet to participate in the bApps campaign and earn rewards.',
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),
