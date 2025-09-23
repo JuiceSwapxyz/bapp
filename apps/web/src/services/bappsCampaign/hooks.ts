@@ -1,7 +1,7 @@
 import { popupRegistry } from 'components/Popups/registry'
 import { PopupType } from 'components/Popups/types'
 import { useAccount } from 'hooks/useAccount'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
@@ -166,10 +166,12 @@ function useIsBAppsCampaignAvailable(): boolean {
   const account = useAccount()
 
   // Campaign start time: September 25, 2025 at 00:00 UTC
-  const campaignStartTime = new Date('2025-09-25T00:00:00.000Z').getTime()
-  const now = Date.now()
+  const isCampaignActive = useMemo(() => {
+    const campaignStartTime = new Date('2025-09-25T00:00:00.000Z').getTime()
+    const now = Date.now()
+    return now >= campaignStartTime
+  }, [])
 
-  const isCampaignActive = now >= campaignStartTime
   const isCorrectChain = defaultChainId === UniverseChainId.CitreaTestnet
   const isWalletConnected = account.isConnected
 
