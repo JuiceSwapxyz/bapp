@@ -35,7 +35,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'TaprootFreakCoin',
     }) as Currency,
     currencyId: `${UniverseChainId.Sepolia}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
-    logoUrl: '',
+    logoUrl: 'https://docs.juiceswap.xyz/media/icons/tfc.png',
   },
   {
     currency: buildCurrency({
@@ -68,7 +68,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'USDC (Satsuma)',
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F`,
-    logoUrl: '',
+    logoUrl: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
   },
   {
     currency: buildCurrency({
@@ -90,7 +90,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'TaprootFreakCoin',
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
-    logoUrl: '',
+    logoUrl: 'https://docs.juiceswap.xyz/media/icons/tfc.png',
   },
 ]
 
