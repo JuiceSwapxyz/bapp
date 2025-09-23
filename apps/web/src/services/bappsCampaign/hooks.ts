@@ -158,16 +158,81 @@ export function useBAppsCampaignProgress() {
 }
 
 /**
+ * Hook to handle URL-based campaign override
+ * Detects ?campaign=true/false and manages localStorage
+ * @internal
+ */
+function useUrlCampaignOverride(): boolean {
+  const [overrideActive, setOverrideActive] = useState(() => {
+    return localStorage.getItem('campaignOverride') === 'true'
+  })
+
+  useEffect(() => {
+    const checkUrlParams = () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const campaignParam = urlParams.get('campaign')
+
+      if (campaignParam === 'true') {
+        localStorage.setItem('campaignOverride', 'true')
+        // Hard refresh to ensure all components re-render with new state
+        window.location.href = window.location.pathname
+        return
+      }
+
+      if (campaignParam === 'false') {
+        localStorage.removeItem('campaignOverride')
+        // Hard refresh to ensure all components re-render with new state
+        window.location.href = window.location.pathname
+        return
+      }
+    }
+
+    // Check on mount
+    checkUrlParams()
+
+    // Listen for manual localStorage changes (from other tabs/windows)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'campaignOverride') {
+        setOverrideActive(e.newValue === 'true')
+      }
+    }
+
+    // Listen for URL changes (navigation)
+    const handlePopState = () => {
+      checkUrlParams()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
+  return overrideActive
+}
+
+/**
  * Hook to check if campaign is currently active (time-based only)
  * @internal
  */
 function useIsCampaignTimeActive(): boolean {
+  const hasUrlOverride = useUrlCampaignOverride()
+
   // Campaign start time: September 25, 2025 at 00:00 UTC
   return useMemo(() => {
+    // URL Override has priority - if active, campaign is always on
+    if (hasUrlOverride) {
+      return true
+    }
+
+    // Normal time-based logic
     const campaignStartTime = new Date('2025-09-25T00:00:00.000Z').getTime()
     const now = Date.now()
     return now >= campaignStartTime
-  }, [])
+  }, [hasUrlOverride])
 }
 
 /**
