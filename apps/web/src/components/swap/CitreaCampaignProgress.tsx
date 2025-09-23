@@ -1,8 +1,10 @@
 import CitreaLogo from 'assets/images/coins/citrea.png'
 import { FeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Confetti from 'react-confetti'
 import { useNavigate } from 'react-router'
+import { useWindowSize } from 'react-use'
 import { useBAppsCampaignProgress } from 'services/bappsCampaign/hooks'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -68,6 +70,11 @@ export function CitreaCampaignProgress() {
   const account = useAccount()
   const navigate = useNavigate()
   const { progress: campaignProgress, loading, error } = useBAppsCampaignProgress()
+  const { width, height } = useWindowSize()
+
+  // State for confetti animation
+  const [showConfetti, setShowConfetti] = useState(false)
+  const previousCompletedCountRef = useRef(0)
 
   // Extract completed task IDs from API response
   const completedTasks = useMemo(() => {
@@ -83,6 +90,20 @@ export function CitreaCampaignProgress() {
     }
     return campaignProgress.progress
   }, [campaignProgress])
+
+  // Trigger confetti when tasks are completed
+  useEffect(() => {
+    const currentCompletedCount = completedTasks.length
+
+    // Check if we have new completed tasks
+    if (currentCompletedCount > previousCompletedCountRef.current && previousCompletedCountRef.current > 0) {
+      setShowConfetti(true)
+      // Auto-hide confetti after 5 seconds
+      setTimeout(() => setShowConfetti(false), 5000)
+    }
+
+    previousCompletedCountRef.current = currentCompletedCount
+  }, [completedTasks])
 
   const handleTaskClick = useCallback(
     (url: string) => {
@@ -116,8 +137,20 @@ export function CitreaCampaignProgress() {
   }
 
   return (
-    <ProgressContainer>
-      <Flex row justifyContent="space-between" alignItems="center" width="100%">
+    <>
+      {showConfetti && (
+        <Confetti
+          width={width}
+          height={height}
+          numberOfPieces={200}
+          recycle={false}
+          colors={['#FF6B35', '#4CAF50', '#2ABDFF', '#FC72FF', '#FFD700']}
+          gravity={0.1}
+          style={{ position: 'fixed', top: 0, left: 0, zIndex: 1000 }}
+        />
+      )}
+      <ProgressContainer>
+        <Flex row justifyContent="space-between" alignItems="center" width="100%">
         <Flex gap="$spacing4">
           <Flex row gap="$spacing8" alignItems="center">
             <img src={CitreaLogo} alt="Citrea" width={20} height={20} />
@@ -160,5 +193,6 @@ export function CitreaCampaignProgress() {
         })}
       </Flex>
     </ProgressContainer>
+    </>
   )
 }
