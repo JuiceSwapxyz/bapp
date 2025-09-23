@@ -1,4 +1,5 @@
 import { Accordion, Flex } from 'ui/src'
+import { InsufficientGasFaucetHint } from 'uniswap/src/features/transactions/components/InsufficientGasFaucetHint'
 import { SwapFormButton } from 'uniswap/src/features/transactions/swap/components/SwapFormButton/SwapFormButton'
 import { ExpandableRows } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormScreenDetails/ExpandableRows'
 import { SwapFormScreenFooter } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormScreenDetails/SwapFormScreenFooter/SwapFormScreenFooter'
@@ -28,6 +29,7 @@ export function SwapFormScreenDetails(): JSX.Element {
           <Flex>
             <SwapFormWarningStoreContextProvider>
               <SwapFormButton tokenColor={tokenColor} />
+              <InsufficientGasFaucetHint />
               <SwapFormWarningModals />
             </SwapFormWarningStoreContextProvider>
           </Flex>
