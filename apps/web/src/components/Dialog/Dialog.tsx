@@ -1,4 +1,3 @@
-import { GetHelpHeader } from 'components/Modal/GetHelpHeader'
 import React from 'react'
 import { Button, ButtonEmphasis, ButtonVariant, Flex, FlexProps, Text, TextProps } from 'ui/src'
 import { Modal } from 'uniswap/src/components/modals/Modal'
@@ -61,7 +60,6 @@ export function Dialog({
 }: DialogProps): JSX.Element {
   return (
     <Modal alignment={alignment} isModalOpen={isOpen} name={modalName} onClose={onClose}>
-      {displayHelpCTA && <GetHelpHeader closeModal={onClose} />}
       <Flex
         flexDirection="column"
         alignItems={textAlign === 'center' ? 'center' : 'flex-start'}
