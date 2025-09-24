@@ -1,6 +1,7 @@
 import { Status } from 'components/AccountDrawer/Status'
 import { ProviderOption } from 'components/ReceiveCryptoModal/ProviderOption'
 import { ReceiveModalState, receiveCryptoModalStateAtom } from 'components/ReceiveCryptoModal/state'
+import { FeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import { useUpdateAtom } from 'jotai/utils'
 import { ProviderConnectedView } from 'pages/Swap/Buy/ProviderConnectedView'
@@ -80,7 +81,8 @@ export function ChooseProvider({
 }: ChooseProviderProps): JSX.Element {
   const { t } = useTranslation()
   const account = useAccount()
-  const providers = useCexTransferProviders()
+  const cexProviders = useCexTransferProviders()
+  const providers = FeatureFlags.CEX_TRANSFER_ENABLED ? cexProviders : []
 
   if (errorProvider) {
     return (
