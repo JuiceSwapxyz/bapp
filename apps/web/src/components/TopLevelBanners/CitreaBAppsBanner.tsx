@@ -1,12 +1,10 @@
 import citreaLogo from 'assets/images/coins/citrea.png'
-import { FeatureFlags } from 'constants/featureFlags'
 import { useAtom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { X } from 'react-feather'
 import { useTranslation } from 'react-i18next'
+import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { Anchor, Flex, Text, styled, useMedia } from 'ui/src'
-import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 const hideCitreaBAppsBannerAtom = atomWithStorage<boolean>('hideCitreaBAppsBanner', false)
 
@@ -97,11 +95,10 @@ const PulseAnimation = styled(Flex, {
 })
 
 export function useCitreaBAppsBannerEligible(): boolean {
-  const { defaultChainId } = useEnabledChains()
   const [hideBanner] = useAtom(hideCitreaBAppsBannerAtom)
+  const isCampaignVisible = useIsBAppsCampaignVisible()
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  return FeatureFlags.CITREA_BAPPS_CAMPAIGN && !hideBanner && defaultChainId === UniverseChainId.CitreaTestnet
+  return isCampaignVisible && !hideBanner
 }
 
 export function CitreaBAppsBanner() {
