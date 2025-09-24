@@ -59,7 +59,7 @@ export function useAllTransactions(
     fetchMore: fetchMoreV3,
   } = useV3TransactionsQuery({
     variables: { chain, first: ALL_TX_DEFAULT_QUERY_SIZE },
-    skip: !isWindowVisible,
+    skip: true, // Disabled V3 API to prevent CORS errors
   })
   const {
     data: dataV2,
@@ -68,7 +68,7 @@ export function useAllTransactions(
     fetchMore: fetchMoreV2,
   } = useV2TransactionsQuery({
     variables: { chain, first: ALL_TX_DEFAULT_QUERY_SIZE },
-    skip: !isWindowVisible,
+    skip: true, // Disabled V2 API to prevent CORS errors
   })
 
   const loadingMoreV4 = useRef(false)

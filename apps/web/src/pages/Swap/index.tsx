@@ -6,7 +6,6 @@ import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
-import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { useDeferredComponent } from 'hooks/useDeferredComponent'
 import { PageType, useIsPage } from 'hooks/useIsPage'
 import { useModalState } from 'hooks/useModalState'
@@ -23,14 +22,12 @@ import { useWrapCallback } from 'state/sagas/transactions/wrapSaga'
 import { SwapAndLimitContextProvider } from 'state/swap/SwapContext'
 import { useInitialCurrencyState } from 'state/swap/hooks'
 import type { CurrencyState } from 'state/swap/types'
-import type { SegmentedControlOption } from 'ui/src'
-import { Flex, SegmentedControl, Text, Tooltip, styled } from 'ui/src'
+import { Flex, Text, Tooltip, styled } from 'ui/src'
 import type { AppTFunction } from 'ui/src/i18n/types'
 import { zIndexes } from 'ui/src/theme'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { useIsModeMismatch } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { RampDirection } from 'uniswap/src/features/fiatOnRamp/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useGetPasskeyAuthStatus } from 'uniswap/src/features/passkey/hooks/useGetPasskeyAuthStatus'
@@ -186,7 +183,7 @@ export function Swap({
   )
 }
 
-const SWAP_TABS = [SwapTab.Swap, SwapTab.Limit, SwapTab.Buy, SwapTab.Sell]
+const SWAP_TABS = [SwapTab.Swap]
 
 const TAB_TYPE_TO_LABEL = {
   [SwapTab.Swap]: (t: AppTFunction) => t('swap.form.header'),
@@ -198,10 +195,10 @@ const TAB_TYPE_TO_LABEL = {
 
 const PATHNAME_TO_TAB: { [key: string]: SwapTab } = {
   '/swap': SwapTab.Swap,
-  '/send': SwapTab.Send,
-  '/limit': SwapTab.Limit,
-  '/buy': SwapTab.Buy,
-  '/sell': SwapTab.Sell,
+  '/send': SwapTab.Send, // Keep for send modal
+  '/limit': SwapTab.Swap, // Redirect to swap
+  '/buy': SwapTab.Swap, // Redirect to swap
+  '/sell': SwapTab.Swap, // Redirect to swap
 }
 
 function UniversalSwapFlow({
@@ -232,16 +229,7 @@ function UniversalSwapFlow({
     ((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined
   >()
 
-  const LimitFormWrapper = useDeferredComponent(() =>
-    import('pages/Swap/Limit/LimitForm').then((module) => ({
-      default: module.LimitFormWrapper,
-    })),
-  )
-  const BuyForm = useDeferredComponent(() =>
-    import('pages/Swap/Buy/BuyForm').then((module) => ({
-      default: module.BuyForm,
-    })),
-  )
+  // Removed Limit and Buy form imports as we only support Swap now
 
   const { openModal: openSendFormModal } = useModalState(ModalName.Send)
 
@@ -259,78 +247,23 @@ function UniversalSwapFlow({
     }
   }, [pathname, setCurrentTab, openSendFormModal])
 
-  const onTabClick = useCallback(
-    (tab: SwapTab) => {
-      sendAnalyticsEvent(InterfaceEventName.SwapTabClicked, { tab })
-      if (syncTabToUrl) {
-        navigate(`/${tab}`, { replace: true })
-      } else {
-        setCurrentTab(tab)
-      }
-    },
-    [navigate, syncTabToUrl, setCurrentTab],
-  )
+  // Removed onTabClick as we only have one tab now
 
-  const isFiatOffRampEnabled = useFeatureFlag(FeatureFlags.FiatOffRamp)
-  const SWAP_TAB_OPTIONS: readonly SegmentedControlOption<SwapTab>[] = useMemo(() => {
-    return SWAP_TABS.filter((tab) => {
-      if (tab === SwapTab.Sell && !isFiatOffRampEnabled) {
-        return false
-      }
-
-      return true
-    }).map((tab) => ({
-      value: tab,
-      display: (
-        <Text
-          variant="buttonLabel3"
-          hoverStyle={{ color: '$neutral1' }}
-          color={currentTab === tab ? '$neutral1' : '$neutral2'}
-          tag="h1"
-        >
-          {TAB_TYPE_TO_LABEL[tab](t)}
-        </Text>
-      ),
-    }))
-  }, [t, currentTab, isFiatOffRampEnabled])
+  // Removed SWAP_TAB_OPTIONS as we only have one tab now
 
   const swapSettings = useWebSwapSettings()
   const resetDisableOneClickSwap = useResetOverrideOneClickSwapFlag()
 
   // Track transaction for campaign monitoring
-  const [currentTransaction, setCurrentTransaction] = useState<{
-    txHash: string
-    chainId: number
-    inputToken: string
-    outputToken: string
-  } | null>(null)
 
-  // Use automatic blockchain confirmation tracking
-  useBAppsSwapTracking({
-    txHash: currentTransaction?.txHash,
-    chainId: currentTransaction?.chainId,
-    inputToken: currentTransaction?.inputToken,
-    outputToken: currentTransaction?.outputToken,
-  })
+  // Campaign progress will be automatically updated by API polling
+  // No manual tracking needed since Ponder indexes blockchain data
 
-  // Handle swap submission - store transaction details for monitoring
-  const handleSubmitSwap = useCallback(
-    // eslint-disable-next-line max-params
-    async (txHash?: string, inputToken?: string, outputToken?: string) => {
-      resetDisableOneClickSwap()
-
-      // Store transaction details for blockchain confirmation tracking
-      if (txHash && inputToken && outputToken) {
-        setCurrentTransaction({
-          txHash,
-          chainId: 5115, // Citrea Testnet
-          inputToken,
-          outputToken,
-        })
-      }
-    },
-    [resetDisableOneClickSwap],
-  )
+  // Handle swap submission
+  const handleSubmitSwap = useCallback(async () => {
+    resetDisableOneClickSwap()
+    // Campaign progress will be automatically updated by API polling
+  }, [resetDisableOneClickSwap])
 
   // Store the callback in ref for access in swapCallback
   onSubmitSwapRef.current = handleSubmitSwap
@@ -343,18 +276,7 @@ function UniversalSwapFlow({
 
   return (
     <Flex>
-      {!hideHeader && (
-        <Flex row gap="$spacing16">
-          <SegmentedControl
-            outlined={false}
-            size="large"
-            options={SWAP_TAB_OPTIONS}
-            selectedOption={currentTab}
-            onSelectOption={onTabClick}
-            gap={isMobileWeb ? '$spacing8' : undefined}
-          />
-        </Flex>
-      )}
+      {/* Removed header completely - no tabs or title shown */}
       {currentTab === SwapTab.Swap && (
         <Flex gap="$spacing16">
           <SwapDependenciesStoreContextProvider swapCallback={swapCallback} wrapCallback={wrapCallback}>
@@ -376,21 +298,7 @@ function UniversalSwapFlow({
           <SwapBottomCard />
         </Flex>
       )}
-      {currentTab === SwapTab.Limit && LimitFormWrapper && <LimitFormWrapper onCurrencyChange={onCurrencyChange} />}
-      {currentTab === SwapTab.Buy && BuyForm && (
-        <BuyForm
-          rampDirection={RampDirection.ONRAMP}
-          disabled={disableTokenInputs}
-          initialCurrency={prefilledState?.output}
-        />
-      )}
-      {currentTab === SwapTab.Sell && BuyForm && (
-        <BuyForm
-          rampDirection={RampDirection.OFFRAMP}
-          disabled={disableTokenInputs}
-          initialCurrency={prefilledState?.output}
-        />
-      )}
+      {/* Removed Limit, Buy, and Sell tabs as we only support Swap now */}
     </Flex>
   )
 }
