@@ -100,7 +100,7 @@ function useSectionsForNoQuerySearch({
   } = useExploreStatsQuery<PoolStats[] | undefined>(poolQueryVariables)
 
   // Always call the hook but may not use its result
-  const apiPoolOptions = usePoolStatsToPoolOptions(topPools)
+  const poolOptionsFromApi = usePoolStatsToPoolOptions(topPools)
 
   // Use hardcoded pools for Citrea when no API data is available
   const citreaFallbackPools = useMemo(() => {
@@ -110,7 +110,7 @@ function useSectionsForNoQuerySearch({
     return undefined
   }, [chainFilter, topPools])
 
-  const trendingPoolOptions = citreaFallbackPools || apiPoolOptions
+  const trendingPoolOptions = citreaFallbackPools || poolOptionsFromApi
   const trendingPoolSection = useOnchainItemListSection({
     sectionKey: OnchainItemSectionName.TrendingPools,
     options: trendingPoolOptions,

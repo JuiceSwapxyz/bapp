@@ -27,7 +27,7 @@ interface DialogProps {
   buttonContainerProps?: FlexProps
   children?: React.ReactNode
   alignment?: 'top' | 'center'
-  displayHelpCTA?: boolean
+  displayHelpCTA?: boolean // Kept for backwards compatibility but not used
   textAlign?: 'center' | 'left'
   hasIconBackground?: boolean
 }
@@ -54,7 +54,6 @@ export function Dialog({
   buttonContainerProps,
   alignment = isExtension ? 'top' : undefined,
   children,
-  displayHelpCTA = false,
   textAlign = 'center',
   hasIconBackground = false,
 }: DialogProps): JSX.Element {

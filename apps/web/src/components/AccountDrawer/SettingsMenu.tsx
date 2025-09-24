@@ -15,8 +15,6 @@ import ThemeToggle from 'theme/components/ThemeToggle'
 import { Flex, Text } from 'ui/src'
 import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { useAppFiatCurrency } from 'uniswap/src/features/fiatCurrency/hooks'
-import { useCurrentLanguage, useLanguageInfo } from 'uniswap/src/features/language/hooks'
-import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 
 const Container = styled(Column)`
   height: 100%;
@@ -56,21 +54,17 @@ const SettingsButton = ({
 
 export default function SettingsMenu({
   onClose,
-  openLanguageSettings,
   openLocalCurrencySettings,
   openPasskeySettings,
   openPortfolioBalanceSettings,
 }: {
   onClose: () => void
-  openLanguageSettings: () => void
   openLocalCurrencySettings: () => void
   openPasskeySettings: () => void
   openPortfolioBalanceSettings: () => void
 }) {
   const { t } = useTranslation()
-  const activeLanguage = useCurrentLanguage()
   const activeLocalCurrency = useAppFiatCurrency()
-  const languageInfo = useLanguageInfo(activeLanguage)
   const connectedWithEmbeddedWallet =
     useAccount().connector?.id === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID
 
@@ -85,13 +79,6 @@ export default function SettingsMenu({
             currentState={activeLocalCurrency}
             onClick={openLocalCurrencySettings}
             testId="local-currency-settings-button"
-          />
-          <SettingsButton
-            title={t('common.language')}
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            currentState={languageInfo?.displayName}
-            onClick={openLanguageSettings}
-            testId={TestID.LanguageSettingsButton}
           />
           <SettingsButton
             title={t('settings.setting.smallBalances.title')}

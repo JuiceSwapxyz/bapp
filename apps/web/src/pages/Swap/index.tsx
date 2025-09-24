@@ -2,7 +2,6 @@ import type { Currency } from '@juiceswapxyz/sdk-core'
 import { PrefetchBalancesWrapper } from 'appGraphql/data/apollo/AdaptiveTokenBalancesProvider'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { SwapBottomCard } from 'components/SwapBottomCard'
-import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
@@ -22,7 +21,6 @@ import { SwapAndLimitContextProvider } from 'state/swap/SwapContext'
 import { useInitialCurrencyState } from 'state/swap/hooks'
 import type { CurrencyState } from 'state/swap/types'
 import { Flex, Text, Tooltip, styled } from 'ui/src'
-import type { AppTFunction } from 'ui/src/i18n/types'
 import { zIndexes } from 'ui/src/theme'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { useIsModeMismatch } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -87,7 +85,6 @@ export default function SwapPage() {
           usePersistedFilteredChainIds
         />
       </PageWrapper>
-      {location.pathname === '/swap' && <SwitchLocaleLink />}
     </Trace>
   )
 }
@@ -181,16 +178,6 @@ export function Swap({
   )
 }
 
-const SWAP_TABS = [SwapTab.Swap]
-
-const TAB_TYPE_TO_LABEL = {
-  [SwapTab.Swap]: (t: AppTFunction) => t('swap.form.header'),
-  [SwapTab.Limit]: (t: AppTFunction) => t('swap.limit'),
-  [SwapTab.Send]: (t: AppTFunction) => t('send.title'),
-  [SwapTab.Buy]: (t: AppTFunction) => t('common.buy.label'),
-  [SwapTab.Sell]: (t: AppTFunction) => t('common.sell.label'),
-}
-
 const PATHNAME_TO_TAB: { [key: string]: SwapTab } = {
   '/swap': SwapTab.Swap,
   '/send': SwapTab.Send, // Keep for send modal
@@ -202,8 +189,6 @@ const PATHNAME_TO_TAB: { [key: string]: SwapTab } = {
 function UniversalSwapFlow({
   hideHeader = false,
   hideFooter = false,
-  disableTokenInputs = false,
-  syncTabToUrl = true,
   prefilledState,
   onCurrencyChange,
   swapRedirectCallback,
@@ -220,8 +205,6 @@ function UniversalSwapFlow({
 }) {
   const [currentTab, setCurrentTab] = useState(SwapTab.Swap)
   const { pathname } = useLocation()
-  const navigate = useNavigate()
-  const { t } = useTranslation()
   // Store onSubmitSwap callback ref for access in swapCallback
   const onSubmitSwapRef = useRef<
     ((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined

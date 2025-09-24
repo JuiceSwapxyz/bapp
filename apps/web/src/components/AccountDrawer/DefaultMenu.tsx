@@ -1,5 +1,4 @@
 import AuthenticatedHeader from 'components/AccountDrawer/AuthenticatedHeader'
-import LanguageMenu from 'components/AccountDrawer/LanguageMenu'
 import LocalCurrencyMenu from 'components/AccountDrawer/LocalCurrencyMenu'
 import { LimitsMenu } from 'components/AccountDrawer/MiniPortfolio/Limits/LimitsMenu'
 import { UniExtensionPoolsMenu } from 'components/AccountDrawer/MiniPortfolio/Pools/UniExtensionPoolsMenu'
@@ -25,7 +24,6 @@ function DefaultMenu() {
   const [menu, setMenu] = useAtom(miniPortfolioMenuStateAtom)
   const openSettings = useCallback(() => setMenu(MenuState.SETTINGS), [setMenu])
   const closeSettings = useCallback(() => setMenu(MenuState.DEFAULT), [setMenu])
-  const openLanguageSettings = useCallback(() => setMenu(MenuState.LANGUAGE_SETTINGS), [setMenu])
   const openLocalCurrencySettings = useCallback(() => setMenu(MenuState.LOCAL_CURRENCY_SETTINGS), [setMenu])
   const openPortfolioBalanceSettings = useCallback(() => setMenu(MenuState.PORTFOLIO_BALANCE), [setMenu])
   const closeLimitsMenu = useCallback(() => setMenu(MenuState.DEFAULT), [setMenu])
@@ -40,7 +38,6 @@ function DefaultMenu() {
       [MenuState.SETTINGS]: 1,
       [MenuState.POOLS]: 1,
       [MenuState.OTHER_WALLETS]: 1,
-      [MenuState.LANGUAGE_SETTINGS]: 2,
       [MenuState.LOCAL_CURRENCY_SETTINGS]: 2,
       [MenuState.PORTFOLIO_BALANCE]: 2,
       [MenuState.LIMITS]: 2,
@@ -92,15 +89,12 @@ function DefaultMenu() {
         return (
           <SettingsMenu
             onClose={closeSettings}
-            openLanguageSettings={openLanguageSettings}
             openLocalCurrencySettings={openLocalCurrencySettings}
             openPasskeySettings={openPasskeySettings}
             openPortfolioBalanceSettings={openPortfolioBalanceSettings}
           />
         )
 
-      case MenuState.LANGUAGE_SETTINGS:
-        return <LanguageMenu onClose={openSettings} />
       case MenuState.PORTFOLIO_BALANCE:
         return <PortfolioBalanceMenu onClose={openSettings} />
       case MenuState.LOCAL_CURRENCY_SETTINGS:
@@ -117,7 +111,6 @@ function DefaultMenu() {
     closeLimitsMenu,
     closeSettings,
     menu,
-    openLanguageSettings,
     openLocalCurrencySettings,
     openPortfolioBalanceSettings,
     openPasskeySettings,
