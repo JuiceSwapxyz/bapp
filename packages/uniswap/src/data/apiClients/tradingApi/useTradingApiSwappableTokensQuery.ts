@@ -41,6 +41,8 @@ export function useTradingApiSwappableTokensQuery({
     // In order for `getSwappableTokensQueryData` to be more likely to have cached data,
     // we set the `gcTime` to the longest possible time.
     gcTime: MAX_REACT_QUERY_CACHE_TIME_MS,
+    // TODO: Enable once swappable_tokens API endpoint is configured
+    enabled: false,
     ...rest,
   })
 }
