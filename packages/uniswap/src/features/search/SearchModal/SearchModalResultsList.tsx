@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useCurrencyInfosToTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/useCurrencyInfosToTokenOptions'
@@ -8,10 +9,12 @@ import { usePoolSearchResultsToPoolOptions } from 'uniswap/src/components/lists/
 import { OnchainItemListOptionType, SearchModalOption, WalletOption } from 'uniswap/src/components/lists/items/types'
 import { useOnchainItemListSection } from 'uniswap/src/components/lists/utils'
 import { useCollectionSearchQuery } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
+import { fetchTokenDataDirectly, searchTokenToCurrencyInfo } from 'uniswap/src/data/rest/searchTokensAndPools'
 import { GqlResult } from 'uniswap/src/data/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useSearchPools } from 'uniswap/src/features/dataApi/searchPools'
 import { useSearchTokens } from 'uniswap/src/features/dataApi/searchTokens'
+import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { SearchModalList, SearchModalListProps } from 'uniswap/src/features/search/SearchModal/SearchModalList'
 import { NUMBER_OF_RESULTS_SHORT } from 'uniswap/src/features/search/SearchModal/constants'
@@ -22,16 +25,67 @@ import { getValidAddress } from 'uniswap/src/utils/addresses'
 import { isWeb } from 'utilities/src/platform'
 import noop from 'utilities/src/react/noop'
 
+// Hook to search for tokens directly by address
+function useDirectTokenSearch(
+  address: string | null,
+  chainId: UniverseChainId | null,
+): { data: CurrencyInfo | null | undefined; isLoading: boolean } {
+  const result = useQuery({
+    queryKey: ['directTokenSearch', address, chainId],
+    queryFn: async () => {
+      if (!address || !chainId) {
+        return null
+      }
+      try {
+        const token = await fetchTokenDataDirectly(address, chainId)
+        return token ? searchTokenToCurrencyInfo(token) : null
+      } catch {
+        // Try other chains if the current one fails
+        const chainsToTry = [
+          UniverseChainId.CitreaTestnet,
+          UniverseChainId.Mainnet,
+          UniverseChainId.Base,
+          UniverseChainId.ArbitrumOne,
+          UniverseChainId.Optimism,
+        ].filter((c) => c !== chainId)
+
+        for (const fallbackChain of chainsToTry) {
+          try {
+            const token = await fetchTokenDataDirectly(address, fallbackChain)
+            if (token) {
+              return searchTokenToCurrencyInfo(token)
+            }
+          } catch {
+            continue
+          }
+        }
+        return null
+      }
+    },
+    enabled: !!address && !!chainId,
+    staleTime: 30000, // Cache for 30 seconds
+  })
+
+  return {
+    data: result.data,
+    isLoading: result.isLoading,
+  }
+}
+
 function useSectionsForSearchResults({
   chainFilter,
   searchFilter,
   activeTab,
   shouldPrioritizePools,
+  isValidAddress,
+  addressChainId,
 }: {
   chainFilter: UniverseChainId | null
   searchFilter: string | null
   activeTab: SearchTab
   shouldPrioritizePools: boolean
+  isValidAddress?: boolean
+  addressChainId?: UniverseChainId | null
 }): GqlResult<OnchainItemSection<SearchModalOption>[]> {
   const skipPoolSearchQuery = !isWeb || !searchFilter || (activeTab !== SearchTab.Pools && activeTab !== SearchTab.All)
   const {
@@ -60,14 +114,47 @@ function useSectionsForSearchResults({
     chainFilter,
     skip: !searchFilter || (activeTab !== SearchTab.Tokens && activeTab !== SearchTab.All),
   })
-  const tokenSearchResults = useCurrencyInfosToTokenOptions({ currencyInfos: searchResultCurrencies })
+  // Direct token search for addresses
+  const { data: directTokenResult, isLoading: directTokenLoading } = useDirectTokenSearch(
+    isValidAddress ? searchFilter : null,
+    addressChainId || null,
+  )
+
+  // Convert search results to token options
+  const convertedTokenResults = useCurrencyInfosToTokenOptions({ currencyInfos: searchResultCurrencies })
+  const regularTokenResults = useMemo(() => convertedTokenResults || [], [convertedTokenResults])
+
+  // Combine regular search results with direct token search
+  const combinedTokenResults = useMemo(() => {
+    if (directTokenResult) {
+      // Convert to token option format
+      const directTokenOption = {
+        type: OnchainItemListOptionType.Token as const,
+        currencyInfo: directTokenResult,
+        quantity: null,
+        balanceUSD: null,
+      }
+
+      // Add direct token result at the beginning if it's not already in regular results
+      const existsInRegular = regularTokenResults.some(
+        (token) => token.currencyInfo.currencyId === directTokenResult.currencyId,
+      )
+
+      if (!existsInRegular) {
+        return [directTokenOption, ...regularTokenResults]
+      }
+    }
+
+    return regularTokenResults
+  }, [regularTokenResults, directTokenResult])
+
   const isPoolAddressSearch =
     searchFilter &&
     getValidAddress({ address: searchFilter, platform: Platform.EVM }) &&
     searchResultPools?.length === 1
   const tokenSearchResultsSection = useOnchainItemListSection({
     sectionKey: OnchainItemSectionName.Tokens,
-    options: isPoolAddressSearch ? [] : tokenSearchResults, // do not display tokens if pool address search (to avoid displaying V2 liquidity tokens in results)
+    options: isPoolAddressSearch ? [] : combinedTokenResults, // do not display tokens if pool address search (to avoid displaying V2 liquidity tokens in results)
   })
 
   const skipWalletSearchQuery = isWeb || (activeTab !== SearchTab.Wallets && activeTab !== SearchTab.All)
@@ -131,16 +218,16 @@ function useSectionsForSearchResults({
           ]
         }
         return {
-          data: !searchTokensLoading ? sections : [],
-          loading: searchTokensLoading, // only show loading&error state for loading tokens
-          error: (!tokenSearchResults && searchTokensError) || undefined,
+          data: !searchTokensLoading && !directTokenLoading ? sections : [],
+          loading: searchTokensLoading || directTokenLoading, // include direct token loading
+          error: (!tokenSearchResultsSection && searchTokensError) || undefined,
           refetch: refetchAll,
         }
       case SearchTab.Tokens:
         return {
           data: tokenSearchResultsSection ?? [],
-          loading: searchTokensLoading,
-          error: (!tokenSearchResults && searchTokensError) || undefined,
+          loading: searchTokensLoading || directTokenLoading,
+          error: (!tokenSearchResultsSection && searchTokensError) || undefined,
           refetch: refetchSearchTokens,
         }
       case SearchTab.Pools:
@@ -167,6 +254,7 @@ function useSectionsForSearchResults({
     }
   }, [
     activeTab,
+    directTokenLoading,
     nftCollectionSearchResultsSection,
     poolSearchOptions.length,
     poolSearchResultsSection,
@@ -182,7 +270,6 @@ function useSectionsForSearchResults({
     searchTokensError,
     searchTokensLoading,
     shouldPrioritizePools,
-    tokenSearchResults,
     tokenSearchResultsSection,
     walletSearchResultsLoading,
     walletSearchResultsSection,
@@ -210,6 +297,9 @@ function _SearchModalResultsList({
 }: SearchModalResultsListProps): JSX.Element {
   const { t } = useTranslation()
 
+  const isValidAddress = Boolean(searchFilter && getValidAddress({ address: searchFilter, platform: Platform.EVM }))
+  const addressChainId = isValidAddress ? chainFilter ?? parsedChainFilter ?? UniverseChainId.CitreaTestnet : null
+
   const {
     data: sections,
     loading,
@@ -221,6 +311,8 @@ function _SearchModalResultsList({
     searchFilter: debouncedParsedSearchFilter ?? debouncedSearchFilter,
     activeTab,
     shouldPrioritizePools: (debouncedParsedSearchFilter ?? debouncedSearchFilter)?.includes('/') ?? false,
+    isValidAddress,
+    addressChainId,
   })
 
   const userIsTyping = Boolean(searchFilter && debouncedSearchFilter !== searchFilter)

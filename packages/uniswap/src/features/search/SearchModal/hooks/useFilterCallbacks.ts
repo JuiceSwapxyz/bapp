@@ -5,6 +5,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { isTestnetChain } from 'uniswap/src/features/chains/utils'
 import { ModalNameType, WalletEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
+import { isAddress } from 'utilities/src/addresses'
 
 export function useFilterCallbacks(
   chainId: UniverseChainId | null,
@@ -14,6 +15,8 @@ export function useFilterCallbacks(
   parsedChainFilter: UniverseChainId | null
   searchFilter: string | null
   parsedSearchFilter: string | null
+  isValidAddress: boolean
+  addressChainId: UniverseChainId | null
   onChangeChainFilter: (newChainFilter: UniverseChainId | null) => void
   onClearSearchFilter: () => void
   onChangeText: (newSearchFilter: string) => void
@@ -22,6 +25,8 @@ export function useFilterCallbacks(
   const [parsedChainFilter, setParsedChainFilter] = useState<UniverseChainId | null>(null)
   const [searchFilter, setSearchFilter] = useState<string | null>(null)
   const [parsedSearchFilter, setParsedSearchFilter] = useState<string | null>(null)
+  const [isValidAddress, setIsValidAddress] = useState<boolean>(false)
+  const [addressChainId, setAddressChainId] = useState<UniverseChainId | null>(null)
 
   const { chains: enabledChains } = useEnabledChains()
 
@@ -68,11 +73,26 @@ export function useFilterCallbacks(
 
   const onChangeText = useCallback((newSearchFilter: string) => setSearchFilter(newSearchFilter), [setSearchFilter])
 
+  // Check if search input is a valid Ethereum address
+  useEffect(() => {
+    const validAddress = isAddress(searchFilter)
+    setIsValidAddress(!!validAddress)
+
+    if (validAddress) {
+      // For valid addresses, use the current chain filter or default to CitreaTestnet
+      setAddressChainId(chainFilter || UniverseChainId.CitreaTestnet)
+    } else {
+      setAddressChainId(null)
+    }
+  }, [searchFilter, chainFilter])
+
   return {
     chainFilter,
     parsedChainFilter,
     searchFilter,
     parsedSearchFilter,
+    isValidAddress,
+    addressChainId,
     onChangeChainFilter,
     onClearSearchFilter,
     onChangeText,
