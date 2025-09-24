@@ -400,10 +400,6 @@ export default function CreatePosition() {
 
   const initialInputs = useLiquidityUrlState()
 
-  if (initialInputs.loading) {
-    return null
-  }
-
   return (
     <CreatePositionContent
       initialInputs={initialInputs}

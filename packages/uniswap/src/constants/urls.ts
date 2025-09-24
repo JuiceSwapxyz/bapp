@@ -96,7 +96,7 @@ export const uniswapUrls = {
     wethExplainer: createHelpArticleUrl('16015852009997-Why-do-ETH-swaps-involve-converting-to-WETH'),
   },
   downloadWalletUrl: 'https://wallet.juiceswap.xyz/',
-  tradingApiDocsUrl: 'https://hub.juiceswap.xyz/',
+  tradingApiDocsUrl: 'https://api.juiceswap.xyz/',
   unichainUrl: 'https://www.unichain.org/',
   uniswapXUrl: 'https://x.juiceswap.xyz/',
   helpCenterUrl: 'https://help.juiceswap.xyz/',

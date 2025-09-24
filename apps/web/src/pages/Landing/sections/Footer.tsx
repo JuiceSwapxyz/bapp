@@ -68,7 +68,7 @@ export function Footer() {
       >
         <Text variant="body3">© {currentYear} - JuiceSwap Labs</Text>
         <Flex row alignItems="center" gap="$spacing16">
-          <PolicyLink onPress={togglePrivacyPolicy}>{t('common.privacyPolicy')}</PolicyLink>
+          {/* <PolicyLink onPress={togglePrivacyPolicy}>{t('common.privacyPolicy')}</PolicyLink> */}
           <Anchor
             textDecorationLine="none"
             href="https://github.com/JuiceSwapxyz/documentation/tree/main/media_kit"

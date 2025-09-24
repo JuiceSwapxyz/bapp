@@ -79,20 +79,24 @@ function UniverseRow({
   title,
   description,
   href,
+  id,
 }: {
   icon: React.ReactNode
   title: string
   description: string | React.ReactNode
   href?: string
+  id?: string
 }) {
   const showArrow = Boolean(href)
 
   if (href) {
+    const isExternal = href.startsWith('http')
     return (
       <Anchor
+        id={id}
         href={href}
-        target="_blank"
-        rel="noopener noreferrer"
+        target={isExternal ? '_blank' : undefined}
+        rel={isExternal ? 'noopener noreferrer' : undefined}
         textDecorationLine="none"
         {...ClickableTamaguiStyle}
       >
@@ -101,7 +105,11 @@ function UniverseRow({
     )
   }
 
-  return <RowContent icon={icon} title={title} description={description} showArrow={showArrow} />
+  return (
+    <Flex id={id} width="100%">
+      <RowContent icon={icon} title={title} description={description} showArrow={showArrow} />
+    </Flex>
+  )
 }
 
 const SocialLink = styled(Anchor, {
@@ -200,6 +208,15 @@ function FAQList() {
 export function NewsletterEtc() {
   const { t } = useTranslation()
 
+  useEffect(() => {
+    // Scroll to FAQ section if hash is #faq
+    if (window.location.hash === '#faq') {
+      setTimeout(() => {
+        document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
+    }
+  }, [])
+
   return (
     <SectionLayout>
       <Text variant="heading1" width="100%" $md={{ variant: 'heading2' }}>
@@ -235,6 +252,8 @@ export function NewsletterEtc() {
           icon={<HelpCenter size="$icon.36" fill="$neutral1" />}
           title={t('common.faq')}
           description={<FAQList />}
+          id="faq"
+          href="/?intro=true#faq"
         />
       </Flex>
     </SectionLayout>

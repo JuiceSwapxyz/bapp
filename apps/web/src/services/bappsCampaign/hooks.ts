@@ -1,11 +1,9 @@
-import { popupRegistry } from 'components/Popups/registry'
-import { PopupType } from 'components/Popups/types'
 import { useAccount } from 'hooks/useAccount'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
-import { CampaignProgress, SwapTaskCompletion, bAppsCampaignAPI } from 'services/bappsCampaign/api'
+import { CampaignProgress, bAppsCampaignAPI } from 'services/bappsCampaign/api'
 
 /**
  * Hook to fetch and manage campaign progress
@@ -40,83 +38,6 @@ export function useBAppsCampaignProgress() {
     }
   }, [account.address, defaultChainId])
 
-  // Submit task completion
-  const submitTaskCompletion = useCallback(
-    async (taskId: number, txHash: string): Promise<boolean> => {
-      if (!account.address) {
-        return false
-      }
-
-      const completion: SwapTaskCompletion = {
-        walletAddress: account.address,
-        taskId,
-        txHash,
-        chainId: defaultChainId,
-        timestamp: new Date().toISOString(),
-      }
-
-      const success = await bAppsCampaignAPI.submitTaskCompletion(completion)
-
-      // Don't refresh here - will be done in trackSwapCompletion
-
-      return success
-    },
-    [account.address, defaultChainId],
-  )
-
-  // Check if a swap completed a task with enhanced status handling
-  const checkSwapTaskCompletion = useCallback(
-    async (params: {
-      txHash: string
-      inputToken?: string
-      outputToken?: string
-      retryCount?: number
-    }): Promise<number | null> => {
-      const { txHash, inputToken, outputToken, retryCount = 0 } = params
-      if (!account.address) {
-        return null
-      }
-
-      const result = await bAppsCampaignAPI.checkSwapTaskCompletion({
-        txHash,
-        walletAddress: account.address,
-        chainId: defaultChainId,
-        inputToken,
-        outputToken,
-      })
-
-      // Status information is available in result.status, result.message, and result.confirmations
-
-      // Handle different statuses
-      if (result.status === 'pending') {
-        // Implement automatic retry with exponential backoff
-        if (retryCount < 10) {
-          // Max 10 retries
-          const delay = Math.min(1000 * Math.pow(1.5, retryCount), 10000) // Max 10 seconds
-          await new Promise((resolve) => setTimeout(resolve, delay))
-          return checkSwapTaskCompletion({ txHash, inputToken, outputToken, retryCount: retryCount + 1 })
-        }
-
-        // Max retries reached, transaction still pending
-        return null
-      }
-
-      if (result.status === 'failed' || result.status === 'not_found') {
-        // Transaction check failed
-        return null
-      }
-
-      // Only return taskId if confirmed and valid
-      if (result.status === 'confirmed' && result.taskId) {
-        // Task confirmed - DON'T refresh here, will be done in trackSwapCompletion
-        return result.taskId
-      }
-
-      return null
-    },
-    [account.address, defaultChainId],
-  )
-
   // Fetch progress on mount and when dependencies change
   useEffect(() => {
     fetchProgress()
@@ -134,7 +55,8 @@ export function useBAppsCampaignProgress() {
     }
   }, [fetchProgress])
 
-  // Refetch progress every 30 seconds if wallet is connected
+  // Refetch progress every 15 seconds if wallet is connected
+  // More frequent polling since API now automatically indexes blockchain data
   useEffect(() => {
     if (!account.address || defaultChainId !== UniverseChainId.CitreaTestnet) {
       return undefined
@@ -142,7 +64,7 @@ export function useBAppsCampaignProgress() {
 
     const interval = setInterval(() => {
       fetchProgress()
-    }, 30000) // 30 seconds
+    }, 15000) // 15 seconds
 
     return () => clearInterval(interval)
   }, [account.address, defaultChainId, fetchProgress])
@@ -152,8 +74,6 @@ export function useBAppsCampaignProgress() {
     loading,
     error,
     refetch: fetchProgress,
-    submitTaskCompletion,
-    checkSwapTaskCompletion,
   }
 }
 
@@ -256,54 +176,4 @@ export function useIsBAppsCampaignAvailable(): boolean {
   const isWalletConnected = account.isConnected
 
   return isCampaignVisible && isWalletConnected
-}
-
-/**
- * Hook to track swap completion and update campaign progress
- */
-export function useBAppsSwapTracking() {
-  const { submitTaskCompletion, checkSwapTaskCompletion } = useBAppsCampaignProgress()
-  const account = useAccount()
-  const { defaultChainId } = useEnabledChains()
-
-  const trackSwapCompletion = useCallback(
-    async (params: { txHash: string; inputToken?: string; outputToken?: string }) => {
-      const { txHash, inputToken, outputToken } = params
-      // First check which task this swap completed (locally first, then API)
-      const taskId = await checkSwapTaskCompletion({ txHash, inputToken, outputToken })
-
-      if (taskId !== null) {
-        // Task was identified by API
-        await submitTaskCompletion(taskId, txHash)
-
-        // Get updated progress to show in notification
-        const updatedProgress = await bAppsCampaignAPI.getCampaignProgress(account.address!, defaultChainId)
-        const completedTask = updatedProgress.tasks.find((t) => t.id === taskId)
-
-        // Dispatch a custom event to trigger all hook instances to refetch
-        window.dispatchEvent(new CustomEvent('bapps-campaign-updated'))
-
-        if (completedTask) {
-          // Show success notification with the updated progress
-          popupRegistry.addPopup(
-            {
-              type: PopupType.CampaignTaskCompleted,
-              taskName: completedTask.name,
-              progress: updatedProgress.progress,
-            },
-            `campaign-task-${taskId}`,
-            10000, // Show for 10 seconds
-          )
-        }
-
-        return taskId
-      }
-
-      // No fallback mapping needed - API handles all task identification
-      return null
-    },
-    [checkSwapTaskCompletion, submitTaskCompletion, account.address, defaultChainId],
-  )
-
-  return { trackSwapCompletion, isAvailable: useIsBAppsCampaignAvailable() }
 }
