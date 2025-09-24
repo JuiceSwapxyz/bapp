@@ -22,17 +22,32 @@ function useBAppsSwapTracking(options: {
   const transaction = useTransaction(txHash)
 
   useEffect(() => {
+    // Debug logging
+    console.log('[Campaign Debug] useBAppsSwapTracking:', {
+      txHash,
+      chainId,
+      inputToken,
+      outputToken,
+      transactionStatus: transaction?.status,
+      citreaTestnet: UniverseChainId.CitreaTestnet,
+    })
+
     if (!txHash || chainId !== UniverseChainId.CitreaTestnet || !inputToken || !outputToken) {
       return
     }
 
     // Only track when transaction is confirmed as successful and not already tracked
     if (transaction?.status === TransactionStatus.Success && !hasTracked.current.has(txHash)) {
+      console.log('[Campaign Debug] Transaction successful, tracking completion...')
       hasTracked.current.add(txHash)
-      trackSwapCompletion({ txHash, inputToken, outputToken }).catch(() => {
-        // Silently fail if tracking fails
-        hasTracked.current.delete(txHash) // Allow retry on failure
-      })
+      trackSwapCompletion({ txHash, inputToken, outputToken })
+        .then(() => {
+          console.log('[Campaign Debug] Tracking completed successfully')
+        })
+        .catch((error) => {
+          console.error('[Campaign Debug] Tracking failed:', error)
+          hasTracked.current.delete(txHash) // Allow retry on failure
+        })
     }
   }, [txHash, chainId, inputToken, outputToken, transaction?.status, trackSwapCompletion])
 }

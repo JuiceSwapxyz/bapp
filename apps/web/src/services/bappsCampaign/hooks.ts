@@ -46,10 +46,12 @@ export function useBAppsCampaignProgress() {
   // Listen for campaign update events
   useEffect(() => {
     const handleCampaignUpdate = () => {
+      console.log('[Campaign Debug] Received bapps-campaign-updated event, fetching progress...')
       fetchProgress()
     }
 
     window.addEventListener('bapps-campaign-updated', handleCampaignUpdate)
+    console.log('[Campaign Debug] Registered event listener for bapps-campaign-updated')
     return () => {
       window.removeEventListener('bapps-campaign-updated', handleCampaignUpdate)
     }
@@ -190,18 +192,28 @@ export function useBAppsSwapTracking() {
     async (params: { txHash: string; inputToken?: string; outputToken?: string }) => {
       const { inputToken, outputToken } = params
 
+      console.log('[Campaign Debug] trackSwapCompletion called:', {
+        inputToken,
+        outputToken,
+        account: account.address,
+        chainId: defaultChainId,
+      })
+
       if (!account.address || defaultChainId !== UniverseChainId.CitreaTestnet) {
+        console.log('[Campaign Debug] Not on Citrea testnet or no account')
         return
       }
 
       // First check locally if we can identify the task
       if (inputToken && outputToken) {
         const taskId = bAppsCampaignAPI.getTaskIdFromTokenPair(inputToken, outputToken)
+        console.log('[Campaign Debug] Task ID from token pair:', taskId)
 
         if (taskId !== null) {
           // Task identified locally - update localStorage immediately
           const storageKey = `campaign_progress_${account.address}_${defaultChainId}`
           const existingData = localStorage.getItem(storageKey)
+          console.log('[Campaign Debug] Existing localStorage data:', existingData)
 
           if (existingData) {
             try {
@@ -209,15 +221,20 @@ export function useBAppsSwapTracking() {
               const taskIndex = progress.tasks.findIndex((t) => t.id === taskId)
 
               if (taskIndex !== -1 && !progress.tasks[taskIndex].completed) {
+                console.log('[Campaign Debug] Updating task as completed:', taskId)
                 progress.tasks[taskIndex].completed = true
                 progress.completedTasks++
                 localStorage.setItem(storageKey, JSON.stringify(progress))
+                console.log('[Campaign Debug] Updated localStorage:', progress)
 
                 // Dispatch event to update UI immediately
                 window.dispatchEvent(new CustomEvent('bapps-campaign-updated'))
+                console.log('[Campaign Debug] Dispatched bapps-campaign-updated event')
+              } else {
+                console.log('[Campaign Debug] Task already completed or not found:', { taskIndex, taskId })
               }
             } catch (error) {
-              // Silently fail for localStorage errors
+              console.error('[Campaign Debug] Error updating localStorage:', error)
             }
           }
         }
