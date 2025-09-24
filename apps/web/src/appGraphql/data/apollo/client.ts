@@ -2,9 +2,15 @@ import { ApolloClient, HttpLink, from } from '@apollo/client'
 import { setupSharedApolloCache } from 'uniswap/src/data/cache'
 import { getDatadogApolloLink } from 'utilities/src/logger/datadog/datadogLink'
 
-const API_URL = process.env.REACT_APP_AWS_API_ENDPOINT
+let API_URL = process.env.REACT_APP_AWS_API_ENDPOINT
 if (!API_URL) {
   throw new Error('AWS API ENDPOINT MISSING FROM ENVIRONMENT')
+}
+
+// Prevent localhost GraphQL endpoints from being used to avoid CSP errors
+if (API_URL.includes('localhost:42069')) {
+  console.warn('Localhost GraphQL endpoint detected, using beta gateway instead')
+  API_URL = 'https://beta.gateway.uniswap.org/v1/graphql'
 }
 
 const httpLink = new HttpLink({ uri: API_URL })
