@@ -12,9 +12,9 @@ import { useCollectionSearchQuery } from 'uniswap/src/data/graphql/uniswap-data-
 import { fetchTokenDataDirectly, searchTokenToCurrencyInfo } from 'uniswap/src/data/rest/searchTokensAndPools'
 import { GqlResult } from 'uniswap/src/data/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { useSearchPools } from 'uniswap/src/features/dataApi/searchPools'
 import { useSearchTokens } from 'uniswap/src/features/dataApi/searchTokens'
+import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { SearchModalList, SearchModalListProps } from 'uniswap/src/features/search/SearchModal/SearchModalList'
 import { NUMBER_OF_RESULTS_SHORT } from 'uniswap/src/features/search/SearchModal/constants'
@@ -121,10 +121,8 @@ function useSectionsForSearchResults({
   )
 
   // Convert search results to token options
-  const regularTokenResults = useMemo(
-    () => useCurrencyInfosToTokenOptions({ currencyInfos: searchResultCurrencies }) || [],
-    [searchResultCurrencies],
-  )
+  const convertedTokenResults = useCurrencyInfosToTokenOptions({ currencyInfos: searchResultCurrencies })
+  const regularTokenResults = useMemo(() => convertedTokenResults || [], [convertedTokenResults])
 
   // Combine regular search results with direct token search
   const combinedTokenResults = useMemo(() => {
