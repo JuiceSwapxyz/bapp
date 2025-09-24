@@ -6,7 +6,6 @@ import { Trans, useTranslation } from 'react-i18next'
 import { ThemeSelector } from 'theme/components/ThemeToggle'
 import { Flex, Text } from 'ui/src'
 import { useAppFiatCurrency } from 'uniswap/src/features/fiatCurrency/hooks'
-import { useCurrentLanguage, useLanguageInfo } from 'uniswap/src/features/language/hooks'
 
 const Pref = styled.div`
   display: flex;
@@ -60,19 +59,11 @@ export function PreferenceSettings({
 }) {
   const { t } = useTranslation()
   const activeLocalCurrency = useAppFiatCurrency()
-  const activeLanguage = useCurrentLanguage()
-  const languageInfo = useLanguageInfo(activeLanguage)
 
   const items: SettingItem[] = [
     {
       label: showThemeLabel ? t('themeToggle.theme') : undefined,
       component: <ThemeSelector compact fullWidth={!showThemeLabel} />,
-    },
-    {
-      label: t('common.language'),
-      component: (
-        <SelectButton label={languageInfo.displayName} onClick={() => setSettingsView(PreferencesView.LANGUAGE)} />
-      ),
     },
     {
       label: t('common.currency'),
