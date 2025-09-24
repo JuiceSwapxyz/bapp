@@ -103,20 +103,83 @@ export type WrapQuoteResponse<T extends Routing.WRAP | Routing.UNWRAP> = QuoteRe
   routing: T
 }
 
-const TradingApiClient = createApiClient({
+// Mock client for disabled Trading API
+const DisabledTradingApiClient = {
+  post: async <T>(path: string): Promise<T> => {
+    // Return safe mock responses based on endpoint
+    if (path.includes('check_delegation')) {
+      return {
+        requestId: 'mock-request-id',
+        delegationDetails: {},
+      } as T
+    }
+    if (path.includes('quote')) {
+      return {
+        requestId: 'mock-request-id',
+        routing: 'CLASSIC',
+        quote: {
+          input: {},
+          output: {},
+        },
+      } as T
+    }
+    if (path.includes('order')) {
+      return {
+        requestId: 'mock-request-id',
+        orderId: 'mock-order-id',
+      } as T
+    }
+    // Default empty response
+    return {} as T
+  },
+  get: async <T>(path: string): Promise<T> => {
+    // Return safe mock responses for GET requests
+    if (path.includes('orders')) {
+      return {
+        orders: [],
+      } as T
+    }
+    if (path.includes('swappable_tokens')) {
+      return {
+        tokens: [],
+      } as T
+    }
+    return {} as T
+  },
+  put: async <T>(): Promise<T> => {
+    return {} as T
+  },
+  delete: async <T>(): Promise<T> => {
+    return {} as T
+  },
+}
+
+const RealTradingApiClient = createApiClient({
   baseUrl: uniswapUrls.tradingApiUrl,
   additionalHeaders: {
     'x-api-key': config.tradingApiKey,
   },
 })
 
+// Use mock client if Trading API is disabled
+const TradingApiClient =
+  config.tradingApiUrlOverride === 'https://disabled.juiceswap.local' || uniswapUrls.tradingApiUrl.includes('disabled')
+    ? DisabledTradingApiClient
+    : RealTradingApiClient
+
 // Custom quote client for selective endpoint override
-const CustomQuoteApiClient = createApiClient({
+const RealCustomQuoteApiClient = createApiClient({
   baseUrl: process.env.REACT_APP_CUSTOM_QUOTE_API_URL || uniswapUrls.tradingApiUrl,
   additionalHeaders: {
     'x-api-key': config.tradingApiKey,
   },
 })
+
+// Use mock client if Trading API is disabled
+const CustomQuoteApiClient =
+  config.tradingApiUrlOverride === 'https://disabled.juiceswap.local' || uniswapUrls.tradingApiUrl.includes('disabled')
+    ? DisabledTradingApiClient
+    : RealCustomQuoteApiClient
 
 const V4_HEADERS = {
   'x-universal-router-version': UniversalRouterVersion._2_0,

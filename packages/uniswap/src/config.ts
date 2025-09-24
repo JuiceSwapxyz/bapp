@@ -105,7 +105,10 @@ const _config: Config = {
   statsigProxyUrlOverride: process.env.STATSIG_PROXY_URL_OVERRIDE || STATSIG_PROXY_URL_OVERRIDE,
   tradingApiKey: process.env.REACT_APP_TRADING_API_KEY || process.env.TRADING_API_KEY || TRADING_API_KEY,
   tradingApiUrlOverride:
-    process.env.REACT_APP_TRADING_API_URL_OVERRIDE || process.env.TRADING_API_URL_OVERRIDE || TRADING_API_URL_OVERRIDE,
+    process.env.REACT_APP_TRADING_API_URL_OVERRIDE ||
+    process.env.TRADING_API_URL_OVERRIDE ||
+    TRADING_API_URL_OVERRIDE ||
+    'https://disabled.juiceswap.local',
   tradingApiWebTestEnv: process.env.REACT_APP_TRADING_API_TEST_ENV || '',
   uniswapApiKey: process.env.UNISWAP_API_KEY || UNISWAP_API_KEY,
   unitagsApiUrlOverride: process.env.UNITAGS_API_URL_OVERRIDE || UNITAGS_API_URL_OVERRIDE,
