@@ -177,3 +177,59 @@ export function useIsBAppsCampaignAvailable(): boolean {
 
   return isCampaignVisible && isWalletConnected
 }
+
+/**
+ * Hook to track swap completion for bApps campaign
+ */
+export function useBAppsSwapTracking() {
+  const account = useAccount()
+  const { defaultChainId } = useEnabledChains()
+  const { refetch } = useBAppsCampaignProgress()
+
+  const trackSwapCompletion = useCallback(
+    async (params: { txHash: string; inputToken?: string; outputToken?: string }) => {
+      const { inputToken, outputToken } = params
+
+      if (!account.address || defaultChainId !== UniverseChainId.CitreaTestnet) {
+        return
+      }
+
+      // First check locally if we can identify the task
+      if (inputToken && outputToken) {
+        const taskId = bAppsCampaignAPI.getTaskIdFromTokenPair(inputToken, outputToken)
+
+        if (taskId !== null) {
+          // Task identified locally - update localStorage immediately
+          const storageKey = `campaign_progress_${account.address}_${defaultChainId}`
+          const existingData = localStorage.getItem(storageKey)
+
+          if (existingData) {
+            try {
+              const progress = JSON.parse(existingData) as CampaignProgress
+              const taskIndex = progress.tasks.findIndex((t) => t.id === taskId)
+
+              if (taskIndex !== -1 && !progress.tasks[taskIndex].completed) {
+                progress.tasks[taskIndex].completed = true
+                progress.completedTasks++
+                localStorage.setItem(storageKey, JSON.stringify(progress))
+
+                // Dispatch event to update UI immediately
+                window.dispatchEvent(new CustomEvent('bapps-campaign-updated'))
+              }
+            } catch (error) {
+              // Silently fail for localStorage errors
+            }
+          }
+        }
+      }
+
+      // Also update from API in background (for cross-device sync)
+      refetch()
+    },
+    [account.address, defaultChainId, refetch],
+  )
+
+  return {
+    trackSwapCompletion,
+  }
+}

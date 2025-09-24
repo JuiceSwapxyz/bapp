@@ -170,6 +170,39 @@ class BAppsCampaignAPI {
       claimTxHash: apiProgress.claimTxHash || localProgress.claimTxHash,
     }
   }
+
+  /**
+   * Determine task ID from token pair for local validation
+   */
+  getTaskIdFromTokenPair(inputToken: string, outputToken: string): number | null {
+    // Native token (cBTC) or wrapped BTC
+    const isCBTCInput =
+      inputToken.toLowerCase() === 'eth' ||
+      inputToken.toLowerCase() === 'native' ||
+      inputToken.toLowerCase() === '0x4370e27f7d91d9341bff232d7ee8bdfe3a9933a0' // WcBTC address
+
+    if (!isCBTCInput) {
+      return null
+    }
+
+    // Check output token
+    const outputLower = outputToken.toLowerCase()
+
+    // Task 1: cBTC to NUSD
+    if (outputLower === '0x9b28b690550522608890c3c7e63c0b4a7ebab9aa') {
+      return 1
+    }
+    // Task 2: cBTC to cUSD
+    if (outputLower === '0x2ffc18ac99d367b70dd922771df8c2074af4ace0') {
+      return 2
+    }
+    // Task 3: cBTC to SCP
+    if (outputLower === '0x946d666abae75b3e7de0c95551c4e36c946efd5a') {
+      return 3
+    }
+
+    return null
+  }
 }
 
 // Export singleton instance
