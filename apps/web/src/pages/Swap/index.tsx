@@ -2,7 +2,6 @@ import type { Currency } from '@juiceswapxyz/sdk-core'
 import { PrefetchBalancesWrapper } from 'appGraphql/data/apollo/AdaptiveTokenBalancesProvider'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { SwapBottomCard } from 'components/SwapBottomCard'
-import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
@@ -86,7 +85,6 @@ export default function SwapPage() {
           usePersistedFilteredChainIds
         />
       </PageWrapper>
-      {location.pathname === '/swap' && <SwitchLocaleLink />}
     </Trace>
   )
 }
