@@ -81,7 +81,8 @@ export function ChooseProvider({
 }: ChooseProviderProps): JSX.Element {
   const { t } = useTranslation()
   const account = useAccount()
-  const providers = FeatureFlags.CEX_TRANSFER_ENABLED ? useCexTransferProviders() : []
+  const cexProviders = useCexTransferProviders()
+  const providers = FeatureFlags.CEX_TRANSFER_ENABLED ? cexProviders : []
 
   if (errorProvider) {
     return (
