@@ -4,11 +4,8 @@ import { Button, Flex, Text, useSporeColors } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled'
 import { Passkey } from 'ui/src/components/icons/Passkey'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants'
-import { TestID } from 'uniswap/src/test/fixtures/testIDs'
-import { openUri } from 'uniswap/src/utils/linking'
 import { isWeb } from 'utilities/src/platform'
 
 export enum PasskeysHelpModalTypes {
@@ -66,9 +63,6 @@ export function PasskeysHelpModal({
 }): JSX.Element {
   const { t } = useTranslation()
   const colors = useSporeColors()
-  const onPressGetHelp = async (): Promise<void> => {
-    await openUri({ uri: uniswapUrls.helpArticleUrls.passkeysInfo })
-  }
   const displayName = accountName ?? t('common.thisAccount')
   const modalContent = passkeysHelpModalContent[type]
   const title = modalContent.title(t)
@@ -111,11 +105,6 @@ export function PasskeysHelpModal({
         </Text>
 
         <Flex row alignSelf="stretch" gap="$spacing12" pt="$spacing24">
-          <Trace logPress element={ElementName.Confirm} modal={ModalName.PasskeysHelp}>
-            <Button testID={TestID.Confirm} emphasis="secondary" onPress={onPressGetHelp}>
-              <Text variant="buttonLabel2">{t('common.getHelp.button')}</Text>
-            </Button>
-          </Trace>
           <Trace logPress element={ElementName.BackButton} modal={ModalName.PasskeysHelp}>
             <Button emphasis="primary" onPress={onClose}>
               <Text variant="buttonLabel2" color="$surface1">

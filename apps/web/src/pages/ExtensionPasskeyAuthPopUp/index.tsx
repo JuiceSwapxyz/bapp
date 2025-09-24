@@ -1,12 +1,10 @@
-import { EnvelopeHeartIcon } from 'components/Icons/EnvelopeHeart'
 import { useExternallyConnectableExtensionId } from 'pages/ExtensionPasskeyAuthPopUp/useExternallyConnectableExtensionId'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
-import { Anchor, Button, Flex, SpinningLoader, Text } from 'ui/src'
+import { Button, Flex, SpinningLoader, Text } from 'ui/src'
 import { Passkey } from 'ui/src/components/icons/Passkey'
 import { UniswapLogo } from 'ui/src/components/icons/UniswapLogo'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { parseMessage } from 'uniswap/src/extension/messagePassing/platform'
 import {
   InterfaceToExtensionRequestType,
@@ -162,18 +160,6 @@ export default function ExtensionPasskeyAuthPopUp() {
       <Flex flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh">
         <Flex width="400px" padding="$spacing16" flexDirection="column" gap="$spacing16">
           <Flex row justifyContent="flex-end">
-            <Flex row width="fit-content">
-              <Anchor
-                target="_blank"
-                rel="noreferrer"
-                href={uniswapUrls.helpArticleUrls.passkeysInfo}
-                textDecorationLine="none"
-              >
-                <Button icon={<EnvelopeHeartIcon />} size="xxsmall" emphasis="secondary">
-                  {t('common.getHelp.button')}
-                </Button>
-              </Anchor>
-            </Flex>
           </Flex>
 
           <Flex alignItems="center">
