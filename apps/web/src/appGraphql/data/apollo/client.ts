@@ -9,7 +9,7 @@ if (!API_URL) {
 
 // Prevent localhost GraphQL endpoints from being used to avoid CSP errors
 if (API_URL.includes('localhost:42069')) {
-  console.warn('Localhost GraphQL endpoint detected, using beta gateway instead')
+  // Localhost GraphQL endpoint detected, using beta gateway instead
   API_URL = 'https://beta.gateway.uniswap.org/v1/graphql'
 }
 
