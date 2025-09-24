@@ -150,7 +150,7 @@ function useSectionsForNoQuerySearch({
         return {
           data: sections,
           loading:
-            (topPoolsLoading && !citreaFallbackPools) || Boolean(topPools?.length && !trendingPoolOptions?.length),
+            (topPoolsLoading && !citreaFallbackPools) || Boolean(topPools?.length && !trendingPoolOptions.length),
           error: citreaFallbackPools ? undefined : topPoolsError ?? undefined,
           refetch: refetchPools,
         }
@@ -186,7 +186,7 @@ function useSectionsForNoQuerySearch({
   }, [
     activeTab,
     topPools?.length,
-    trendingPoolOptions?.length,
+    trendingPoolOptions.length,
     topPoolsError,
     topPoolsLoading,
     favoriteWalletsSection,
