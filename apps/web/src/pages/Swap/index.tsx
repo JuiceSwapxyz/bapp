@@ -256,20 +256,16 @@ function UniversalSwapFlow({
   const handleSubmitSwap = useCallback(
     // eslint-disable-next-line max-params
     async (txHash?: string, inputToken?: string, outputToken?: string) => {
-      console.log('[Campaign Debug] handleSubmitSwap called:', { txHash, inputToken, outputToken })
       resetDisableOneClickSwap()
 
       // Store transaction details for blockchain confirmation tracking
       if (txHash && inputToken && outputToken) {
-        console.log('[Campaign Debug] Setting current transaction for tracking')
         setCurrentTransaction({
           txHash,
           chainId: 5115, // Citrea Testnet
           inputToken,
           outputToken,
         })
-      } else {
-        console.log('[Campaign Debug] Missing required parameters:', { txHash: !!txHash, inputToken: !!inputToken, outputToken: !!outputToken })
       }
     },
     [resetDisableOneClickSwap],

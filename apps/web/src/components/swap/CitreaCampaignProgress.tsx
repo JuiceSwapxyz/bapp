@@ -56,8 +56,8 @@ const CAMPAIGN_TASKS = [
   },
   {
     id: 3,
-    name: 'SCP',
-    url: '/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x946D666ABae75b3e7De0C95551c4E36c946eFd5A&value=0.00001',
+    name: 'USDC',
+    url: '/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001',
   },
 ]
 
@@ -89,15 +89,9 @@ export function CitreaCampaignProgress() {
   // Trigger confetti when tasks are completed
   useEffect(() => {
     const currentCompletedCount = completedTasks.length
-    console.log('[Campaign Debug] Completed tasks count:', {
-      current: currentCompletedCount,
-      previous: previousCompletedCountRef.current,
-      completedTasks,
-    })
 
     // Check if we have new completed tasks
     if (currentCompletedCount > previousCompletedCountRef.current && previousCompletedCountRef.current > 0) {
-      console.log('[Campaign Debug] Showing confetti!')
       setShowConfetti(true)
       // Auto-hide confetti after 5 seconds
       setTimeout(() => setShowConfetti(false), 5000)
