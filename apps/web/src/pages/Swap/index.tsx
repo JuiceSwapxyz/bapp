@@ -5,6 +5,7 @@ import { SwapBottomCard } from 'components/SwapBottomCard'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
+import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { PageType, useIsPage } from 'hooks/useIsPage'
 import { useModalState } from 'hooks/useModalState'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
@@ -236,15 +237,39 @@ function UniversalSwapFlow({
   const resetDisableOneClickSwap = useResetOverrideOneClickSwapFlag()
 
   // Track transaction for campaign monitoring
+  const [currentTransaction, setCurrentTransaction] = useState<{
+    txHash: string
+    chainId: number
+    inputToken: string
+    outputToken: string
+  } | null>(null)
 
-  // Campaign progress will be automatically updated by API polling
-  // No manual tracking needed since Ponder indexes blockchain data
+  // Use automatic blockchain confirmation tracking
+  useBAppsSwapTracking({
+    txHash: currentTransaction?.txHash,
+    chainId: currentTransaction?.chainId,
+    inputToken: currentTransaction?.inputToken,
+    outputToken: currentTransaction?.outputToken,
+  })
 
-  // Handle swap submission
-  const handleSubmitSwap = useCallback(async () => {
-    resetDisableOneClickSwap()
-    // Campaign progress will be automatically updated by API polling
-  }, [resetDisableOneClickSwap])
+  // Handle swap submission - store transaction details for monitoring
+  const handleSubmitSwap = useCallback(
+    // eslint-disable-next-line max-params
+    async (txHash?: string, inputToken?: string, outputToken?: string) => {
+      resetDisableOneClickSwap()
+
+      // Store transaction details for blockchain confirmation tracking
+      if (txHash && inputToken && outputToken) {
+        setCurrentTransaction({
+          txHash,
+          chainId: 5115, // Citrea Testnet
+          inputToken,
+          outputToken,
+        })
+      }
+    },
+    [resetDisableOneClickSwap],
+  )
 
   // Store the callback in ref for access in swapCallback
   onSubmitSwapRef.current = handleSubmitSwap
