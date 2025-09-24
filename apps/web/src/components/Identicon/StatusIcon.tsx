@@ -1,6 +1,5 @@
 import sockImg from 'assets/svg/socks.svg'
 import Identicon from 'components/Identicon'
-import { CONNECTOR_ICON_OVERRIDE_MAP } from 'components/Web3Provider/constants'
 import { useHasSocks } from 'hooks/useSocksBalance'
 import styled from 'lib/styled-components'
 import { flexColumnNoWrap } from 'theme/styles'
@@ -53,22 +52,6 @@ function Socks() {
   return (
     <MiniIconContainer side="left">
       <MiniImg src={sockImg} />
-    </MiniIconContainer>
-  )
-}
-
-function MiniWalletIcon() {
-  const account = useWallet().evmAccount
-  if (!account) {
-    return null
-  }
-
-  // TODO(APPS-8471): this should use useConnectedWallet() which returns connected WalletConnectorMeta, which is post-icon-override-map transformation
-  const icon = CONNECTOR_ICON_OVERRIDE_MAP[account.walletMeta.name ?? ''] ?? account.walletMeta.icon
-
-  return (
-    <MiniIconContainer side="right" data-testid="MiniIcon">
-      <MiniImg src={icon} alt={`${account.walletMeta.name} icon`} />
     </MiniIconContainer>
   )
 }
