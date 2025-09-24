@@ -230,7 +230,7 @@ function useIsCampaignTimeActive(): boolean {
     }
 
     // Normal time-based logic
-    const campaignStartTime = new Date('2025-09-25T00:00:00.000Z').getTime()
+    const campaignStartTime = new Date('2025-09-26T12:00:00.000Z').getTime()
     const now = Date.now()
     return now >= campaignStartTime
   }, [hasUrlOverride])

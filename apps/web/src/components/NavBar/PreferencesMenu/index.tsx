@@ -1,7 +1,6 @@
 import { NavDropdown, NavDropdownDefaultWrapper } from 'components/NavBar/NavDropdown/index'
 import { NavIcon } from 'components/NavBar/NavIcon'
 import { CurrencySettings } from 'components/NavBar/PreferencesMenu/Currency'
-import { LanguageSettings } from 'components/NavBar/PreferencesMenu/Language'
 import { PreferenceSettings } from 'components/NavBar/PreferencesMenu/Preferences'
 import { PreferencesView } from 'components/NavBar/PreferencesMenu/shared'
 import { useCallback, useState } from 'react'
@@ -11,10 +10,8 @@ import { MoreHorizontal } from 'ui/src/components/icons/MoreHorizontal'
 export function getSettingsViewIndex(view: PreferencesView) {
   if (view === PreferencesView.SETTINGS) {
     return 0
-  } else if (view === PreferencesView.LANGUAGE) {
-    return 1
   } else {
-    return 2
+    return 1
   }
 }
 
@@ -51,7 +48,6 @@ export function PreferenceMenu() {
               showThemeLabel={!media.sm}
               setSettingsView={(view: PreferencesView) => setSettingsView(view)}
             />
-            <LanguageSettings onExitMenu={handleExitMenu} />
             <CurrencySettings onExitMenu={handleExitMenu} />
           </AnimateTransition>
         </NavDropdownDefaultWrapper>
