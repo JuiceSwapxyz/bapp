@@ -1,10 +1,8 @@
 import CitreaLogo from 'assets/images/coins/citrea.png'
-import { FeatureFlags } from 'constants/featureFlags'
 import { PillButton } from 'pages/Landing/components/cards/PillButton'
 import { useEffect, useState } from 'react'
+import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { Flex, Text, styled } from 'ui/src'
-import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 const CampaignCard = styled(Flex, {
   backgroundColor: '$surface2',
@@ -70,7 +68,7 @@ function calculateTimeRemaining() {
 }
 
 export function CitreaCampaignCard() {
-  const { defaultChainId } = useEnabledChains()
+  const isCampaignVisible = useIsBAppsCampaignVisible()
   const [timeRemaining, setTimeRemaining] = useState(calculateTimeRemaining())
 
   useEffect(() => {
@@ -81,8 +79,7 @@ export function CitreaCampaignCard() {
     return () => clearInterval(timer)
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (!FeatureFlags.CITREA_BAPPS_CAMPAIGN || defaultChainId !== UniverseChainId.CitreaTestnet) {
+  if (!isCampaignVisible) {
     return null
   }
 

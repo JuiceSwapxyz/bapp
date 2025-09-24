@@ -1,14 +1,10 @@
 import CitreaLogo from 'assets/images/coins/citrea.png'
-import { FeatureFlags } from 'constants/featureFlags'
-import { useAccount } from 'hooks/useAccount'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Confetti from 'react-confetti'
 import { useNavigate } from 'react-router'
 import { useWindowSize } from 'react-use'
-import { useBAppsCampaignProgress } from 'services/bappsCampaign/hooks'
+import { useBAppsCampaignProgress, useIsBAppsCampaignAvailable } from 'services/bappsCampaign/hooks'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
-import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 const ProgressContainer = styled(Flex, {
   width: '100%',
@@ -66,11 +62,10 @@ const CAMPAIGN_TASKS = [
 ]
 
 export function CitreaCampaignProgress() {
-  const { defaultChainId } = useEnabledChains()
-  const account = useAccount()
   const navigate = useNavigate()
   const { progress: campaignProgress, loading, error } = useBAppsCampaignProgress()
   const { width, height } = useWindowSize()
+  const isCampaignAvailable = useIsBAppsCampaignAvailable()
 
   // State for confetti animation
   const [showConfetti, setShowConfetti] = useState(false)
@@ -112,8 +107,8 @@ export function CitreaCampaignProgress() {
     [navigate],
   )
 
-  // Only show if feature flag is enabled, on Citrea Testnet, and wallet is connected
-  if (!FeatureFlags.CITREA_BAPPS_CAMPAIGN || defaultChainId !== UniverseChainId.CitreaTestnet || !account.isConnected) {
+  // Only show if campaign is available (time + chain + wallet checks)
+  if (!isCampaignAvailable) {
     return null
   }
 

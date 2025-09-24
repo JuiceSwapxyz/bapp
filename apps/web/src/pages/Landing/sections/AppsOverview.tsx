@@ -1,8 +1,6 @@
 import { CitreaCampaignCard } from 'components/explore/CitreaCampaignCard'
 import { H2 } from 'pages/Landing/components/Generics'
-import { LiquidityCard } from 'pages/Landing/components/cards/LiquidityCard'
 import { TradingApiCard } from 'pages/Landing/components/cards/TradingApiCard'
-import { WebappCard } from 'pages/Landing/components/cards/WebappCard'
 import { useTranslation } from 'react-i18next'
 import { Flex } from 'ui/src'
 

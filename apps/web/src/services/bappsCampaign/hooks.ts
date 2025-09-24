@@ -1,5 +1,5 @@
 import { useAccount } from 'hooks/useAccount'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
@@ -78,15 +78,102 @@ export function useBAppsCampaignProgress() {
 }
 
 /**
- * Hook to check if campaign is available
+ * Hook to handle URL-based campaign override
+ * Detects ?campaign=true/false and manages localStorage
  * @internal
  */
-function useIsBAppsCampaignAvailable(): boolean {
-  const { defaultChainId } = useEnabledChains()
-  const account = useAccount()
+function useUrlCampaignOverride(): boolean {
+  const [overrideActive, setOverrideActive] = useState(() => {
+    return localStorage.getItem('campaignOverride') === 'true'
+  })
 
-  return defaultChainId === UniverseChainId.CitreaTestnet && account.isConnected
+  useEffect(() => {
+    const checkUrlParams = () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const campaignParam = urlParams.get('campaign')
+
+      if (campaignParam === 'true') {
+        localStorage.setItem('campaignOverride', 'true')
+        // Hard refresh to ensure all components re-render with new state
+        window.location.href = window.location.pathname
+        return
+      }
+
+      if (campaignParam === 'false') {
+        localStorage.removeItem('campaignOverride')
+        // Hard refresh to ensure all components re-render with new state
+        window.location.href = window.location.pathname
+        return
+      }
+    }
+
+    // Check on mount
+    checkUrlParams()
+
+    // Listen for manual localStorage changes (from other tabs/windows)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'campaignOverride') {
+        setOverrideActive(e.newValue === 'true')
+      }
+    }
+
+    // Listen for URL changes (navigation)
+    const handlePopState = () => {
+      checkUrlParams()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
+  return overrideActive
 }
 
-// eslint-disable-next-line import/no-unused-modules
-export { useIsBAppsCampaignAvailable }
+/**
+ * Hook to check if campaign is currently active (time-based only)
+ * @internal
+ */
+function useIsCampaignTimeActive(): boolean {
+  const hasUrlOverride = useUrlCampaignOverride()
+
+  // Campaign start time: September 25, 2025 at 00:00 UTC
+  return useMemo(() => {
+    // URL Override has priority - if active, campaign is always on
+    if (hasUrlOverride) {
+      return true
+    }
+
+    // Normal time-based logic
+    const campaignStartTime = new Date('2025-09-25T00:00:00.000Z').getTime()
+    const now = Date.now()
+    return now >= campaignStartTime
+  }, [hasUrlOverride])
+}
+
+/**
+ * Hook to check if campaign features should be visible (no wallet requirement)
+ */
+export function useIsBAppsCampaignVisible(): boolean {
+  const { defaultChainId } = useEnabledChains()
+  const isCampaignTimeActive = useIsCampaignTimeActive()
+
+  const isCorrectChain = defaultChainId === UniverseChainId.CitreaTestnet
+
+  return isCampaignTimeActive && isCorrectChain
+}
+
+/**
+ * Hook to check if campaign is available for user interaction (requires wallet)
+ */
+export function useIsBAppsCampaignAvailable(): boolean {
+  const account = useAccount()
+  const isCampaignVisible = useIsBAppsCampaignVisible()
+  const isWalletConnected = account.isConnected
+
+  return isCampaignVisible && isWalletConnected
+}

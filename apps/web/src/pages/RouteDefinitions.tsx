@@ -375,7 +375,8 @@ export const routes: RouteDefinition[] = [
     path: '/bapps',
     getElement: () => <Bapps />,
     getTitle: () => 'Citrea ₿Apps Campaign - JuiceSwap',
-    getDescription: () => 'Complete swap tasks on Citrea Testnet to participate in the bApps campaign and earn rewards.',
+    getDescription: () =>
+      'Complete swap tasks on Citrea Testnet to participate in the bApps campaign and earn rewards.',
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),

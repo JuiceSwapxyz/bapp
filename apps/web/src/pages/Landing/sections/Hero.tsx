@@ -1,5 +1,4 @@
 import { ColumnCenter } from 'components/deprecated/Column'
-import { FeatureFlags } from 'constants/featureFlags'
 import { useCurrency } from 'hooks/Tokens'
 import { useScroll } from 'hooks/useScroll'
 import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
@@ -8,6 +7,7 @@ import { Fragment, useCallback, useMemo } from 'react'
 import { ChevronDown } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { serializeSwapStateToURLParameters } from 'state/swap/hooks'
 import { Flex, Text, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
@@ -25,7 +25,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
   const { height: scrollPosition } = useScroll({ enabled: !media.sm })
   const { defaultChainId } = useEnabledChains()
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const showBAppsContent = FeatureFlags.CITREA_BAPPS_CAMPAIGN && defaultChainId === UniverseChainId.CitreaTestnet
+  const showBAppsContent = useIsBAppsCampaignVisible()
   // Use native token (cBTC on Citrea) as default input currency
   const initialInputCurrency = useCurrency({
     address: 'ETH', // This will get the native token for any chain

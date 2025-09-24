@@ -95,8 +95,8 @@ function UniverseRow({
       <Anchor
         id={id}
         href={href}
-        target={isExternal ? "_blank" : undefined}
-        rel={isExternal ? "noopener noreferrer" : undefined}
+        target={isExternal ? '_blank' : undefined}
+        rel={isExternal ? 'noopener noreferrer' : undefined}
         textDecorationLine="none"
         {...ClickableTamaguiStyle}
       >
