@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Anchor, Flex, Text, useMedia } from 'ui/src'
-import { AlertTriangle } from 'ui/src/components/icons'
+import { AlertTriangle } from 'ui/src/components/icons/AlertTriangle'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useSwapFormButtonText } from 'uniswap/src/features/transactions/swap/components/SwapFormButton/hooks/useSwapFormButtonText'

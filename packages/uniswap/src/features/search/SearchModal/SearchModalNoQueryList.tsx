@@ -100,6 +100,7 @@ function useSectionsForNoQuerySearch({
   } = useExploreStatsQuery<PoolStats[] | undefined>(poolQueryVariables)
 
   // Use hardcoded pools for Citrea when no API data is available
+  const poolOptionsFromApi = usePoolStatsToPoolOptions(topPools)
   const citreaFallbackPools = useMemo(() => {
     if (chainFilter === UniverseChainId.CitreaTestnet && (!topPools || topPools.length === 0)) {
       return getHardcodedCitreaPoolsOptions()
@@ -107,7 +108,7 @@ function useSectionsForNoQuerySearch({
     return undefined
   }, [chainFilter, topPools])
 
-  const trendingPoolOptions = citreaFallbackPools || usePoolStatsToPoolOptions(topPools)
+  const trendingPoolOptions = citreaFallbackPools || poolOptionsFromApi
   const trendingPoolSection = useOnchainItemListSection({
     sectionKey: OnchainItemSectionName.TrendingPools,
     options: trendingPoolOptions,

@@ -31,11 +31,9 @@ export const HARDCODED_CITREA_TOKENS = [
     decimals: TFC.decimals,
     project: {
       name: TFC.name,
-      logo: {
-        url: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0x0000000000000000000000000000000000000000/logo.png',
-      },
+      logo: { url: 'https://docs.juiceswap.xyz/media/icons/tfc.png' },
     },
-    logo: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0x0000000000000000000000000000000000000000/logo.png',
+    logo: 'https://docs.juiceswap.xyz/media/icons/tfc.png',
     price: 3.2,
     pricePercentChange1Hour: -0.8,
     pricePercentChange1Day: 5.7,
@@ -87,11 +85,9 @@ export const HARDCODED_CITREA_TOKENS = [
     decimals: USDC.decimals,
     project: {
       name: USDC.name,
-      logo: {
-        url: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0xA0b86a33E6441Fa0E5B8b4B7b3D13e71e5E8B1Ba7/logo.png',
-      },
+      logo: { url: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png' },
     },
-    logo: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0xA0b86a33E6441Fa0E5B8b4B7b3D13e71e5E8B1Ba7/logo.png',
+    logo: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
     price: 1.0,
     pricePercentChange1Hour: 0.0,
     pricePercentChange1Day: 0.01,
