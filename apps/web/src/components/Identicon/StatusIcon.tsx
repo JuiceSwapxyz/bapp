@@ -87,7 +87,8 @@ export default function StatusIcon({
   return (
     <IconWrapper size={size} data-testid="StatusIconRoot">
       <Identicon account={address ?? account?.address} size={size} />
-      {showMiniIcons && <MiniWalletIcon />}
+      {/* Disabled to prevent missing wallet icon errors */}
+      {/* {showMiniIcons && <MiniWalletIcon />} */}
       {hasSocks && showMiniIcons && <Socks />}
     </IconWrapper>
   )
