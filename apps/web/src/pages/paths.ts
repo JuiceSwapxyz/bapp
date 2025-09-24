@@ -53,4 +53,5 @@ export const paths = [
   '/auth/passkey/extension',
   '/manage/passkey/:walletAddress',
   '/extension/uninstall',
+  '/bapps',
 ]

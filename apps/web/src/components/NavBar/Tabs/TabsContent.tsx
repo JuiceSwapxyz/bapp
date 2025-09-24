@@ -116,8 +116,8 @@ export const useTabsContent = (): TabsSection[] => {
       ...baseItems,
       {
         title: '₿apps',
-        href: 'https://bapps.citrea.xyz',
-        isActive: false,
+        href: '/bapps',
+        isActive: pathname.startsWith('/bapps'),
         icon: <Text fontSize={16}>₿</Text>,
       },
     ]
