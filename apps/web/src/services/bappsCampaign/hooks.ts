@@ -319,4 +319,3 @@ export function useBAppsSwapTracking() {
 
   return { trackSwapCompletion, isAvailable: useIsBAppsCampaignAvailableInternal() }
 }
-
