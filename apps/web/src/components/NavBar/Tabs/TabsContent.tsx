@@ -2,17 +2,15 @@ import { CreditCardIcon } from 'components/Icons/CreditCard'
 import { Limit } from 'components/Icons/Limit'
 import { SwapV2 } from 'components/Icons/SwapV2'
 import { MenuItem } from 'components/NavBar/CompanyMenu/Content'
-import { FeatureFlags as AppFeatureFlags } from 'constants/featureFlags'
 import { useTheme } from 'lib/styled-components'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
+import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { Text } from 'ui/src'
 import { CoinConvert } from 'ui/src/components/icons/CoinConvert'
 import { Compass } from 'ui/src/components/icons/Compass'
 import { Pools } from 'ui/src/components/icons/Pools'
 import { ReceiveAlt } from 'ui/src/components/icons/ReceiveAlt'
-import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 
@@ -34,9 +32,7 @@ export const useTabsContent = (): TabsSection[] => {
   const { pathname } = useLocation()
   const theme = useTheme()
   const isFiatOffRampEnabled = useFeatureFlag(FeatureFlags.FiatOffRamp)
-  const { defaultChainId } = useEnabledChains()
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const showBAppsTab = AppFeatureFlags.CITREA_BAPPS_CAMPAIGN && defaultChainId === UniverseChainId.CitreaTestnet
+  const showBAppsTab = useIsBAppsCampaignVisible()
 
   const baseItems = [
     {
@@ -116,8 +112,8 @@ export const useTabsContent = (): TabsSection[] => {
       ...baseItems,
       {
         title: '₿apps',
-        href: 'https://bapps.citrea.xyz',
-        isActive: false,
+        href: '/bapps',
+        isActive: pathname.startsWith('/bapps'),
         icon: <Text fontSize={16}>₿</Text>,
       },
     ]

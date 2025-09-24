@@ -13,7 +13,7 @@ export const HARDCODED_CITREA_TOKENS = [
     decimals: WCBTC.decimals,
     project: {
       name: WCBTC.name,
-      logo: { url: 'https://docs.juiceswap.xyz/media/icons/cbtc.png' }
+      logo: { url: 'https://docs.juiceswap.xyz/media/icons/cbtc.png' },
     },
     logo: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
     price: 95000,
@@ -31,7 +31,7 @@ export const HARDCODED_CITREA_TOKENS = [
     decimals: TFC.decimals,
     project: {
       name: TFC.name,
-      logo: { url: 'https://docs.juiceswap.xyz/media/icons/tfc.png' }
+      logo: { url: 'https://docs.juiceswap.xyz/media/icons/tfc.png' },
     },
     logo: 'https://docs.juiceswap.xyz/media/icons/tfc.png',
     price: 3.2,
@@ -49,7 +49,7 @@ export const HARDCODED_CITREA_TOKENS = [
     decimals: cUSD.decimals,
     project: {
       name: cUSD.name,
-      logo: { url: 'https://docs.juiceswap.xyz/media/icons/cusd.png' }
+      logo: { url: 'https://docs.juiceswap.xyz/media/icons/cusd.png' },
     },
     logo: 'https://docs.juiceswap.xyz/media/icons/cusd.png',
     price: 0.999,
@@ -67,7 +67,7 @@ export const HARDCODED_CITREA_TOKENS = [
     decimals: NUSD.decimals,
     project: {
       name: NUSD.name,
-      logo: { url: 'https://docs.juiceswap.xyz/media/icons/nusd.png' }
+      logo: { url: 'https://docs.juiceswap.xyz/media/icons/nusd.png' },
     },
     logo: 'https://docs.juiceswap.xyz/media/icons/nusd.png',
     price: 1.001,
@@ -85,7 +85,7 @@ export const HARDCODED_CITREA_TOKENS = [
     decimals: USDC.decimals,
     project: {
       name: USDC.name,
-      logo: { url: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png' }
+      logo: { url: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png' },
     },
     logo: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
     price: 1.0,

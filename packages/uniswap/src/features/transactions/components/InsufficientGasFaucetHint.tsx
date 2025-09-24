@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { Anchor, Flex, Text, useMedia } from 'ui/src'
-import { AlertTriangle } from 'ui/src/components/icons'
+import { AlertTriangle } from 'ui/src/components/icons/AlertTriangle'
+import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useSwapFormButtonText } from 'uniswap/src/features/transactions/swap/components/SwapFormButton/hooks/useSwapFormButtonText'
 import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
-import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 
 export function InsufficientGasFaucetHint(): JSX.Element | null {
   const { t } = useTranslation()
@@ -17,20 +17,16 @@ export function InsufficientGasFaucetHint(): JSX.Element | null {
   const faucetUrl = chainInfo?.faucetUrl
 
   // Get native currency symbol from chain info
-  const nativeCurrencySymbol = chainInfo?.nativeCurrency?.symbol ?? 'cBTC'
+  const nativeCurrencySymbol = chainInfo?.nativeCurrency.symbol ?? 'cBTC'
   const expectedButtonText = t('common.insufficientTokenBalance.error.simple', {
-    tokenSymbol: nativeCurrencySymbol
+    tokenSymbol: nativeCurrencySymbol,
   })
 
   // Show component if:
   // - On Citrea testnet AND
   // - Button shows "Not enough cBTC" (insufficient gas funds) AND
   // - Has faucet URL available
-  const shouldShow = (
-    chainId === UniverseChainId.CitreaTestnet &&
-    buttonText === expectedButtonText &&
-    faucetUrl
-  )
+  const shouldShow = chainId === UniverseChainId.CitreaTestnet && buttonText === expectedButtonText && faucetUrl
 
   if (!shouldShow) {
     return null
@@ -55,12 +51,7 @@ export function InsufficientGasFaucetHint(): JSX.Element | null {
             currencySymbol: 'cBTC',
           })}
         </Text>
-        <Anchor
-          href={finalFaucetUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          textDecorationLine="none"
-        >
+        <Anchor href={finalFaucetUrl} target="_blank" rel="noopener noreferrer" textDecorationLine="none">
           <Text color="$accent1" variant="buttonLabel4">
             {isShort
               ? t('swap.warning.insufficientGas.faucet.link.short')

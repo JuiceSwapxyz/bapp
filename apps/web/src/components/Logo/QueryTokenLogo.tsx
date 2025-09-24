@@ -20,7 +20,7 @@ export default function QueryTokenLogo(
 
   const currencies = useMemo(() => (!isNative ? undefined : [currency]), [currency, isNative])
 
-  // Use logo URL with fallback to project logo URL for compatibility
+  // Use logo URL with fallback to project logo URL for compatibility with different token data structures
   const logoUrl = useMemo(() => {
     if (props.token?.logo) {
       return props.token.logo

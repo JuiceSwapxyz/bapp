@@ -27,7 +27,7 @@ export function CompanyMenu() {
           group
           $platform-web={{ containerType: 'normal' }}
         >
-          <Link to="/?intro=true" style={{ textDecoration: 'none' }}>
+          <Link to="/" style={{ textDecoration: 'none' }}>
             <Flex row alignItems="center" gap="$gap4" data-testid={TestID.NavUniswapLogo}>
               <NavIcon />
               {isLargeScreen && (
