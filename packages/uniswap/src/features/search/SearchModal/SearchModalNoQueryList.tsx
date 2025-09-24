@@ -99,8 +99,10 @@ function useSectionsForNoQuerySearch({
     refetch: refetchPools,
   } = useExploreStatsQuery<PoolStats[] | undefined>(poolQueryVariables)
 
-  // Use hardcoded pools for Citrea when no API data is available
+  // Always call the hook but may not use its result
   const poolOptionsFromApi = usePoolStatsToPoolOptions(topPools)
+
+  // Use hardcoded pools for Citrea when no API data is available
   const citreaFallbackPools = useMemo(() => {
     if (chainFilter === UniverseChainId.CitreaTestnet && (!topPools || topPools.length === 0)) {
       return getHardcodedCitreaPoolsOptions()
