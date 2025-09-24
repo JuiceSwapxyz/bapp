@@ -1,11 +1,9 @@
 import { Wiggle } from 'components/animations/Wiggle'
-import { useModalState } from 'hooks/useModalState'
 import { Github, Telegram, Twitter } from 'pages/Landing/components/Icons'
 import { useTranslation } from 'react-i18next'
 import { Anchor, Flex, Separator, Text, styled } from 'ui/src'
 import { iconSizes } from 'ui/src/theme'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
-import { ModalName } from 'uniswap/src/features/telemetry/constants'
 
 const SOCIAL_ICONS_SIZE = `${iconSizes.icon32}px`
 
@@ -46,7 +44,6 @@ export function Socials({ iconSize }: { iconSize?: string }) {
 
 export function Footer() {
   const { t } = useTranslation()
-  const { toggleModal: togglePrivacyPolicy } = useModalState(ModalName.PrivacyPolicy)
   const currentYear = new Date().getFullYear()
 
   return (
