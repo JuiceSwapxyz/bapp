@@ -159,8 +159,7 @@ export default function ExtensionPasskeyAuthPopUp() {
     <Trace logImpression page={InterfacePageName.ExtensionPasskeySignInPage}>
       <Flex flexDirection="column" alignItems="center" justifyContent="center" minHeight="100vh">
         <Flex width="400px" padding="$spacing16" flexDirection="column" gap="$spacing16">
-          <Flex row justifyContent="flex-end">
-          </Flex>
+          <Flex row justifyContent="flex-end"></Flex>
 
           <Flex alignItems="center">
             <UniswapLogo size="$icon.40" color="$accent1" />

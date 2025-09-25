@@ -537,6 +537,9 @@ export function currencyAddressForSwapQuote(currency: Currency): string {
     if (currency.chainId === UniverseChainId.Avalanche) {
       return SwapRouterNativeAssets.AVAX
     }
+    if (currency.chainId === UniverseChainId.CitreaTestnet) {
+      return SwapRouterNativeAssets.CBTC
+    }
     return SwapRouterNativeAssets.ETH
   }
 
