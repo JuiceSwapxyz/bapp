@@ -63,8 +63,6 @@
     "https://api.avax.network/ext/bc/C/rpc",
     "https://api.moonpay.com/",
     "https://api.opensea.io",
-    "https://bsc-dataseed1.binance.org/",
-    "https://bsc-dataseed1.bnbchain.org",
     "https://buy.moonpay.com/",
     "https://cdn.center.app/",
     "https://celo-org.github.io",
@@ -136,8 +134,7 @@
     "wss://relay.walletconnect.com",
     "wss://relay.walletconnect.org",
     "wss://ws-us3.pusher.com/",
-    "wss://www.walletlink.org",
-    "wss://nbstream.binance.com"
+    "wss://www.walletlink.org"
   ],
   "workerSrc": [
     "'self'",
