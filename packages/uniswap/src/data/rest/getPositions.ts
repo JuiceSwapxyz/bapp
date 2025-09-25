@@ -1,6 +1,6 @@
 import { PartialMessage } from '@bufbuild/protobuf'
 import { ConnectError } from '@connectrpc/connect'
-import { createQueryOptions, useInfiniteQuery, useQuery } from '@connectrpc/connect-query'
+import { createQueryOptions } from '@connectrpc/connect-query'
 import { Pair } from '@juiceswapxyz/v2-sdk'
 import {
   InfiniteData,
@@ -8,8 +8,10 @@ import {
   UseQueryResult,
   keepPreviousData,
   useQueries,
+  useInfiniteQuery as useTanstackInfiniteQuery,
+  useQuery as useTanstackQuery,
 } from '@tanstack/react-query'
-import { getPosition, listPositions } from '@uniswap/client-pools/dist/pools/v1/api-PoolsService_connectquery'
+import { getPosition } from '@uniswap/client-pools/dist/pools/v1/api-PoolsService_connectquery'
 import {
   GetPositionResponse,
   ListPositionsRequest,
@@ -17,16 +19,81 @@ import {
 } from '@uniswap/client-pools/dist/pools/v1/api_pb'
 import { ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
 import { useMemo } from 'react'
+import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { uniswapPostTransport } from 'uniswap/src/data/rest/base'
 import { SerializedToken } from 'uniswap/src/features/tokens/slice/types'
 import { deserializeToken } from 'uniswap/src/utils/currency'
+
+const ponderApiClient = createApiClient({
+  baseUrl: process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com',
+})
+
+async function fetchPositionsFromCustomServer(
+  input?: PartialMessage<ListPositionsRequest>,
+): Promise<ListPositionsResponse> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = await ponderApiClient.post<any>(`/positions/owner`, {
+    body: JSON.stringify(input),
+  })
+
+  const transformedData = {
+    positions: data.positions
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data.positions.map((position: any) => {
+          return {
+            position: {
+              case: 'v3Position' as const,
+              value: position.v3Position,
+            },
+            status: position.status || 0,
+          }
+        })
+      : [],
+    nextPageToken: data.nextPageToken || '',
+  }
+
+  return transformedData as ListPositionsResponse
+}
+
+async function fetchPositionsInfiniteFromCustomServer({
+  ...input
+}: PartialMessage<ListPositionsRequest> & { pageToken?: string }): Promise<ListPositionsResponse> {
+  const requestBody = {
+    ...input,
+    pageToken: input.pageToken || undefined,
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = await ponderApiClient.post<any>(`/positions/owner`, {
+    body: JSON.stringify(requestBody),
+  })
+
+  const transformedData = {
+    positions: data.positions
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data.positions.map((position: any) => {
+          return {
+            position: {
+              case: 'v3Position' as const,
+              value: position.v3Position,
+            },
+            status: position.status || 0,
+          }
+        })
+      : [],
+    nextPageToken: data.nextPageToken || '',
+  }
+
+  return transformedData as ListPositionsResponse
+}
 
 export function useGetPositionsQuery(
   input?: PartialMessage<ListPositionsRequest>,
   disabled?: boolean,
 ): UseQueryResult<ListPositionsResponse, ConnectError> {
-  return useQuery(listPositions, input, {
-    transport: uniswapPostTransport,
+  return useTanstackQuery({
+    queryKey: ['positions', input],
+    queryFn: () => fetchPositionsFromCustomServer(input),
     enabled: !!input && !disabled,
     placeholderData: keepPreviousData,
   })
@@ -36,11 +103,12 @@ export function useGetPositionsInfiniteQuery(
   input: PartialMessage<ListPositionsRequest> & { pageToken: string },
   disabled?: boolean,
 ): UseInfiniteQueryResult<InfiniteData<ListPositionsResponse>, ConnectError> {
-  return useInfiniteQuery(listPositions, input, {
-    transport: uniswapPostTransport,
+  return useTanstackInfiniteQuery({
+    queryKey: ['positions-infinite', input],
+    queryFn: ({ pageParam }) => fetchPositionsInfiniteFromCustomServer({ ...input, pageToken: pageParam }),
     enabled: !disabled,
-    pageParamKey: 'pageToken',
-    getNextPageParam: (lastPage) => lastPage.nextPageToken,
+    initialPageParam: '',
+    getNextPageParam: (lastPage) => lastPage.nextPageToken || undefined,
     placeholderData: keepPreviousData,
   })
 }

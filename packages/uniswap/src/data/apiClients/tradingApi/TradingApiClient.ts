@@ -141,6 +141,7 @@ export async function fetchQuote({
   return await CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
     body: JSON.stringify({
       ...params,
+      type: 'EXACT_INPUT', // TODO: Remove this once the backend is updated
       protocols: [Protocol.V3],
     }),
     headers: {
