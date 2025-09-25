@@ -239,10 +239,7 @@ function getServicePrefix(flow?: TrafficFlows): string {
 }
 
 function getCloudflareApiBaseUrl(flow?: TrafficFlows): string {
-  // TODO: Set up cloudflare gateway, temporarily use api.juiceswap.xyz for all flows
-  // return `https://${getServicePrefix(flow)}${getCloudflarePrefix(flow)}.gateway.uniswap.org`
-  if (flow === TrafficFlows.TradingApi) return 'https://api.juiceswap.xyz'
-  return 'https://api.juiceswap.xyz'
+  return `https://${getServicePrefix(flow)}${getCloudflarePrefix(flow)}.gateway.uniswap.org`
 }
 
 function createHelpArticleUrl(resourceId: string, path: string = 'articles'): string {
