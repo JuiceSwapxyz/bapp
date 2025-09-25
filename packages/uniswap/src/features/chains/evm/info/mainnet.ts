@@ -1,6 +1,5 @@
 import { CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { ETHEREUM_LOGO, ETH_LOGO } from 'ui/src/assets'
-import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import {
   DEFAULT_MS_BEFORE_WARNING,
