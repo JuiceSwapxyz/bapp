@@ -253,7 +253,7 @@ export function NewsletterEtc() {
           title={t('common.faq')}
           description={<FAQList />}
           id="faq"
-          href="/#faq"
+          href="/?intro=true#faq"
         />
       </Flex>
     </SectionLayout>

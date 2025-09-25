@@ -22,6 +22,5 @@ export function useExploreStatsQuery<TSelectType>({
   enabled?: boolean
   select?: ((data: ExploreStatsResponse) => TSelectType) | undefined
 }): UseQueryResult<TSelectType, ConnectError> {
-  // TODO: Enable once ExploreStats backend is configured
-  return useQuery(exploreStats, input, { transport: uniswapGetTransport, enabled: false, select })
+  return useQuery(exploreStats, input, { transport: uniswapGetTransport, enabled, select })
 }
