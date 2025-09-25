@@ -15,5 +15,6 @@ import { uniswapGetTransport } from 'uniswap/src/data/rest/base'
 export function useProtocolStatsQuery(
   input?: PartialMessage<ProtocolStatsRequest>,
 ): UseQueryResult<ProtocolStatsResponse, ConnectError> {
-  return useQuery(protocolStats, input, { transport: uniswapGetTransport })
+  // TODO: Enable once ProtocolStats backend is configured
+  return useQuery(protocolStats, input, { transport: uniswapGetTransport, enabled: false })
 }

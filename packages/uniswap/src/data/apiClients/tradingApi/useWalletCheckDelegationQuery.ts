@@ -25,6 +25,8 @@ export function useWalletCheckDelegationQuery({
   return useQuery<WalletCheckDelegationResponseBody>({
     queryKey,
     queryFn: params ? walletCheckDelegationQueryFn(params) : skipToken,
+    // TODO: Enable once wallet delegation API is configured
+    enabled: false,
     ...rest,
   })
 }
