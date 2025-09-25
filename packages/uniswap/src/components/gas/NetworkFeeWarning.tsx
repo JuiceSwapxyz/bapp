@@ -12,7 +12,6 @@ import {
 import { UniswapXFee } from 'uniswap/src/components/gas/NetworkFee'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
 import { InfoTooltipProps } from 'uniswap/src/components/tooltip/InfoTooltipProps'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
@@ -124,10 +123,12 @@ function InfoButton({
   if (includesDelegation && isMobileApp) {
     return (
       <Flex mb="$spacing8">
+        {/* TODO: Re-enable once support.juiceswap.xyz is configured
         <LearnMoreLink
           textVariant={isWeb ? 'body4' : 'buttonLabel3'}
           url={uniswapUrls.helpArticleUrls.networkFeeInfo}
         />
+        */}
       </Flex>
     )
   }
@@ -140,7 +141,9 @@ function InfoButton({
     return <UniswapXFeeContent uniswapXGasFeeInfo={uniswapXGasFeeInfo} />
   }
 
-  return <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.networkFeeInfo} />
+  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // return <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.networkFeeInfo} />
+  return null
 }
 
 function NetworkFeeText({
@@ -204,7 +207,9 @@ function UniswapXFeeContent({ uniswapXGasFeeInfo }: { uniswapXGasFeeInfo: Format
   return (
     <Flex gap="$spacing12">
       <Flex row centered={isMobileApp} width="100%">
+        {/* TODO: Re-enable once support.juiceswap.xyz is configured
         <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.uniswapXInfo} />
+        */}
       </Flex>
       <Separator />
       {approvalFeeFormatted && (

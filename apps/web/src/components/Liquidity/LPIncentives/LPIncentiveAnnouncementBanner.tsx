@@ -5,10 +5,6 @@ import { Button, Flex, IconButton, styled, Text } from 'ui/src'
 import { CoinStack } from 'ui/src/components/icons/CoinStack'
 import { X } from 'ui/src/components/icons/X'
 import { zIndexes } from 'ui/src/theme/zIndexes'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
-import { UniswapEventName } from 'uniswap/src/features/telemetry/constants'
-import { Trace } from 'uniswap/src/features/telemetry/Trace'
 import { isMobileWeb } from 'utilities/src/platform'
 
 const LP_INCENTIVE_BANNER_STORAGE_KEY = 'lpIncentiveHidden'
@@ -205,6 +201,7 @@ function LpIncentiveBannerContent({ handleClose }: { handleClose: () => void }) 
           mt: '$spacing12',
         }}
       >
+        {/* TODO: Re-enable once support.juiceswap.xyz is configured
         <Trace logPress eventOnTrigger={UniswapEventName.LpIncentiveLearnMoreCtaClicked}>
           <LearnMoreLink
             textVariant="body4"
@@ -213,6 +210,7 @@ function LpIncentiveBannerContent({ handleClose }: { handleClose: () => void }) 
             hoverStyle={{ color: '$neutral3' }}
           />
         </Trace>
+        */}
         <Button size="small" emphasis="primary" maxWidth="fit-content" onPress={onClickViewMore}>
           {t('pool.viewPools')}
         </Button>

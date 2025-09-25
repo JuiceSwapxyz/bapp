@@ -5,9 +5,7 @@ import { UniswapX } from 'ui/src/components/icons/UniswapX'
 import { colors, opacify, zIndexes } from 'ui/src/theme'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
 import type { InfoTooltipProps } from 'uniswap/src/components/tooltip/InfoTooltipProps'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { isWeb } from 'utilities/src/platform'
 
@@ -24,7 +22,9 @@ export function UniswapXInfo({
   return (
     <WarningInfo
       infoButton={
-        <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.uniswapXInfo} />
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.uniswapXInfo} />
+        null
       }
       modalProps={{
         backgroundIconColor: opacify(16, colors.uniswapXPurple),

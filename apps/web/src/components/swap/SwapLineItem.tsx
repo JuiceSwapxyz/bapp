@@ -13,9 +13,7 @@ import React, { ReactNode } from 'react'
 import { Trans } from 'react-i18next'
 import { InterfaceTrade, SubmittableTrade } from 'state/routing/types'
 import { isLimitTrade, isPreviewTrade, isUniswapXTrade } from 'state/routing/utils'
-import { ExternalLink } from 'theme/components/Links'
 import { Flex } from 'ui/src'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { NumberType } from 'utilities/src/format/types'
 
@@ -26,21 +24,25 @@ export enum SwapLineItemType {
   EXPIRY = 9,
 }
 
-function BaseTooltipContent({ children, url }: { children: ReactNode; url: string }) {
+function BaseTooltipContent({ children }: { children: ReactNode }) {
   return (
     <>
       {children}
+      {/* TODO: Re-enable once support.juiceswap.xyz is configured
       <br />
       <ExternalLink href={url}>
         <Trans i18nKey="common.button.learn" />
       </ExternalLink>
+      */}
     </>
   )
 }
 
 export function FOTTooltipContent() {
+  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // return <BaseTooltipContent url={`${uniswapUrls.helpUrl}/articles/18673568523789-What-is-a-token-fee-`}>
   return (
-    <BaseTooltipContent url={`${uniswapUrls.helpUrl}/articles/18673568523789-What-is-a-token-fee-`}>
+    <BaseTooltipContent>
       <Trans i18nKey="swap.tokenOwnFees" />
     </BaseTooltipContent>
   )
@@ -48,12 +50,16 @@ export function FOTTooltipContent() {
 
 function SwapFeeTooltipContent({ hasFee }: { hasFee: boolean }) {
   const message = hasFee ? <Trans i18nKey="swap.fees.experience" /> : <Trans i18nKey="swap.fees.noFee" />
-  return <BaseTooltipContent url={`${uniswapUrls.helpUrl}/articles/20131678274957`}>{message}</BaseTooltipContent>
+  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // return <BaseTooltipContent url={`${uniswapUrls.helpUrl}/articles/20131678274957`}>{message}</BaseTooltipContent>
+  return <BaseTooltipContent>{message}</BaseTooltipContent>
 }
 
 export function SlippageTooltipContent() {
+  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // return <BaseTooltipContent url={`${uniswapUrls.helpUrl}/articles/20131678274957`}>
   return (
-    <BaseTooltipContent url={`${uniswapUrls.helpUrl}/articles/20131678274957`}>
+    <BaseTooltipContent>
       <Trans i18nKey="swap.slippage.tooltip" />
     </BaseTooltipContent>
   )

@@ -8,7 +8,6 @@ import { Button, Flex } from 'ui/src'
 import { Faceid } from 'ui/src/components/icons/Faceid'
 import { Fingerprint } from 'ui/src/components/icons/Fingerprint'
 import { Passkey } from 'ui/src/components/icons/Passkey'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { Trace } from 'uniswap/src/features/telemetry/Trace'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
@@ -73,7 +72,8 @@ export function PasskeyGenerationModal({
             </Flex>
           </Flex>
         }
-        learnMoreLink={uniswapUrls.helpArticleUrls.passkeysInfo} // TODO(WEB-7390): add learn more link
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreLink={uniswapUrls.helpArticleUrls.passkeysInfo} // TODO(WEB-7390): add learn more link
         onClose={onClose}
         goBack={goBack}
       >

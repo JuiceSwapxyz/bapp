@@ -1,7 +1,6 @@
 import { PositionStatus, ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
 import { ExpandoRow } from 'components/AccountDrawer/MiniPortfolio/ExpandoRow'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
-import { ExternalArrowLink } from 'components/Liquidity/ExternalArrowLink'
 import { LiquidityPositionCard, LiquidityPositionCardLoader } from 'components/Liquidity/LiquidityPositionCard'
 import { PositionsHeader } from 'components/Liquidity/PositionsHeader'
 import { PositionInfo } from 'components/Liquidity/types'
@@ -23,7 +22,6 @@ import { CloseIconWithHover } from 'ui/src/components/icons/CloseIconWithHover'
 import { InfoCircleFilled } from 'ui/src/components/icons/InfoCircleFilled'
 import { Pools } from 'ui/src/components/icons/Pools'
 import { Wallet } from 'ui/src/components/icons/Wallet'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useGetPositionsInfiniteQuery } from 'uniswap/src/data/rest/getPositions'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -382,9 +380,11 @@ export default function Pool() {
           {isConnected && (
             <Flex gap="$gap20" mb="$spacing24">
               <Text variant="subheading1">{t('liquidity.learnMoreLabel')}</Text>
+              {/* TODO: Re-enable once support.juiceswap.xyz is configured
               <ExternalArrowLink href={uniswapUrls.helpArticleUrls.positionsLearnMore}>
                 {t('common.button.learn')}
               </ExternalArrowLink>
+              */}
             </Flex>
           )}
         </Flex>

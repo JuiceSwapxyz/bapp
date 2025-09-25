@@ -21,7 +21,6 @@ import { Divider } from 'theme/components/Dividers'
 import { UniswapXOrderStatus } from 'types/uniswapx'
 import { Flex } from 'ui/src'
 import { StepStatus } from 'uniswap/src/components/ConfirmSwapModal/types'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { SignatureExpiredError } from 'utils/errors'
 
@@ -118,7 +117,8 @@ export default function ProgressIndicator({
         actionRequiredTitle: t('common.wrapIn', { symbol: nativeCurrency.symbol }),
         inProgressTitle: t('common.wrappingToken', { symbol: nativeCurrency.symbol }),
         learnMoreLinkText: t('common.whyWrap', { symbol: nativeCurrency.symbol }),
-        learnMoreLinkHref: uniswapUrls.helpArticleUrls.wethExplainer,
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreLinkHref: uniswapUrls.helpArticleUrls.wethExplainer,
       },
       [ConfirmModalState.RESETTING_TOKEN_ALLOWANCE]: {
         icon: <CurrencyLogo currency={trade?.inputAmount.currency} size={ICON_SIZE} />,
@@ -134,7 +134,8 @@ export default function ProgressIndicator({
         actionRequiredTitle: t('common.wallet.approve'),
         inProgressTitle: t('common.approvePending'),
         learnMoreLinkText: t('common.whyApprove'),
-        learnMoreLinkHref: uniswapUrls.helpArticleUrls.approvalsExplainer,
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreLinkHref: uniswapUrls.helpArticleUrls.approvalsExplainer,
       },
       [ConfirmModalState.PERMITTING]: {
         icon: <Sign />,
@@ -142,7 +143,8 @@ export default function ProgressIndicator({
         previewTitle: t('common.signMessage'),
         actionRequiredTitle: t('common.signMessageWallet'),
         learnMoreLinkText: t('common.whySign'),
-        learnMoreLinkHref: uniswapUrls.helpArticleUrls.approvalsExplainer,
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreLinkHref: uniswapUrls.helpArticleUrls.approvalsExplainer,
       },
       [ConfirmModalState.PENDING_CONFIRMATION]: {
         icon: <Swap />,
@@ -155,9 +157,10 @@ export default function ProgressIndicator({
           delayedStartTitle: t('common.confirmTimedOut'),
         }),
         learnMoreLinkText: isLimitTrade(trade) ? t('limits.learnMore') : t('common.learnMoreSwap'),
-        learnMoreLinkHref: isLimitTrade(trade)
-          ? uniswapUrls.helpArticleUrls.limitsInfo
-          : uniswapUrls.helpArticleUrls.howToSwapTokens,
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreLinkHref: isLimitTrade(trade)
+        //   ? uniswapUrls.helpArticleUrls.limitsInfo
+        //   : uniswapUrls.helpArticleUrls.howToSwapTokens,
       },
     }),
     [trade, inputTokenColor, t, nativeCurrency.symbol, theme.accent1],
