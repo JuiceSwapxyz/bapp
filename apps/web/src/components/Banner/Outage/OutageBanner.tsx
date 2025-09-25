@@ -3,13 +3,11 @@ import { useTheme } from 'lib/styled-components'
 import { useState } from 'react'
 import { Globe, X } from 'react-feather'
 import { Trans } from 'react-i18next'
-import { ExternalLink } from 'theme/components/Links'
 import { ClickableTamaguiStyle } from 'theme/components/styles'
 import { capitalize } from 'tsafe'
 import { Flex, Text, styled as tamaguiStyled } from 'ui/src'
 import { iconSizes, zIndexes } from 'ui/src/theme'
 import { useShadowPropsShort } from 'ui/src/theme/shadows'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getChainUrlParam } from 'utils/chainParams'
 
@@ -91,11 +89,13 @@ export function OutageBanner({ chainId, version }: ChainOutageData) {
           <Text variant="body3" color={theme.neutral2}>
             <Trans i18nKey="outageBanner.message.sub" />
           </Text>
+          {/* TODO: Re-enable once support.juiceswap.xyz is configured
           <ExternalLink href={`${uniswapUrls.helpUrl}/articles/23952001935373-Subgraph-downtime`}>
             <Text variant="body3" color={theme.accent1}>
               <Trans i18nKey="common.button.learn" />
             </Text>
           </ExternalLink>
+          */}
         </Flex>
         <OutageCloseButton
           data-testid="uniswap-outage-banner"

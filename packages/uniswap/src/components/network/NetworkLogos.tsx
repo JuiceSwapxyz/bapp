@@ -6,8 +6,6 @@ import { GlobeFilled } from 'ui/src/components/icons/GlobeFilled'
 import { X } from 'ui/src/components/icons/X'
 import { borderRadii, iconSizes, zIndexes } from 'ui/src/theme'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
@@ -107,11 +105,13 @@ export function NetworkLogos({ chains }: NetworkLogosProps): JSX.Element {
           {/* CONTENT */}
           {chainPills}
           {/* FOOTER */}
+          {/* TODO: Re-enable once support.juiceswap.xyz is configured
           <LearnMoreLink
             textColor="$neutral1"
             textVariant="buttonLabel3"
             url={uniswapUrls.helpArticleUrls.supportedNetworks}
           />
+          */}
 
           <Flex row width="100%">
             <Button mt="$spacing12" emphasis="secondary" onPress={closeModal}>

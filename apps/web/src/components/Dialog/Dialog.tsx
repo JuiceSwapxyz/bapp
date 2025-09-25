@@ -1,7 +1,6 @@
 import React from 'react'
 import { Button, ButtonEmphasis, ButtonVariant, Flex, FlexProps, Text, TextProps } from 'ui/src'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
 import { ModalNameType } from 'uniswap/src/features/telemetry/constants'
 import { isExtension } from 'utilities/src/platform'
 
@@ -91,9 +90,11 @@ export function Dialog({
         ) : (
           subtext
         )}
+        {/* TODO: Re-enable once support.juiceswap.xyz is configured
         {learnMoreUrl && (
           <LearnMoreLink url={learnMoreUrl} textColor={learnMoreTextColor} textVariant={learnMoreTextVariant} />
         )}
+        */}
         {children}
         <Flex gap="$spacing8" width="100%" mt="$spacing16" {...buttonContainerProps}>
           <Button

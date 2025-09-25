@@ -4,17 +4,16 @@ import { InfoCircleFilled } from 'ui/src/components/icons/InfoCircleFilled'
 import { UniswapLogo } from 'ui/src/components/icons/UniswapLogo'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
-import { isWeb } from 'utilities/src/platform'
 
 export function V4HooksInfo(): JSX.Element {
   const { t } = useTranslation()
   return (
     <WarningInfo
       infoButton={
-        <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.v4HooksInfo} />
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.v4HooksInfo} />
+        null
       }
       modalProps={{
         caption: t('swap.settings.routingPreference.option.v4.hooks.tooltip'),

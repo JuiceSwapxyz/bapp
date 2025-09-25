@@ -9,9 +9,7 @@ import { InterfaceTrade } from 'state/routing/types'
 import { isPreviewTrade, isUniswapXTrade } from 'state/routing/utils'
 import { ThemedText } from 'theme/components'
 import { Divider } from 'theme/components/Dividers'
-import { ExternalLink } from 'theme/components/Links'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { getChainLabel } from 'uniswap/src/features/chains/utils'
@@ -95,9 +93,11 @@ function NetworkCostDescription({ native }: { native: Currency }) {
   return (
     <ThemedText.LabelMicro>
       <Trans i18nKey="swap.networkCost.paidIn" values={{ sym: native.symbol, chainName }} />{' '}
+      {/* TODO: Re-enable once support.juiceswap.xyz is configured
       <ExternalLink href={`${uniswapUrls.helpUrl}/articles/8370337377805-What-is-a-network-fee-`}>
         <Trans i18nKey="common.button.learn" />
       </ExternalLink>
+      */}
     </ThemedText.LabelMicro>
   )
 }
@@ -114,9 +114,11 @@ export function UniswapXDescription() {
           logo: <InlineUniswapXGradient>UniswapX</InlineUniswapXGradient>,
         }}
       />{' '}
+      {/* TODO: Re-enable once support.juiceswap.xyz is configured
       <ExternalLink href={uniswapUrls.helpArticleUrls.uniswapXInfo}>
         <Trans i18nKey="common.button.learn" />
       </ExternalLink>
+      */}
     </ThemedText.Caption>
   )
 }

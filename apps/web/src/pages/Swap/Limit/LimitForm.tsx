@@ -32,10 +32,9 @@ import { LimitOrderTrade, TradeFillType } from 'state/routing/types'
 import { useSwapActionHandlers } from 'state/swap/hooks'
 import { CurrencyState } from 'state/swap/types'
 import { useSwapAndLimitContext } from 'state/swap/useSwapContext'
-import { Anchor, Button, Flex, styled as TamaguiStyled, Text, useIsShortMobileDevice } from 'ui/src'
+import { Button, Flex, styled as TamaguiStyled, Text, useIsShortMobileDevice } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useIsSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getPrimaryStablecoin } from 'uniswap/src/features/chains/utils'
@@ -406,15 +405,20 @@ function LimitForm({ onCurrencyChange }: LimitFormProps) {
                 i18nKey="limits.form.disclaimer.mainnet"
                 components={{
                   link: (
-                    <Anchor
-                      textDecorationLine="none"
-                      href={uniswapUrls.helpArticleUrls.limitsNetworkSupport}
-                      target="_blank"
-                    >
-                      <LearnMore>
-                        <Trans i18nKey="common.button.learn" />
-                      </LearnMore>
-                    </Anchor>
+                    <>
+                      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+                      <Anchor
+                        textDecorationLine="none"
+                        href={uniswapUrls.helpArticleUrls.limitsNetworkSupport}
+                        target="_blank"
+                      >
+                        <LearnMore>
+                          <Trans i18nKey="common.button.learn" />
+                        </LearnMore>
+                      </Anchor>
+                      */}
+                      <span />
+                    </>
                   ),
                 }}
               />
@@ -423,11 +427,16 @@ function LimitForm({ onCurrencyChange }: LimitFormProps) {
                 i18nKey="limits.form.disclaimer.uniswapx"
                 components={{
                   link: (
-                    <Anchor textDecorationLine="none" href={uniswapUrls.helpArticleUrls.limitsFailure} target="_blank">
-                      <LearnMore>
-                        <Trans i18nKey="common.button.learn" />
-                      </LearnMore>
-                    </Anchor>
+                    <>
+                      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+                      <Anchor textDecorationLine="none" href={uniswapUrls.helpArticleUrls.limitsFailure} target="_blank">
+                        <LearnMore>
+                          <Trans i18nKey="common.button.learn" />
+                        </LearnMore>
+                      </Anchor>
+                      */}
+                      <span />
+                    </>
                   ),
                 }}
               />

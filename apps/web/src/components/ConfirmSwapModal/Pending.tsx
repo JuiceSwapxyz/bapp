@@ -24,7 +24,6 @@ import { AnimationType } from 'theme/components/FadePresence'
 import { ExternalLink } from 'theme/components/Links'
 import { ThemedText } from 'theme/components/text'
 import { UniswapXOrderStatus } from 'types/uniswapx'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
@@ -192,6 +191,7 @@ export function Pending({
         {uniswapXOrder && uniswapXOrder.status === UniswapXOrderStatus.OPEN && (
           <Row justify="center" marginTop="32px" minHeight="24px">
             <ThemedText.BodySmall color="neutral2">
+              {/* TODO: Re-enable once support.juiceswap.xyz is configured
               <ExternalLink
                 href={
                   isLimitTrade(initialTrade)
@@ -205,6 +205,7 @@ export function Pending({
                   <Trans i18nKey="uniswapX.learnMore" />
                 )}
               </ExternalLink>
+              */}
             </ThemedText.BodySmall>
           </Row>
         )}

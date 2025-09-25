@@ -8,7 +8,6 @@ import { useTheme } from 'lib/styled-components'
 import { useTranslation } from 'react-i18next'
 import { Flex, Text } from 'ui/src'
 import { Blocked } from 'ui/src/components/icons/Blocked'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { Trace } from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send.web'
@@ -85,7 +84,8 @@ function DelegationMismatchModal({ onClose }: DelegationMismatchModalProps) {
         secondaryButtonOnClick={handleContinue}
         secondaryButtonVariant="default"
         secondaryButtonEmphasis="primary"
-        learnMoreUrl={uniswapUrls.helpArticleUrls.mismatchedImports}
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreUrl={uniswapUrls.helpArticleUrls.mismatchedImports}
         learnMoreTextColor="$accent1"
         learnMoreTextVariant="buttonLabel3"
         onClose={onClose}

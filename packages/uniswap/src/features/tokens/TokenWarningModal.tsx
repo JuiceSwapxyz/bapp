@@ -7,9 +7,7 @@ import { Modal } from 'uniswap/src/components/modals/Modal'
 import { WarningModalContent } from 'uniswap/src/components/modals/WarningModal/WarningModal'
 import { getAlertColor } from 'uniswap/src/components/modals/WarningModal/getAlertColor'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
 import WarningIcon from 'uniswap/src/components/warnings/WarningIcon'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
@@ -172,12 +170,14 @@ function TokenWarningModalContent({
           captionComponent={
             <Text color="$neutral2" textAlign="center" variant="body3">
               {`${subtitleText} `}
+              {/* TODO: Re-enable once support.juiceswap.xyz is configured
               <LearnMoreLink
                 display="inline"
                 textColor="$neutral1"
                 textVariant="buttonLabel3"
                 url={uniswapUrls.helpArticleUrls.tokenWarning}
               />
+              */}
             </Text>
           }
           rejectText={rejectText}

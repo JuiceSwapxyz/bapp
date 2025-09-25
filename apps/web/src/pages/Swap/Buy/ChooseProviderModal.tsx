@@ -11,7 +11,6 @@ import { Trans } from 'react-i18next'
 import { Flex, Separator, Text } from 'ui/src'
 import { TimePast } from 'ui/src/components/icons/TimePast'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { FORQuote, FORServiceProvider, RampDirection } from 'uniswap/src/features/fiatOnRamp/types'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { logger } from 'utilities/src/logger/logger'
@@ -104,7 +103,8 @@ function ChooseProviderModalContent({ closeModal }: ChooseProviderModal) {
             <Trans i18nKey="fiatOffRamp.checkout.title" />
           )
         }
-        link={uniswapUrls.helpArticleUrls.fiatOnRampHelp}
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // link={uniswapUrls.helpArticleUrls.fiatOnRampHelp}
         closeModal={closeModal}
         closeDataTestId="ChooseProviderModal-close"
       />

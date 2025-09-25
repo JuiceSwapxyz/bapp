@@ -4,7 +4,6 @@ import { UniswapX } from 'ui/src/components/icons/UniswapX'
 import { UniswapXText } from 'ui/src/components/text/UniswapXText'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { TransactionDetailsTooltip as Tooltip } from 'uniswap/src/components/TransactionDetailsTooltip'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FormattedUniswapXGasFeeInfo } from 'uniswap/src/features/gas/types'
@@ -19,7 +18,8 @@ export function NetworkCostTooltipClassic({ chainId }: { chainId: UniverseChainI
         logo={<NetworkLogo chainId={chainId} size={16} />}
       />
       <Tooltip.Description
-        learnMoreUrl={uniswapUrls.helpArticleUrls.networkFeeInfo}
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreUrl={uniswapUrls.helpArticleUrls.networkFeeInfo}
         text={t('transaction.networkCost.description')}
       />
     </Tooltip.Outer>
@@ -33,7 +33,8 @@ export function NetworkCostTooltipSmartWallet(): JSX.Element {
     <Tooltip.Outer>
       <Tooltip.Description
         learnMorePinkColor={true}
-        learnMoreUrl={uniswapUrls.helpArticleUrls.networkFeeInfo}
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreUrl={uniswapUrls.helpArticleUrls.networkFeeInfo}
         text={t('swap.warning.networkFee.message')}
       />
     </Tooltip.Outer>
@@ -74,7 +75,11 @@ export function NetworkCostTooltipUniswapX({
         )}
       </Tooltip.Content>
       <Tooltip.Separator />
-      <Tooltip.Description learnMoreUrl={uniswapUrls.helpArticleUrls.uniswapXInfo} text={t('uniswapX.cost')} />
+      <Tooltip.Description
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreUrl={uniswapUrls.helpArticleUrls.uniswapXInfo}
+        text={t('uniswapX.cost')}
+      />
     </Tooltip.Outer>
   )
 }
