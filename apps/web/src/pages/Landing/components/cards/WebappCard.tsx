@@ -193,7 +193,7 @@ function Token({ chainId, address }: { chainId: UniverseChainId; address: string
     </Flex>
   )
 }
-
+// eslint-disable-next-line import/no-unused-modules
 export function WebappCard() {
   const { t } = useTranslation()
   return (
