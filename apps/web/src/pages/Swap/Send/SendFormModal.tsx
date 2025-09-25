@@ -10,7 +10,6 @@ import { SwapAndLimitContext } from 'state/swap/types'
 import { Flex } from 'ui/src'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
@@ -82,7 +81,8 @@ const SendFormModalInner = (props: SendFormModalProps) => {
   return (
     <ContentWrapper>
       <GetHelpHeader
-        link={uniswapUrls.helpArticleUrls.transferCryptoHelp}
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // link={uniswapUrls.helpArticleUrls.transferCryptoHelp}
         title={screen === TransactionScreen.Review ? t('sendReviewModal.title') : t('title.sendCrypto')}
         closeModal={onClose}
         goBack={screen === TransactionScreen.Review ? goBack : undefined}

@@ -4,8 +4,6 @@ import { Settings } from 'ui/src/components/icons/Settings'
 import { zIndexes } from 'ui/src/theme'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { SlippageInfoCaption } from 'uniswap/src/features/transactions/swap/components/MaxSlippageRow/SlippageInfo/SlippageInfoCaption'
 import type { SlippageInfoProps } from 'uniswap/src/features/transactions/swap/components/MaxSlippageRow/SlippageInfo/types'
@@ -48,7 +46,13 @@ export function SlippageInfo({
 
   return (
     <WarningInfo
-      infoButton={isMobileApp ? <LearnMoreLink url={uniswapUrls.helpArticleUrls.swapSlippage} /> : null}
+      infoButton={
+        isMobileApp
+          ? // TODO: Re-enable once support.juiceswap.xyz is configured
+            // <LearnMoreLink url={uniswapUrls.helpArticleUrls.swapSlippage} />
+            null
+          : null
+      }
       modalProps={{
         backgroundIconColor: colors.surface2.get(),
         captionComponent: captionContent,

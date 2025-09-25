@@ -5,7 +5,6 @@ import { ShieldCheck } from 'ui/src/components/icons/ShieldCheck'
 import { VerticalDotLine } from 'ui/src/components/icons/VerticalDotLine'
 import { CurrencyLogo } from 'uniswap/src/components/CurrencyLogo/CurrencyLogo'
 import { TransactionDetailsTooltip as Tooltip } from 'uniswap/src/components/TransactionDetailsTooltip'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useSwapFormStoreDerivedSwapInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { isMobileApp } from 'utilities/src/platform'
@@ -137,7 +136,8 @@ export function MaxSlippageTooltip({
       <Tooltip.Separator />
       <Tooltip.Description
         text={t('swap.slippage.description')}
-        learnMoreUrl={uniswapUrls.helpArticleUrls.swapSlippage}
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreUrl={uniswapUrls.helpArticleUrls.swapSlippage}
       />
     </Tooltip.Outer>
   )

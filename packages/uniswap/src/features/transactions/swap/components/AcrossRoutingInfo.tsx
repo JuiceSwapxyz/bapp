@@ -7,8 +7,6 @@ import { AcrossLogo } from 'ui/src/components/logos/AcrossLogo'
 import { zIndexes } from 'ui/src/theme'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { isMobileApp } from 'utilities/src/platform'
 
@@ -44,7 +42,9 @@ export function AcrossRoutingInfo(): JSX.Element {
     () =>
       isMobileApp ? (
         <Flex centered gap="$spacing16">
+          {/* TODO: Re-enable once support.juiceswap.xyz is configured
           <LearnMoreLink textVariant="buttonLabel3" url={uniswapUrls.helpArticleUrls.acrossRoutingInfo} />
+          */}
           <Flex row alignItems="center" gap="$spacing6" justifyContent="center">
             <Text color="$neutral3" variant="buttonLabel4">
               {t('swap.details.poweredBy')}

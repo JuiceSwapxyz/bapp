@@ -9,7 +9,6 @@ import { ContentWrapper } from 'pages/Swap/Buy/shared'
 import { useEffect, useState } from 'react'
 import { AnimateTransition } from 'ui/src'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { FORServiceProvider } from 'uniswap/src/features/fiatOnRamp/types'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { logger } from 'utilities/src/logger/logger'
@@ -62,7 +61,8 @@ export function ReceiveCryptoModal() {
       <ContentWrapper>
         <GetHelpHeader
           goBack={modalState === ReceiveModalState.QR_CODE || connectedProvider || errorProvider ? goBack : undefined}
-          link={uniswapUrls.helpArticleUrls.transferCryptoHelp}
+          // TODO: Re-enable once support.juiceswap.xyz is configured
+          // link={uniswapUrls.helpArticleUrls.transferCryptoHelp}
           closeModal={onClose}
         />
         <AnimateTransition currentIndex={currentIndex} animationType="forward">

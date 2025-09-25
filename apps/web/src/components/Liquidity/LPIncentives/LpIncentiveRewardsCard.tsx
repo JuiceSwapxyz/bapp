@@ -27,9 +27,7 @@ import {
 import { ArrowRight } from 'ui/src/components/icons/ArrowRight'
 import { InfoCircleFilled } from 'ui/src/components/icons/InfoCircleFilled'
 import { iconSizes } from 'ui/src/theme'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
 import { InfoTooltip } from 'uniswap/src/components/tooltip/InfoTooltip'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useGetPoolsRewards } from 'uniswap/src/data/rest/getPoolsRewards'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { Trace } from 'uniswap/src/features/telemetry/Trace'
@@ -245,11 +243,13 @@ function LpIncentiveRewardsCard({
                           ? t('pool.incentives.yourRewards.error.description')
                           : t('pool.incentives.administeredRewards')}
                       </Text>
+                      {/* TODO: Re-enable once support.juiceswap.xyz is configured
                       {!rewardsError && (
                         <Trace logPress eventOnTrigger={UniswapEventName.LpIncentiveLearnMoreCtaClicked}>
                           <LearnMoreLink textVariant="buttonLabel4" url={uniswapUrls.helpArticleUrls.lpIncentiveInfo} />
                         </Trace>
                       )}
+                      */}
                     </Flex>
                   }
                 />
