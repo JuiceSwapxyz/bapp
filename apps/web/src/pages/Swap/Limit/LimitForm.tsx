@@ -60,18 +60,6 @@ const ShortArrowWrapper = TamaguiStyled(ArrowWrapper, {
   mb: -22,
 })
 
-const LearnMore = TamaguiStyled(Text, {
-  variant: 'body3',
-  color: '$accent1',
-  animation: '100ms',
-  hoverStyle: {
-    opacity: 0.6,
-  },
-  focusStyle: {
-    opacity: 0.4,
-  },
-})
-
 type LimitFormProps = {
   onCurrencyChange?: (selected: CurrencyState) => void
 }

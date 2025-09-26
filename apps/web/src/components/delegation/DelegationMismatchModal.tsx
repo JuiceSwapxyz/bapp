@@ -86,8 +86,8 @@ function DelegationMismatchModal({ onClose }: DelegationMismatchModalProps) {
         secondaryButtonEmphasis="primary"
         // TODO: Re-enable once support.juiceswap.xyz is configured
         // learnMoreUrl={uniswapUrls.helpArticleUrls.mismatchedImports}
-        learnMoreTextColor="$accent1"
-        learnMoreTextVariant="buttonLabel3"
+        _learnMoreTextColor="$accent1"
+        _learnMoreTextVariant="buttonLabel3"
         onClose={onClose}
         buttonContainerProps={{ flexDirection: 'row', gap: '$spacing12' }}
         textAlign="left"

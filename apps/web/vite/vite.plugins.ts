@@ -33,8 +33,7 @@ export function cspMetaTagPlugin(mode: string): Plugin {
       const baseCSP = JSON.parse(fs.readFileSync(baseCSPPath, 'utf-8'))
 
       // Optionally extend with dev/staging
-      const envConfigFile =
-        mode === 'development' ? 'dev-csp.json' : mode === 'staging' ? 'vercel-csp.json' : null
+      const envConfigFile = mode === 'development' ? 'dev-csp.json' : mode === 'staging' ? 'vercel-csp.json' : null
 
       if (envConfigFile) {
         const extraCSPPath = path.resolve(process.cwd(), 'public', envConfigFile)
