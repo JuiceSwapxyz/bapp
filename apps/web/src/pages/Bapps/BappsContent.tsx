@@ -74,7 +74,8 @@ const StatusText = styled(Text, {
 const ActionButton = styled(Button, {
   gap: '$spacing8',
   paddingHorizontal: '$spacing16',
-  paddingVertical: '$spacing8',
+  paddingVertical: '$spacing10',
+  minHeight: 40,
   backgroundColor: '$accent1',
   borderRadius: '$rounded8',
   variants: {
@@ -90,11 +91,6 @@ const ActionButton = styled(Button, {
       },
     },
   },
-})
-
-const ProgressSection = styled(Flex, {
-  gap: '$spacing12',
-  alignItems: 'center',
 })
 
 const ProgressBar = styled(Flex, {
@@ -222,14 +218,12 @@ export default function BappsContent({ account, campaignProgress, isLoading }: B
       {/* Progress Overview */}
       <Section>
         <SectionTitle>Campaign Progress</SectionTitle>
-        <ProgressSection>
-          <ProgressBar>
-            <ProgressFill style={{ width: `${progress}%` }} />
-          </ProgressBar>
-          <ProgressText>
-            {completedTasks} of {totalTasks} tasks completed ({progress.toFixed(1)}%)
-          </ProgressText>
-        </ProgressSection>
+        <ProgressBar>
+          <ProgressFill style={{ width: `${progress}%` }} />
+        </ProgressBar>
+        <ProgressText>
+          {completedTasks} of {totalTasks} tasks completed ({progress.toFixed(1)}%)
+        </ProgressText>
         {isLoading && (
           <Text variant="body3" color="$neutral2">
             Loading campaign progress...
@@ -273,25 +267,13 @@ export default function BappsContent({ account, campaignProgress, isLoading }: B
             </TaskHeader>
 
             <ActionButton
-              completed={task.completed}
-              disabled={task.completed}
+              display={task.completed ? 'none' : 'flex'}
               onPress={() => handleTaskAction(task.id, task.completed)}
             >
-              {task.completed ? (
-                <>
-                  <Check size="$icon.16" color="$white" />
-                  <Text variant="buttonLabel4" color="$white">
-                    Completed
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Text variant="buttonLabel4" color="$white">
-                    Complete Task
-                  </Text>
-                  <ExternalLink size="$icon.16" color="$white" />
-                </>
-              )}
+              <Text variant="buttonLabel4" color="$white">
+                Complete Task
+              </Text>
+              <ExternalLink size="$icon.16" color="$white" />
             </ActionButton>
           </TaskCard>
         ))}
