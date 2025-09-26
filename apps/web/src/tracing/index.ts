@@ -1,4 +1,4 @@
-import { setupAmplitude } from 'tracing/amplitude'
+// import { setupAmplitude } from 'tracing/amplitude'
 import { isRemoteReportingEnabled } from 'utils/env'
 
 if (isRemoteReportingEnabled()) {
@@ -6,4 +6,5 @@ if (isRemoteReportingEnabled()) {
   window.GIT_COMMIT_HASH = process.env.REACT_APP_GIT_COMMIT_HASH
 }
 
-setupAmplitude()
+// Amplitude analytics disabled - no tracking calls will be made
+// setupAmplitude()
