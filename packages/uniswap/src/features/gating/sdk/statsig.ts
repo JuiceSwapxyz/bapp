@@ -20,14 +20,15 @@ export {
 // Use statsigApiKey from environment variables directly to avoid node dependency errors in cloudflare deploys
 // Which happens when importing uniswap/src/config in this file
 // A dummy key is used in test env b/c the wallet/mobile tests use this file instead of the statsig.native file
-const statsigApiKey =
+// TODO: Re-enable Statsig once properly configured
+const statsigApiKey: string =
   process.env.NODE_ENV === 'test'
     ? 'dummy-test-key'
-    : process.env.REACT_APP_STATSIG_API_KEY ?? process.env.STATSIG_API_KEY
+    : process.env.REACT_APP_STATSIG_API_KEY ?? process.env.STATSIG_API_KEY ?? 'dummy-disabled-key'
 
-if (!statsigApiKey) {
-  throw new Error('STATSIG_API_KEY is not set')
-}
+// if (!statsigApiKey) {
+//   throw new Error('STATSIG_API_KEY is not set')
+// }
 
 let localOverrideAdapter: LocalOverrideAdapterWrapper | undefined
 
