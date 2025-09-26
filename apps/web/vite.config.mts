@@ -107,7 +107,7 @@ export default defineConfig(({ mode }) => {
           })
         : undefined,
       tsconfigPaths(),
-      env.REACT_APP_SKIP_CSP ? undefined : cspMetaTagPlugin(),
+      env.REACT_APP_SKIP_CSP ? undefined : cspMetaTagPlugin(mode),
       svgr({
         svgrOptions: {
           icon: false,
