@@ -1,21 +1,11 @@
 import UniswapXBrandMark from 'components/Logo/UniswapXBrandMark'
 import Column from 'components/deprecated/Column'
 import { RowBetween, RowFixed } from 'components/deprecated/Row'
-import styled from 'lib/styled-components'
 import { Trans } from 'react-i18next'
 import { RouterPreference } from 'state/routing/types'
 import { useRouterPreference } from 'state/user/hooks'
 import { ThemedText } from 'theme/components'
 import { Switch } from 'ui/src'
-
-const InlineLink = styled(ThemedText.BodySmall)`
-  color: ${({ theme }) => theme.accent1};
-  display: inline;
-  cursor: pointer;
-  &:hover {
-    opacity: 0.8;
-  }
-`
 
 export default function RouterPreferenceSettings() {
   const [routerPreference, setRouterPreference] = useRouterPreference()

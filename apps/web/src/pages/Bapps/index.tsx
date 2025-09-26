@@ -79,9 +79,8 @@ export default function Bapps() {
 
     setIsLoading(true)
     try {
-      // This would integrate with the campaign API
-      // For now, we'll use a placeholder
-      const response = await fetch('https://ponder.juiceswap.com/campaign/progress', {
+      const baseUrl = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
+      const response = await fetch(`${baseUrl}/campaign/progress`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

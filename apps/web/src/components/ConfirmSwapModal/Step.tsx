@@ -3,7 +3,6 @@ import { LoaderV3 } from 'components/Icons/LoadingSpinner'
 import styled, { Keyframes, keyframes } from 'lib/styled-components'
 import { ReactElement, useEffect, useState } from 'react'
 import { ThemedText } from 'theme/components'
-import { ExternalLink } from 'theme/components/Links'
 import { Flex } from 'ui/src'
 import { StepStatus } from 'uniswap/src/components/ConfirmSwapModal/types'
 
@@ -120,11 +119,6 @@ function Timer({ secondsRemaining }: { secondsRemaining: number }) {
   return <MonospacedTimer data-testid="step-timer">{timerText}</MonospacedTimer>
 }
 
-const StyledExternalLink = styled(ExternalLink)`
-  font-size: 12px;
-  font-weight: 485px;
-  line-height: 16px;
-`
 export function Step({ stepStatus, stepDetails }: { stepStatus: StepStatus; stepDetails: StepDetails }) {
   // Timer is shown in two cases:
   // (1) User has a specified amount of time to perform a required action. Timer starts running as soon as the step becomes active.
