@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { Button, Flex, IconButton, styled, Text } from 'ui/src'
+import { Button, Flex, IconButton, Text, styled } from 'ui/src'
 import { CoinStack } from 'ui/src/components/icons/CoinStack'
 import { X } from 'ui/src/components/icons/X'
 import { zIndexes } from 'ui/src/theme/zIndexes'
