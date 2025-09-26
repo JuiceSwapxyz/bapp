@@ -1,7 +1,6 @@
 // Ordering is intentional and must be preserved: sideEffects followed by functionality.
 import 'sideEffects'
 
-import { getDeviceId } from '@amplitude/analytics-browser'
 import { ApolloProvider } from '@apollo/client'
 import { datadogRum } from '@datadog/browser-rum'
 import { PortalProvider } from '@tamagui/portal'
@@ -19,7 +18,7 @@ import { BlockNumberProvider } from 'lib/hooks/useBlockNumber'
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7'
 import App from 'pages/App'
 import type { PropsWithChildren } from 'react'
-import { StrictMode, useEffect, useMemo } from 'react'
+import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Helmet, HelmetProvider } from 'react-helmet-async/lib/index'
 import { I18nextProvider } from 'react-i18next'
@@ -30,8 +29,6 @@ import store from 'state'
 import { ThemeProvider, ThemedGlobalStyle } from 'theme'
 import { TamaguiProvider } from 'theme/tamaguiProvider'
 import { ReactRouterUrlProvider } from 'uniswap/src/contexts/UrlContext'
-import { StatsigProviderWrapper } from 'uniswap/src/features/gating/StatsigProviderWrapper'
-import type { StatsigUser } from 'uniswap/src/features/gating/sdk/statsig'
 import { LocalizationContextProvider } from 'uniswap/src/features/language/LocalizationContext'
 import i18n from 'uniswap/src/i18n'
 import { initializeDatadog } from 'uniswap/src/utils/datadog'
@@ -102,15 +99,8 @@ function GraphqlProviders({ children }: { children: React.ReactNode }) {
     </ApolloProvider>
   )
 }
-function StatsigProvider({ children }: PropsWithChildren) {
+function DatadogUserProvider({ children }: PropsWithChildren) {
   const account = useAccount()
-  const statsigUser: StatsigUser = useMemo(
-    () => ({
-      userID: getDeviceId(),
-      customIDs: { address: account.address ?? '' },
-    }),
-    [account.address],
-  )
 
   useEffect(() => {
     datadogRum.setUserProperty('connection', {
@@ -122,18 +112,15 @@ function StatsigProvider({ children }: PropsWithChildren) {
     })
   }, [account])
 
-  const onStatsigInit = () => {
+  useEffect(() => {
+    // Initialize Datadog without Statsig
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!isDevEnv() || localDevDatadogEnabled) {
       initializeDatadog('web').catch(() => undefined)
     }
-  }
+  }, [])
 
-  return (
-    <StatsigProviderWrapper user={statsigUser} onInit={onStatsigInit}>
-      {children}
-    </StatsigProviderWrapper>
-  )
+  return <>{children}</>
 }
 
 const container = document.getElementById('root') as HTMLElement
@@ -151,7 +138,7 @@ createRoot(container).render(
                 <I18nextProvider i18n={i18n}>
                   <LanguageProvider>
                     <Web3Provider>
-                      <StatsigProvider>
+                      <DatadogUserProvider>
                         <ExternalWalletProvider>
                           <WebUniswapProvider>
                             <GraphqlProviders>
@@ -171,7 +158,7 @@ createRoot(container).render(
                             </GraphqlProviders>
                           </WebUniswapProvider>
                         </ExternalWalletProvider>
-                      </StatsigProvider>
+                      </DatadogUserProvider>
                     </Web3Provider>
                   </LanguageProvider>
                 </I18nextProvider>

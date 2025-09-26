@@ -1,66 +1,44 @@
-import { StatsigClientEventCallback, StatsigLoadingStatus } from '@statsig/client-core'
-import { useEffect, useMemo, useState } from 'react'
 import { DynamicConfigKeys } from 'uniswap/src/features/gating/configs'
 import { ExperimentProperties, Experiments } from 'uniswap/src/features/gating/experiments'
-import { FeatureFlags, getFeatureFlagName } from 'uniswap/src/features/gating/flags'
-import {
-  TypedReturn,
-  getStatsigClient,
-  useDynamicConfig,
-  useExperiment,
-  useFeatureGate,
-  useGateValue,
-  useLayer,
-  useStatsigClient,
-} from 'uniswap/src/features/gating/sdk/statsig'
-import { logger } from 'utilities/src/logger/logger'
+import { FeatureFlags } from 'uniswap/src/features/gating/flags'
+import { TypedReturn } from 'uniswap/src/features/gating/sdk/statsig'
 
 export function useFeatureFlag(flag: FeatureFlags): boolean {
-  const name = getFeatureFlagName(flag)
-  const value = useGateValue(name)
-  return value
+  // Disabled Statsig - return false for all feature flags
+  return false
 }
 
 export function useFeatureFlagWithLoading(flag: FeatureFlags): { value: boolean; isLoading: boolean } {
-  const { isStatsigLoading } = useStatsigClientStatus()
-  const name = getFeatureFlagName(flag)
-  const { value } = useFeatureGate(name)
-  return { value, isLoading: isStatsigLoading }
+  // Disabled Statsig - return false for all feature flags
+  return { value: false, isLoading: false }
 }
 
 export function getFeatureFlag(flag: FeatureFlags): boolean {
-  try {
-    const name = getFeatureFlagName(flag)
-    return getStatsigClient().checkGate(name)
-  } catch (e) {
-    logger.debug('gating/hooks.ts', 'getFeatureFlag', JSON.stringify({ e }))
-    return false
-  }
+  // Disabled Statsig - return false for all feature flags
+  return false
 }
 
 export function useFeatureFlagWithExposureLoggingDisabled(flag: FeatureFlags): boolean {
-  const name = getFeatureFlagName(flag)
-  const value = useGateValue(name, { disableExposureLog: true })
-  return value
+  // Disabled Statsig - return false for all feature flags
+  return false
 }
 
 export function getFeatureFlagWithExposureLoggingDisabled(flag: FeatureFlags): boolean {
-  const name = getFeatureFlagName(flag)
-  return getStatsigClient().checkGate(name, { disableExposureLog: true })
+  // Disabled Statsig - return false for all feature flags
+  return false
 }
 
 export function useExperimentGroupNameWithLoading(experiment: Experiments): {
   value: string | null
   isLoading: boolean
 } {
-  const { isStatsigLoading } = useStatsigClientStatus()
-  const statsigExperiment = useExperiment(experiment)
-  return { value: statsigExperiment.groupName, isLoading: isStatsigLoading }
+  // Disabled Statsig - return null for experiments
+  return { value: null, isLoading: false }
 }
 
 export function useExperimentGroupName(experiment: Experiments): string | null {
-  const { groupName } = useExperiment(experiment)
-  return groupName
+  // Disabled Statsig - return null for experiments
+  return null
 }
 
 export function useExperimentValue<
@@ -78,9 +56,8 @@ export function useExperimentValue<
   defaultValue: ValType
   customTypeGuard?: (x: unknown) => x is ValType
 }): ValType {
-  const statsigExperiment = useExperiment(experiment)
-  const value = statsigExperiment.get(param, defaultValue)
-  return checkTypeGuard({ value, defaultValue, customTypeGuard })
+  // Disabled Statsig - return default value
+  return defaultValue
 }
 
 export function getExperimentValue<
@@ -98,9 +75,8 @@ export function getExperimentValue<
   defaultValue: ValType
   customTypeGuard?: (x: unknown) => x is ValType
 }): ValType {
-  const statsigExperiment = getStatsigClient().getExperiment(experiment)
-  const value = statsigExperiment.get(param, defaultValue)
-  return checkTypeGuard({ value, defaultValue, customTypeGuard })
+  // Disabled Statsig - return default value
+  return defaultValue
 }
 
 export function useExperimentValueWithExposureLoggingDisabled<
@@ -118,9 +94,8 @@ export function useExperimentValueWithExposureLoggingDisabled<
   defaultValue: ValType
   customTypeGuard?: (x: unknown) => x is ValType
 }): ValType {
-  const statsigExperiment = useExperiment(experiment, { disableExposureLog: true })
-  const value = statsigExperiment.get(param, defaultValue)
-  return checkTypeGuard({ value, defaultValue, customTypeGuard })
+  // Disabled Statsig - return default value
+  return defaultValue
 }
 
 export function useDynamicConfigValue<
@@ -138,9 +113,8 @@ export function useDynamicConfigValue<
   defaultValue: ValType
   customTypeGuard?: (x: unknown) => x is ValType
 }): ValType {
-  const dynamicConfig = useDynamicConfig(config)
-  const value = dynamicConfig.get(key, defaultValue)
-  return checkTypeGuard({ value, defaultValue, customTypeGuard })
+  // Disabled Statsig - return default value
+  return defaultValue
 }
 
 export function getDynamicConfigValue<
@@ -158,9 +132,8 @@ export function getDynamicConfigValue<
   defaultValue: ValType
   customTypeGuard?: (x: unknown) => x is ValType
 }): ValType {
-  const dynamicConfig = getStatsigClient().getDynamicConfig(config)
-  const value = dynamicConfig.get(key, defaultValue)
-  return checkTypeGuard({ value, defaultValue, customTypeGuard })
+  // Disabled Statsig - return default value
+  return defaultValue
 }
 
 export function getExperimentValueFromLayer<Layer extends string, Exp extends keyof ExperimentProperties, ValType>({
@@ -174,10 +147,8 @@ export function getExperimentValueFromLayer<Layer extends string, Exp extends ke
   defaultValue: ValType
   customTypeGuard?: (x: unknown) => x is ValType
 }): ValType {
-  const layer = getStatsigClient().getLayer(layerName)
-  const value = layer.get(param, defaultValue)
-  // we directly get param from layer; these are spread from experiments
-  return checkTypeGuard({ value, defaultValue, customTypeGuard })
+  // Disabled Statsig - return default value
+  return defaultValue
 }
 
 export function useExperimentValueFromLayer<Layer extends string, Exp extends keyof ExperimentProperties, ValType>({
@@ -191,10 +162,8 @@ export function useExperimentValueFromLayer<Layer extends string, Exp extends ke
   defaultValue: ValType
   customTypeGuard?: (x: unknown) => x is ValType
 }): ValType {
-  const layer = useLayer(layerName)
-  const value = layer.get(param, defaultValue)
-  // we directly get param from layer; these are spread from experiments
-  return checkTypeGuard({ value, defaultValue, customTypeGuard })
+  // Disabled Statsig - return default value
+  return defaultValue
 }
 
 export function checkTypeGuard<ValType>({
@@ -220,25 +189,10 @@ export function useStatsigClientStatus(): {
   isStatsigReady: boolean
   isStatsigUninitialized: boolean
 } {
-  const { client } = useStatsigClient()
-  const [statsigStatus, setStatsigStatus] = useState<StatsigLoadingStatus>(client.loadingStatus)
-
-  useEffect(() => {
-    const handler: StatsigClientEventCallback<'values_updated'> = (event) => {
-      setStatsigStatus(event.status)
-    }
-    client.on('values_updated', handler)
-    return () => {
-      client.off('values_updated', handler)
-    }
-  }, [client])
-
-  return useMemo(
-    () => ({
-      isStatsigLoading: statsigStatus === 'Loading',
-      isStatsigReady: statsigStatus === 'Ready',
-      isStatsigUninitialized: statsigStatus === 'Uninitialized',
-    }),
-    [statsigStatus],
-  )
+  // Disabled Statsig - return ready status
+  return {
+    isStatsigLoading: false,
+    isStatsigReady: true,
+    isStatsigUninitialized: false,
+  }
 }
