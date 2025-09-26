@@ -83,9 +83,11 @@ function PrivacyPolicy() {
         description: (
           <>
             {t('privacy.trm')}{' '}
+            {/* TODO: Re-enable once support.juiceswap.xyz is configured
             <ExternalLink href={`${uniswapUrls.helpUrl}/articles/8671777747597-Address-Screening-Guide`}>
               {t('common.button.learn')}
             </ExternalLink>
+            */}
           </>
         ),
       },
@@ -153,9 +155,11 @@ function PrivacyPolicy() {
           ))}
           <ThemedText.DeprecatedBody fontSize={12}>
             <Row justify="center" marginBottom="1rem">
+              {/* TODO: Re-enable once support.juiceswap.xyz is configured
               <ExternalLink href="https://help.uniswap.org/en/articles/5675203-terms-of-service-faq">
                 {t('common.button.learn')}
               </ExternalLink>
+              */}
             </Row>
           </ThemedText.DeprecatedBody>
         </AutoColumn>

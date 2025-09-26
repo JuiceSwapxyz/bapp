@@ -10,9 +10,7 @@ import { ReactNode, useCallback } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { RouterPreference } from 'state/routing/types'
 import { ThemedText } from 'theme/components'
-import { ExternalLink } from 'theme/components/Links'
 import { Flex, Switch } from 'ui/src'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useV4SwapEnabled } from 'uniswap/src/features/transactions/swap/hooks/useV4SwapEnabled'
 
 const LabelWrapper = styled(Column)`
@@ -68,9 +66,11 @@ function UniswapXPreferenceLabel() {
         text={
           <>
             <Trans i18nKey="routing.aggregateLiquidity" />{' '}
+            {/* TODO: Re-enable once support.juiceswap.xyz is configured
             <ExternalLink href={uniswapUrls.helpArticleUrls.uniswapXInfo}>
               <Trans i18nKey="common.button.learn" />
             </ExternalLink>
+            */}
           </>
         }
         placement="right"

@@ -6,7 +6,6 @@ import { UniswapLogo } from 'ui/src/components/icons/UniswapLogo'
 import { UniswapX } from 'ui/src/components/icons/UniswapX'
 import RoutingDiagram from 'uniswap/src/components/RoutingDiagram/RoutingDiagram'
 import { TransactionDetailsTooltip as Tooltip } from 'uniswap/src/components/TransactionDetailsTooltip'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
 import { isClassic } from 'uniswap/src/features/transactions/swap/utils/routing'
 import getRoutingDiagramEntries from 'uniswap/src/utils/getRoutingDiagramEntries'
@@ -40,7 +39,11 @@ export function BestRouteTooltip(): JSX.Element | null {
         </Tooltip.Row>
       </Tooltip.Content>
       <Tooltip.Separator />
-      <Tooltip.Description learnMoreUrl={uniswapUrls.helpArticleUrls.routingSettings} text={t('swap.autoRouter')} />
+      <Tooltip.Description
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreUrl={uniswapUrls.helpArticleUrls.routingSettings}
+        text={t('swap.autoRouter')}
+      />
     </Tooltip.Outer>
   )
 }
@@ -64,7 +67,8 @@ export function BestRouteUniswapXTooltip(): JSX.Element {
         </Tooltip.Row>
       </Tooltip.Content>
       <Tooltip.Description
-        learnMoreUrl={uniswapUrls.helpArticleUrls.uniswapXInfo}
+        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // learnMoreUrl={uniswapUrls.helpArticleUrls.uniswapXInfo}
         text={t('routing.aggregateLiquidity.uniswapx')}
       />
     </Tooltip.Outer>

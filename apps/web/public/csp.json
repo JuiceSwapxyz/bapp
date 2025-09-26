@@ -63,10 +63,6 @@
     "https://api.avax.network/ext/bc/C/rpc",
     "https://api.moonpay.com/",
     "https://api.opensea.io",
-    "https://bsc-dataseed1.binance.org/",
-    "https://bsc-dataseed1.bnbchain.org",
-    "https://bsc-dataseed2.ninicoin.io/",
-    "https://bscrpc.com/",
     "https://buy.moonpay.com/",
     "https://cdn.center.app/",
     "https://celo-org.github.io",
@@ -133,13 +129,13 @@
     "https://beyondwickedmapping.org",
     "https://api.juiceswap.xyz",
     "https://ponder.juiceswap.com",
+    "https://dev.ponder.juiceswap.com",
     "https://rpc.testnet.citrea.xyz",
     "wss://*.uniswap.org",
     "wss://relay.walletconnect.com",
     "wss://relay.walletconnect.org",
     "wss://ws-us3.pusher.com/",
-    "wss://www.walletlink.org",
-    "wss://nbstream.binance.com"
+    "wss://www.walletlink.org"
   ],
   "workerSrc": [
     "'self'",

@@ -6,7 +6,6 @@ import { Slash } from 'react-feather'
 import { Trans } from 'react-i18next'
 import { ThemedText } from 'theme/components'
 import { CopyHelper } from 'theme/components/CopyHelper'
-import { ExternalLink } from 'theme/components/Links'
 import { Flex, Text } from 'ui/src'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
@@ -34,7 +33,11 @@ export default function ConnectedAccountBlocked(props: ModalState) {
         <ThemedText.DeprecatedMain fontSize={12} marginBottom={12}>
           <Trans
             i18nKey="common.blocked.reason"
-            components={{ link: <ExternalLink href="https://help.uniswap.org/en/articles/6149816" /> }}
+            components={{
+              // TODO: Re-enable once support.juiceswap.xyz is configured
+              // link: <ExternalLink href="https://help.uniswap.org/en/articles/6149816" />
+              link: <span />,
+            }}
           />
         </ThemedText.DeprecatedMain>
         <ThemedText.DeprecatedMain fontSize={12}>

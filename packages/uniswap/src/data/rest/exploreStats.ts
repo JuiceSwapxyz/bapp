@@ -20,6 +20,6 @@ export function useExploreStatsQuery<TSelectType>({
   input?: PartialMessage<ExploreStatsRequest>
   select?: ((data: ExploreStatsResponse) => TSelectType) | undefined
 }): UseQueryResult<TSelectType, ConnectError> {
-  // TODO: Enable once ExploreStats backend is configured
+  // TODO: Re-enable once explore stats endpoint is properly configured
   return useQuery(exploreStats, input, { transport: uniswapGetTransport, enabled: false, select })
 }

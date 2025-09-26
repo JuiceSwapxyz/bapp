@@ -22,7 +22,6 @@ import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled
 import { ArrowDown } from 'ui/src/components/icons/ArrowDown'
 import { NetworkFeeWarning } from 'uniswap/src/components/gas/NetworkFeeWarning'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { useFiatOnRampAggregatorOffRampTransferDetailsQuery } from 'uniswap/src/features/fiatOnRamp/api'
@@ -262,7 +261,8 @@ export const OffRampConfirmTransferModal = ({
                 {t('common.youreSelling')}
               </Text>
             }
-            link={uniswapUrls.helpArticleUrls.fiatOffRampHelp}
+            // TODO: Re-enable once support.juiceswap.xyz is configured
+            // link={uniswapUrls.helpArticleUrls.fiatOffRampHelp}
             closeModal={onClose}
           />
           <Flex py="$gap12" gap="$gap16">

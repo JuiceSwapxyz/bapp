@@ -10,11 +10,13 @@ import { uniswapGetTransport } from 'uniswap/src/data/rest/base'
  * Wrapper around Tanstack useQuery for the Uniswap REST BE service ProtocolStats
  * This includes data for protocol TVL and volume graphs
  * @param input { chainId: string } - string representation of the chain to query or `ALL_NETWORKS` for aggregated data
+ * @param enabled - whether to enable the query (defaults to false until properly configured)
  * @returns UseQueryResult<ProtocolStatsResponse, ConnectError>
  */
 export function useProtocolStatsQuery(
   input?: PartialMessage<ProtocolStatsRequest>,
+  // TODO: Re-enable once protocol stats endpoint is properly configured
+  enabled: boolean = false,
 ): UseQueryResult<ProtocolStatsResponse, ConnectError> {
-  // TODO: Enable once ProtocolStats backend is configured
-  return useQuery(protocolStats, input, { transport: uniswapGetTransport, enabled: false })
+  return useQuery(protocolStats, input, { transport: uniswapGetTransport, enabled })
 }

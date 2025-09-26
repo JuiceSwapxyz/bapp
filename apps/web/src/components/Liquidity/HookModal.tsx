@@ -10,8 +10,6 @@ import { DocumentList } from 'ui/src/components/icons/DocumentList'
 import { Page } from 'ui/src/components/icons/Page'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { shortenAddress } from 'utilities/src/addresses'
@@ -162,7 +160,9 @@ export function HookModal({
             <Text variant="body2" color="$neutral2" textAlign="center" my="$padding8">
               {hasDangerous ? t('position.hook.warningInfo') : t('position.addingHook.disclaimer')}
             </Text>
+            {/* TODO: Re-enable once support.juiceswap.xyz is configured
             <LearnMoreLink centered url={uniswapUrls.helpArticleUrls.addingV4Hooks} textVariant="buttonLabel3" />
+            */}
           </Flex>
 
           <Flex borderRadius="$rounded16" backgroundColor="$surface2" py="$gap12" px="$gap16">

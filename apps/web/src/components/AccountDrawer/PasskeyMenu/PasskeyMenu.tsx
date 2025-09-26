@@ -11,17 +11,14 @@ import { useAccount } from 'hooks/useAccount'
 import { usePasskeyAuthWithHelpModal } from 'hooks/usePasskeyAuthWithHelpModal'
 import { t } from 'i18next'
 import { useCallback, useEffect, useState } from 'react'
-import { LifeBuoy } from 'react-feather'
 import { useTranslation } from 'react-i18next'
-import { ClickableTamaguiStyle } from 'theme/components/styles'
-import { Anchor, Button, Flex, Loader, Text, TouchableArea, useSporeColors } from 'ui/src'
+import { Button, Flex, Loader, Text, TouchableArea, useSporeColors } from 'ui/src'
 import { Passkey } from 'ui/src/components/icons/Passkey'
 import { Trash } from 'ui/src/components/icons/Trash'
 import { Windows } from 'ui/src/components/icons/Windows'
 import { GoogleChromeLogo } from 'ui/src/components/logos/GoogleChromeLogo'
 import { UseSporeColorsReturn } from 'ui/src/hooks/useSporeColors'
 import { iconSizes } from 'ui/src/theme'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import {
   Action,
   Authenticator,
@@ -284,6 +281,7 @@ export default function PasskeyMenu({ onClose }: { onClose: () => void }) {
         title={t('common.passkeys')}
         onClose={handleCloseDrawer}
         rightIcon={
+          /* TODO: Re-enable once support.juiceswap.xyz is configured
           <Trace logPress element={ElementName.GetHelp}>
             <Anchor
               target="_blank"
@@ -294,6 +292,8 @@ export default function PasskeyMenu({ onClose }: { onClose: () => void }) {
               <LifeBuoy size={20} color={colors.neutral2.val} />
             </Anchor>
           </Trace>
+          */
+          null
         }
       >
         <VerifyPasskeyMenu

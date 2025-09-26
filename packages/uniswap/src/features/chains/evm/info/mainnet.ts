@@ -1,5 +1,6 @@
 import { CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { ETHEREUM_LOGO, ETH_LOGO } from 'ui/src/assets'
+import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import {
   DEFAULT_MS_BEFORE_WARNING,
@@ -82,9 +83,7 @@ export const MAINNET_CHAIN_INFO = {
           http: ['https://rpc.ankr.com/eth', 'https://eth-mainnet.public.blastapi.io'],
         },
         [RPCType.Interface]: {
-          // TODO: Re-enable Infura once API key is configured
-          // http: [`https://mainnet.infura.io/v3/${config.infuraKey}`, getQuicknodeEndpointUrl(UniverseChainId.Mainnet)],
-          http: [getQuicknodeEndpointUrl(UniverseChainId.Mainnet)],
+          http: [`https://mainnet.infura.io/v3/${config.infuraKey}`, getQuicknodeEndpointUrl(UniverseChainId.Mainnet)],
         },
       },
   urlParam: 'ethereum',
@@ -157,9 +156,7 @@ export const SEPOLIA_CHAIN_INFO = {
         'https://rpc.bordel.wtf/sepolia',
       ],
     },
-    // TODO: Re-enable Infura once API key is configured
-    // [RPCType.Interface]: { http: [`https://sepolia.infura.io/v3/${config.infuraKey}`] },
-    [RPCType.Interface]: { http: [getQuicknodeEndpointUrl(UniverseChainId.Sepolia)] },
+    [RPCType.Interface]: { http: [`https://sepolia.infura.io/v3/${config.infuraKey}`] },
   },
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(testnetTokens.USDC, 100e6),
   tokens: testnetTokens,
