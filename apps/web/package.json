@@ -12,6 +12,7 @@
     "sitemap:generate": "node scripts/generate-sitemap.js",
     "start": "ROLLDOWN_OPTIONS_VALIDATION=loose vite dev",
     "dev": "ROLLDOWN_OPTIONS_VALIDATION=loose vite dev",
+    "build:development": "ROLLDOWN_OPTIONS_VALIDATION=loose vite build --mode development",
     "build:production": "ROLLDOWN_OPTIONS_VALIDATION=loose vite build",
     "build:staging": "ROLLDOWN_OPTIONS_VALIDATION=loose vite build --mode staging",
     "preview": "ROLLDOWN_OPTIONS_VALIDATION=loose vite preview",

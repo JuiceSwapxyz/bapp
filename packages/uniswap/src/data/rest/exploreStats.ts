@@ -15,7 +15,8 @@ import { uniswapGetTransport } from 'uniswap/src/data/rest/base'
  */
 export function useExploreStatsQuery<TSelectType>({
   input,
-  enabled = true,
+  // TODO: Re-enable once explore stats endpoint is properly configured
+  enabled = false,
   select,
 }: {
   input?: PartialMessage<ExploreStatsRequest>

@@ -1,7 +1,7 @@
-import { ErrorBoundary as DatadogErrorBoundary } from '@datadog/browser-rum-react'
+// import { ErrorBoundary as DatadogErrorBoundary } from '@datadog/browser-rum-react' // Removed - Datadog disabled
 import { useIsMobile } from 'hooks/screenSize/useIsMobile'
 import styled from 'lib/styled-components'
-import { PropsWithChildren, useState } from 'react'
+import { Component, PropsWithChildren, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ThemedText } from 'theme/components'
 import { CopyToClipboard } from 'theme/components/CopyHelper'
@@ -103,6 +103,40 @@ function ErrorDetailsSection({ errorDetails, eventId }: { errorDetails: string; 
   )
 }
 
+// Simple React error boundary to replace DatadogErrorBoundary
+class SimpleErrorBoundary extends Component<
+  PropsWithChildren & {
+    fallback?: React.ComponentType<{
+      error: Error
+      resetError: () => void
+    }>
+  },
+  { hasError: boolean; error: Error | null }
+> {
+  state = { hasError: false, error: null }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Log errors to console for debugging (previously sent to Datadog)
+    console.error('ErrorBoundary caught:', error, errorInfo)
+  }
+
+  resetError = () => {
+    this.setState({ hasError: false, error: null })
+  }
+
+  render() {
+    if (this.state.hasError && this.state.error) {
+      const FallbackComponent = this.props.fallback ?? (({ error }) => <Fallback error={error} eventId={null} />)
+      return <FallbackComponent error={this.state.error} resetError={this.resetError} />
+    }
+    return this.props.children
+  }
+}
+
 export default function ErrorBoundary({
   children,
   fallback,
@@ -113,8 +147,8 @@ export default function ErrorBoundary({
   }>
 }): JSX.Element {
   return (
-    <DatadogErrorBoundary fallback={fallback ?? (({ error }) => <Fallback error={error} eventId={null} />)}>
+    <SimpleErrorBoundary fallback={fallback}>
       {children}
-    </DatadogErrorBoundary>
+    </SimpleErrorBoundary>
   )
 }

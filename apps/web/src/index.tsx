@@ -1,9 +1,9 @@
 // Ordering is intentional and must be preserved: sideEffects followed by functionality.
 import 'sideEffects'
 
-import { getDeviceId } from '@amplitude/analytics-browser'
+// import { getDeviceId } from '@amplitude/analytics-browser' // Amplitude disabled for JuiceSwap
 import { ApolloProvider } from '@apollo/client'
-import { datadogRum } from '@datadog/browser-rum'
+// import { datadogRum } from '@datadog/browser-rum' // Commented out - Datadog disabled
 import { PortalProvider } from '@tamagui/portal'
 import { AssetActivityProvider } from 'appGraphql/data/apollo/AssetActivityProvider'
 import { TokenBalancesProvider } from 'appGraphql/data/apollo/TokenBalancesProvider'
@@ -34,9 +34,9 @@ import { StatsigProviderWrapper } from 'uniswap/src/features/gating/StatsigProvi
 import type { StatsigUser } from 'uniswap/src/features/gating/sdk/statsig'
 import { LocalizationContextProvider } from 'uniswap/src/features/language/LocalizationContext'
 import i18n from 'uniswap/src/i18n'
-import { initializeDatadog } from 'uniswap/src/utils/datadog'
-import { localDevDatadogEnabled } from 'utilities/src/environment/constants'
-import { isDevEnv, isTestEnv } from 'utilities/src/environment/env'
+// import { initializeDatadog } from 'uniswap/src/utils/datadog' // Commented out - Datadog disabled
+// import { localDevDatadogEnabled } from 'utilities/src/environment/constants' // Commented out - Datadog disabled
+import { isTestEnv } from 'utilities/src/environment/env'
 import { isBrowserRouterEnabled } from 'utils/env'
 import { unregister as unregisterServiceWorker } from 'utils/serviceWorker'
 import { getCanonicalUrl } from 'utils/urlRoutes'
@@ -102,6 +102,25 @@ function GraphqlProviders({ children }: { children: React.ReactNode }) {
     </ApolloProvider>
   )
 }
+
+// Alternative device ID implementation for JuiceSwap (replaces Amplitude's getDeviceId)
+function getDeviceId(): string {
+  const DEVICE_ID_KEY = 'juiceswap_device_id'
+  let deviceId = localStorage.getItem(DEVICE_ID_KEY)
+
+  if (!deviceId) {
+    // Generate a random UUID-like string
+    deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0
+      const v = c === 'x' ? r : (r & 0x3) | 0x8
+      return v.toString(16)
+    })
+    localStorage.setItem(DEVICE_ID_KEY, deviceId)
+  }
+
+  return deviceId
+}
+
 function StatsigProvider({ children }: PropsWithChildren) {
   const account = useAccount()
   const statsigUser: StatsigUser = useMemo(
@@ -113,20 +132,22 @@ function StatsigProvider({ children }: PropsWithChildren) {
   )
 
   useEffect(() => {
-    datadogRum.setUserProperty('connection', {
-      type: account.connector?.type,
-      name: account.connector?.name,
-      rdns: account.connector?.id,
-      address: account.address,
-      status: account.status,
-    })
+    // Datadog user tracking commented out - initialization disabled
+    // datadogRum.setUserProperty('connection', {
+    //   type: account.connector?.type,
+    //   name: account.connector?.name,
+    //   rdns: account.connector?.id,
+    //   address: account.address,
+    //   status: account.status,
+    // })
   }, [account])
 
   const onStatsigInit = () => {
+    // Datadog initialization commented out - missing applicationId configuration
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!isDevEnv() || localDevDatadogEnabled) {
-      initializeDatadog('web').catch(() => undefined)
-    }
+    // if (!isDevEnv() || localDevDatadogEnabled) {
+    //   initializeDatadog('web').catch(() => undefined)
+    // }
   }
 
   return (

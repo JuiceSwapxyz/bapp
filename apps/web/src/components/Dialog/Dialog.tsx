@@ -10,9 +10,9 @@ interface DialogProps {
   icon: React.ReactNode
   title: string | React.ReactNode
   subtext: string | React.ReactNode
-  learnMoreUrl?: string
-  learnMoreTextColor?: string
-  learnMoreTextVariant?: TextProps['variant']
+  _learnMoreUrl?: string
+  _learnMoreTextColor?: string
+  _learnMoreTextVariant?: TextProps['variant']
   modalName: ModalNameType
   primaryButtonText: string
   primaryButtonOnClick: () => void
@@ -37,9 +37,9 @@ export function Dialog({
   icon,
   title,
   subtext,
-  learnMoreUrl,
-  learnMoreTextColor = '$neutral1',
-  learnMoreTextVariant = 'body3',
+  _learnMoreUrl,
+  _learnMoreTextColor = '$neutral1',
+  _learnMoreTextVariant = 'body3',
   modalName,
   primaryButtonText,
   primaryButtonOnClick,

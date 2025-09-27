@@ -1,7 +1,7 @@
 import { useAccount } from 'hooks/useAccount'
 import BappsContent from 'pages/Bapps/BappsContent'
 import { useCallback, useEffect, useState } from 'react'
-import { Button, Flex, Text, styled } from 'ui/src'
+import { Flex, Text, styled } from 'ui/src'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
@@ -35,6 +35,8 @@ const HeaderSection = styled(Flex, {
 
 const TitleSection = styled(Flex, {
   gap: '$spacing8',
+  flex: 1,
+  minWidth: 0,
 })
 
 const MainTitle = styled(Text, {
@@ -48,18 +50,21 @@ const Subtitle = styled(Text, {
   color: '$neutral2',
 })
 
-const ExternalLinkButton = styled(Button, {
+const ExternalLinkButton = styled(Flex, {
+  flexDirection: 'row',
+  alignItems: 'center',
   gap: '$spacing8',
-  paddingHorizontal: '$spacing16',
-  paddingVertical: '$spacing12',
+  paddingHorizontal: '$spacing24',
+  paddingVertical: '$spacing20',
   backgroundColor: '$accent1',
   borderRadius: '$rounded12',
-  variants: {
-    hover: {
-      true: {
-        backgroundColor: '$accent2',
-      },
-    },
+  cursor: 'pointer',
+  flexShrink: 0,
+  pressStyle: {
+    backgroundColor: '$accent2',
+  },
+  hoverStyle: {
+    backgroundColor: '$accent2',
   },
 })
 
@@ -79,9 +84,8 @@ export default function Bapps() {
 
     setIsLoading(true)
     try {
-      // This would integrate with the campaign API
-      // For now, we'll use a placeholder
-      const response = await fetch('https://ponder.juiceswap.com/campaign/progress', {
+      const baseUrl = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
+      const response = await fetch(`${baseUrl}/campaign/progress`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +123,7 @@ export default function Bapps() {
               <Subtitle>Complete swap tasks on Citrea Testnet to participate in the bApps campaign</Subtitle>
             </TitleSection>
             <ExternalLinkButton onPress={handleVisitBapps}>
-              <Text variant="buttonLabel3" color="$white">
+              <Text variant="buttonLabel4" color="$white">
                 Visit bApps.citrea.xyz
               </Text>
               <ExternalLink size="$icon.16" color="$white" />

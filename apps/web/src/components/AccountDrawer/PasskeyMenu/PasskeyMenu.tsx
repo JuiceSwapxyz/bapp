@@ -281,18 +281,17 @@ export default function PasskeyMenu({ onClose }: { onClose: () => void }) {
         title={t('common.passkeys')}
         onClose={handleCloseDrawer}
         rightIcon={
-          /* TODO: Re-enable once support.juiceswap.xyz is configured
-          <Trace logPress element={ElementName.GetHelp}>
-            <Anchor
-              target="_blank"
-              rel="noreferrer"
-              href={uniswapUrls.helpArticleUrls.passkeysInfo}
-              {...ClickableTamaguiStyle}
-            >
-              <LifeBuoy size={20} color={colors.neutral2.val} />
-            </Anchor>
-          </Trace>
-          */
+          // TODO: Re-enable once support.juiceswap.xyz is configured
+          // <Trace logPress element={ElementName.GetHelp}>
+          //   <Anchor
+          //     target="_blank"
+          //     rel="noreferrer"
+          //     href={uniswapUrls.helpArticleUrls.passkeysInfo}
+          //     {...ClickableTamaguiStyle}
+          //   >
+          //     <LifeBuoy size={20} color={colors.neutral2.val} />
+          //   </Anchor>
+          // </Trace>
           null
         }
       >
