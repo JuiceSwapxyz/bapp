@@ -1,5 +1,4 @@
 import { CELO_LOGO } from 'ui/src/assets'
-import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { getQuicknodeEndpointUrl } from 'uniswap/src/features/chains/evm/rpc'
 import { buildChainTokens } from 'uniswap/src/features/chains/evm/tokens'
@@ -61,7 +60,7 @@ export const CELO_CHAIN_INFO = {
   rpcUrls: {
     [RPCType.Public]: { http: [getQuicknodeEndpointUrl(UniverseChainId.Celo)] },
     [RPCType.Default]: { http: [`https://forno.celo.org`] },
-    [RPCType.Interface]: { http: [`https://celo-mainnet.infura.io/v3/${config.infuraKey}`] },
+    [RPCType.Interface]: { http: ['https://forno.celo.org'] },
   },
   wrappedNativeCurrency: {
     name: 'Celo',

@@ -1,5 +1,4 @@
 import { ETH_LOGO, OPTIMISM_LOGO } from 'ui/src/assets'
-import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import {
   DEFAULT_NATIVE_ADDRESS_LEGACY,
@@ -66,7 +65,7 @@ export const OPTIMISM_CHAIN_INFO = {
     [RPCType.PublicAlt]: { http: ['https://mainnet.optimism.io'] },
     [RPCType.Default]: { http: ['https://mainnet.optimism.io/'] },
     [RPCType.Fallback]: { http: ['https://rpc.ankr.com/optimism'] },
-    [RPCType.Interface]: { http: [`https://optimism-mainnet.infura.io/v3/${config.infuraKey}`] },
+    [RPCType.Interface]: { http: ['https://mainnet.optimism.io/'] },
   },
   tokens,
   statusPage: 'https://optimism.io/status',

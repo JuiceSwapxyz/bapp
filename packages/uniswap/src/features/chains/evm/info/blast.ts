@@ -1,6 +1,5 @@
 import { Token } from '@juiceswapxyz/sdk-core'
 import { BLAST_LOGO, ETH_LOGO } from 'ui/src/assets'
-import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import {
   DEFAULT_NATIVE_ADDRESS_LEGACY,
@@ -64,7 +63,7 @@ export const BLAST_CHAIN_INFO = {
   rpcUrls: {
     [RPCType.Public]: { http: [getQuicknodeEndpointUrl(UniverseChainId.Blast)] },
     [RPCType.Default]: { http: ['https://rpc.blast.io/'] },
-    [RPCType.Interface]: { http: [`https://blast-mainnet.infura.io/v3/${config.infuraKey}`] },
+    [RPCType.Interface]: { http: ['https://rpc.blast.io/'] },
   },
   wrappedNativeCurrency: {
     name: 'Wrapped Ether',
