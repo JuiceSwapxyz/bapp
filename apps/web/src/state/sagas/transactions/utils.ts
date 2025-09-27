@@ -1,4 +1,4 @@
-import { datadogRum } from '@datadog/browser-rum'
+// import { datadogRum } from '@datadog/browser-rum' // Commented out - Datadog disabled
 import type { TransactionResponse } from '@ethersproject/abstract-provider'
 import type { JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
 import { TradeType } from '@juiceswapxyz/sdk-core'
@@ -556,12 +556,13 @@ export function addTransactionBreadcrumb({
   }
   status?: 'initiated' | 'complete' | 'in progress' | 'interrupted'
 }) {
-  datadogRum.addAction('Transaction Action', {
-    message: `${step.type} ${status}`,
-    step: step.type,
-    level: 'info',
-    data,
-  })
+  // Datadog tracking disabled
+  // datadogRum.addAction('Transaction Action', {
+  //   message: `${step.type} ${status}`,
+  //   step: step.type,
+  //   level: 'info',
+  //   data,
+  // })
 }
 
 export function getDisplayableError({
