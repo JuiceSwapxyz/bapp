@@ -9,7 +9,7 @@ import { isClassic, isJupiter } from 'uniswap/src/features/transactions/swap/uti
 import { areCurrencyIdsEqual, currencyId } from 'uniswap/src/utils/currencyId'
 
 const SONEIUM_AMOUNT_OVERRIDE = 30
-const DEFAULT_STABLECOIN_AMOUNT_OUT = 1000
+const DEFAULT_STABLECOIN_AMOUNT_OUT = 0.0000000001 // TODO: Increase this when the liquidity has increased enough
 function getStablecoinAmountOut(chainId: UniverseChainId): CurrencyAmount<Token> {
   const primaryStablecoin = getPrimaryStablecoin(chainId)
 
