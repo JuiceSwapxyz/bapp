@@ -1,6 +1,5 @@
 import { Token } from '@juiceswapxyz/sdk-core'
 import { AVALANCHE_LOGO } from 'ui/src/assets'
-import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { DEFAULT_NATIVE_ADDRESS_LEGACY, getQuicknodeEndpointUrl } from 'uniswap/src/features/chains/evm/rpc'
 import { buildChainTokens } from 'uniswap/src/features/chains/evm/tokens'
@@ -61,7 +60,7 @@ export const AVALANCHE_CHAIN_INFO = {
   rpcUrls: {
     [RPCType.Public]: { http: [getQuicknodeEndpointUrl(UniverseChainId.Avalanche)] },
     [RPCType.Default]: { http: ['https://api.avax.network/ext/bc/C/rpc'] },
-    [RPCType.Interface]: { http: [`https://avalanche-mainnet.infura.io/v3/${config.infuraKey}`] },
+    [RPCType.Interface]: { http: ['https://api.avax.network/ext/bc/C/rpc'] },
   },
   tokens,
   statusPage: undefined,

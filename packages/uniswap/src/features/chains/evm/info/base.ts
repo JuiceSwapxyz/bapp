@@ -1,5 +1,4 @@
 import { BASE_LOGO, ETH_LOGO } from 'ui/src/assets'
-import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import {
   DEFAULT_NATIVE_ADDRESS_LEGACY,
@@ -71,7 +70,7 @@ export const BASE_CHAIN_INFO = {
         [RPCType.Public]: { http: [getQuicknodeEndpointUrl(UniverseChainId.Base)] },
         [RPCType.Default]: { http: ['https://mainnet.base.org/'] },
         [RPCType.Fallback]: { http: ['https://1rpc.io/base', 'https://base.meowrpc.com'] },
-        [RPCType.Interface]: { http: [`https://base-mainnet.infura.io/v3/${config.infuraKey}`] },
+        [RPCType.Interface]: { http: ['https://mainnet.base.org/'] },
       },
   assetRepoNetworkName: 'base',
   tokens,

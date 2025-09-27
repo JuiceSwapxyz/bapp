@@ -1,6 +1,5 @@
 import { CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { ETHEREUM_LOGO, ETH_LOGO } from 'ui/src/assets'
-import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import {
   DEFAULT_MS_BEFORE_WARNING,
@@ -83,7 +82,7 @@ export const MAINNET_CHAIN_INFO = {
           http: ['https://rpc.ankr.com/eth', 'https://eth-mainnet.public.blastapi.io'],
         },
         [RPCType.Interface]: {
-          http: [`https://mainnet.infura.io/v3/${config.infuraKey}`, getQuicknodeEndpointUrl(UniverseChainId.Mainnet)],
+          http: ['https://rpc.ankr.com/eth'],
         },
       },
   urlParam: 'ethereum',
@@ -156,7 +155,7 @@ export const SEPOLIA_CHAIN_INFO = {
         'https://rpc.bordel.wtf/sepolia',
       ],
     },
-    [RPCType.Interface]: { http: [`https://sepolia.infura.io/v3/${config.infuraKey}`] },
+    [RPCType.Interface]: { http: ['https://eth-sepolia.g.alchemy.com/v2/D41tT-VNane_JyxuXN6lI'] },
   },
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(testnetTokens.USDC, 100e6),
   tokens: testnetTokens,
