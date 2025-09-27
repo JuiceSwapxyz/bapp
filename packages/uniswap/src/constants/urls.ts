@@ -1,6 +1,6 @@
 import { config } from 'uniswap/src/config'
-import { isBetaEnv, isDevEnv, isPlaywrightEnv, isTestEnv } from 'utilities/src/environment/env'
-import { isAndroid, isExtension, isInterface, isMobileApp } from 'utilities/src/platform'
+import { isDevEnv, isPlaywrightEnv } from 'utilities/src/environment/env'
+import { isExtension, isMobileApp } from 'utilities/src/platform'
 
 enum TrafficFlows {
   GraphQL = 'graphql',
@@ -11,10 +11,6 @@ enum TrafficFlows {
   FOR = 'for',
   Scantastic = 'scantastic',
 }
-
-const FLOWS_USING_BETA = [TrafficFlows.FOR]
-
-const isDevOrBeta = isPlaywrightEnv() ? false : isDevEnv() || isBetaEnv()
 
 export const UNISWAP_WEB_HOSTNAME = 'bapp.juiceswap.xyz'
 const EMBEDDED_WALLET_HOSTNAME = isPlaywrightEnv() || isDevEnv() ? 'staging.ew.unihq.org' : UNISWAP_WEB_HOSTNAME
@@ -206,40 +202,13 @@ export const uniswapUrls = {
   },
 }
 
-function getCloudflarePrefix(flow?: TrafficFlows): string {
-  if (flow && isDevOrBeta && FLOWS_USING_BETA.includes(flow)) {
-    return `beta`
-  }
-
-  if (isMobileApp) {
-    return `${isAndroid ? 'android' : 'ios'}.wallet`
-  }
-
-  if (isExtension) {
-    return 'extension'
-  }
-
-  if (isPlaywrightEnv() || isInterface) {
-    return 'interface'
-  }
-
-  if (isTestEnv()) {
-    return 'wallet'
-  }
-
-  throw new Error('Could not determine app to generate Cloudflare prefix')
-}
-
-function getServicePrefix(flow?: TrafficFlows): string {
-  if (flow && (isPlaywrightEnv() || !(isDevOrBeta && FLOWS_USING_BETA.includes(flow)))) {
-    return flow + '.'
-  } else {
-    return ''
-  }
-}
-
 function getCloudflareApiBaseUrl(flow?: TrafficFlows): string {
-  return `https://${getServicePrefix(flow)}${getCloudflarePrefix(flow)}.gateway.uniswap.org`
+  // TODO: Set up cloudflare gateway, temporarily use api.juiceswap.xyz for all flows
+  // return `https://${getServicePrefix(flow)}${getCloudflarePrefix(flow)}.gateway.uniswap.org`
+  if (flow === TrafficFlows.TradingApi) {
+    return 'https://api.juiceswap.xyz'
+  }
+  return 'https://api.juiceswap.xyz'
 }
 
 function createHelpArticleUrl(resourceId: string, path: string = 'articles'): string {

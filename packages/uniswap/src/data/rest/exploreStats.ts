@@ -15,13 +15,11 @@ import { uniswapGetTransport } from 'uniswap/src/data/rest/base'
  */
 export function useExploreStatsQuery<TSelectType>({
   input,
-  // TODO: Re-enable once explore stats endpoint is properly configured
-  enabled = false,
   select,
 }: {
   input?: PartialMessage<ExploreStatsRequest>
-  enabled?: boolean
   select?: ((data: ExploreStatsResponse) => TSelectType) | undefined
 }): UseQueryResult<TSelectType, ConnectError> {
-  return useQuery(exploreStats, input, { transport: uniswapGetTransport, enabled, select })
+  // TODO: Re-enable once explore stats endpoint is properly configured
+  return useQuery(exploreStats, input, { transport: uniswapGetTransport, enabled: false, select })
 }
