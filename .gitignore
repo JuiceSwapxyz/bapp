@@ -70,3 +70,5 @@ CLAUDE.local.md
 # cursor
 .cursor/mcp.json
 .cursor/rules/local-workflow.mdc
+apps/web/.env.development
+apps/web/.env.development
