@@ -1,4 +1,3 @@
-import { getWagmiConnectorV2 } from '@binance/w3w-wagmi-connector-v2'
 import { PLAYWRIGHT_CONNECT_ADDRESS } from 'components/Web3Provider/constants'
 import { WC_PARAMS } from 'components/Web3Provider/walletConnect'
 import { embeddedWallet } from 'connection/EmbeddedWalletConnector'
@@ -12,8 +11,6 @@ import { getNonEmptyArrayOrThrow } from 'utilities/src/primitives/array'
 import { Chain, createClient } from 'viem'
 import { Config, createConfig, fallback, http } from 'wagmi'
 import { coinbaseWallet, mock, safe, walletConnect } from 'wagmi/connectors'
-
-const BinanceConnector = getWagmiConnectorV2()
 
 export const orderedTransportUrls = (chain: ReturnType<typeof getChainInfo>): string[] => {
   const orderedRpcUrls = [
@@ -37,9 +34,6 @@ function createWagmiConnectors(params: {
   const baseConnectors = [
     // There are no unit tests that expect WalletConnect to be included here,
     // so we can disable it to reduce log noise.
-    BinanceConnector({
-      showQrCodeModal: true,
-    }),
     ...(isTestEnv() && !isPlaywrightEnv() ? [] : [walletConnect(WC_PARAMS)]),
     embeddedWallet(),
     coinbaseWallet({
