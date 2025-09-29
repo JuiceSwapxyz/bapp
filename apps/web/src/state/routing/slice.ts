@@ -19,6 +19,8 @@ import {
   UniswapXv3Config,
 } from 'state/routing/types'
 import { isExactInput, transformQuoteToTrade } from 'state/routing/utils'
+import { getCitreaQuoteWithCache, createCitreaHardcodedQuote } from 'state/routing/citreaQuoteCache'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { InterfaceEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { logSwapQuoteFetch } from 'uniswap/src/features/transactions/swap/analytics'
@@ -109,6 +111,23 @@ export const routingApi = createApi({
           chainId: args.tokenInChainId,
           isUSDQuote: args.routerPreference === INTERNAL_ROUTER_PREFERENCE_PRICE,
         })
+
+        // Special handling for Citrea testnet with caching
+        if (args.tokenInChainId === UniverseChainId.CitreaTestnet) {
+          return getCitreaQuoteWithCache(args, async () => {
+            // Try to get hardcoded quote first (for campaign pools)
+            const hardcodedQuote = createCitreaHardcodedQuote(args)
+            if (hardcodedQuote) {
+              return hardcodedQuote
+            }
+
+            // Fallback to regular API call if not a campaign pool
+            // This will likely fail but keeps compatibility
+            logger.warn('routing/slice', 'queryFn', 'Non-campaign Citrea pool, attempting API call')
+            return { state: QuoteState.NOT_FOUND }
+          })
+        }
+
         const {
           tokenInAddress: tokenIn,
           tokenInChainId,
