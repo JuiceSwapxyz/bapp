@@ -108,7 +108,7 @@ export const uniswapUrls = {
   aboutUrl: 'https://about.juiceswap.xyz/',
   careersUrl: 'https://careers.juiceswap.xyz/',
   social: {
-    x: 'https://x.com/JuiceSwapXyz',
+    x: 'https://x.com/JuiceSwap_com',
     telegram: 'https://t.me/JuiceSwap',
     github: 'https://github.com/JuiceSwapxyz',
   },
