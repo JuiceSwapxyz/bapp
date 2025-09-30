@@ -6,7 +6,7 @@ import { WarningModal } from 'uniswap/src/components/modals/WarningModal/Warning
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 
-const RATE_LIMIT_DURATION = 60 // seconds
+const DEFAULT_RATE_LIMIT_DURATION = 60 // seconds (fallback if API doesn't provide duration)
 
 interface RateLimitModalProps {
   isOpen: boolean
@@ -15,13 +15,21 @@ interface RateLimitModalProps {
 
 export function RateLimitModal({ isOpen, onClose }: RateLimitModalProps): JSX.Element {
   const { t } = useTranslation()
-  const [remainingSeconds, setRemainingSeconds] = useState(RATE_LIMIT_DURATION)
+  // Get the duration from global state (set by tradeRepository when rate limit error occurs)
+  const rateLimitDuration = globalThis.__RATE_LIMIT_DURATION__ ?? DEFAULT_RATE_LIMIT_DURATION
+  const [remainingSeconds, setRemainingSeconds] = useState(rateLimitDuration)
 
   useEffect(() => {
     if (!isOpen) {
-      setRemainingSeconds(RATE_LIMIT_DURATION)
+      // Reset to the current rate limit duration when modal closes
+      const currentDuration = globalThis.__RATE_LIMIT_DURATION__ ?? DEFAULT_RATE_LIMIT_DURATION
+      setRemainingSeconds(currentDuration)
       return undefined
     }
+
+    // Initialize with the current rate limit duration when modal opens
+    const initialDuration = globalThis.__RATE_LIMIT_DURATION__ ?? DEFAULT_RATE_LIMIT_DURATION
+    setRemainingSeconds(initialDuration)
 
     // Start countdown when modal opens
     const interval = setInterval(() => {

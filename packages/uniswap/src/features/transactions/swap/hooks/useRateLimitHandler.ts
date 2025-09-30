@@ -5,10 +5,13 @@ import { useSwapFormWarningStoreActions } from 'uniswap/src/features/transaction
 declare global {
   interface Window {
     __RATE_LIMIT_END_TIME__?: number
+    __RATE_LIMIT_DURATION__?: number // Duration in seconds from API
     __RATE_LIMIT_TRIGGER__?: () => void
   }
   // eslint-disable-next-line no-var
   var __RATE_LIMIT_END_TIME__: number | undefined
+  // eslint-disable-next-line no-var
+  var __RATE_LIMIT_DURATION__: number | undefined
   // eslint-disable-next-line no-var
   var __RATE_LIMIT_TRIGGER__: (() => void) | undefined
 }
