@@ -17,8 +17,16 @@ import { logger } from 'utilities/src/logger/logger'
 
 export function useFeatureFlag(flag: FeatureFlags): boolean {
   const name = getFeatureFlagName(flag)
-  const value = useGateValue(name)
-  return value
+  try {
+    const value = useGateValue(name)
+    return value
+  } catch (error) {
+    // Statsig client not available - return false as safe default
+    logger.debug('gating/hooks.ts', 'useFeatureFlag', 'Statsig client unavailable, returning false', {
+      extra: { flag: name },
+    })
+    return false
+  }
 }
 
 export function useFeatureFlagWithLoading(flag: FeatureFlags): { value: boolean; isLoading: boolean } {
@@ -40,8 +48,16 @@ export function getFeatureFlag(flag: FeatureFlags): boolean {
 
 export function useFeatureFlagWithExposureLoggingDisabled(flag: FeatureFlags): boolean {
   const name = getFeatureFlagName(flag)
-  const value = useGateValue(name, { disableExposureLog: true })
-  return value
+  try {
+    const value = useGateValue(name, { disableExposureLog: true })
+    return value
+  } catch (error) {
+    // Statsig client not available - return false as safe default
+    logger.debug('gating/hooks.ts', 'useFeatureFlagWithExposureLoggingDisabled', 'Statsig client unavailable, returning false', {
+      extra: { flag: name },
+    })
+    return false
+  }
 }
 
 export function getFeatureFlagWithExposureLoggingDisabled(flag: FeatureFlags): boolean {

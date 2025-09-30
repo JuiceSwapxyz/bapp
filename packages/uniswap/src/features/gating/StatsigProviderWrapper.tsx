@@ -1,10 +1,12 @@
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, useMemo } from 'react'
 import { config } from 'uniswap/src/config'
 import {
   StatsigOptions,
   StatsigProvider,
   StatsigUser,
   StorageProvider,
+  createDummyStatsigClient,
+  isStatsigDisabled,
   useClientAsyncInit,
 } from 'uniswap/src/features/gating/sdk/statsig'
 import { statsigBaseConfig } from 'uniswap/src/features/gating/statsigBaseConfig'
@@ -25,9 +27,11 @@ export function StatsigProviderWrapper({
   storageProvider,
   onInit,
 }: StatsigProviderWrapperProps): ReactNode {
-  if (!config.statsigApiKey) {
-    throw new Error('statsigApiKey is not set')
-  }
+  // Check if Statsig is disabled (no API key or dummy key)
+  const isDisabled = !config.statsigApiKey || isStatsigDisabled()
+
+  // Create dummy client at top level to avoid conditional hook calls
+  const dummyClient = useMemo(() => createDummyStatsigClient(), [])
 
   const statsigOptions: StatsigOptions = {
     ...statsigBaseConfig,
@@ -35,17 +39,38 @@ export function StatsigProviderWrapper({
     ...options,
   }
 
-  const { client, isLoading: isStatsigLoading } = useClientAsyncInit(config.statsigApiKey, user, statsigOptions)
+  // Initialize real client (will only be used if not disabled)
+  const { client: realClient, isLoading: isStatsigLoading } = useClientAsyncInit(
+    config.statsigApiKey || 'dummy-disabled-key',
+    user,
+    statsigOptions,
+  )
 
+  // Select which client to use
+  const client = isDisabled ? dummyClient : realClient
+
+  // Handle dummy client initialization
   useEffect(() => {
-    if (isStatsigLoading) {
+    if (isDisabled) {
+      logger.debug('StatsigProviderWrapper', 'init', 'Statsig is disabled - using dummy client')
+      // Call onInit immediately since dummy client has no loading state
+      onInit?.()
+    }
+  }, [isDisabled, onInit])
+
+  // Handle real client initialization
+  useEffect(() => {
+    if (!isDisabled && !isStatsigLoading) {
+      onInit?.()
+    }
+  }, [isDisabled, isStatsigLoading, onInit])
+
+  // Handle real client errors
+  useEffect(() => {
+    if (isDisabled) {
       return
     }
 
-    onInit?.()
-  }, [isStatsigLoading, onInit])
-
-  useEffect(() => {
     const errorHandler = (event: unknown): void => {
       logger.error('StatsigProviderWrapper', {
         tags: { file: 'StatsigProviderWrapper', function: 'error' },
@@ -54,13 +79,13 @@ export function StatsigProviderWrapper({
         },
       })
     }
-    client.on('error', errorHandler)
-    client.on('initialization_failure', errorHandler)
+    realClient.on('error', errorHandler)
+    realClient.on('initialization_failure', errorHandler)
     return () => {
-      client.off('error', errorHandler)
-      client.off('initialization_failure', errorHandler)
+      realClient.off('error', errorHandler)
+      realClient.off('initialization_failure', errorHandler)
     }
-  }, [client])
+  }, [isDisabled, realClient])
 
   return <StatsigProvider client={client}>{children}</StatsigProvider>
 }

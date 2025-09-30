@@ -39,3 +39,61 @@ export const getOverrideAdapter = (): LocalOverrideAdapterWrapper => {
   return localOverrideAdapter
 }
 export const getStatsigClient = (): StatsigClient => StatsigClient.instance(statsigApiKey)
+
+/**
+ * Creates a dummy Statsig client that doesn't make network requests.
+ * Used when Statsig is disabled (API key is dummy or missing).
+ * All feature flags return false, all configs return default values.
+ */
+export function createDummyStatsigClient(): StatsigClient {
+  const dummyClient = StatsigClient.instance('dummy-disabled-key')
+
+  // Override methods to prevent network requests and return safe defaults
+  const originalCheckGate = dummyClient.checkGate.bind(dummyClient)
+  dummyClient.checkGate = function() {
+    return false
+  }
+
+  const originalGetExperiment = dummyClient.getExperiment.bind(dummyClient)
+  dummyClient.getExperiment = function(experimentName: string) {
+    return {
+      get: (_key: string, defaultValue: any) => defaultValue,
+      getValue: (_key: string, defaultValue: any) => defaultValue,
+      getGroupName: () => null,
+      getRuleID: () => '',
+      getEvaluationDetails: () => ({ reason: 'Disabled' }),
+    } as any
+  }
+
+  const originalGetDynamicConfig = dummyClient.getDynamicConfig.bind(dummyClient)
+  dummyClient.getDynamicConfig = function(configName: string) {
+    return {
+      get: (_key: string, defaultValue: any) => defaultValue,
+      getValue: (_key: string, defaultValue: any) => defaultValue,
+      getRuleID: () => '',
+      getEvaluationDetails: () => ({ reason: 'Disabled' }),
+    } as any
+  }
+
+  const originalGetLayer = dummyClient.getLayer.bind(dummyClient)
+  dummyClient.getLayer = function(layerName: string) {
+    return {
+      get: (_key: string, defaultValue: any) => defaultValue,
+      getValue: (_key: string, defaultValue: any) => defaultValue,
+      getRuleID: () => '',
+      getEvaluationDetails: () => ({ reason: 'Disabled' }),
+    } as any
+  }
+
+  return dummyClient
+}
+
+/**
+ * Check if Statsig is disabled based on the API key.
+ */
+export function isStatsigDisabled(): boolean {
+  return !statsigApiKey ||
+         statsigApiKey === 'dummy-disabled-key' ||
+         statsigApiKey === 'dummy-test-key' ||
+         statsigApiKey.includes('dummy')
+}
