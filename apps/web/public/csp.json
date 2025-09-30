@@ -130,7 +130,7 @@
     "https://api.juiceswap.xyz",
     "https://ponder.juiceswap.com",
     "https://dev.ponder.juiceswap.com",
-    "https://rpc.testnet.citrea.xyz",
+    "http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8080",
     "wss://*.uniswap.org",
     "wss://relay.walletconnect.com",
     "wss://relay.walletconnect.org",
