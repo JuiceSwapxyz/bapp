@@ -7,11 +7,9 @@ import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
-  Address,
   ApprovalRequest,
   ApprovalResponse,
   BridgeQuote,
-  ChainDelegationMap,
   ChainId,
   CheckApprovalLPRequest,
   CheckApprovalLPResponse,
@@ -579,6 +577,7 @@ export async function fetchWalletEncoding7702(params: WalletEncode7702RequestBod
 // Default maximum amount of combinations wallet<>chainId per check delegation request
 const DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD = 140
 
+/*
 // Utility function to chunk wallet addresses for batching
 function chunkWalletAddresses(params: {
   walletAddresses: Address[]
@@ -601,6 +600,7 @@ function chunkWalletAddresses(params: {
 
   return chunks
 }
+*/
 
 export async function checkWalletDelegationWithoutBatching(
   _params: WalletCheckDelegationRequestBody,
@@ -624,6 +624,7 @@ export async function checkWalletDelegationWithoutBatching(
   // )
 }
 
+/*
 function mergeDelegationResponses(responses: WalletCheckDelegationResponseBody[]): WalletCheckDelegationResponseBody {
   if (responses.length === 0) {
     throw new Error('No responses to merge')
@@ -651,6 +652,7 @@ function mergeDelegationResponses(responses: WalletCheckDelegationResponseBody[]
     delegationDetails: mergedDelegationDetails,
   }
 }
+*/
 
 export type CheckWalletDelegation = (
   params: WalletCheckDelegationRequestBody,
@@ -658,9 +660,9 @@ export type CheckWalletDelegation = (
 
 export async function checkWalletDelegation(
   params: WalletCheckDelegationRequestBody,
-  batchThreshold: number = DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD,
+  _batchThreshold: number = DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD,
 ): Promise<WalletCheckDelegationResponseBody> {
-  const { walletAddresses, chainIds } = params
+  const { walletAddresses } = params
 
   // If no wallet addresses provided, no need to make a call to backend
   if (!walletAddresses || walletAddresses.length === 0) {
@@ -670,12 +672,10 @@ export async function checkWalletDelegation(
     }
   }
 
-  // Ensure batchThreshold is at least the number of chain IDs
-  const effectiveBatchThreshold = Math.max(batchThreshold, chainIds.length)
+  // Batching disabled - always make a single request
+  return await checkWalletDelegationWithoutBatching(params)
 
-  const totalCombinations = walletAddresses.length * chainIds.length
-
-  // If under threshold, make a single request
+  /*
   if (totalCombinations <= effectiveBatchThreshold) {
     return await checkWalletDelegationWithoutBatching(params)
   }
