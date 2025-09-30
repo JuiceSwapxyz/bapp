@@ -457,16 +457,22 @@ export async function fetchOrdersWithoutIds({
   })
 }
 
-export async function fetchSwappableTokens(params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
-  return await TradingApiClient.get<GetSwappableTokensResponse>(uniswapUrls.tradingApiPaths.swappableTokens, {
-    params: {
-      tokenIn: params.tokenIn,
-      tokenInChainId: params.tokenInChainId,
-    },
-    headers: {
-      ...getFeatureFlaggedHeaders(),
-    },
-  })
+export async function fetchSwappableTokens(_params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
+  // DISABLED: Endpoint /v1/swappable_tokens does not exist in backend API
+  return {
+    requestId: '',
+    tokens: [],
+  }
+
+  // return await TradingApiClient.get<GetSwappableTokensResponse>(uniswapUrls.tradingApiPaths.swappableTokens, {
+  //   params: {
+  //     tokenIn: _params.tokenIn,
+  //     tokenInChainId: _params.tokenInChainId,
+  //   },
+  //   headers: {
+  //     ...getFeatureFlaggedHeaders(),
+  //   },
+  // })
 }
 
 export async function createLpPosition(params: CreateLPPositionRequest): Promise<CreateLPPositionResponse> {
@@ -597,19 +603,25 @@ function chunkWalletAddresses(params: {
 }
 
 export async function checkWalletDelegationWithoutBatching(
-  params: WalletCheckDelegationRequestBody,
+  _params: WalletCheckDelegationRequestBody,
 ): Promise<WalletCheckDelegationResponseBody> {
-  return await TradingApiClient.post<WalletCheckDelegationResponseBody>(
-    uniswapUrls.tradingApiPaths.wallet.checkDelegation,
-    {
-      body: JSON.stringify({
-        ...params,
-      }),
-      headers: {
-        ...getFeatureFlaggedHeaders(),
-      },
-    },
-  )
+  // DISABLED: Endpoint /v1/wallet/check_delegation does not exist in backend API
+  return {
+    requestId: '',
+    delegationDetails: {},
+  }
+
+  // return await TradingApiClient.post<WalletCheckDelegationResponseBody>(
+  //   uniswapUrls.tradingApiPaths.wallet.checkDelegation,
+  //   {
+  //     body: JSON.stringify({
+  //       ..._params,
+  //     }),
+  //     headers: {
+  //       ...getFeatureFlaggedHeaders(),
+  //     },
+  //   },
+  // )
 }
 
 function mergeDelegationResponses(responses: WalletCheckDelegationResponseBody[]): WalletCheckDelegationResponseBody {
