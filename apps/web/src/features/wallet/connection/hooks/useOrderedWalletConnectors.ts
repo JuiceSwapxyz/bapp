@@ -50,10 +50,6 @@ function isCoinbaseWalletBrowser(connectors: WalletConnectorMeta[]): boolean {
   return isMobileWeb && connectors.some((c) => c.wagmi?.id === CONNECTION_PROVIDER_IDS.COINBASE_RDNS)
 }
 
-function isBinanceWalletBrowser(connectors: WalletConnectorMeta[]): boolean {
-  return isMobileWeb && connectors.some((c) => c.wagmi?.id === CONNECTION_PROVIDER_IDS.BINANCE_WALLET_RDNS)
-}
-
 function shouldShowOnlyInjectedConnector(injectedConnectors: WalletConnectorMeta[]): boolean {
   return isMobileWeb && injectedConnectors.length === 1
 }
@@ -64,7 +60,6 @@ function buildSecondaryConnectorsList({
   walletConnectConnector,
   coinbaseSdkConnector,
   embeddedWalletConnector,
-  binanceWalletConnector,
   recentConnectorId,
 }: {
   isMobileWeb: boolean
@@ -72,7 +67,6 @@ function buildSecondaryConnectorsList({
   walletConnectConnector: WalletConnectorMeta
   coinbaseSdkConnector: WalletConnectorMeta
   embeddedWalletConnector: WalletConnectorMeta | undefined // only undefined if embedded wallet is disabled
-  binanceWalletConnector: WalletConnectorMeta | undefined // undefined if using injected connector from binance browser
   recentConnectorId: string | undefined
 }): WalletConnectorMeta[] {
   const orderedConnectors: WalletConnectorMeta[] = []
@@ -81,10 +75,9 @@ function buildSecondaryConnectorsList({
     isEmbeddedWalletEnabled && embeddedWalletConnector && orderedConnectors.push(embeddedWalletConnector)
     orderedConnectors.push(walletConnectConnector)
     orderedConnectors.push(coinbaseSdkConnector)
-    binanceWalletConnector && orderedConnectors.push(binanceWalletConnector)
   } else {
-    const secondaryConnectors = [walletConnectConnector, coinbaseSdkConnector, binanceWalletConnector].filter(
-      (c): c is WalletConnectorMeta => Boolean(c),
+    const secondaryConnectors = [walletConnectConnector, coinbaseSdkConnector].filter((c): c is WalletConnectorMeta =>
+      Boolean(c),
     )
     // Recent connector should have already been shown on the primary page
     orderedConnectors.push(
@@ -101,7 +94,6 @@ function buildPrimaryConnectorsList({
   walletConnectConnector,
   coinbaseSdkConnector,
   embeddedWalletConnector,
-  binanceWalletConnector,
   recentConnectorId,
 }: {
   injectedConnectors: WalletConnectorMeta[]
@@ -109,7 +101,6 @@ function buildPrimaryConnectorsList({
   walletConnectConnector: WalletConnectorMeta
   coinbaseSdkConnector: WalletConnectorMeta
   embeddedWalletConnector: WalletConnectorMeta | undefined // only undefined if embedded wallet is disabled
-  binanceWalletConnector: WalletConnectorMeta | undefined // undefined if using injected connector from binance browser
   recentConnectorId: string | undefined
 }): WalletConnectorMeta[] {
   const orderedConnectors: WalletConnectorMeta[] = []
@@ -124,13 +115,10 @@ function buildPrimaryConnectorsList({
       orderedConnectors.push(coinbaseSdkConnector)
     } else if (recentConnectorId === CONNECTION_PROVIDER_IDS.WALLET_CONNECT_CONNECTOR_ID) {
       orderedConnectors.push(walletConnectConnector)
-    } else if (recentConnectorId === CONNECTION_PROVIDER_IDS.BINANCE_WALLET_CONNECTOR_ID && binanceWalletConnector) {
-      orderedConnectors.push(binanceWalletConnector)
     }
   } else {
     orderedConnectors.push(walletConnectConnector)
     orderedConnectors.push(coinbaseSdkConnector)
-    binanceWalletConnector && orderedConnectors.push(binanceWalletConnector)
   }
 
   return orderedConnectors
@@ -158,7 +146,6 @@ export function useOrderedWalletConnectors({
       connectors,
       isEmbeddedWalletEnabled,
     })
-    const isBinanceBrowser = isBinanceWalletBrowser(connectors)
     const embeddedWalletConnector = isEmbeddedWalletEnabled
       ? getConnectorWithIdWithThrow({
           connectors,
@@ -173,12 +160,6 @@ export function useOrderedWalletConnectors({
       connectors,
       id: CONNECTION_PROVIDER_IDS.WALLET_CONNECT_CONNECTOR_ID,
     })
-    const binanceWalletConnector = isBinanceBrowser
-      ? undefined
-      : getConnectorWithIdWithThrow({
-          connectors,
-          id: CONNECTION_PROVIDER_IDS.BINANCE_WALLET_CONNECTOR_ID,
-        })
 
     if (isPlaywrightEnv()) {
       const mockConnector = getConnectorWithIdWithThrow({
@@ -207,7 +188,6 @@ export function useOrderedWalletConnectors({
         walletConnectConnector,
         coinbaseSdkConnector,
         embeddedWalletConnector,
-        binanceWalletConnector,
         recentConnectorId,
       })
     } else {
@@ -217,7 +197,6 @@ export function useOrderedWalletConnectors({
         walletConnectConnector,
         coinbaseSdkConnector,
         embeddedWalletConnector,
-        binanceWalletConnector,
         recentConnectorId,
       })
     }

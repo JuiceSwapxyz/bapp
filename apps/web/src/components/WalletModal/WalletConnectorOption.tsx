@@ -8,7 +8,7 @@ import { isEqualWalletConnectorMetaId } from 'features/wallet/connection/utils'
 import { Trans, useTranslation } from 'react-i18next'
 import { ThemedText } from 'theme/components'
 import { Flex, Image, Text, useSporeColors } from 'ui/src'
-import { BINANCE_WALLET_ICON, UNISWAP_LOGO } from 'ui/src/assets'
+import { UNISWAP_LOGO } from 'ui/src/assets'
 import { Chevron } from 'ui/src/components/icons/Chevron'
 import { Passkey } from 'ui/src/components/icons/Passkey'
 import { ScanQr } from 'ui/src/components/icons/ScanQr'
@@ -51,10 +51,6 @@ function UniswapMobileIcon({ iconSize }: { iconSize: number }) {
   )
 }
 
-function BinanceWalletIcon({ iconSize }: { iconSize: number }) {
-  return <Image height={iconSize} source={BINANCE_WALLET_ICON} width={iconSize} borderRadius="$rounded8" />
-}
-
 function OtherWalletsIcon() {
   return (
     <Flex p="$spacing6" backgroundColor="$accent2" borderRadius="$rounded8">
@@ -82,8 +78,6 @@ function getIcon({
     return <EmbeddedWalletIcon />
   } else if (walletConnectorMeta.customConnectorId === CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID) {
     return <UniswapMobileIcon iconSize={iconSize} />
-  } else if (walletConnectorMeta.wagmi?.id === CONNECTION_PROVIDER_IDS.BINANCE_WALLET_CONNECTOR_ID) {
-    return <BinanceWalletIcon iconSize={iconSize} />
   } else {
     // TODO(WEB-7217): RN Web Image is not properly displaying base64 encoded images (Phantom logo) */
     return (
