@@ -570,6 +570,9 @@ export async function fetchWalletEncoding7702(params: WalletEncode7702RequestBod
   })
 }
 
+// JUICESWAP: Disabled wallet delegation helper functions - not needed since delegation is disabled
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 // Default maximum amount of combinations wallet<>chainId per check delegation request
 const DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD = 140
 
@@ -640,14 +643,26 @@ function mergeDelegationResponses(responses: WalletCheckDelegationResponseBody[]
   }
 }
 
+/* eslint-enable @typescript-eslint/no-unused-vars */
+
 export type CheckWalletDelegation = (
   params: WalletCheckDelegationRequestBody,
 ) => Promise<WalletCheckDelegationResponseBody>
 
 export async function checkWalletDelegation(
-  params: WalletCheckDelegationRequestBody,
-  batchThreshold: number = DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD,
+  _params: WalletCheckDelegationRequestBody,
+  _batchThreshold: number = DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD,
 ): Promise<WalletCheckDelegationResponseBody> {
+  // JUICESWAP: Disable wallet delegation feature completely
+  // JuiceSwap API does not have /v1/wallet/check_delegation endpoint
+  // This feature is Uniswap-specific for EIP-7702 Smart Wallet delegation
+  // Returning empty response prevents 404 errors and has no impact on normal swaps
+  return {
+    requestId: '',
+    delegationDetails: {},
+  }
+
+  /* ORIGINAL CODE - Disabled for JuiceSwap
   const { walletAddresses, chainIds } = params
 
   // If no wallet addresses provided, no need to make a call to backend
@@ -683,4 +698,5 @@ export async function checkWalletDelegation(
 
   // Merge all responses
   return mergeDelegationResponses(responses)
+  */
 }
