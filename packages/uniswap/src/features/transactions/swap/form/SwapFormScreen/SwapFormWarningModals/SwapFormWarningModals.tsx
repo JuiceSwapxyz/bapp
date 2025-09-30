@@ -5,10 +5,12 @@ import { useBridgingModalActions } from 'uniswap/src/features/transactions/swap/
 import { useCurrenciesWithProtectionWarnings } from 'uniswap/src/features/transactions/swap/components/SwapFormButton/hooks/useCurrenciesWithProtectionWarnings'
 import { useOnReviewPress } from 'uniswap/src/features/transactions/swap/components/SwapFormButton/hooks/useOnReviewPress'
 import { BridgingModal } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormWarningModals/BridgingModal'
+import { RateLimitModal } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormWarningModals/RateLimitModal'
 import {
   useSwapFormWarningStore,
   useSwapFormWarningStoreActions,
 } from 'uniswap/src/features/transactions/swap/form/stores/swapFormWarningStore/useSwapFormWarningStore'
+import { useRateLimitHandler } from 'uniswap/src/features/transactions/swap/hooks/useRateLimitHandler'
 import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 
 const LocalLowNativeBalanceModal = (): JSX.Element => {
@@ -80,13 +82,24 @@ const LocalTokenWarningModal = (): JSX.Element | null => {
   )
 }
 
+const LocalRateLimitModal = (): JSX.Element => {
+  const isRateLimitModalVisible = useSwapFormWarningStore((s) => s.isRateLimitModalVisible)
+  const { handleHideRateLimitModal } = useSwapFormWarningStoreActions()
+
+  return <RateLimitModal isOpen={isRateLimitModalVisible} onClose={handleHideRateLimitModal} />
+}
+
 export const SwapFormWarningModals = (): JSX.Element => {
+  // Set up rate limit error handler
+  useRateLimitHandler()
+
   return (
     <>
       <LocalLowNativeBalanceModal />
       <LocalViewOnlyModal />
       <LocalBridgingModal />
       <LocalTokenWarningModal />
+      <LocalRateLimitModal />
     </>
   )
 }
