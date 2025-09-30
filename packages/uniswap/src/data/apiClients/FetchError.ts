@@ -2,6 +2,7 @@ export class FetchError extends Error {
   response: Response
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any
+  retryAfter?: number // Time in seconds to wait before retrying
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor({ response, data, cause }: { response: Response; data?: any; cause?: unknown }) {
@@ -10,6 +11,19 @@ export class FetchError extends Error {
     this.response = response
     this.data = data
     this.cause = cause
+
+    // Extract retryAfter from response body or Retry-After header
+    if (data?.retryAfter && typeof data.retryAfter === 'number') {
+      this.retryAfter = data.retryAfter
+    } else {
+      const retryAfterHeader = response.headers.get('Retry-After')
+      if (retryAfterHeader) {
+        const parsed = parseInt(retryAfterHeader, 10)
+        if (!isNaN(parsed)) {
+          this.retryAfter = parsed
+        }
+      }
+    }
   }
 }
 

@@ -55,8 +55,11 @@ export function createTradeRepository(ctx: {
       } catch (error) {
         // Check if this is a rate limit error
         if (isRateLimitFetchError(error)) {
-          // Set global rate limit end time (60 seconds from now)
-          globalThis.__RATE_LIMIT_END_TIME__ = Date.now() + 60000
+          // Extract retryAfter duration from error (default to 60 seconds if not provided)
+          const retryAfterSeconds = (error as { retryAfter?: number }).retryAfter ?? 60
+          // Set global rate limit end time
+          globalThis.__RATE_LIMIT_END_TIME__ = Date.now() + retryAfterSeconds * 1000
+          globalThis.__RATE_LIMIT_DURATION__ = retryAfterSeconds
           // Trigger the rate limit modal via global handler
           globalThis.__RATE_LIMIT_TRIGGER__?.()
         }
@@ -105,8 +108,11 @@ export function createTradeRepository(ctx: {
       } catch (error) {
         // Check if this is a rate limit error
         if (isRateLimitFetchError(error)) {
-          // Set global rate limit end time (60 seconds from now)
-          globalThis.__RATE_LIMIT_END_TIME__ = Date.now() + 60000
+          // Extract retryAfter duration from error (default to 60 seconds if not provided)
+          const retryAfterSeconds = (error as { retryAfter?: number }).retryAfter ?? 60
+          // Set global rate limit end time
+          globalThis.__RATE_LIMIT_END_TIME__ = Date.now() + retryAfterSeconds * 1000
+          globalThis.__RATE_LIMIT_DURATION__ = retryAfterSeconds
           // Trigger the rate limit modal via global handler
           globalThis.__RATE_LIMIT_TRIGGER__?.()
         }
