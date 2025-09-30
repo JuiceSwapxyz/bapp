@@ -8,6 +8,8 @@ export type SwapFormWarningStoreState = {
   isBridgingWarningModalVisible: boolean
   isMaxNativeTransferModalVisible: boolean
   isViewOnlyModalVisible: boolean
+  isRateLimitModalVisible: boolean
+  rateLimitEndTime: number | null
   actions: {
     handleShowTokenWarningModal: () => void
     handleHideTokenWarningModal: () => void
@@ -17,6 +19,8 @@ export type SwapFormWarningStoreState = {
     handleHideMaxNativeTransferModal: () => void
     handleShowViewOnlyModal: () => void
     handleHideViewOnlyModal: () => void
+    handleShowRateLimitModal: () => void
+    handleHideRateLimitModal: () => void
   }
 }
 
@@ -30,6 +34,8 @@ export const createSwapFormWarningStore = (): SwapFormWarningStore =>
         isBridgingWarningModalVisible: false,
         isMaxNativeTransferModalVisible: false,
         isViewOnlyModalVisible: false,
+        isRateLimitModalVisible: false,
+        rateLimitEndTime: null,
         actions: {
           handleShowTokenWarningModal: (): void => set({ isTokenWarningModalVisible: true }),
           handleHideTokenWarningModal: (): void => set({ isTokenWarningModalVisible: false }),
@@ -39,6 +45,9 @@ export const createSwapFormWarningStore = (): SwapFormWarningStore =>
           handleHideMaxNativeTransferModal: (): void => set({ isMaxNativeTransferModalVisible: false }),
           handleShowViewOnlyModal: (): void => set({ isViewOnlyModalVisible: true }),
           handleHideViewOnlyModal: (): void => set({ isViewOnlyModalVisible: false }),
+          handleShowRateLimitModal: (): void =>
+            set({ isRateLimitModalVisible: true, rateLimitEndTime: Date.now() + 60000 }),
+          handleHideRateLimitModal: (): void => set({ isRateLimitModalVisible: false, rateLimitEndTime: null }),
         },
       }),
       {

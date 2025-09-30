@@ -146,9 +146,5 @@ export default function ErrorBoundary({
     resetError: () => void
   }>
 }): JSX.Element {
-  return (
-    <SimpleErrorBoundary fallback={fallback}>
-      {children}
-    </SimpleErrorBoundary>
-  )
+  return <SimpleErrorBoundary fallback={fallback}>{children}</SimpleErrorBoundary>
 }

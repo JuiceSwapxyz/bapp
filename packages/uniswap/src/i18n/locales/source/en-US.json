@@ -1993,6 +1993,7 @@
   "swap.warning.queuedOrder.title": "Swap canceled",
   "swap.warning.rateLimit.message": "Too many requests. Please wait a minute and try again. Connecting your wallet may increase your rate limit.",
   "swap.warning.rateLimit.title": "Rate limit exceeded",
+  "swap.warning.rateLimit.countdown": "Please wait {{seconds}} seconds before trying again",
   "swap.warning.router.message": "You may have lost connection or the network may be down. If the problem persists, please try again later.",
   "swap.warning.router.title": "This trade cannot be completed right now",
   "swap.warning.tokenBlocked.button": "{{tokenSymbol}} is blocked",
