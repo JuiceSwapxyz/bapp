@@ -2828,118 +2828,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@binance/w3w-core@npm:1.1.7":
-  version: 1.1.7
-  resolution: "@binance/w3w-core@npm:1.1.7"
-  dependencies:
-    "@binance/w3w-qrcode-modal": 1.1.5
-    "@binance/w3w-socket-transport": 1.1.4
-    "@binance/w3w-types": 1.1.4
-    "@binance/w3w-utils": 1.1.4
-    "@ethersproject/abi": ^5.7.0
-    axios: ^1.3.5
-    js-base64: ^3.7.5
-  checksum: dd5cf0d8b902a5a774f35c0154e7f9192136296d792c22c9b508e6afed8b28e1daacee760e8526eb8dc10898379ec2d21bef1bb1fe5c26b78308b35c026d0202
-  languageName: node
-  linkType: hard
-
-"@binance/w3w-ethereum-provider@npm:1.1.7":
-  version: 1.1.7
-  resolution: "@binance/w3w-ethereum-provider@npm:1.1.7"
-  dependencies:
-    "@binance/w3w-http-client": 1.1.4
-    "@binance/w3w-sign-client": 1.1.7
-    "@binance/w3w-types": 1.1.4
-    "@binance/w3w-utils": 1.1.4
-    eip1193-provider: ^1.0.1
-    eventemitter3: ^5.0.0
-  checksum: 132ec92120396220792f684caca2c329f31918c79d52ba29c363f2709b41a49a9d9a2e914c0ab57190e5d4d4813b96442bb44831fb5db3a1b663e5b0c633ed5e
-  languageName: node
-  linkType: hard
-
-"@binance/w3w-http-client@npm:1.1.4":
-  version: 1.1.4
-  resolution: "@binance/w3w-http-client@npm:1.1.4"
-  dependencies:
-    "@binance/w3w-types": 1.1.4
-    "@binance/w3w-utils": 1.1.4
-    cross-fetch: ^3.1.5
-    eventemitter3: ^5.0.0
-  checksum: 0dc4ca85557a031096abee7c3780d4e6d8eb47067cafb9f34e85baaf9b422c3aa93c6f29ce49755b9297d11d59de6ee896ecefb96656f8f55d524081a8550f77
-  languageName: node
-  linkType: hard
-
-"@binance/w3w-qrcode-modal@npm:1.1.5":
-  version: 1.1.5
-  resolution: "@binance/w3w-qrcode-modal@npm:1.1.5"
-  dependencies:
-    "@binance/w3w-types": 1.1.4
-    "@binance/w3w-utils": 1.1.4
-    qrcode: ^1.5.1
-    qrcode.react: ^3.1.0
-    react: 18.2.0
-    react-dom: 18.2.0
-    tailwindcss: ^3.3.1
-  checksum: 180b325e2c35911399285122dc53b52cb0ec9e421736987ca44aa4963f314c112c4574067fd8360bcf21743cf73f9ceb77607e6af4b7a53b29777c8f8bc2347b
-  languageName: node
-  linkType: hard
-
-"@binance/w3w-sign-client@npm:1.1.7":
-  version: 1.1.7
-  resolution: "@binance/w3w-sign-client@npm:1.1.7"
-  dependencies:
-    "@binance/w3w-core": 1.1.7
-    "@binance/w3w-types": 1.1.4
-    "@binance/w3w-utils": 1.1.4
-  checksum: 9888bffc9db6256f9c5d96496af7d5f9c8c51c873ff44b569d0e8af8c4eae728f00468aaecbc655d35561f19d030b9e7cb5e37ef211a9d065d02927e062f590e
-  languageName: node
-  linkType: hard
-
-"@binance/w3w-socket-transport@npm:1.1.4":
-  version: 1.1.4
-  resolution: "@binance/w3w-socket-transport@npm:1.1.4"
-  dependencies:
-    "@binance/w3w-types": 1.1.4
-    "@binance/w3w-utils": 1.1.4
-    ws: ^8.13.0
-  checksum: 971fdcc2bbb5a712f696b652807a4084bc5acd1c8ad3c14536166d2374334953f810cbe69a87bfcf4974b0a9f06459d1364f2239699a001b97be4c308e23a0a9
-  languageName: node
-  linkType: hard
-
-"@binance/w3w-types@npm:1.1.4":
-  version: 1.1.4
-  resolution: "@binance/w3w-types@npm:1.1.4"
-  dependencies:
-    eventemitter3: ^5.0.0
-  checksum: 1fdf99a29c478dcd693f645604b6ef366173de16f16f09ba09595ed95b8bc15f2bf23f7087902a979dc6a2c57ff10615add3dafed0b103e6fc04cb86c022784b
-  languageName: node
-  linkType: hard
-
-"@binance/w3w-utils@npm:1.1.4":
-  version: 1.1.4
-  resolution: "@binance/w3w-utils@npm:1.1.4"
-  dependencies:
-    "@binance/w3w-types": 1.1.4
-    eventemitter3: ^5.0.0
-    hash.js: ^1.1.7
-    js-base64: ^3.7.5
-  checksum: e5f570c875facce05b97d5b59b3cc7d97781ed42f05128a109e61ad7fbbc4db07cc03f4956431c22c553bcf3f8b562a86b9ac55fdbd3b5daf77e7ce4d3085b9a
-  languageName: node
-  linkType: hard
-
-"@binance/w3w-wagmi-connector-v2@npm:1.2.5":
-  version: 1.2.5
-  resolution: "@binance/w3w-wagmi-connector-v2@npm:1.2.5"
-  dependencies:
-    "@binance/w3w-ethereum-provider": 1.1.7
-    "@binance/w3w-utils": 1.1.4
-  peerDependencies:
-    viem: 2.x
-    wagmi: 2.x
-  checksum: cd8c4ee452eada5f7f3925fee38e900f8b851983d49607ca572b1448669f3fdd7095af68314a8f524ab75846300cc86a05dd7588c4087219b24bc1fde273bb3f
-  languageName: node
-  linkType: hard
-
 "@bufbuild/protobuf@npm:1.10.0":
   version: 1.10.0
   resolution: "@bufbuild/protobuf@npm:1.10.0"
@@ -8278,37 +8166,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@json-rpc-tools/provider@npm:^1.5.5":
-  version: 1.7.6
-  resolution: "@json-rpc-tools/provider@npm:1.7.6"
-  dependencies:
-    "@json-rpc-tools/utils": ^1.7.6
-    axios: ^0.21.0
-    safe-json-utils: ^1.1.1
-    ws: ^7.4.0
-  checksum: c60d73511db7f743c3844d499df6a7e243d5f5493127c00fbf9aec74c95d2e80a3033eb22369c428c2deec263a47cd1b334cd76c84859e30355a6dace893a589
-  languageName: node
-  linkType: hard
-
-"@json-rpc-tools/types@npm:^1.7.6":
-  version: 1.7.6
-  resolution: "@json-rpc-tools/types@npm:1.7.6"
-  dependencies:
-    keyvaluestorage-interface: ^1.0.0
-  checksum: f23ec7d79a78aa4e896d1dff506108bd3da38015028afd997034e6498c1f3c7bedee70618b0d1a73adf13b4d2a6a91146c2e9505487280b3c376e74f5790e77c
-  languageName: node
-  linkType: hard
-
-"@json-rpc-tools/utils@npm:^1.7.6":
-  version: 1.7.6
-  resolution: "@json-rpc-tools/utils@npm:1.7.6"
-  dependencies:
-    "@json-rpc-tools/types": ^1.7.6
-    "@pedrouid/environment": ^1.0.1
-  checksum: 32cac2e8cbf8a15d95415de8ded483c6206e6df392e129ad51acd90a4842511e931156c59cb26036fb9fae8054e8f20b719a35282304f39cd18683a5293cb67d
-  languageName: node
-  linkType: hard
-
 "@juggle/resize-observer@npm:3.4.0, @juggle/resize-observer@npm:^3.3.1":
   version: 3.4.0
   resolution: "@juggle/resize-observer@npm:3.4.0"
@@ -9385,13 +9242,6 @@ __metadata:
     tslib: ^2.4.1
     webcrypto-core: ^1.7.4
   checksum: cfcd49f6bd199016de83445f1786b17c49d02aee74b400e7e03ba3bc3707457bdebd23bbaba0e2ff3becdcd769d71b79ec64ae35e0acb80b4ab3ed6326ab111c
-  languageName: node
-  linkType: hard
-
-"@pedrouid/environment@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@pedrouid/environment@npm:1.0.1"
-  checksum: fd88340ad760f26340a2816c3677f0ca913976e315880891c3de3f028fe64abc9704fb904234dce77a1ff15c22d0b6cbf1d4199a76de6695c2aed8353ce20590
   languageName: node
   linkType: hard
 
@@ -17149,7 +16999,6 @@ __metadata:
     "@amplitude/analytics-browser": 1.12.1
     "@apollo/client": 3.10.4
     "@babel/preset-env": 7.26.0
-    "@binance/w3w-wagmi-connector-v2": 1.2.5
     "@chromatic-com/storybook": 3.2.4
     "@cloudflare/workers-types": 4.20231025.0
     "@crowdin/cli": 3.14.0
@@ -20165,15 +20014,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^0.21.0":
-  version: 0.21.4
-  resolution: "axios@npm:0.21.4"
-  dependencies:
-    follow-redirects: ^1.14.0
-  checksum: 44245f24ac971e7458f3120c92f9d66d1fc695e8b97019139de5b0cc65d9b8104647db01e5f46917728edfc0cfd88eb30fc4c55e6053eef4ace76768ce95ff3c
-  languageName: node
-  linkType: hard
-
 "axios@npm:^0.27.2":
   version: 0.27.2
   resolution: "axios@npm:0.27.2"
@@ -20184,7 +20024,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.3.5, axios@npm:^1.6.1, axios@npm:^1.6.8, axios@npm:^1.7.7, axios@npm:^1.7.9":
+"axios@npm:^1.6.1, axios@npm:^1.6.8, axios@npm:^1.7.7, axios@npm:^1.7.9":
   version: 1.10.0
   resolution: "axios@npm:1.10.0"
   dependencies:
@@ -25534,15 +25374,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eip1193-provider@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "eip1193-provider@npm:1.0.1"
-  dependencies:
-    "@json-rpc-tools/provider": ^1.5.5
-  checksum: a56d6a874786b788c1f09f96d329b118ca6b3d381055865bb1ec1bde17da8d433a4141200baa2922108d67ac0d83813841940d2813814e56ea923fc9fafb369a
-  languageName: node
-  linkType: hard
-
 "ejs@npm:^3.1.10, ejs@npm:^3.1.5, ejs@npm:^3.1.6":
   version: 3.1.10
   resolution: "ejs@npm:3.1.10"
@@ -27249,7 +27080,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventemitter3@npm:5.0.1, eventemitter3@npm:^5.0.0, eventemitter3@npm:^5.0.1":
+"eventemitter3@npm:5.0.1, eventemitter3@npm:^5.0.1":
   version: 5.0.1
   resolution: "eventemitter3@npm:5.0.1"
   checksum: 543d6c858ab699303c3c32e0f0f47fc64d360bf73c3daf0ac0b5079710e340d6fe9f15487f94e66c629f5f82cd1a8678d692f3dbb6f6fcd1190e1b97fcad36f8
@@ -28482,7 +28313,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.14.0, follow-redirects@npm:^1.14.9, follow-redirects@npm:^1.15.6":
+"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.14.9, follow-redirects@npm:^1.15.6":
   version: 1.15.9
   resolution: "follow-redirects@npm:1.15.9"
   peerDependenciesMeta:
@@ -30046,7 +29877,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hash.js@npm:1.1.7, hash.js@npm:^1.0.0, hash.js@npm:^1.0.3, hash.js@npm:^1.1.7":
+"hash.js@npm:1.1.7, hash.js@npm:^1.0.0, hash.js@npm:^1.0.3":
   version: 1.1.7
   resolution: "hash.js@npm:1.1.7"
   dependencies:
@@ -39540,15 +39371,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qrcode.react@npm:^3.1.0":
-  version: 3.2.0
-  resolution: "qrcode.react@npm:3.2.0"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 55d020ca482d57e8d73ee9e2e18f152184fd3d7d2d0742ae54ec58c5a3bab08b242a648585178d7fc91877fc75d6fbad7a35fb51bc4bddd4374e1de450ca78e7
-  languageName: node
-  linkType: hard
-
 "qrcode@npm:1.5.1":
   version: 1.5.1
   resolution: "qrcode@npm:1.5.1"
@@ -39577,7 +39399,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qrcode@npm:^1.5.1, qrcode@npm:^1.5.4":
+"qrcode@npm:^1.5.4":
   version: 1.5.4
   resolution: "qrcode@npm:1.5.4"
   dependencies:
@@ -42382,13 +42204,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"safe-json-utils@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "safe-json-utils@npm:1.1.1"
-  checksum: f82a5833b7f6f25583c46520b3e158da3864d4f6f85b7cd68ec956ae7023395872e834d75f7f6216c109c546d10b6ee15c066d849f75ac2a7b86b8a041b4f01f
-  languageName: node
-  linkType: hard
-
 "safe-push-apply@npm:^1.0.0":
   version: 1.0.0
   resolution: "safe-push-apply@npm:1.0.0"
@@ -44772,7 +44587,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwindcss@npm:^3.0.2, tailwindcss@npm:^3.3.1":
+"tailwindcss@npm:^3.0.2":
   version: 3.4.17
   resolution: "tailwindcss@npm:3.4.17"
   dependencies:
@@ -48909,7 +48724,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^5.2.0 || ^6.0.0 || ^7.0.0, ws@npm:^7, ws@npm:^7.4.0, ws@npm:^7.5.1, ws@npm:^7.5.10":
+"ws@npm:^5.2.0 || ^6.0.0 || ^7.0.0, ws@npm:^7, ws@npm:^7.5.1, ws@npm:^7.5.10":
   version: 7.5.10
   resolution: "ws@npm:7.5.10"
   peerDependencies:
