@@ -7,11 +7,9 @@ import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
-  Address,
   ApprovalRequest,
   ApprovalResponse,
   BridgeQuote,
-  ChainDelegationMap,
   ChainId,
   CheckApprovalLPRequest,
   CheckApprovalLPResponse,
@@ -457,16 +455,22 @@ export async function fetchOrdersWithoutIds({
   })
 }
 
-export async function fetchSwappableTokens(params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
-  return await TradingApiClient.get<GetSwappableTokensResponse>(uniswapUrls.tradingApiPaths.swappableTokens, {
-    params: {
-      tokenIn: params.tokenIn,
-      tokenInChainId: params.tokenInChainId,
-    },
-    headers: {
-      ...getFeatureFlaggedHeaders(),
-    },
-  })
+export async function fetchSwappableTokens(_params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
+  // DISABLED: Endpoint /v1/swappable_tokens does not exist in backend API
+  return {
+    requestId: '',
+    tokens: [],
+  }
+
+  // return await TradingApiClient.get<GetSwappableTokensResponse>(uniswapUrls.tradingApiPaths.swappableTokens, {
+  //   params: {
+  //     tokenIn: _params.tokenIn,
+  //     tokenInChainId: _params.tokenInChainId,
+  //   },
+  //   headers: {
+  //     ...getFeatureFlaggedHeaders(),
+  //   },
+  // })
 }
 
 export async function createLpPosition(params: CreateLPPositionRequest): Promise<CreateLPPositionResponse> {
@@ -570,12 +574,10 @@ export async function fetchWalletEncoding7702(params: WalletEncode7702RequestBod
   })
 }
 
-// JUICESWAP: Disabled wallet delegation helper functions - not needed since delegation is disabled
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 // Default maximum amount of combinations wallet<>chainId per check delegation request
 const DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD = 140
 
+/*
 // Utility function to chunk wallet addresses for batching
 function chunkWalletAddresses(params: {
   walletAddresses: Address[]
@@ -598,23 +600,31 @@ function chunkWalletAddresses(params: {
 
   return chunks
 }
+*/
 
 export async function checkWalletDelegationWithoutBatching(
-  params: WalletCheckDelegationRequestBody,
+  _params: WalletCheckDelegationRequestBody,
 ): Promise<WalletCheckDelegationResponseBody> {
-  return await TradingApiClient.post<WalletCheckDelegationResponseBody>(
-    uniswapUrls.tradingApiPaths.wallet.checkDelegation,
-    {
-      body: JSON.stringify({
-        ...params,
-      }),
-      headers: {
-        ...getFeatureFlaggedHeaders(),
-      },
-    },
-  )
+  // DISABLED: Endpoint /v1/wallet/check_delegation does not exist in backend API
+  return {
+    requestId: '',
+    delegationDetails: {},
+  }
+
+  // return await TradingApiClient.post<WalletCheckDelegationResponseBody>(
+  //   uniswapUrls.tradingApiPaths.wallet.checkDelegation,
+  //   {
+  //     body: JSON.stringify({
+  //       ..._params,
+  //     }),
+  //     headers: {
+  //       ...getFeatureFlaggedHeaders(),
+  //     },
+  //   },
+  // )
 }
 
+/*
 function mergeDelegationResponses(responses: WalletCheckDelegationResponseBody[]): WalletCheckDelegationResponseBody {
   if (responses.length === 0) {
     throw new Error('No responses to merge')
@@ -642,28 +652,17 @@ function mergeDelegationResponses(responses: WalletCheckDelegationResponseBody[]
     delegationDetails: mergedDelegationDetails,
   }
 }
-
-/* eslint-enable @typescript-eslint/no-unused-vars */
+*/
 
 export type CheckWalletDelegation = (
   params: WalletCheckDelegationRequestBody,
 ) => Promise<WalletCheckDelegationResponseBody>
 
 export async function checkWalletDelegation(
-  _params: WalletCheckDelegationRequestBody,
+  params: WalletCheckDelegationRequestBody,
   _batchThreshold: number = DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD,
 ): Promise<WalletCheckDelegationResponseBody> {
-  // JUICESWAP: Disable wallet delegation feature completely
-  // JuiceSwap API does not have /v1/wallet/check_delegation endpoint
-  // This feature is Uniswap-specific for EIP-7702 Smart Wallet delegation
-  // Returning empty response prevents 404 errors and has no impact on normal swaps
-  return {
-    requestId: '',
-    delegationDetails: {},
-  }
-
-  /* ORIGINAL CODE - Disabled for JuiceSwap
-  const { walletAddresses, chainIds } = params
+  const { walletAddresses } = params
 
   // If no wallet addresses provided, no need to make a call to backend
   if (!walletAddresses || walletAddresses.length === 0) {
@@ -673,12 +672,10 @@ export async function checkWalletDelegation(
     }
   }
 
-  // Ensure batchThreshold is at least the number of chain IDs
-  const effectiveBatchThreshold = Math.max(batchThreshold, chainIds.length)
+  // Batching disabled - always make a single request
+  return await checkWalletDelegationWithoutBatching(params)
 
-  const totalCombinations = walletAddresses.length * chainIds.length
-
-  // If under threshold, make a single request
+  /*
   if (totalCombinations <= effectiveBatchThreshold) {
     return await checkWalletDelegationWithoutBatching(params)
   }
