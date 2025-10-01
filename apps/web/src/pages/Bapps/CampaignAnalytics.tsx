@@ -303,6 +303,7 @@ export default function CampaignAnalytics() {
               {typeof window !== 'undefined' && (
                 <Suspense fallback={<LoadingText>Loading chart...</LoadingText>}>
                   <ApexChart
+                    key={`chart-${timeframe}`}
                     type="area"
                     height={300}
                     options={{
@@ -368,12 +369,23 @@ export default function CampaignAnalytics() {
                       theme: 'dark',
                       style: {
                         fontSize: '14px',
+                        fontFamily: 'inherit',
                       },
+                      cssClass: 'apexcharts-tooltip-dark',
                       x: {
                         format: 'dd MMM yyyy',
                       },
                       y: {
                         formatter: (value: number) => value.toLocaleString(),
+                        title: {
+                          formatter: (seriesName: string) => seriesName + ':',
+                        },
+                      },
+                      marker: {
+                        show: true,
+                      },
+                      fixed: {
+                        enabled: false,
                       },
                     },
                   }}
