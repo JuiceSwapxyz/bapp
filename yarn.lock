@@ -12711,6 +12711,50 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@svgdotjs/svg.draggable.js@npm:^3.0.4":
+  version: 3.0.6
+  resolution: "@svgdotjs/svg.draggable.js@npm:3.0.6"
+  peerDependencies:
+    "@svgdotjs/svg.js": ^3.2.4
+  checksum: afb41e960475a3de26a079d6b8322c3c8ff35507f57cebd982e250b27eb34501a49f4383dd071f9040de4bf26e2bbf1a2b58a8880f0ff505817d8282a28c145a
+  languageName: node
+  linkType: hard
+
+"@svgdotjs/svg.filter.js@npm:^3.0.8":
+  version: 3.0.9
+  resolution: "@svgdotjs/svg.filter.js@npm:3.0.9"
+  dependencies:
+    "@svgdotjs/svg.js": ^3.2.4
+  checksum: 777fff63cba867b088359cffce414f51caf9092ed07ebc142f9623f06adf1e4dc5a77905b1b44bab76a43acf13e2f0673a33ea6c654f3efddbf814eee8792fbf
+  languageName: node
+  linkType: hard
+
+"@svgdotjs/svg.js@npm:^3.2.4":
+  version: 3.2.5
+  resolution: "@svgdotjs/svg.js@npm:3.2.5"
+  checksum: d352ea33ed01bcde94f11b3aa72c1fb70d61f45fb7f4b1dc5586fa26dfaf63804bdd12edfbb550d62ab6e3242acca5335354e2babecdccc7e761a355130d7805
+  languageName: node
+  linkType: hard
+
+"@svgdotjs/svg.resize.js@npm:^2.0.2":
+  version: 2.0.5
+  resolution: "@svgdotjs/svg.resize.js@npm:2.0.5"
+  peerDependencies:
+    "@svgdotjs/svg.js": ^3.2.4
+    "@svgdotjs/svg.select.js": ^4.0.1
+  checksum: 3a1c7247ca9c03b6248d612ed807f6b4161a21118d78eaafce6feb8e60c9a76f7a50c568edf952793bc77416b7d46ee7627e37951cbde344b18f7e1061a76d8c
+  languageName: node
+  linkType: hard
+
+"@svgdotjs/svg.select.js@npm:^4.0.1":
+  version: 4.0.3
+  resolution: "@svgdotjs/svg.select.js@npm:4.0.3"
+  peerDependencies:
+    "@svgdotjs/svg.js": ^3.2.4
+  checksum: e580b9393c9fc8c61fbbeab3f4b67de3c6f016fedd1ce267536a770cd835856af320a6ffd683bda09ff36d6021b734b5748158aafb4788f38c7d88bf531c012d
+  languageName: node
+  linkType: hard
+
 "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0":
   version: 8.0.0
   resolution: "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0"
@@ -17097,6 +17141,7 @@ __metadata:
     "@web3-react/empty": 8.2.3
     ajv: 8.11.0
     ajv-formats: 2.1.1
+    apexcharts: 5.3.5
     array.prototype.flat: 1.3.2
     array.prototype.flatmap: 1.3.2
     babel-plugin-react-compiler: 19.1.0-rc.2
@@ -17148,6 +17193,7 @@ __metadata:
     prop-types: 15.8.1
     qs: 6.11.0
     react: 18.3.1
+    react-apexcharts: 1.7.0
     react-compiler-runtime: rc
     react-confetti: 6.4.0
     react-dom: 18.3.1
@@ -18956,6 +19002,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@yr/monotone-cubic-spline@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@yr/monotone-cubic-spline@npm:1.0.3"
+  checksum: ebc75e4d84d5b97d1d715452088ffe3cf6b3d71943433118116a2e90f17aed654b6f726868e913a49aef28645bb8afcc28580349de1ac77ad0c7dab3d991843e
+  languageName: node
+  linkType: hard
+
 "@zeit/schemas@npm:2.36.0":
   version: 2.36.0
   resolution: "@zeit/schemas@npm:2.36.0"
@@ -19396,6 +19449,20 @@ __metadata:
     normalize-path: ^3.0.0
     picomatch: ^2.0.4
   checksum: 3e044fd6d1d26545f235a9fe4d7a534e2029d8e59fa7fd9f2a6eb21230f6b5380ea1eaf55136e60cbf8e613544b3b766e7a6fa2102e2a3a117505466e3025dc2
+  languageName: node
+  linkType: hard
+
+"apexcharts@npm:5.3.5":
+  version: 5.3.5
+  resolution: "apexcharts@npm:5.3.5"
+  dependencies:
+    "@svgdotjs/svg.draggable.js": ^3.0.4
+    "@svgdotjs/svg.filter.js": ^3.0.8
+    "@svgdotjs/svg.js": ^3.2.4
+    "@svgdotjs/svg.resize.js": ^2.0.2
+    "@svgdotjs/svg.select.js": ^4.0.1
+    "@yr/monotone-cubic-spline": ^1.0.3
+  checksum: 99b76d5fba64b5aa4f58b634ca449277870e4f6e7a3a7d872978a95c6281476348e8b77d4c81bebcdc8d8207e4c3a99d42fd197b40798121c76ac9656c117b24
   languageName: node
   linkType: hard
 
@@ -39602,6 +39669,18 @@ __metadata:
   bin:
     rc: ./cli.js
   checksum: 2e26e052f8be2abd64e6d1dabfbd7be03f80ec18ccbc49562d31f617d0015fbdbcf0f9eed30346ea6ab789e0fdfe4337f033f8016efdbee0df5354751842080e
+  languageName: node
+  linkType: hard
+
+"react-apexcharts@npm:1.7.0":
+  version: 1.7.0
+  resolution: "react-apexcharts@npm:1.7.0"
+  dependencies:
+    prop-types: ^15.8.1
+  peerDependencies:
+    apexcharts: ">=4.0.0"
+    react: ">=0.13"
+  checksum: 2f1576d559b9572e6b100a91f961535c008527bae167e6e63e9d871356c110982e04dd264d603c4eb088a24d777f56334a55c19b98551b5805c1185cd0e2e8ba
   languageName: node
   linkType: hard
 
