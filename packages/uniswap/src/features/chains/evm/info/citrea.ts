@@ -32,10 +32,10 @@ const citreaTestnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8080'],
+      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8085'],
     },
     public: {
-      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8080'],
+      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8085'],
     },
   },
   blockExplorers: {
@@ -84,16 +84,16 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   pendingTransactionsRetryOptions: undefined,
   rpcUrls: {
     [RPCType.Public]: {
-      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8080'],
+      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8085'],
     },
     [RPCType.Default]: {
-      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8080'],
+      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8085'],
     },
     [RPCType.Fallback]: {
-      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8080'],
+      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8085'],
     },
     [RPCType.Interface]: {
-      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8080'],
+      http: ['http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8085'],
     },
   },
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(testnetTokens.USDC, 100e6),

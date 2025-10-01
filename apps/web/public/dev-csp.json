@@ -14,6 +14,6 @@
     "https://bapp.juiceswap.xyz/api",
     "https://ponder.juiceswap.com",
     "https://dev.ponder.juiceswap.com",
-    "http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8080"
+    "http://vm-dfx-node-prd.westeurope.cloudapp.azure.com:8085"
   ]
 }
