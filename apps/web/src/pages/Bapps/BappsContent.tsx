@@ -1,4 +1,5 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import CampaignAnalytics from 'pages/Bapps/CampaignAnalytics'
 import { Button, Flex, Text, styled } from 'ui/src'
 import { Check } from 'ui/src/components/icons/Check'
 import { Clock } from 'ui/src/components/icons/Clock'
@@ -215,9 +216,12 @@ export default function BappsContent({ account, campaignProgress, isLoading }: B
 
   return (
     <ContentContainer>
+      {/* Campaign Analytics */}
+      <CampaignAnalytics />
+
       {/* Progress Overview */}
       <Section>
-        <SectionTitle>Campaign Progress</SectionTitle>
+        <SectionTitle>Your Campaign Progress</SectionTitle>
         <ProgressBar>
           <ProgressFill style={{ width: `${progress}%` }} />
         </ProgressBar>
@@ -293,7 +297,7 @@ export default function BappsContent({ account, campaignProgress, isLoading }: B
             3. Complete all three swap tasks using the links above
           </Text>
           <Text variant="body2" color="$neutral2">
-            4. Visit bApps.citrea.xyz to check your overall campaign progress
+            4. Visit ₿apps.citrea.xyz to check your overall campaign progress
           </Text>
         </Flex>
       </Section>

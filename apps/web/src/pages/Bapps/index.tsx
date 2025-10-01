@@ -119,12 +119,12 @@ export default function Bapps() {
         <ContentWrapper>
           <HeaderSection>
             <TitleSection>
-              <MainTitle>Citrea ₿Apps Campaign</MainTitle>
-              <Subtitle>Complete swap tasks on Citrea Testnet to participate in the bApps campaign</Subtitle>
+              <MainTitle>Citrea ₿apps Campaign</MainTitle>
+              <Subtitle>Complete swap tasks on Citrea Testnet to participate in the ₿apps campaign</Subtitle>
             </TitleSection>
             <ExternalLinkButton onPress={handleVisitBapps}>
               <Text variant="buttonLabel4" color="$white">
-                Visit bApps.citrea.xyz
+                Visit ₿apps.citrea.xyz
               </Text>
               <ExternalLink size="$icon.16" color="$white" />
             </ExternalLinkButton>
