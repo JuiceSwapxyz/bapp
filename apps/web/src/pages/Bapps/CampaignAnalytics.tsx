@@ -154,6 +154,11 @@ interface DailyGrowthResponse {
   }
 }
 
+interface CampaignStatsResponse {
+  totalParticipants: number
+  completedAllTasks: number
+}
+
 enum Timeframe {
   WEEK = '1W',
   MONTH = '1M',
@@ -178,8 +183,11 @@ const getStartTimestampByTimeframe = (timeframe: Timeframe) => {
 
 export default function CampaignAnalytics() {
   const [dailyGrowth, setDailyGrowth] = useState<DailyGrowthResponse | null>(null)
+  const [campaignStats, setCampaignStats] = useState<CampaignStatsResponse | null>(null)
   const [isLoadingGrowth, setIsLoadingGrowth] = useState(true)
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
   const [growthError, setGrowthError] = useState<string | null>(null)
+  const [statsError, setStatsError] = useState<string | null>(null)
   const [timeframe, setTimeframe] = useState<Timeframe>(Timeframe.ALL)
 
   useEffect(() => {
@@ -203,7 +211,28 @@ export default function CampaignAnalytics() {
       }
     }
 
+    const fetchCampaignStats = async () => {
+      try {
+        setIsLoadingStats(true)
+        setStatsError(null)
+        const baseUrl = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
+        const response = await fetch(`${baseUrl}/campaign/stats?chainId=5115`)
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch campaign stats')
+        }
+
+        const data = await response.json()
+        setCampaignStats(data)
+      } catch (error) {
+        setStatsError('Unable to load campaign stats')
+      } finally {
+        setIsLoadingStats(false)
+      }
+    }
+
     fetchDailyGrowth()
+    fetchCampaignStats()
   }, [])
 
   const startTrades = getStartTimestampByTimeframe(timeframe)
@@ -225,6 +254,14 @@ export default function CampaignAnalytics() {
     ? dailyGrowth.data[dailyGrowth.data.length - 1].cumulative
     : 0
 
+  const completionRate =
+    campaignStats && campaignStats.totalParticipants > 0
+      ? (campaignStats.completedAllTasks / campaignStats.totalParticipants) * 100
+      : 0
+
+  const isLoading = isLoadingGrowth || isLoadingStats
+  const hasError = growthError || statsError
+
   return (
     <AnalyticsContainer>
       {/* Campaign Participants Timeline */}
@@ -234,19 +271,23 @@ export default function CampaignAnalytics() {
           <SectionTitle>Campaign Participants Over Time</SectionTitle>
         </SectionHeader>
 
-        {isLoadingGrowth && <LoadingText>Loading campaign participation data...</LoadingText>}
-        {growthError && <ErrorText>{growthError}</ErrorText>}
+        {isLoading && <LoadingText>Loading campaign participation data...</LoadingText>}
+        {hasError && <ErrorText>{growthError || statsError}</ErrorText>}
 
-        {!isLoadingGrowth && !growthError && dailyGrowth && (
+        {!isLoading && !hasError && dailyGrowth && campaignStats && (
           <>
             <StatsGrid>
               <StatCard>
                 <StatLabel>Total Campaign Participants</StatLabel>
-                <StatValue>{currentTotalUsers.toLocaleString()}</StatValue>
+                <StatValue>{campaignStats.totalParticipants.toLocaleString()}</StatValue>
               </StatCard>
               <StatCard>
-                <StatLabel>Average Daily Growth</StatLabel>
-                <StatValue>{dailyGrowth.summary.averageDaily.toLocaleString()}</StatValue>
+                <StatLabel>Completed All Tasks</StatLabel>
+                <StatValue>{campaignStats.completedAllTasks.toLocaleString()}</StatValue>
+              </StatCard>
+              <StatCard>
+                <StatLabel>Completion Rate</StatLabel>
+                <StatValue>{completionRate.toFixed(1)}%</StatValue>
               </StatCard>
               <StatCard>
                 <StatLabel>Days Running</StatLabel>
