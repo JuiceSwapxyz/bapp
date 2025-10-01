@@ -159,6 +159,25 @@ interface CampaignStatsResponse {
   completedAllTasks: number
 }
 
+interface HourlyCompletionData {
+  hour: string
+  totalParticipants: number
+  completedAllTasks: number
+  completionRate: number
+}
+
+interface HourlyCompletionStatsResponse {
+  chainId: number
+  period: string
+  data: HourlyCompletionData[]
+  summary: {
+    totalHours: number
+    currentParticipants: number
+    currentCompleted: number
+    currentCompletionRate: number
+  }
+}
+
 enum Timeframe {
   WEEK = '1W',
   MONTH = '1M',
@@ -184,10 +203,13 @@ const getStartTimestampByTimeframe = (timeframe: Timeframe) => {
 export default function CampaignAnalytics() {
   const [dailyGrowth, setDailyGrowth] = useState<DailyGrowthResponse | null>(null)
   const [campaignStats, setCampaignStats] = useState<CampaignStatsResponse | null>(null)
+  const [hourlyCompletion, setHourlyCompletion] = useState<HourlyCompletionStatsResponse | null>(null)
   const [isLoadingGrowth, setIsLoadingGrowth] = useState(true)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
+  const [isLoadingCompletion, setIsLoadingCompletion] = useState(true)
   const [growthError, setGrowthError] = useState<string | null>(null)
   const [statsError, setStatsError] = useState<string | null>(null)
+  const [completionError, setCompletionError] = useState<string | null>(null)
   const [timeframe, setTimeframe] = useState<Timeframe>(Timeframe.ALL)
 
   useEffect(() => {
@@ -231,8 +253,29 @@ export default function CampaignAnalytics() {
       }
     }
 
+    const fetchHourlyCompletion = async () => {
+      try {
+        setIsLoadingCompletion(true)
+        setCompletionError(null)
+        const baseUrl = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
+        const response = await fetch(`${baseUrl}/campaign/hourly-completion-stats?chainId=5115&hours=168`)
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch hourly completion stats')
+        }
+
+        const data = await response.json()
+        setHourlyCompletion(data)
+      } catch (error) {
+        setCompletionError('Unable to load completion stats')
+      } finally {
+        setIsLoadingCompletion(false)
+      }
+    }
+
     fetchDailyGrowth()
     fetchCampaignStats()
+    fetchHourlyCompletion()
   }, [])
 
   const startTrades = getStartTimestampByTimeframe(timeframe)
@@ -250,6 +293,19 @@ export default function CampaignAnalytics() {
     [filteredGrowthData]
   )
 
+  const filteredCompletionData = useMemo(
+    () =>
+      hourlyCompletion?.data.filter((hour) => {
+        return new Date(hour.hour).getTime() > startTrades
+      }) || [],
+    [hourlyCompletion?.data, startTrades]
+  )
+
+  const maxCompletionRate = useMemo(
+    () => Math.max(...filteredCompletionData.map((d) => d.completionRate), 1),
+    [filteredCompletionData]
+  )
+
   const currentTotalUsers = dailyGrowth?.data.length
     ? dailyGrowth.data[dailyGrowth.data.length - 1].cumulative
     : 0
@@ -259,8 +315,8 @@ export default function CampaignAnalytics() {
       ? (campaignStats.completedAllTasks / campaignStats.totalParticipants) * 100
       : 0
 
-  const isLoading = isLoadingGrowth || isLoadingStats
-  const hasError = growthError || statsError
+  const isLoading = isLoadingGrowth || isLoadingStats || isLoadingCompletion
+  const hasError = growthError || statsError || completionError
 
   return (
     <AnalyticsContainer>
@@ -272,9 +328,9 @@ export default function CampaignAnalytics() {
         </SectionHeader>
 
         {isLoading && <LoadingText>Loading campaign participation data...</LoadingText>}
-        {hasError && <ErrorText>{growthError || statsError}</ErrorText>}
+        {hasError && <ErrorText>{growthError || statsError || completionError}</ErrorText>}
 
-        {!isLoading && !hasError && dailyGrowth && campaignStats && (
+        {!isLoading && !hasError && dailyGrowth && campaignStats && hourlyCompletion && (
           <>
             <StatsGrid>
               <StatCard>
@@ -397,6 +453,159 @@ export default function CampaignAnalytics() {
                       }),
                     },
                   ]}
+                  />
+                </Suspense>
+              )}
+            </ChartContainer>
+
+            <TimeframeSelector>
+              {Object.values(Timeframe).map((_timeframe) => (
+                <TimeframeButton
+                  key={_timeframe}
+                  selected={_timeframe === timeframe}
+                  onPress={() => setTimeframe(_timeframe)}
+                >
+                  <TimeframeButtonText selected={_timeframe === timeframe}>{_timeframe}</TimeframeButtonText>
+                </TimeframeButton>
+              ))}
+            </TimeframeSelector>
+          </>
+        )}
+      </Section>
+
+      {/* Campaign Completion Rate Timeline */}
+      <Section>
+        <SectionHeader>
+          <Chart size="$icon.20" color="$accent1" />
+          <SectionTitle>Campaign Completion Rate Over Time</SectionTitle>
+        </SectionHeader>
+
+        {isLoading && <LoadingText>Loading completion rate data...</LoadingText>}
+        {hasError && <ErrorText>{completionError}</ErrorText>}
+
+        {!isLoading && !hasError && hourlyCompletion && (
+          <>
+            <StatsGrid>
+              <StatCard>
+                <StatLabel>Current Completion Rate</StatLabel>
+                <StatValue>{hourlyCompletion.summary.currentCompletionRate.toFixed(1)}%</StatValue>
+              </StatCard>
+              <StatCard>
+                <StatLabel>Users Completed</StatLabel>
+                <StatValue>{hourlyCompletion.summary.currentCompleted.toLocaleString()}</StatValue>
+              </StatCard>
+              <StatCard>
+                <StatLabel>Total Participants</StatLabel>
+                <StatValue>{hourlyCompletion.summary.currentParticipants.toLocaleString()}</StatValue>
+              </StatCard>
+              <StatCard>
+                <StatLabel>Hours Tracked</StatLabel>
+                <StatValue>{hourlyCompletion.summary.totalHours}</StatValue>
+              </StatCard>
+            </StatsGrid>
+
+            <ChartContainer>
+              <ChartOverlay>
+                <StatValue>{hourlyCompletion.summary.currentCompletionRate.toFixed(1)}%</StatValue>
+                <StatLabel>Completion Rate</StatLabel>
+              </ChartOverlay>
+              {typeof window !== 'undefined' && (
+                <Suspense fallback={<LoadingText>Loading chart...</LoadingText>}>
+                  <ApexChart
+                    key={`completion-chart-${timeframe}`}
+                    type="area"
+                    height={300}
+                    options={{
+                      theme: {
+                        monochrome: {
+                          color: '#FF6B00',
+                          enabled: true,
+                        },
+                      },
+                      chart: {
+                        type: 'area',
+                        height: 300,
+                        dropShadow: {
+                          enabled: false,
+                        },
+                        toolbar: {
+                          show: false,
+                        },
+                        zoom: {
+                          enabled: false,
+                        },
+                        background: 'transparent',
+                      },
+                      stroke: {
+                        width: 3,
+                        curve: 'smooth',
+                      },
+                      dataLabels: {
+                        enabled: false,
+                      },
+                      grid: {
+                        show: false,
+                      },
+                      xaxis: {
+                        type: 'datetime',
+                        labels: {
+                          show: false,
+                        },
+                        axisBorder: {
+                          show: false,
+                        },
+                        axisTicks: {
+                          show: false,
+                        },
+                      },
+                      yaxis: {
+                        show: false,
+                        min: 0,
+                        max: Math.min(maxCompletionRate * 1.5, 100),
+                      },
+                      fill: {
+                        colors: ['#FF6B0099'],
+                        type: 'gradient',
+                        gradient: {
+                          type: 'vertical',
+                          opacityFrom: 1,
+                          opacityTo: 0.95,
+                          gradientToColors: ['#FFF5ED'],
+                        },
+                      },
+                      tooltip: {
+                        enabled: true,
+                        theme: 'dark',
+                        style: {
+                          fontSize: '14px',
+                          fontFamily: 'inherit',
+                        },
+                        cssClass: 'apexcharts-tooltip-dark',
+                        x: {
+                          format: 'dd MMM yyyy HH:mm',
+                        },
+                        y: {
+                          formatter: (value: number) => value.toFixed(1) + '%',
+                          title: {
+                            formatter: (seriesName: string) => seriesName + ':',
+                          },
+                        },
+                        marker: {
+                          show: true,
+                        },
+                        fixed: {
+                          enabled: false,
+                        },
+                      },
+                    }}
+                    series={[
+                      {
+                        name: 'Completion Rate',
+                        data: filteredCompletionData.map((hour) => {
+                          return [new Date(hour.hour).getTime(), hour.completionRate]
+                        }),
+                      },
+                    ]}
                   />
                 </Suspense>
               )}
