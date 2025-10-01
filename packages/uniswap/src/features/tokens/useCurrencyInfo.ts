@@ -21,7 +21,7 @@ function useCurrencyInfoQuery(
 ): { currencyInfo: Maybe<CurrencyInfo>; loading: boolean; error?: Error } {
   const queryResult = useTokenQuery({
     variables: currencyIdToContractInput(_currencyId ?? ''),
-    skip: !_currencyId || options?.skip,
+    skip: true, // TODO: re-enable
     fetchPolicy: options?.refetch ? 'cache-and-network' : 'cache-first',
   })
 

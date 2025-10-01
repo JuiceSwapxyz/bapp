@@ -1,11 +1,6 @@
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client'
 import { call, delay, select } from 'typed-redux-saga'
 import { getNativeAddress } from 'uniswap/src/constants/addresses'
-import {
-  PortfolioBalancesDocument,
-  PortfolioBalancesQuery,
-} from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
-import { GQLQueries } from 'uniswap/src/data/graphql/uniswap-data-api/queries'
 import { GQL_MAINNET_CHAINS, GQL_TESTNET_CHAINS } from 'uniswap/src/features/chains/chainInfo'
 import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, NetworkRequestsConfigKey } from 'uniswap/src/features/gating/configs'
@@ -94,9 +89,11 @@ export function* refetchGQLQueriesViaBackendPollVariant({
     }
 
     // We only want to refetch `PortfolioBalances`, as this is the only query needed to check the updated balances.
+    /*
     yield* call([apolloClient, apolloClient.refetchQueries], {
       include: [GQLQueries.PortfolioBalances],
     })
+    */
 
     freshnessLag += REFETCH_INTERVAL
     i += 1
@@ -141,15 +138,13 @@ function readBalancesFromCache({
 
   const chains = isTestnetMode ? GQL_TESTNET_CHAINS : GQL_MAINNET_CHAINS
 
-  const cachedBalancesData = apolloClient.readQuery<PortfolioBalancesQuery>({
-    query: PortfolioBalancesDocument,
-    variables: { ownerAddress: owner, chains },
-  })
+  const cachedBalancesData = undefined
 
   if (!cachedBalancesData) {
     logger.info('refetchGQLQueriesSaga', 'readBalancesFromCache', 'No cached balances data', {
       currencyIds: currencyIdsToUpdate,
     })
+    return
   }
 
   for (const tokenData of cachedBalancesData?.portfolios?.[0]?.tokenBalances ?? []) {

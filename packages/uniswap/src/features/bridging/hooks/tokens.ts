@@ -47,6 +47,7 @@ export function useBridgingTokenWithHighestBalance({
 
   const { data: tokenProjectsData, loading: tokenProjectsLoading } = useTokenProjectsQuery({
     variables: { contracts: [currencyIdToContractInput(currencyId)] },
+    skip: true, // TODO: re-enable
   })
 
   const crossChainTokens = tokenProjectsData?.tokenProjects?.[0]?.tokens

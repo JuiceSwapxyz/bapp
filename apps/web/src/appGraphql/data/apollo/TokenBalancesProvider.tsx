@@ -70,15 +70,7 @@ function TokenBalancesProviderInternal({ children }: PropsWithChildren) {
     if (!account.address) {
       return
     }
-
-    lazyFetch({
-      variables: {
-        ownerAddress: account.address,
-        chains: gqlChains,
-        valueModifiers,
-      },
-    })
-  }, [account.address, gqlChains, lazyFetch, valueModifiers])
+  }, [account.address])
 
   return (
     <AdaptiveTokenBalancesProvider
