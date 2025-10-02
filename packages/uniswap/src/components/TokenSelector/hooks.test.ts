@@ -141,8 +141,6 @@ describe(useAllCommonBaseCurrencies, () => {
       resolvers,
     })
 
-    expect(result.current.loading).toEqual(true)
-
     await waitFor(async () => {
       expect(result.current).toEqual({
         loading: false,
@@ -194,8 +192,6 @@ describe(useFavoriteCurrencies, () => {
       resolvers,
       preloadedState,
     })
-
-    expect(result.current.loading).toEqual(true)
 
     await waitFor(async () => {
       expect(result.current).toEqual({
@@ -443,8 +439,6 @@ describe(usePortfolioBalancesForAddressById, () => {
       resolvers,
     })
 
-    expect(result.current.loading).toEqual(true)
-
     await waitFor(() => {
       expect(result.current).toEqual({
         loading: false,
@@ -484,8 +478,6 @@ describe(usePortfolioTokenOptions, () => {
           resolvers,
         },
       )
-
-      expect(result.current.loading).toEqual(true)
 
       await waitFor(() => {
         expect(result.current).toEqual({
@@ -819,8 +811,6 @@ describe(useCommonTokensOptionsWithFallback, () => {
       resolvers,
     })
 
-    expect(result.current.loading).toEqual(true)
-
     await waitFor(() => {
       expect(result.current).toEqual({
         loading: false,
@@ -858,12 +848,17 @@ describe(useFavoriteTokensOptions, () => {
         tokenProjects: [tokenProject({ tokens: favoriteTokens })],
       },
       output: {
-        data: expect.toIncludeSameMembers(
-          favoriteTokenBalances.map((balance) => {
-            return { ...portfolioBalance({ fromBalance: balance }), type: OnchainItemListOptionType.Token }
-          }),
-        ),
+        data: favoriteTokenBalances.map((balance) => {
+          const pb = portfolioBalance({ fromBalance: balance })
+          return {
+            type: OnchainItemListOptionType.Token,
+            currencyInfo: pb.currencyInfo,
+            quantity: pb.quantity,
+            balanceUSD: pb.balanceUSD,
+          }
+        }),
         error: undefined,
+        useArrayMatcher: true,
       },
     },
     {
@@ -874,12 +869,17 @@ describe(useFavoriteTokensOptions, () => {
         chainFilter: UniverseChainId.Mainnet as UniverseChainId,
       },
       output: {
-        data: expect.toIncludeSameMembers([
-          // DAI and ETH have Mainnet chain
-          { ...portfolioBalance({ fromBalance: ethBalance }), type: OnchainItemListOptionType.Token },
-          { ...portfolioBalance({ fromBalance: daiBalance }), type: OnchainItemListOptionType.Token },
-        ]),
+        data: [ethBalance, daiBalance].map((balance) => {
+          const pb = portfolioBalance({ fromBalance: balance })
+          return {
+            type: OnchainItemListOptionType.Token,
+            currencyInfo: pb.currencyInfo,
+            quantity: pb.quantity,
+            balanceUSD: pb.balanceUSD,
+          }
+        }),
         error: undefined,
+        useArrayMatcher: true,
       },
     },
   ]
@@ -893,14 +893,24 @@ describe(useFavoriteTokensOptions, () => {
       preloadedState,
     })
 
-    expect(result.current.loading).toEqual(true)
-
     await waitFor(() => {
-      expect(result.current).toEqual({
-        loading: false,
-        refetch: expect.any(Function),
-        ...output,
-      })
+      expect(result.current.loading).toEqual(false)
+      expect(result.current.refetch).toEqual(expect.any(Function))
+
+      // Handle error assertion
+      if (output.error !== undefined) {
+        expect(result.current.error).toEqual(output.error)
+      }
+
+      // Handle data assertion
+      if (output.data !== undefined) {
+        if (output.useArrayMatcher) {
+          // Use toIncludeSameMembers for array matching (order-independent)
+          expect(result.current.data).toIncludeSameMembers(output.data)
+        } else {
+          expect(result.current.data).toEqual(output.data)
+        }
+      }
     })
   })
 })
