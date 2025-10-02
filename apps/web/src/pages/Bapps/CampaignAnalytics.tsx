@@ -652,12 +652,8 @@ export default function CampaignAnalytics() {
                 <StatValue>{hourlyCompletion.summary.currentCompletionRate.toFixed(1)}%</StatValue>
               </StatCard>
               <StatCard>
-                <StatLabel>Incomplete Participants</StatLabel>
-                <StatValue>
-                  {(
-                    hourlyCompletion.summary.currentParticipants - hourlyCompletion.summary.currentCompleted
-                  ).toLocaleString()}
-                </StatValue>
+                <StatLabel>Days Running</StatLabel>
+                <StatValue>{dailyGrowth?.summary.totalDays || 0}</StatValue>
               </StatCard>
             </StatsGrid>
 
