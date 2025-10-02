@@ -17,7 +17,6 @@ import { ListSeparatorToggle } from 'uniswap/src/features/transactions/Transacti
 import { SwapFee } from 'uniswap/src/features/transactions/TransactionDetails/SwapFee'
 import { SwapReviewTokenWarningCard } from 'uniswap/src/features/transactions/TransactionDetails/SwapReviewTokenWarningCard'
 import { TransactionWarning } from 'uniswap/src/features/transactions/TransactionDetails/TransactionWarning'
-import { UserReceiveAmount } from 'uniswap/src/features/transactions/TransactionDetails/UserReceiveAmount'
 import type {
   FeeOnTransferFeeGroupProps,
   TokenWarningProps,
@@ -58,7 +57,6 @@ interface TransactionDetailsProps {
   RateInfo?: JSX.Element
   transactionUSDValue?: Maybe<CurrencyAmount<Currency>>
   txSimulationErrors?: TransactionFailureReason[]
-  amountUserWillReceive?: CurrencyAmount<Currency>
   includesDelegation?: boolean
 }
 
@@ -92,7 +90,6 @@ export function TransactionDetails({
   estimatedBridgingTime,
   RoutingInfo,
   RateInfo,
-  amountUserWillReceive,
   includesDelegation,
 }: PropsWithChildren<TransactionDetailsProps>): JSX.Element {
   const { t } = useTranslation()
@@ -165,9 +162,6 @@ export function TransactionDetails({
               </Flex>
             </AnimatePresence>
           ) : null}
-          {amountUserWillReceive && outputCurrency && priceUXEnabled && (
-            <UserReceiveAmount amountUserWillReceive={amountUserWillReceive} outputCurrency={outputCurrency} />
-          )}
         </Flex>
         {setTokenWarningChecked && tokenWarningProps && (
           <SwapReviewTokenWarningCard
