@@ -199,11 +199,6 @@ export const uniswapUrls = {
   // Feedback Links
   walletFeedbackForm:
     'https://docs.google.com/forms/d/e/1FAIpQLSepzL5aMuSfRhSgw0zDw_gVmc2aeVevfrb1UbOwn6WGJ--46w/viewform',
-
-  dataApiServiceUrl: `${getCloudflareApiBaseUrl()}/v2/data.v1.DataApiService`,
-  dataApiServicePaths: {
-    report: '/SubmitReport',
-  },
 }
 
 function getCloudflarePrefix(flow?: TrafficFlows): string {
