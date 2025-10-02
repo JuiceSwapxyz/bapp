@@ -2,51 +2,35 @@ import { StatsigClientEventCallback, StatsigLoadingStatus } from '@statsig/clien
 import { useEffect, useMemo, useState } from 'react'
 import { DynamicConfigKeys } from 'uniswap/src/features/gating/configs'
 import { ExperimentProperties, Experiments } from 'uniswap/src/features/gating/experiments'
-import { FeatureFlags, getFeatureFlagName } from 'uniswap/src/features/gating/flags'
+import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import {
   TypedReturn,
   getStatsigClient,
   useDynamicConfig,
   useExperiment,
-  useFeatureGate,
-  useGateValue,
   useLayer,
   useStatsigClient,
 } from 'uniswap/src/features/gating/sdk/statsig'
-import { logger } from 'utilities/src/logger/logger'
 
-export function useFeatureFlag(flag: FeatureFlags): boolean {
-  const name = getFeatureFlagName(flag)
-  const value = useGateValue(name)
-  return value
+export function useFeatureFlag(_flag: FeatureFlags): boolean {
+  return false
 }
 
 export function useFeatureFlagWithLoading(flag: FeatureFlags): { value: boolean; isLoading: boolean } {
   const { isStatsigLoading } = useStatsigClientStatus()
-  const name = getFeatureFlagName(flag)
-  const { value } = useFeatureGate(name)
-  return { value, isLoading: isStatsigLoading }
+  return { value: false, isLoading: isStatsigLoading }
 }
 
-export function getFeatureFlag(flag: FeatureFlags): boolean {
-  try {
-    const name = getFeatureFlagName(flag)
-    return getStatsigClient().checkGate(name)
-  } catch (e) {
-    logger.debug('gating/hooks.ts', 'getFeatureFlag', JSON.stringify({ e }))
-    return false
-  }
+export function getFeatureFlag(_flag: FeatureFlags): boolean {
+  return false
 }
 
-export function useFeatureFlagWithExposureLoggingDisabled(flag: FeatureFlags): boolean {
-  const name = getFeatureFlagName(flag)
-  const value = useGateValue(name, { disableExposureLog: true })
-  return value
+export function useFeatureFlagWithExposureLoggingDisabled(_flag: FeatureFlags): boolean {
+  return false
 }
 
-export function getFeatureFlagWithExposureLoggingDisabled(flag: FeatureFlags): boolean {
-  const name = getFeatureFlagName(flag)
-  return getStatsigClient().checkGate(name, { disableExposureLog: true })
+export function getFeatureFlagWithExposureLoggingDisabled(_flag: FeatureFlags): boolean {
+  return false
 }
 
 export function useExperimentGroupNameWithLoading(experiment: Experiments): {

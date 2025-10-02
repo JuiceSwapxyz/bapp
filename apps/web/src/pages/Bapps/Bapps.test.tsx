@@ -41,8 +41,8 @@ describe('Bapps Page', () => {
       </MemoryRouter>,
     )
 
-    expect(getByText('Citrea ₿Apps Campaign')).toBeTruthy()
-    expect(getByText('Complete swap tasks on Citrea Testnet to participate in the bApps campaign')).toBeTruthy()
+    expect(getByText('Citrea ₿apps Campaign')).toBeTruthy()
+    expect(getByText('Complete swap tasks on Citrea Testnet to participate in the ₿apps campaign')).toBeTruthy()
   })
 
   it('renders the external link button', () => {
@@ -52,7 +52,7 @@ describe('Bapps Page', () => {
       </MemoryRouter>,
     )
 
-    expect(getByText('Visit bApps.citrea.xyz')).toBeTruthy()
+    expect(getByText('Visit ₿apps.citrea.xyz')).toBeTruthy()
   })
 
   it('renders connect wallet prompt when not connected', () => {
