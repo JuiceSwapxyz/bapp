@@ -22,11 +22,9 @@ describe('getQuicknodeChainIdPathSuffix', () => {
     [UniverseChainId.Blast, '', 'Blast chain'],
     [UniverseChainId.Bnb, '', 'BNB chain'],
     [UniverseChainId.Celo, '', 'Celo chain'],
-    [UniverseChainId.MonadTestnet, '', 'Monad testnet'],
     [UniverseChainId.Optimism, '', 'Optimism chain'],
     [UniverseChainId.Polygon, '', 'Polygon chain'],
     [UniverseChainId.Sepolia, '', 'Sepolia testnet'],
-    [UniverseChainId.UnichainSepolia, '', 'Unichain Sepolia testnet'],
     [UniverseChainId.WorldChain, '', 'World chain'],
     [UniverseChainId.Zksync, '', 'ZkSync chain'],
     [UniverseChainId.Zora, '', 'Zora chain'],
@@ -67,11 +65,9 @@ describe('getQuicknodeEndpointUrl', () => {
       UniverseChainId.Blast,
       UniverseChainId.Bnb,
       UniverseChainId.Celo,
-      UniverseChainId.MonadTestnet,
       UniverseChainId.Optimism,
       UniverseChainId.Polygon,
       UniverseChainId.Sepolia,
-      UniverseChainId.UnichainSepolia,
       UniverseChainId.WorldChain,
       UniverseChainId.Zksync,
       UniverseChainId.Zora,
@@ -97,11 +93,9 @@ describe('getQuicknodeChainId', () => {
     expect(getQuicknodeChainId(UniverseChainId.Blast)).toBe('blast-mainnet')
     expect(getQuicknodeChainId(UniverseChainId.Bnb)).toBe('bsc')
     expect(getQuicknodeChainId(UniverseChainId.Celo)).toBe('celo-mainnet')
-    expect(getQuicknodeChainId(UniverseChainId.MonadTestnet)).toBe('monad-testnet')
     expect(getQuicknodeChainId(UniverseChainId.Optimism)).toBe('optimism')
     expect(getQuicknodeChainId(UniverseChainId.Polygon)).toBe('matic')
     expect(getQuicknodeChainId(UniverseChainId.Sepolia)).toBe('ethereum-sepolia')
-    expect(getQuicknodeChainId(UniverseChainId.UnichainSepolia)).toBe('unichain-sepolia')
     expect(getQuicknodeChainId(UniverseChainId.WorldChain)).toBe('worldchain-mainnet')
     expect(getQuicknodeChainId(UniverseChainId.Zksync)).toBe('zksync-mainnet')
     expect(getQuicknodeChainId(UniverseChainId.Zora)).toBe('zora-mainnet')

@@ -33,7 +33,6 @@ import {
   USDT_ARBITRUM_ONE,
   USDT_AVALANCHE,
   USDT_BSC,
-  USDT_MONAD_TESTNET,
   USDT_OPTIMISM,
   USDT_POLYGON,
   WBTC,
@@ -108,12 +107,6 @@ export const COMMON_BASES: ChainCurrencyList = {
 
   [UniverseChainId.Celo]: [nativeOnChain(UniverseChainId.Celo), USDC_CELO].map(buildPartialCurrencyInfo),
 
-  [UniverseChainId.MonadTestnet]: [
-    nativeOnChain(UniverseChainId.MonadTestnet),
-    WRAPPED_NATIVE_CURRENCY[UniverseChainId.MonadTestnet] as Token,
-    USDT_MONAD_TESTNET,
-  ].map(buildPartialCurrencyInfo),
-
   [UniverseChainId.Optimism]: [
     nativeOnChain(UniverseChainId.Optimism),
     OP,
@@ -152,13 +145,6 @@ export const COMMON_BASES: ChainCurrencyList = {
     nativeOnChain(UniverseChainId.Unichain),
     WRAPPED_NATIVE_CURRENCY[UniverseChainId.Unichain] as Token,
     USDC_UNICHAIN,
-  ].map(buildPartialCurrencyInfo),
-
-  [UniverseChainId.UnichainSepolia]: [
-    nativeOnChain(UniverseChainId.UnichainSepolia),
-    WRAPPED_NATIVE_CURRENCY[UniverseChainId.UnichainSepolia] as Token,
-    // TODO(WEB-5160): re-add usdc sepolia
-    // USDC_UNICHAIN_SEPOLIA,
   ].map(buildPartialCurrencyInfo),
 
   [UniverseChainId.WorldChain]: [

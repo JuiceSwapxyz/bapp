@@ -38,7 +38,6 @@ export enum SwapConfigKey {
   AverageL1BlockTimeMs = 'averageL1BlockTimeMs',
   AverageL2BlockTimeMs = 'averageL2BlockTimeMs',
   TradingApiSwapRequestMs = 'tradingApiSwapRequestMs',
-  MonadTestnetPollingIntervalMs = 'monadTestnetPollingIntervalMs',
 
   MinAutoSlippageToleranceL2 = 'minAutoSlippageToleranceL2',
 
@@ -50,8 +49,6 @@ export enum SwapConfigKey {
   AvalancheSendMinGasAmount = 'avalancheSendMinGasAmount',
   CeloSwapMinGasAmount = 'celoSwapMinGasAmount',
   CeloSendMinGasAmount = 'celoSendMinGasAmount',
-  MonSwapMinGasAmount = 'monSwapMinGasAmount',
-  MonSendMinGasAmount = 'monSendMinGasAmount',
   GenericL2SwapMinGasAmount = 'genericL2SwapMinGasAmount',
   GenericL2SendMinGasAmount = 'genericL2SendMinGasAmount',
 

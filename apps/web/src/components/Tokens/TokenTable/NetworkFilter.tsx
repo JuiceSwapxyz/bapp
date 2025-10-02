@@ -108,11 +108,7 @@ export default function TableNetworkFilter({ showMultichainOption = true }: { sh
               .map(tableNetworkItemRenderer)}
             {/* Testnet backend supported chains */}
             {isTestnetModeEnabled
-              ? enabledChainIds
-                  .filter(isBackendSupportedChainId)
-                  .filter(isTestnetChain)
-                  .filter((c) => c !== UniverseChainId.MonadTestnet)
-                  .map(tableNetworkItemRenderer)
+              ? enabledChainIds.filter(isBackendSupportedChainId).filter(isTestnetChain).map(tableNetworkItemRenderer)
               : null}
             {/* Unsupported non-testnet chains */}
             {enabledChainIds
