@@ -280,19 +280,6 @@ export default function CampaignAnalytics() {
 
   const startTrades = getStartTimestampByTimeframe(timeframe)
 
-  const filteredGrowthData = useMemo(
-    () =>
-      dailyGrowth?.data.filter((day) => {
-        return new Date(day.date).getTime() > startTrades
-      }) || [],
-    [dailyGrowth?.data, startTrades]
-  )
-
-  const maxCumulative = useMemo(
-    () => Math.max(...filteredGrowthData.map((d) => d.cumulative), 1),
-    [filteredGrowthData]
-  )
-
   const filteredCompletionData = useMemo(
     () =>
       hourlyCompletion?.data.filter((hour) => {
@@ -305,15 +292,6 @@ export default function CampaignAnalytics() {
     () => Math.max(...filteredCompletionData.map((d) => d.completionRate), 1),
     [filteredCompletionData]
   )
-
-  const currentTotalUsers = dailyGrowth?.data.length
-    ? dailyGrowth.data[dailyGrowth.data.length - 1].cumulative
-    : 0
-
-  const completionRate =
-    campaignStats && campaignStats.totalParticipants > 0
-      ? (campaignStats.completedAllTasks / campaignStats.totalParticipants) * 100
-      : 0
 
   const isLoading = isLoadingGrowth || isLoadingStats || isLoadingCompletion
   const hasError = growthError || statsError || completionError
