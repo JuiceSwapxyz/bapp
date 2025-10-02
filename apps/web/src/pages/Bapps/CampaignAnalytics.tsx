@@ -202,13 +202,10 @@ const getStartTimestampByTimeframe = (timeframe: Timeframe) => {
 
 export default function CampaignAnalytics() {
   const [dailyGrowth, setDailyGrowth] = useState<DailyGrowthResponse | null>(null)
-  const [campaignStats, setCampaignStats] = useState<CampaignStatsResponse | null>(null)
   const [hourlyCompletion, setHourlyCompletion] = useState<HourlyCompletionStatsResponse | null>(null)
   const [isLoadingGrowth, setIsLoadingGrowth] = useState(true)
-  const [isLoadingStats, setIsLoadingStats] = useState(true)
   const [isLoadingCompletion, setIsLoadingCompletion] = useState(true)
   const [growthError, setGrowthError] = useState<string | null>(null)
-  const [statsError, setStatsError] = useState<string | null>(null)
   const [completionError, setCompletionError] = useState<string | null>(null)
   const [timeframe, setTimeframe] = useState<Timeframe>(Timeframe.ALL)
 
@@ -233,26 +230,6 @@ export default function CampaignAnalytics() {
       }
     }
 
-    const fetchCampaignStats = async () => {
-      try {
-        setIsLoadingStats(true)
-        setStatsError(null)
-        const baseUrl = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
-        const response = await fetch(`${baseUrl}/campaign/stats?chainId=5115`)
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch campaign stats')
-        }
-
-        const data = await response.json()
-        setCampaignStats(data)
-      } catch (error) {
-        setStatsError('Unable to load campaign stats')
-      } finally {
-        setIsLoadingStats(false)
-      }
-    }
-
     const fetchHourlyCompletion = async () => {
       try {
         setIsLoadingCompletion(true)
@@ -274,7 +251,6 @@ export default function CampaignAnalytics() {
     }
 
     fetchDailyGrowth()
-    fetchCampaignStats()
     fetchHourlyCompletion()
   }, [])
 
@@ -293,8 +269,8 @@ export default function CampaignAnalytics() {
     [filteredCompletionData]
   )
 
-  const isLoading = isLoadingGrowth || isLoadingStats || isLoadingCompletion
-  const hasError = growthError || statsError || completionError
+  const isLoading = isLoadingGrowth || isLoadingCompletion
+  const hasError = growthError || completionError
 
   return (
     <AnalyticsContainer>
