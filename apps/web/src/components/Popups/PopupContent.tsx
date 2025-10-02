@@ -26,7 +26,11 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FORTransaction } from 'uniswap/src/features/fiatOnRamp/types'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { isNonInstantFlashblockTransactionType } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/utils'
-import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
+import {
+  InterfaceTransactionDetails,
+  TransactionStatus,
+  TransactionType,
+} from 'uniswap/src/features/transactions/types/transactionDetails'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import noop from 'utilities/src/react/noop'
@@ -126,6 +130,17 @@ function ActivityPopupContent({ activity, onClick, onClose }: ActivityPopupConte
   )
 }
 
+function getSimpleDescriptor(transaction: InterfaceTransactionDetails): string {
+  const { typeInfo } = transaction
+
+  if (typeInfo.type === TransactionType.Swap) {
+    // Show a simple message while the full activity data loads
+    return 'Swapping tokens...'
+  }
+
+  return 'Transaction processing...'
+}
+
 export function TransactionPopupContent({ hash, onClose }: { hash: string; onClose: () => void }) {
   const transaction = useTransaction(hash)
   const { t } = useTranslation()
@@ -156,7 +171,7 @@ export function TransactionPopupContent({ hash, onClose }: { hash: string; onClo
     descriptor:
       transaction.status === TransactionStatus.Failed
         ? t('notification.transaction.unknown.fail.short')
-        : t('notification.transaction.pending'),
+        : getSimpleDescriptor(transaction),
     timestamp: Date.now() / 1000,
     from: transaction.from,
   }
