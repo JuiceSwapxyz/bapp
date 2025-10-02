@@ -1,3 +1,4 @@
+import { TradeType } from '@juiceswapxyz/sdk-core'
 import { useQuery } from '@tanstack/react-query'
 import { useOpenOffchainActivityModal } from 'components/AccountDrawer/MiniPortfolio/Activity/OffchainActivityModal'
 import {
@@ -33,6 +34,7 @@ import {
 } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
+import { NumberType } from 'utilities/src/format/types'
 import noop from 'utilities/src/react/noop'
 
 export function FailedNetworkSwitchPopup({ chainId, onClose }: { chainId: UniverseChainId; onClose: () => void }) {
@@ -130,11 +132,60 @@ function ActivityPopupContent({ activity, onClick, onClose }: ActivityPopupConte
   )
 }
 
-function getSimpleDescriptor(transaction: InterfaceTransactionDetails): string {
+function getSimpleDescriptor(
+  transaction: InterfaceTransactionDetails,
+  formatNumber: (input: { value: number | undefined; type?: NumberType }) => string,
+): string {
   const { typeInfo } = transaction
 
   if (typeInfo.type === TransactionType.Swap) {
-    // Show a simple message while the full activity data loads
+    // Use cached token metadata if available
+    const inputSymbol = typeInfo.inputCurrencySymbol
+    const outputSymbol = typeInfo.outputCurrencySymbol
+    const inputDecimals = typeInfo.inputCurrencyDecimals ?? 18
+    const outputDecimals = typeInfo.outputCurrencyDecimals ?? 18
+
+    if (inputSymbol && outputSymbol) {
+      // Format the amounts using the cached decimals
+      let inputAmount = ''
+      let outputAmount = ''
+
+      if (typeInfo.tradeType === TradeType.EXACT_INPUT && 'inputCurrencyAmountRaw' in typeInfo) {
+        const inputRaw = typeInfo.inputCurrencyAmountRaw
+        const outputRaw =
+          'expectedOutputCurrencyAmountRaw' in typeInfo
+            ? typeInfo.expectedOutputCurrencyAmountRaw
+            : typeInfo.outputCurrencyAmountRaw
+        inputAmount = formatNumber({
+          value: parseFloat(inputRaw) / Math.pow(10, inputDecimals),
+          type: NumberType.TokenNonTx,
+        })
+        outputAmount = formatNumber({
+          value: parseFloat(outputRaw) / Math.pow(10, outputDecimals),
+          type: NumberType.TokenNonTx,
+        })
+      } else if (typeInfo.tradeType === TradeType.EXACT_OUTPUT && 'outputCurrencyAmountRaw' in typeInfo) {
+        const inputRaw =
+          'expectedInputCurrencyAmountRaw' in typeInfo
+            ? typeInfo.expectedInputCurrencyAmountRaw
+            : typeInfo.inputCurrencyAmountRaw
+        const outputRaw = typeInfo.outputCurrencyAmountRaw
+        inputAmount = formatNumber({
+          value: parseFloat(inputRaw) / Math.pow(10, inputDecimals),
+          type: NumberType.TokenNonTx,
+        })
+        outputAmount = formatNumber({
+          value: parseFloat(outputRaw) / Math.pow(10, outputDecimals),
+          type: NumberType.TokenNonTx,
+        })
+      }
+
+      if (inputAmount && outputAmount) {
+        return `${inputAmount} ${inputSymbol} for ${outputAmount} ${outputSymbol}`
+      }
+    }
+
+    // Fallback if metadata not available
     return 'Swapping tokens...'
   }
 
@@ -174,7 +225,7 @@ export function TransactionPopupContent({ hash, onClose }: { hash: string; onClo
     descriptor:
       transaction.status === TransactionStatus.Failed
         ? t('notification.transaction.unknown.fail.short')
-        : getSimpleDescriptor(transaction),
+        : getSimpleDescriptor(transaction, formatNumberOrString),
     timestamp: Date.now() / 1000,
     from: transaction.from,
   }

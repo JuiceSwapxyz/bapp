@@ -101,6 +101,12 @@ export function useSwapCallback({
       type: TransactionType.Swap,
       inputCurrencyId: currencyId(trade.inputAmount.currency),
       outputCurrencyId: currencyId(trade.outputAmount.currency),
+      inputCurrencySymbol: trade.inputAmount.currency.symbol,
+      inputCurrencyName: trade.inputAmount.currency.name,
+      inputCurrencyDecimals: trade.inputAmount.currency.decimals,
+      outputCurrencySymbol: trade.outputAmount.currency.symbol,
+      outputCurrencyName: trade.outputAmount.currency.name,
+      outputCurrencyDecimals: trade.outputAmount.currency.decimals,
       isUniswapXOrder: result.type === TradeFillType.UniswapX || result.type === TradeFillType.UniswapXv2,
       ...(trade.tradeType === TradeType.EXACT_INPUT
         ? {

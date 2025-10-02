@@ -332,6 +332,14 @@ export interface BaseSwapTransactionInfo extends BaseTransactionInfo {
   inputCurrencyId: string
   outputCurrencyId: string
 
+  // Token metadata cached from the swap to avoid re-fetching
+  inputCurrencySymbol?: string
+  inputCurrencyName?: string
+  inputCurrencyDecimals?: number
+  outputCurrencySymbol?: string
+  outputCurrencyName?: string
+  outputCurrencyDecimals?: number
+
   // only used by wallet
   slippageTolerance?: number
   quoteId?: string
