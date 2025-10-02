@@ -1,5 +1,4 @@
 import { LocalOverrideAdapter } from '@statsig/js-local-overrides'
-import { getStatsigClient } from 'uniswap/src/features/gating/sdk/statsig'
 
 // Workaround for @statsig 3.x.x refreshing client after applying overrides to get the result without reloading
 // Should be removed after statsig add real time override apply functionality
@@ -9,12 +8,7 @@ export class LocalOverrideAdapterWrapper extends LocalOverrideAdapter {
     super(sdkKey)
   }
 
-  refreshStatsig(): void {
-    const statsigClient = getStatsigClient()
-    const statsigUser = statsigClient.getContext().user
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    statsigClient.updateUserAsync(statsigUser)
-  }
+  refreshStatsig(): void {}
 
   overrideGate(name: string, value: boolean): void {
     super.overrideGate(name, value)

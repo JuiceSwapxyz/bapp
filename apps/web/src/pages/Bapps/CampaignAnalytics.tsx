@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { lazy, Suspense } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { Chart } from 'ui/src/components/icons/Chart'
 
@@ -248,7 +247,7 @@ export default function CampaignAnalytics() {
       hourlyCompletion?.data.filter((hour) => {
         return new Date(hour.hour).getTime() > startTrades
       }) || [],
-    [hourlyCompletion?.data, startTrades]
+    [hourlyCompletion?.data, startTrades],
   )
 
   const isLoading = isLoadingGrowth || isLoadingCompletion
@@ -410,7 +409,6 @@ export default function CampaignAnalytics() {
           </>
         )}
       </Section>
-
     </AnalyticsContainer>
   )
 }

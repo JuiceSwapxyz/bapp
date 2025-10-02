@@ -62,7 +62,7 @@ export function useLastBalancesReporter({ isOnboarded }: { isOnboarded: boolean 
   const portfolioBalancesGraphQLQuery = usePortfolioBalancesQuery({
     fetchPolicy: 'cache-first',
     variables: account?.address ? { ownerAddress: account.address, chains: gqlChains, valueModifiers } : undefined,
-    skip: isRestEnabled || !account?.address,
+    skip: true, // TODO: re-enable
   })
 
   const { data: portfolioBalancesRestData } = useGetPortfolioQuery({

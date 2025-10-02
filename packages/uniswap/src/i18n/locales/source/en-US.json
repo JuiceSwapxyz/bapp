@@ -2021,7 +2021,7 @@
   "testnet.modal.swapDeepLink.title.toTestnetMode": "Enable testnet mode",
   "testnet.unsupported": "This functionality is not supported in testnet mode.",
   "themeToggle.theme": "Theme",
-  "title.buySellTradeEthereum": "Buy, sell & trade Ethereum and other top tokens on JuiceSwap",
+  "title.buySellTradeEthereum": "JuiceSwap.com - The easiest way to Swap in, out and on Citrea",
   "title.createGovernanceOn": "Create a new governance proposal on JuiceSwap",
   "title.createGovernanceTo": "Create a new governance proposal to be voted on by UNI holders. UNI tokens represent voting shares in JuiceSwap governance.",
   "title.earnFees": "Earn fees when others swap on JuiceSwap by adding tokens to liquidity pools.",

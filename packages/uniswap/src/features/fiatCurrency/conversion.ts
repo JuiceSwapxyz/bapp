@@ -116,6 +116,7 @@ export function useFiatConverter({
       toCurrency,
     },
     pollInterval: PollingInterval.Slow,
+    skip: true, // TODO: re-enable
   })
 
   const conversion = latestConversion || prevConversion
