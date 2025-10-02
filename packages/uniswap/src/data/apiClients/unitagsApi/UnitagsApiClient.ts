@@ -20,7 +20,7 @@ import {
 } from 'uniswap/src/features/unitags/types'
 
 const UnitagsApiClient = createApiClient({
-  baseUrl: uniswapUrls.unitagsApiUrl,
+  baseUrl: '', // Unitags service disabled
 })
 
 export async function fetchUsername(params: UnitagUsernameRequest): Promise<UnitagUsernameResponse> {

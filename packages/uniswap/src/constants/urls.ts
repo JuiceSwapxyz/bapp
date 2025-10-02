@@ -4,15 +4,10 @@ import { isAndroid, isExtension, isInterface, isMobileApp } from 'utilities/src/
 
 enum TrafficFlows {
   GraphQL = 'graphql',
-  Metrics = 'metrics',
-  Gating = 'gating',
   TradingApi = 'trading-api-labs',
-  Unitags = 'unitags',
-  FOR = 'for',
-  Scantastic = 'scantastic',
 }
 
-const FLOWS_USING_BETA = [TrafficFlows.FOR]
+const FLOWS_USING_BETA: TrafficFlows[] = []
 
 const isDevOrBeta = isPlaywrightEnv() ? false : isDevEnv() || isBetaEnv()
 
@@ -127,17 +122,15 @@ export const uniswapUrls = {
   apiBaseUrlV2: config.apiBaseUrlV2Override || `${getCloudflareApiBaseUrl()}/v2`,
   graphQLUrl: config.graphqlUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.GraphQL)}/v1/graphql`,
 
-  // Proxies
-  amplitudeProxyUrl:
-    config.amplitudeProxyUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.Metrics)}/v1/amplitude-proxy`,
-  statsigProxyUrl: config.statsigProxyUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.Gating)}/v1/statsig-proxy`,
-
-  // Feature service URL's
-  unitagsApiUrl: config.unitagsApiUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.Unitags)}/v2/unitags`,
-  scantasticApiUrl:
-    config.scantasticApiUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.Scantastic)}/v2/scantastic`,
-  forApiUrl: config.forApiUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.FOR)}/v2/FOR.v1.FORService`,
+  // Trading API
   tradingApiUrl: config.tradingApiUrlOverride || getCloudflareApiBaseUrl(TrafficFlows.TradingApi),
+
+  // Disabled services (kept for backwards compatibility)
+  amplitudeProxyUrl: config.amplitudeProxyUrlOverride || '',
+  statsigProxyUrl: config.statsigProxyUrlOverride || '',
+  unitagsApiUrl: config.unitagsApiUrlOverride || '',
+  scantasticApiUrl: config.scantasticApiUrlOverride || '',
+  forApiUrl: config.forApiUrlOverride || '',
 
   // Merkl Docs for LP Incentives
   merklDocsUrl: 'https://docs.merkl.xyz/earn-with-merkl/faq-earn#how-are-aprs-calculated',
