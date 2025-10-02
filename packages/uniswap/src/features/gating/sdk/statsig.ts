@@ -7,7 +7,6 @@ export {
   StatsigContext,
   StatsigProvider,
   Storage,
-  useClientAsyncInit,
   useDynamicConfig,
   useExperiment,
   useFeatureGate,
@@ -38,4 +37,28 @@ export const getOverrideAdapter = (): LocalOverrideAdapterWrapper => {
   }
   return localOverrideAdapter
 }
-export const getStatsigClient = (): StatsigClient => StatsigClient.instance(statsigApiKey)
+
+let statsigClient: StatsigClient | undefined
+export const getStatsigClient = (): StatsigClient => {
+  if (!statsigClient) {
+    statsigClient = new StatsigClient(
+      statsigApiKey,
+      {},
+      {
+        networkConfig: {
+          networkOverrideFunc: async (_url: string, _args: unknown): Promise<Response> => {
+            return new Response(null, { status: 200 })
+          },
+        },
+      },
+    )
+  }
+  return statsigClient
+}
+
+export const useClientAsyncInit = (): {
+  isLoading: boolean
+  client: StatsigClient
+} => {
+  return { isLoading: true, client: getStatsigClient() }
+}

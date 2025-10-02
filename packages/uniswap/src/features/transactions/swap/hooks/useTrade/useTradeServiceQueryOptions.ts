@@ -32,6 +32,7 @@ export function createTradeServiceQueryOptions(ctx: {
         !!params &&
         !params.skip &&
         !!validatedInput &&
+        params.otherCurrency?.chainId !== 1 && // TODO: re-enable
         // TODO(SWAP-153): Integrate Solana into TradeService
         params.amountSpecified?.currency.chainId !== UniverseChainId.Solana,
     })

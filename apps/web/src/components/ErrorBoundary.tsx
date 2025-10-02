@@ -121,6 +121,7 @@ class SimpleErrorBoundary extends Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log errors to console for debugging (previously sent to Datadog)
+    // eslint-disable-next-line no-console
     console.error('ErrorBoundary caught:', error, errorInfo)
   }
 

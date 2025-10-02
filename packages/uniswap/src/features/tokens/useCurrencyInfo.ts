@@ -131,7 +131,7 @@ export function useCurrencyInfos(
     variables: {
       contracts: _currencyIds.map(currencyIdToContractInput),
     },
-    skip: !_currencyIds.length || options?.skip,
+    skip: true, // TODO: re-enable
     fetchPolicy: options?.refetch ? 'cache-and-network' : 'cache-first',
   })
 
