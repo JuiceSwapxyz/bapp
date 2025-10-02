@@ -152,7 +152,7 @@ export function TransactionPopupContent({ hash, onClose }: { hash: string; onClo
     title:
       transaction.status === TransactionStatus.Failed
         ? t('notification.transaction.unknown.fail.short')
-        : t('notification.transaction.pending'),
+        : t('transaction.status.swap.pending'),
     descriptor:
       transaction.status === TransactionStatus.Failed
         ? t('notification.transaction.unknown.fail.short')
