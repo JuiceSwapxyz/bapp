@@ -121,7 +121,6 @@ describe('getEnabledChains', () => {
       chains: [
         UniverseChainId.Mainnet,
         UniverseChainId.Unichain,
-        UniverseChainId.Solana,
         UniverseChainId.Polygon,
         UniverseChainId.ArbitrumOne,
         UniverseChainId.Optimism,

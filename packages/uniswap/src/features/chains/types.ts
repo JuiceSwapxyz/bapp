@@ -27,14 +27,12 @@ export enum UniverseChainId {
   WorldChain = UniswapSDKChainId.WORLDCHAIN,
   Zksync = UniswapSDKChainId.ZKSYNC,
   Zora = UniswapSDKChainId.ZORA,
-  Solana = 501000101,
 }
 
 export type UniverseChainIdByPlatform<T extends Platform> = ((typeof UNIVERSE_CHAIN_INFO)[UniverseChainId] & {
   platform: T
 })['id']
 export type EVMUniverseChainId = UniverseChainIdByPlatform<Platform.EVM>
-export type SVMUniverseChainId = UniverseChainIdByPlatform<Platform.SVM>
 
 export interface EnabledChainsInfo {
   chains: UniverseChainId[]

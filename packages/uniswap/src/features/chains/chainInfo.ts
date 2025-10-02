@@ -14,7 +14,6 @@ import { UNICHAIN_CHAIN_INFO, UNICHAIN_SEPOLIA_CHAIN_INFO } from 'uniswap/src/fe
 import { WORLD_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/worldchain'
 import { ZKSYNC_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/zksync'
 import { ZORA_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/zora'
-import { SOLANA_CHAIN_INFO } from 'uniswap/src/features/chains/svm/info/solana'
 import { UniverseChainId, UniverseChainInfo } from 'uniswap/src/features/chains/types'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { getNonEmptyArrayOrThrow } from 'utilities/src/primitives/array'
@@ -26,7 +25,6 @@ export function getChainInfo(chainId: UniverseChainId): UniverseChainInfo {
 export const ORDERED_CHAINS = [
   MAINNET_CHAIN_INFO,
   UNICHAIN_CHAIN_INFO,
-  SOLANA_CHAIN_INFO,
   POLYGON_CHAIN_INFO,
   ARBITRUM_CHAIN_INFO,
   OPTIMISM_CHAIN_INFO,
@@ -50,9 +48,7 @@ type ConstChainInfo<P extends Platform = Platform> = Extract<(typeof ORDERED_CHA
 function getOrderedEVMChains(): ConstChainInfo<Platform.EVM>[] {
   const evmChains: ConstChainInfo<Platform.EVM>[] = []
   for (const chain of ORDERED_CHAINS) {
-    if (chain.platform === Platform.EVM) {
-      evmChains.push(chain)
-    }
+    evmChains.push(chain)
   }
   return evmChains
 }
@@ -91,9 +87,6 @@ export const UNIVERSE_CHAIN_INFO = {
   [UniverseChainId.MonadTestnet]: MONAD_CHAIN_INFO,
   [UniverseChainId.Sepolia]: SEPOLIA_CHAIN_INFO,
   [UniverseChainId.UnichainSepolia]: UNICHAIN_SEPOLIA_CHAIN_INFO,
-
-  // SVM
-  [UniverseChainId.Solana]: SOLANA_CHAIN_INFO,
 } as const satisfies AllChainsMap
 
 export const GQL_MAINNET_CHAINS = ORDERED_EVM_CHAINS.filter((chain) => !chain.testnet).map(

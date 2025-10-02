@@ -55,7 +55,6 @@ export function useMaxAmountSpend({
   })
 }
 
-// eslint-disable-next-line complexity
 function useGetMinAmount(chainId?: UniverseChainId, txType?: TransactionType): JSBI | undefined {
   const MIN_ETH_FOR_GAS = useMinEthForGas(txType)
   const MIN_POLYGON_FOR_GAS = useMinPolygonForGas(txType)
@@ -93,7 +92,6 @@ function useGetMinAmount(chainId?: UniverseChainId, txType?: TransactionType): J
     case UniverseChainId.UnichainSepolia:
     case UniverseChainId.Soneium:
     case UniverseChainId.CitreaTestnet:
-    case UniverseChainId.Solana:
       return MIN_L2_FOR_GAS
     default:
       logger.error(new Error('unhandled chain when getting min gas amount'), {

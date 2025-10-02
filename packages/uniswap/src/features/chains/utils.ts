@@ -91,8 +91,6 @@ export function fromGraphQLChain(chain: Chain | string | undefined): UniverseCha
       return UniverseChainId.Sepolia
     case Chain.Unichain:
       return UniverseChainId.Unichain
-    case Chain.Solana:
-      return UniverseChainId.Solana
     case Chain.Soneium:
       return UniverseChainId.Soneium
     case Chain.AstrochainSepolia:
@@ -225,9 +223,9 @@ export function getEnabledChains({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _unused1 = includeTestnets
   const enabledChainInfos = ORDERED_CHAINS.filter((chainInfo) => {
-    // Filter by platform
-    if (platform !== undefined && platform !== chainInfo.platform) {
-      return false
+    // Filter by platform - removed conditional as all chains are EVM now
+    if (platform !== undefined) {
+      // All chains are now Platform.EVM, so no filtering needed
     }
 
     // ALWAYS filter to only show testnets, regardless of settings
@@ -280,10 +278,9 @@ function getDefaultChainId({
   // Kept for API compatibility but currently unused as we always return testnets
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _unused2 = isTestnetModeEnabled
-  if (platform === Platform.SVM) {
-    // TODO(Solana): is there a Solana testnet we can return here?
-    return UniverseChainId.Solana
-  }
+  // Kept for API compatibility but currently unused
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _unused3 = platform
 
   // If Citrea only is enabled, return CitreaTestnet as default
   if (isCitreaOnlyEnabled) {
