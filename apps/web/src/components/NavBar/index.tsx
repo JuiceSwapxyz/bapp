@@ -1,6 +1,5 @@
 import { ChainSelector } from 'components/NavBar/ChainSelector'
 import { CompanyMenu } from 'components/NavBar/CompanyMenu'
-import { NewUserCTAButton } from 'components/NavBar/DownloadApp/NewUserCTAButton'
 import { PreferenceMenu } from 'components/NavBar/PreferencesMenu'
 import { useTabsVisible } from 'components/NavBar/ScreenSizes'
 import { SearchBar } from 'components/NavBar/SearchBar'
@@ -73,10 +72,7 @@ function useShouldHideChainSelector() {
 }
 
 export default function Navbar() {
-  const isLandingPage = useIsPage(PageType.LANDING)
-
   const media = useMedia()
-  const isSmallScreen = media.md
   const areTabsVisible = useTabsVisible()
   const collapseSearchBar = media.xl
   const account = useAccount()
@@ -84,7 +80,6 @@ export default function Navbar() {
   const hideChainSelector = useShouldHideChainSelector()
 
   const { isTestnetModeEnabled } = useEnabledChains()
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
 
   return (
     <Nav>
@@ -98,11 +93,9 @@ export default function Navbar() {
 
         <Right>
           {collapseSearchBar && <SearchBar />}
-          {!isEmbeddedWalletEnabled && isLandingPage && !isSmallScreen && <NewUserCTAButton />}
           {!account.isConnected && <PreferenceMenu />}
           {!hideChainSelector && <ChainSelector />}
           {isTestnetModeEnabled && <TestnetModeTooltip />}
-          {isEmbeddedWalletEnabled && !account.address && <NewUserCTAButton />}
           <Web3Status />
         </Right>
       </UnpositionedFlex>
