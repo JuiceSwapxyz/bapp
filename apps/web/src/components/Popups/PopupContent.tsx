@@ -154,8 +154,14 @@ export function TransactionPopupContent({ hash, onClose }: { hash: string; onClo
     hash: transaction.hash,
     chainId: transaction.chainId,
     status: transaction.status,
-    title: t('transaction.status.unknown'),
-    descriptor: t('notification.transaction.unknown.short'),
+    title:
+      transaction.status === TransactionStatus.Failed
+        ? t('notification.transaction.unknown.fail.short')
+        : t('notification.transaction.pending'),
+    descriptor:
+      transaction.status === TransactionStatus.Failed
+        ? t('notification.transaction.unknown.fail.short')
+        : t('notification.transaction.pending'),
     timestamp: Date.now() / 1000,
     from: transaction.from,
   }
