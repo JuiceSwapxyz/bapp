@@ -73,14 +73,6 @@ const ChartContainer = styled(Flex, {
   overflow: 'hidden',
 })
 
-const ChartOverlay = styled(Flex, {
-  position: 'absolute',
-  top: '$spacing20',
-  left: '$spacing20',
-  zIndex: 10,
-  gap: '$spacing8',
-})
-
 const TimeframeSelector = styled(Flex, {
   flexDirection: 'row',
   justifyContent: 'center',
