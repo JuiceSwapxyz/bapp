@@ -27,7 +27,7 @@ export function usePoolPriceChartData({
   variables?: PDPChartQueryVars
   priceInverted: boolean
 }): ChartQueryResult<PriceChartData, ChartType.PRICE> {
-  const { data, loading } = usePoolPriceHistoryQuery({ variables, skip: !variables?.addressOrId })
+  const { data, loading } = usePoolPriceHistoryQuery({ variables, skip: true }) // TODO: re-enable
   return useMemo(() => {
     const { priceHistory } = data?.v2Pair ?? data?.v3Pool ?? data?.v4Pool ?? {}
 
