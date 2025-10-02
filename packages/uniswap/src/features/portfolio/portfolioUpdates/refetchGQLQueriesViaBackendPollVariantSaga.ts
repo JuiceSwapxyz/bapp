@@ -1,8 +1,5 @@
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client'
 import { call, delay, select } from 'typed-redux-saga'
-import { getNativeAddress } from 'uniswap/src/constants/addresses'
-import { GQL_MAINNET_CHAINS, GQL_TESTNET_CHAINS } from 'uniswap/src/features/chains/chainInfo'
-import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, NetworkRequestsConfigKey } from 'uniswap/src/features/gating/configs'
 import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
 import { GQL_QUERIES_TO_REFETCH_ON_TXN_UPDATE } from 'uniswap/src/features/portfolio/portfolioUpdates/constants'
@@ -13,7 +10,6 @@ import { WalletEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { TransactionDetails } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { CurrencyId } from 'uniswap/src/types/currency'
-import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
 import { logger } from 'utilities/src/logger/logger'
 import { ONE_SECOND_MS } from 'utilities/src/time/time'
 
@@ -116,10 +112,10 @@ export function* refetchGQLQueriesViaBackendPollVariant({
 }
 
 function readBalancesFromCache({
-  owner,
+  // owner,
   currencyIds,
-  apolloClient,
-  isTestnetMode,
+  // apolloClient,
+  // isTestnetMode,
 }: {
   owner: string
   currencyIds: Set<CurrencyId> | undefined
@@ -135,7 +131,7 @@ function readBalancesFromCache({
     (currIdToBal, currencyId) => ({ ...currIdToBal, [currencyId]: 0 }), // assume 0 balance and update later if found in cache
     {},
   )
-
+  /*
   const chains = isTestnetMode ? GQL_TESTNET_CHAINS : GQL_MAINNET_CHAINS
 
   const cachedBalancesData = undefined
@@ -167,6 +163,7 @@ function readBalancesFromCache({
       break
     }
   }
+  */
 
   return currencyIdToBalance
 }

@@ -16,7 +16,7 @@ export function useFeatureFlag(_flag: FeatureFlags): boolean {
   return false
 }
 
-export function useFeatureFlagWithLoading(flag: FeatureFlags): { value: boolean; isLoading: boolean } {
+export function useFeatureFlagWithLoading(_flag: FeatureFlags): { value: boolean; isLoading: boolean } {
   const { isStatsigLoading } = useStatsigClientStatus()
   return { value: false, isLoading: isStatsigLoading }
 }
