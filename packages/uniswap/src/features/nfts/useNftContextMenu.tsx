@@ -6,15 +6,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { GeneratedIcon } from 'ui/src'
 import { Eye } from 'ui/src/components/icons/Eye'
 import { EyeOff } from 'ui/src/components/icons/EyeOff'
-import { Flag } from 'ui/src/components/icons/Flag'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
-import { AccountType } from 'uniswap/src/features/accounts/types'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useBlockExplorerLogo } from 'uniswap/src/features/chains/logos'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getChainExplorerName } from 'uniswap/src/features/chains/utils'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { getIsNftHidden, getNFTAssetKey } from 'uniswap/src/features/nfts/utils'
 import { pushNotification } from 'uniswap/src/features/notifications/slice'
 import { AppNotificationType, CopyNotificationType } from 'uniswap/src/features/notifications/types'
@@ -22,10 +18,8 @@ import { WalletEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { selectNftsVisibility } from 'uniswap/src/features/visibility/selectors'
 import { setNftVisibility } from 'uniswap/src/features/visibility/slice'
-import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import { setClipboard } from 'uniswap/src/utils/clipboard'
 import { ExplorerDataType, getExplorerLink, openUri } from 'uniswap/src/utils/linking'
-import { logger } from 'utilities/src/logger/logger'
 import { isWeb } from 'utilities/src/platform'
 import { ONE_SECOND_MS } from 'utilities/src/time/time'
 
@@ -56,40 +50,13 @@ export function useNFTContextMenu({
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const { defaultChainId } = useEnabledChains()
-  const isSelfReportSpamNFTEnabled = useFeatureFlag(FeatureFlags.SelfReportSpamNFTs)
-  const { evmAccount } = useWallet()
-  const isViewOnlyOwner = evmAccount && owner === evmAccount.address && evmAccount.accountType === AccountType.Readonly
   const ownedByUser = owner && walletAddresses.includes(owner)
-  const showReportSpamOption = isSelfReportSpamNFTEnabled && ownedByUser && !isViewOnlyOwner && !isSpam
 
   const { navigateToNftDetails } = useUniswapContext()
 
   const nftVisibility = useSelector(selectNftsVisibility)
   const nftKey = contractAddress && tokenId ? getNFTAssetKey(contractAddress, tokenId) : undefined
   const isVisible = !getIsNftHidden({ contractAddress, tokenId, isSpam, nftVisibility })
-
-  const onPressReport = useCallback(async () => {
-    if (!nftKey || !chainId || !contractAddress) {
-      logger.warn('useNftContextMenu', 'onPressReport', 'Missing required parameters for reporting', {
-        nftKey,
-        chainId,
-        contractAddress,
-      })
-      return
-    }
-
-    if (isVisible) {
-      dispatch(setNftVisibility({ nftKey, isVisible: false }))
-    }
-
-    // Data API Service removed - report spam functionality disabled
-    dispatch(
-      pushNotification({
-        type: AppNotificationType.Success,
-        title: t('notification.spam.NFT.successful'),
-      }),
-    )
-  }, [t, dispatch, contractAddress, isVisible, chainId, nftKey])
 
   const onPressHiddenStatus = useCallback(() => {
     if (!nftKey) {
@@ -184,22 +151,6 @@ export function useNFTContextMenu({
                   },
                 ]
               : []),
-            ...(showReportSpamOption
-              ? [
-                  {
-                    title: t('nft.reportSpam'),
-                    ...(isWeb
-                      ? {
-                          Icon: Flag,
-                        }
-                      : {
-                          systemIcon: 'flag',
-                        }),
-                    destructive: true,
-                    onPress: onPressReport,
-                  },
-                ]
-              : []),
             ...(ownedByUser
               ? [
                   {
@@ -227,8 +178,6 @@ export function useNFTContextMenu({
       openExplorerLink,
       contractAddress,
       onPressCopyAddress,
-      showReportSpamOption,
-      onPressReport,
       ownedByUser,
       isVisible,
       onPressHiddenStatus,
