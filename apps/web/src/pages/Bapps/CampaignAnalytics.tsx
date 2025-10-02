@@ -626,6 +626,169 @@ export default function CampaignAnalytics() {
         )}
       </Section>
 
+      {/* Combined Participants vs Completed */}
+      <Section>
+        <SectionHeader>
+          <Chart size="$icon.20" color="$accent1" />
+          <SectionTitle>Total Participants vs Completed Participants</SectionTitle>
+        </SectionHeader>
+
+        {isLoading && <LoadingText>Loading participant comparison data...</LoadingText>}
+        {hasError && <ErrorText>{completionError}</ErrorText>}
+
+        {!isLoading && !hasError && hourlyCompletion && (
+          <>
+            <StatsGrid>
+              <StatCard>
+                <StatLabel>Total Participants</StatLabel>
+                <StatValue>{hourlyCompletion.summary.currentParticipants.toLocaleString()}</StatValue>
+              </StatCard>
+              <StatCard>
+                <StatLabel>Completed Participants</StatLabel>
+                <StatValue>{hourlyCompletion.summary.currentCompleted.toLocaleString()}</StatValue>
+              </StatCard>
+              <StatCard>
+                <StatLabel>Completion Rate</StatLabel>
+                <StatValue>{hourlyCompletion.summary.currentCompletionRate.toFixed(1)}%</StatValue>
+              </StatCard>
+              <StatCard>
+                <StatLabel>Incomplete Participants</StatLabel>
+                <StatValue>
+                  {(
+                    hourlyCompletion.summary.currentParticipants - hourlyCompletion.summary.currentCompleted
+                  ).toLocaleString()}
+                </StatValue>
+              </StatCard>
+            </StatsGrid>
+
+            <ChartContainer>
+              <ChartOverlay>
+                <StatValue>{hourlyCompletion.summary.currentParticipants.toLocaleString()}</StatValue>
+                <StatLabel>Total vs Completed</StatLabel>
+              </ChartOverlay>
+              {typeof window !== 'undefined' && (
+                <Suspense fallback={<LoadingText>Loading chart...</LoadingText>}>
+                  <ApexChart
+                    key={`combined-chart-${timeframe}`}
+                    type="area"
+                    height={300}
+                    options={{
+                      chart: {
+                        type: 'area',
+                        height: 300,
+                        dropShadow: {
+                          enabled: false,
+                        },
+                        toolbar: {
+                          show: false,
+                        },
+                        zoom: {
+                          enabled: false,
+                        },
+                        background: 'transparent',
+                      },
+                      stroke: {
+                        width: 3,
+                        curve: 'smooth',
+                      },
+                      dataLabels: {
+                        enabled: false,
+                      },
+                      grid: {
+                        show: false,
+                      },
+                      xaxis: {
+                        type: 'datetime',
+                        labels: {
+                          show: false,
+                        },
+                        axisBorder: {
+                          show: false,
+                        },
+                        axisTicks: {
+                          show: false,
+                        },
+                      },
+                      yaxis: {
+                        show: false,
+                        min: 0,
+                      },
+                      fill: {
+                        type: 'gradient',
+                        gradient: {
+                          type: 'vertical',
+                          opacityFrom: 0.8,
+                          opacityTo: 0.2,
+                        },
+                      },
+                      colors: ['#FF6B00', '#10B981'],
+                      legend: {
+                        show: true,
+                        position: 'top',
+                        horizontalAlign: 'left',
+                        labels: {
+                          colors: '#FFFFFF',
+                        },
+                      },
+                      tooltip: {
+                        enabled: true,
+                        theme: 'dark',
+                        style: {
+                          fontSize: '14px',
+                          fontFamily: 'inherit',
+                        },
+                        cssClass: 'apexcharts-tooltip-dark',
+                        x: {
+                          format: 'dd MMM yyyy HH:mm',
+                        },
+                        y: {
+                          formatter: (value: number) => value.toLocaleString(),
+                          title: {
+                            formatter: (seriesName: string) => seriesName + ':',
+                          },
+                        },
+                        marker: {
+                          show: true,
+                        },
+                        fixed: {
+                          enabled: false,
+                        },
+                      },
+                    }}
+                    series={[
+                      {
+                        name: 'Total Participants',
+                        data: filteredCompletionData.map((hour) => {
+                          return [new Date(hour.hour).getTime(), hour.totalParticipants]
+                        }),
+                      },
+                      {
+                        name: 'Completed Participants',
+                        data: filteredCompletionData.map((hour) => {
+                          return [new Date(hour.hour).getTime(), hour.completedAllTasks]
+                        }),
+                      },
+                    ]}
+                  />
+                </Suspense>
+              )}
+            </ChartContainer>
+
+            <TimeframeSelector>
+              {Object.values(Timeframe).map((_timeframe) => (
+                <TimeframeButton
+                  key={_timeframe}
+                  selected={_timeframe === timeframe}
+                  onPress={() => setTimeframe(_timeframe)}
+                >
+                  <TimeframeButtonText selected={_timeframe === timeframe}>{_timeframe}</TimeframeButtonText>
+                </TimeframeButton>
+              ))}
+            </TimeframeSelector>
+          </>
+        )}
+      </Section>
+
     </AnalyticsContainer>
   )
 }
