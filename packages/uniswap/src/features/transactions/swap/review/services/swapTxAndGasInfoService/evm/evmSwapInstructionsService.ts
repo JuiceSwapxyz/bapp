@@ -56,7 +56,7 @@ interface EVMSwapInstructionsServiceContext {
   getSwapDelegationInfo?: (chainId: UniverseChainId | undefined) => SwapDelegationInfo
 }
 
-const getCustomSwapTokenData = (
+export const getCustomSwapTokenData = (
   trade: ClassicTrade | BridgeTrade | WrapTrade | UnwrapTrade | undefined,
 ): CustomSwapDataForRequest | undefined => {
   if (!trade) {
