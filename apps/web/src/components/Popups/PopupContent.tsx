@@ -144,12 +144,7 @@ export function TransactionPopupContent({ hash, onClose }: { hash: string; onClo
     return null
   }
 
-  // Show loading state while activity is being parsed
-  if (isLoading) {
-    return null
-  }
-
-  // If activity parsing failed, create a fallback activity object
+  // If activity parsing is still loading or failed, create a fallback activity object
   const fallbackActivity: Activity = activity ?? {
     hash: transaction.hash,
     chainId: transaction.chainId,
