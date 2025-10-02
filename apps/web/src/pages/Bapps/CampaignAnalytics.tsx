@@ -301,10 +301,6 @@ export default function CampaignAnalytics() {
             </StatsGrid>
 
             <ChartContainer>
-              <ChartOverlay>
-                <StatValue>{hourlyCompletion.summary.currentParticipants.toLocaleString()}</StatValue>
-                <StatLabel>Total vs Completed</StatLabel>
-              </ChartOverlay>
               {typeof window !== 'undefined' && (
                 <Suspense fallback={<LoadingText>Loading chart...</LoadingText>}>
                   <ApexChart
