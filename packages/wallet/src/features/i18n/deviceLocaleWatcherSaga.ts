@@ -33,20 +33,9 @@ export function* deviceLocaleWatcher(): Generator {
 function* syncAppWithDeviceLanguage(): Generator {
   const currentAppLanguage = yield* select(selectCurrentLanguage)
   const deviceLanguage = getWalletDeviceLanguage()
-  const deviceLocale = getWalletDeviceLocale()
 
+  // Always English now, but keep the sync logic for consistency
   if (currentAppLanguage !== deviceLanguage) {
-    // Syncs language with Firestore every app start to make sure language is up to date
     yield* put(setCurrentLanguage(deviceLanguage))
-  }
-
-  if (isMobileApp && currentAppLanguage !== deviceLanguage) {
-    // We force a restart of the mobile app when the language changes
-    logger.info(
-      'syncAppWithDeviceLanguage.ts',
-      'syncAppWithDeviceLanguage',
-      `Restarting app because of locale change: ${currentAppLanguage} -> ${deviceLanguage}, ${i18n.language} -> ${deviceLocale}`,
-    )
-    yield* call(restartApp)
   }
 }

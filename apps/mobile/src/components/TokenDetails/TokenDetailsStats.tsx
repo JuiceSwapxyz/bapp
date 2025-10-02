@@ -136,16 +136,13 @@ export const TokenDetailsStats = memo(function _TokenDetailsStats(): JSX.Element
   const descriptions = useTokenProjectDescriptionQuery({
     variables: {
       ...currencyIdToContractInput(currencyId),
-      includeSpanish:
-        language === Language.SpanishSpain ||
-        language === Language.SpanishLatam ||
-        language === Language.SpanishUnitedStates,
-      includeFrench: language === Language.French,
-      includeJapanese: language === Language.Japanese,
-      includePortuguese: language === Language.Portuguese,
-      includeVietnamese: language === Language.Vietnamese,
-      includeChineseSimplified: language === Language.ChineseSimplified,
-      includeChineseTraditional: language === Language.ChineseTraditional,
+      includeSpanish: false,
+      includeFrench: false,
+      includeJapanese: false,
+      includePortuguese: false,
+      includeVietnamese: false,
+      includeChineseSimplified: false,
+      includeChineseTraditional: false,
     },
     fetchPolicy: 'cache-and-network',
     returnPartialData: true,
