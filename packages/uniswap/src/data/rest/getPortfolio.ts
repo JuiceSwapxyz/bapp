@@ -57,7 +57,7 @@ type GetPortfolioQuery<TSelectData = GetPortfolioResponse> = QueryOptionsResult<
 
 export const getPortfolioQuery = <TSelectData = GetPortfolioResponse>({
   input,
-  enabled = true,
+  enabled = false, // TODO: re-enable
   refetchInterval,
   select,
 }: GetPortfolioInput<TSelectData>): GetPortfolioQuery<TSelectData> => {
@@ -73,7 +73,7 @@ export const getPortfolioQuery = <TSelectData = GetPortfolioResponse>({
     queryFn: () => (transformedInput ? portfolioClient.getPortfolio(transformedInput) : Promise.resolve(undefined)),
     placeholderData: (prev) => prev, // this prevents the loading skeleton from appearing when hiding/unhiding tokens
     refetchInterval,
-    enabled,
+    enabled: false, // TODO: re-enable
     subscribed: !!enabled,
     select,
   })

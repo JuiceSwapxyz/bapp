@@ -8,7 +8,7 @@ import { uniswapGetTransport } from 'uniswap/src/data/rest/base'
 
 export function useGetPoolsByTokens(
   input?: PartialMessage<ListPoolsRequest>,
-  enabled = true,
+  _enabled = false, // TODO: re-enable
 ): UseQueryResult<ListPoolsResponse, ConnectError> {
-  return useQuery(listPools, input, { transport: uniswapGetTransport, enabled })
+  return useQuery(listPools, input, { transport: uniswapGetTransport, enabled: false }) // TODO: re-enable
 }

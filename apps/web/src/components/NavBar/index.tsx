@@ -13,8 +13,6 @@ import deprecatedStyled, { css } from 'lib/styled-components'
 import { Flex, Nav as TamaguiNav, styled, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT, breakpoints, zIndexes } from 'ui/src/theme'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 
 // Flex is position relative by default, we must unset the position on every Flex
 // between the body and search component
