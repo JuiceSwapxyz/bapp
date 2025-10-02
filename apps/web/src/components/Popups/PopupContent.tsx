@@ -62,8 +62,9 @@ type ActivityPopupContentProps = { activity: Activity; onClick?: () => void; onC
 function ActivityPopupContent({ activity, onClick, onClose }: ActivityPopupContentProps) {
   const success = activity.status === TransactionStatus.Success && !activity.cancelled
   const pending = activity.status === TransactionStatus.Pending
+  const failed = activity.status === TransactionStatus.Failed
 
-  const showPortfolioLogo = success || pending || !!activity.offchainOrderDetails
+  const showPortfolioLogo = success || pending || failed || !!activity.offchainOrderDetails
   const colors = useSporeColors()
 
   const isBridgeActivity = activity.outputChainId && activity.chainId !== activity.outputChainId
