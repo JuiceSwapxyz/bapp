@@ -128,9 +128,10 @@ function ActivityPopupContent({ activity, onClick, onClose }: ActivityPopupConte
 
 export function TransactionPopupContent({ hash, onClose }: { hash: string; onClose: () => void }) {
   const transaction = useTransaction(hash)
+  const { t } = useTranslation()
 
   const { formatNumberOrString } = useLocalizationContext()
-  const { data: activity } = useQuery(
+  const { data: activity, isLoading } = useQuery(
     getTransactionToActivityQueryOptions({
       transaction,
       formatNumber: formatNumberOrString,
@@ -139,21 +140,41 @@ export function TransactionPopupContent({ hash, onClose }: { hash: string; onClo
 
   const isFlashblockNotification = useIsRecentFlashblocksNotification({ transaction, activity })
 
-  if (!transaction || !activity) {
+  if (!transaction) {
     return null
+  }
+
+  // Show loading state while activity is being parsed
+  if (isLoading) {
+    return null
+  }
+
+  // If activity parsing failed, create a fallback activity object
+  const fallbackActivity: Activity = activity ?? {
+    hash: transaction.hash,
+    chainId: transaction.chainId,
+    status: transaction.status,
+    title: t('transaction.status.unknown'),
+    descriptor: t('notification.transaction.unknown.short'),
+    timestamp: Date.now() / 1000,
+    from: transaction.from,
   }
 
   if (
     isFlashblockNotification &&
     !isNonInstantFlashblockTransactionType(transaction) &&
-    activity.status === TransactionStatus.Success
+    fallbackActivity.status === TransactionStatus.Success
   ) {
     return null
   }
 
   const onClick = () =>
     window.open(
-      getExplorerLink({ chainId: activity.chainId, data: activity.hash, type: ExplorerDataType.TRANSACTION }),
+      getExplorerLink({
+        chainId: fallbackActivity.chainId,
+        data: fallbackActivity.hash,
+        type: ExplorerDataType.TRANSACTION,
+      }),
       '_blank',
     )
 
@@ -161,7 +182,7 @@ export function TransactionPopupContent({ hash, onClose }: { hash: string; onClo
 
   return (
     <ActivityPopupContent
-      activity={activity}
+      activity={fallbackActivity}
       onClick={explorerUrlUnavailable ? undefined : onClick}
       onClose={onClose}
     />
