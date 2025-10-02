@@ -28,20 +28,35 @@ export async function getCurrencyFromCurrencyId(currencyId: CurrencyId): Promise
   }
 
   // Handle common bases
-  const commonBase = COMMON_BASES[chainId].find(
-    (base) => base.currency.isToken && isSameAddress(base.currency.address, address),
-  )
-  if (commonBase) {
-    return commonBase.currency
+  const commonBases = COMMON_BASES[chainId]
+  if (commonBases) {
+    const commonBase = commonBases.find(
+      (base) => base.currency.isToken && isSameAddress(base.currency.address, address),
+    )
+    if (commonBase) {
+      return commonBase.currency
+    }
   }
 
   // Query for token from graphql
-  const { data } = await apolloClient.query<TokenQuery>({
-    query: TokenDocument,
-    variables: {
-      address,
-      chain: toGraphQLChain(chainId),
-    },
-  })
-  return gqlTokenToCurrencyInfo(data.token as Token)?.currency
+  try {
+    const { data } = await apolloClient.query<TokenQuery>({
+      query: TokenDocument,
+      variables: {
+        address,
+        chain: toGraphQLChain(chainId),
+      },
+    })
+    const currency = gqlTokenToCurrencyInfo(data.token as Token)?.currency
+    if (currency) {
+      return currency
+    }
+  } catch (error) {
+    // GraphQL query failed, will use fallback below
+  }
+
+  // Fallback: create a basic Token object with minimal info
+  // This ensures we can at least show the address even if we don't have full token metadata
+  const { Token: TokenClass } = await import('@juiceswapxyz/sdk-core')
+  return new TokenClass(chainId, address, 18, address.slice(2, 8).toUpperCase(), address.slice(2, 10))
 }
