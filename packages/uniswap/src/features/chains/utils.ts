@@ -272,7 +272,7 @@ export function getEnabledChains({
 }
 
 function getDefaultChainId({
-  platform,
+  platform: _platform,
   isTestnetModeEnabled,
   isCitreaOnlyEnabled = false,
 }: {

@@ -212,6 +212,8 @@ describe(useFilterCallbacks, () => {
       parsedChainFilter: null,
       searchFilter: null,
       parsedSearchFilter: null,
+      isValidAddress: false,
+      addressChainId: null,
       onChangeText: expect.any(Function),
       onChangeChainFilter: expect.any(Function),
       onClearSearchFilter: expect.any(Function),
@@ -250,7 +252,14 @@ describe(useFilterCallbacks, () => {
     })
 
     it('parses chain from search filter', async () => {
-      const { result } = renderHook(() => useFilterCallbacks(null, ModalName.Swap))
+      const { result } = renderHook(() => useFilterCallbacks(null, ModalName.Swap), {
+        preloadedState: {
+          userSettings: {
+            isTestnetModeEnabled: false, // Disable testnet mode to enable mainnet chains
+            isCitreaOnlyEnabled: false, // Disable Citrea-only mode
+          },
+        } as PreloadedState<UniswapState>,
+      })
 
       expect(result.current.parsedSearchFilter).toEqual(null)
 
@@ -297,7 +306,14 @@ describe(useFilterCallbacks, () => {
     })
 
     it('only parses after the first space', async () => {
-      const { result } = renderHook(() => useFilterCallbacks(null, ModalName.Swap))
+      const { result } = renderHook(() => useFilterCallbacks(null, ModalName.Swap), {
+        preloadedState: {
+          userSettings: {
+            isTestnetModeEnabled: false, // Disable testnet mode to enable mainnet chains
+            isCitreaOnlyEnabled: false, // Disable Citrea-only mode
+          },
+        } as PreloadedState<UniswapState>,
+      })
 
       expect(result.current.parsedSearchFilter).toEqual(null)
 
@@ -377,7 +393,12 @@ describe(useCurrencyInfosToTokenOptions, () => {
       input: { currencyInfos, sortAlphabetically: false, portfolioBalancesById: balancesById },
       output: [
         // ETH exists in the balancesById so we will get its balance
-        { ...balancesById[ethInfo.currencyId], type: OnchainItemListOptionType.Token },
+        {
+          type: OnchainItemListOptionType.Token,
+          currencyInfo: balancesById[ethInfo.currencyId]!.currencyInfo,
+          quantity: balancesById[ethInfo.currencyId]!.quantity,
+          balanceUSD: balancesById[ethInfo.currencyId]!.balanceUSD,
+        },
         // USDC and Arbitrum DAI do not exist in the balancesById so we will create empty balance options
         createEmptyBalanceOption(usdcBaseInfo),
         createEmptyBalanceOption(arbitrumDaiInfo),
@@ -392,7 +413,12 @@ describe(useCurrencyInfosToTokenOptions, () => {
         // USDC does not exist in the portfolioBalancesById so we will create empty balance options
         createEmptyBalanceOption(usdcBaseInfo), // Chain name: Base ETH
         // ETH exists in the portfolioBalancesById so we will get its balance
-        { ...balancesById[ethInfo.currencyId], type: OnchainItemListOptionType.Token }, // Chain name: ETH
+        {
+          type: OnchainItemListOptionType.Token,
+          currencyInfo: balancesById[ethInfo.currencyId]!.currencyInfo,
+          quantity: balancesById[ethInfo.currencyId]!.quantity,
+          balanceUSD: balancesById[ethInfo.currencyId]!.balanceUSD,
+        }, // Chain name: ETH
       ],
     },
   ]
