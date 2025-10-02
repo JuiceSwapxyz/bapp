@@ -7,6 +7,7 @@ import { DynamicConfigs, SwapConfigKey } from 'uniswap/src/features/gating/confi
 import { useDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
 import { useAllTransactionSettings } from 'uniswap/src/features/transactions/components/settings/stores/transactionSettingsStore/useTransactionSettingsStore'
 import { FALLBACK_SWAP_REQUEST_POLL_INTERVAL_MS } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/constants'
+import { getCustomSwapTokenData } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/evmSwapInstructionsService'
 import { processUniswapXResponse } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/uniswapx/utils'
 import type { TransactionRequestInfo } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/utils'
 import {
@@ -17,7 +18,7 @@ import {
 } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/utils'
 import { usePermit2SignatureWithData } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/hooks/usePermit2Signature'
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
-import type { TokenApprovalInfo } from 'uniswap/src/features/transactions/swap/types/trade'
+import type { ClassicTrade, TokenApprovalInfo } from 'uniswap/src/features/transactions/swap/types/trade'
 import { ApprovalAction } from 'uniswap/src/features/transactions/swap/types/trade'
 import { isBridge, isClassic, isUniswapX, isWrap } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { isInterface } from 'utilities/src/platform'
@@ -61,13 +62,16 @@ function useSwapTransactionRequestInfo({
 
     const alreadyApproved = tokenApprovalInfo?.action === ApprovalAction.None && !swapQuoteResponse.permitTransaction
 
-    return prepareSwapRequestParams({
-      swapQuoteResponse,
-      signature: signature ?? undefined,
-      transactionSettings,
-      alreadyApproved,
-      overrideSimulation,
-    })
+    return {
+      ...prepareSwapRequestParams({
+        swapQuoteResponse,
+        signature: signature ?? undefined,
+        transactionSettings,
+        alreadyApproved,
+        overrideSimulation,
+      }),
+      customSwapData: getCustomSwapTokenData(derivedSwapInfo.trade.trade as ClassicTrade),
+    }
   }, [
     swapQuoteResponse,
     tokenApprovalInfo?.action,
@@ -75,6 +79,7 @@ function useSwapTransactionRequestInfo({
     signature,
     transactionSettings,
     overrideSimulation,
+    derivedSwapInfo.trade.trade,
   ])
 
   const canBatchTransactions = useUniswapContextSelector((ctx) =>

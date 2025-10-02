@@ -1,4 +1,3 @@
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SignedRequestParams, createSignedRequestBody, createSignedRequestParams } from 'uniswap/src/data/utils'
 import {
