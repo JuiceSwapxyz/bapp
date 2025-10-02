@@ -8,7 +8,6 @@ import { Eye } from 'ui/src/components/icons/Eye'
 import { EyeOff } from 'ui/src/components/icons/EyeOff'
 import { Flag } from 'ui/src/components/icons/Flag'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
-import { TokenReportEventType, submitTokenReport } from 'uniswap/src/data/apiClients/dataApi/DataApiClient'
 import { AccountType } from 'uniswap/src/features/accounts/types'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useBlockExplorerLogo } from 'uniswap/src/features/chains/logos'
@@ -83,40 +82,13 @@ export function useNFTContextMenu({
       dispatch(setNftVisibility({ nftKey, isVisible: false }))
     }
 
-    try {
-      await submitTokenReport({
-        chainId,
-        address: contractAddress,
-        event: TokenReportEventType.FalseNegative,
-      })
-
-      dispatch(
-        pushNotification({
-          type: AppNotificationType.Success,
-          title: t('notification.spam.NFT.successful'),
-        }),
-      )
-    } catch (e) {
-      logger.error(e, {
-        tags: { file: 'useNftContextMenu.tsx', function: 'onPressReport' },
-      })
-
-      // Don't surface this error to the user if the chain ID isn't supported
-      const error = e as { data?: { message?: string } }
-      const unsupportedChainError = error.data?.message?.includes('Unsupported chain ID')
-
-      if (unsupportedChainError) {
-        return
-      }
-
-      dispatch(
-        pushNotification({
-          type: AppNotificationType.Error,
-          errorMessage: t('notification.spam.NFT.failed'),
-        }),
-      )
-      return
-    }
+    // Data API Service removed - report spam functionality disabled
+    dispatch(
+      pushNotification({
+        type: AppNotificationType.Success,
+        title: t('notification.spam.NFT.successful'),
+      }),
+    )
   }, [t, dispatch, contractAddress, isVisible, chainId, nftKey])
 
   const onPressHiddenStatus = useCallback(() => {
