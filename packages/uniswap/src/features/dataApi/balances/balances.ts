@@ -243,7 +243,7 @@ export function useGraphQLPortfolioTotalValue({
   address,
   pollInterval,
   fetchPolicy,
-  enabled = true,
+  enabled: _enabled = true,
 }: {
   address?: Address
   pollInterval?: PollingInterval
@@ -321,14 +321,12 @@ export function usePortfolioTotalValue({
     address,
     pollInterval,
     fetchPolicy,
-    enabled: !isRestEnabled,
   })
 
   const restResult = useRESTPortfolioTotalValue({
     address,
     pollInterval,
     fetchPolicy,
-    enabled: isRestEnabled,
   })
 
   return isRestEnabled ? restResult : graphqlResult

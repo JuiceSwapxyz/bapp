@@ -58,7 +58,6 @@ import { FeeType } from 'uniswap/src/data/tradingApi/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { getSpenderAddress } from 'uniswap/src/utils/approvalCalldata'
-import { logger } from 'utilities/src/logger/logger'
 
 // TradingAPI team is looking into updating type generation to produce the following types for it's current QuoteResponse type:
 // See: https://linear.app/uniswap/issue/API-236/explore-changing-the-quote-schema-to-pull-out-a-basequoteresponse
@@ -145,14 +144,6 @@ export async function fetchQuote({
     headers: {
       ...V4_HEADERS,
       ...getFeatureFlaggedHeaders(),
-    },
-    on404: () => {
-      logger.warn('TradingApiClient', 'fetchQuote', 'Quote 404', {
-        chainIdIn: params.tokenInChainId,
-        chainIdOut: params.tokenOutChainId,
-        tradeType: params.type,
-        isBridging: params.tokenInChainId !== params.tokenOutChainId,
-      })
     },
   })
 }
