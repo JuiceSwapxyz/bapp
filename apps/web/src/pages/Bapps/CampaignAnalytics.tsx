@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { lazy, Suspense } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { Chart } from 'ui/src/components/icons/Chart'
 
@@ -242,17 +241,12 @@ export default function CampaignAnalytics() {
       dailyGrowth?.data.filter((day) => {
         return new Date(day.date).getTime() > startTrades
       }) || [],
-    [dailyGrowth?.data, startTrades]
+    [dailyGrowth?.data, startTrades],
   )
 
-  const maxCumulative = useMemo(
-    () => Math.max(...filteredGrowthData.map((d) => d.cumulative), 1),
-    [filteredGrowthData]
-  )
+  const maxCumulative = useMemo(() => Math.max(...filteredGrowthData.map((d) => d.cumulative), 1), [filteredGrowthData])
 
-  const currentTotalUsers = dailyGrowth?.data.length
-    ? dailyGrowth.data[dailyGrowth.data.length - 1].cumulative
-    : 0
+  const currentTotalUsers = dailyGrowth?.data.length ? dailyGrowth.data[dailyGrowth.data.length - 1].cumulative : 0
 
   const completionRate =
     campaignStats && campaignStats.totalParticipants > 0
@@ -306,85 +300,85 @@ export default function CampaignAnalytics() {
                     type="area"
                     height={300}
                     options={{
-                    theme: {
-                      monochrome: {
-                        color: '#FF6B00',
+                      theme: {
+                        monochrome: {
+                          color: '#FF6B00',
+                          enabled: true,
+                        },
+                      },
+                      chart: {
+                        type: 'area',
+                        height: 300,
+                        dropShadow: {
+                          enabled: false,
+                        },
+                        toolbar: {
+                          show: false,
+                        },
+                        zoom: {
+                          enabled: false,
+                        },
+                        background: 'transparent',
+                      },
+                      stroke: {
+                        width: 3,
+                        curve: 'smooth',
+                      },
+                      dataLabels: {
+                        enabled: false,
+                      },
+                      grid: {
+                        show: false,
+                      },
+                      xaxis: {
+                        type: 'datetime',
+                        labels: {
+                          show: false,
+                        },
+                        axisBorder: {
+                          show: false,
+                        },
+                        axisTicks: {
+                          show: false,
+                        },
+                      },
+                      yaxis: {
+                        show: false,
+                        min: 0,
+                        max: maxCumulative * 1.2,
+                      },
+                      fill: {
+                        colors: ['#FF6B0099'],
+                        type: 'gradient',
+                        gradient: {
+                          type: 'vertical',
+                          opacityFrom: 1,
+                          opacityTo: 0.95,
+                          gradientToColors: ['#FFF5ED'],
+                        },
+                      },
+                      tooltip: {
                         enabled: true,
+                        theme: 'dark',
+                        style: {
+                          fontSize: '14px',
+                        },
+                        x: {
+                          format: 'dd MMM yyyy',
+                        },
+                        y: {
+                          formatter: (value: number) => value.toLocaleString(),
+                        },
                       },
-                    },
-                    chart: {
-                      type: 'area',
-                      height: 300,
-                      dropShadow: {
-                        enabled: false,
+                    }}
+                    series={[
+                      {
+                        name: 'Total Participants',
+                        data: filteredGrowthData.map((day) => {
+                          return [new Date(day.date).getTime(), day.cumulative]
+                        }),
                       },
-                      toolbar: {
-                        show: false,
-                      },
-                      zoom: {
-                        enabled: false,
-                      },
-                      background: 'transparent',
-                    },
-                    stroke: {
-                      width: 3,
-                      curve: 'smooth',
-                    },
-                    dataLabels: {
-                      enabled: false,
-                    },
-                    grid: {
-                      show: false,
-                    },
-                    xaxis: {
-                      type: 'datetime',
-                      labels: {
-                        show: false,
-                      },
-                      axisBorder: {
-                        show: false,
-                      },
-                      axisTicks: {
-                        show: false,
-                      },
-                    },
-                    yaxis: {
-                      show: false,
-                      min: 0,
-                      max: maxCumulative * 1.2,
-                    },
-                    fill: {
-                      colors: ['#FF6B0099'],
-                      type: 'gradient',
-                      gradient: {
-                        type: 'vertical',
-                        opacityFrom: 1,
-                        opacityTo: 0.95,
-                        gradientToColors: ['#FFF5ED'],
-                      },
-                    },
-                    tooltip: {
-                      enabled: true,
-                      theme: 'dark',
-                      style: {
-                        fontSize: '14px',
-                      },
-                      x: {
-                        format: 'dd MMM yyyy',
-                      },
-                      y: {
-                        formatter: (value: number) => value.toLocaleString(),
-                      },
-                    },
-                  }}
-                  series={[
-                    {
-                      name: 'Total Participants',
-                      data: filteredGrowthData.map((day) => {
-                        return [new Date(day.date).getTime(), day.cumulative]
-                      }),
-                    },
-                  ]}
+                    ]}
                   />
                 </Suspense>
               )}
@@ -404,7 +398,6 @@ export default function CampaignAnalytics() {
           </>
         )}
       </Section>
-
     </AnalyticsContainer>
   )
 }

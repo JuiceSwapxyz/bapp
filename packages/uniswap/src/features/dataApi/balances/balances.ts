@@ -128,7 +128,7 @@ export function useGraphQLPortfolioData({
     notifyOnNetworkStatusChange: true,
     pollInterval: internalPollInterval,
     variables: address ? { ownerAddress: address, valueModifiers, chains: gqlChains } : undefined,
-    skip: !address || queryOptions.skip,
+    skip: true, // TODO: re-enable
     // Prevents wiping out the cache with partial data on error.
     errorPolicy: 'none',
   })
@@ -269,7 +269,7 @@ export function useGraphQLPortfolioTotalValue({
     notifyOnNetworkStatusChange: true,
     pollInterval: internalPollInterval,
     variables: address ? { ownerAddress: address, valueModifiers, chains: gqlChains } : undefined,
-    skip: !address || !enabled,
+    skip: true, // TODO: re-enable
     // Prevents wiping out the cache with partial data on error.
     errorPolicy: 'none',
   })

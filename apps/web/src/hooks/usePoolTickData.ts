@@ -61,7 +61,7 @@ function usePaginatedTickQuery({
       skip,
       first: MAX_TICK_FETCH_VALUE,
     },
-    skip: !poolId || version !== ProtocolVersion.V3,
+    skip: true,
     pollInterval: ms(`30s`),
   })
 
@@ -72,7 +72,7 @@ function usePaginatedTickQuery({
       skip,
       first: MAX_TICK_FETCH_VALUE,
     },
-    skip: !poolId || version !== ProtocolVersion.V4,
+    skip: true,
     pollInterval: ms(`30s`),
   })
 
