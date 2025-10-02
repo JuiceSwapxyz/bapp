@@ -146,7 +146,7 @@ export function TransactionPopupContent({ hash, onClose }: { hash: string; onClo
   const { t } = useTranslation()
 
   const { formatNumberOrString } = useLocalizationContext()
-  const { data: activity, isLoading, error } = useQuery({
+  const { data: activity } = useQuery({
     ...getTransactionToActivityQueryOptions({
       transaction,
       formatNumber: formatNumberOrString,
@@ -160,19 +160,6 @@ export function TransactionPopupContent({ hash, onClose }: { hash: string; onClo
 
   if (!transaction) {
     return null
-  }
-
-  // Debug logging
-  if (!activity && !isLoading) {
-    console.log('Activity query completed but returned undefined:', {
-      transaction,
-      error,
-      errorMessage: error?.message,
-      errorStack: error?.stack,
-      typeInfo: transaction.typeInfo,
-      status: transaction.status,
-      hash: transaction.hash
-    })
   }
 
   // If activity parsing is still loading or failed, create a fallback activity object
