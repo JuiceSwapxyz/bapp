@@ -146,11 +146,6 @@ interface DailyGrowthResponse {
   }
 }
 
-interface CampaignStatsResponse {
-  totalParticipants: number
-  completedAllTasks: number
-}
-
 interface HourlyCompletionData {
   hour: string
   totalParticipants: number
