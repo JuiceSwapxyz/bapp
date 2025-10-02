@@ -72,14 +72,6 @@ const ChartContainer = styled(Flex, {
   overflow: 'hidden',
 })
 
-const ChartOverlay = styled(Flex, {
-  position: 'absolute',
-  top: '$spacing20',
-  left: '$spacing20',
-  zIndex: 10,
-  gap: '$spacing8',
-})
-
 const TimeframeSelector = styled(Flex, {
   flexDirection: 'row',
   justifyContent: 'center',
@@ -153,9 +145,23 @@ interface DailyGrowthResponse {
   }
 }
 
-interface CampaignStatsResponse {
+interface HourlyCompletionData {
+  hour: string
   totalParticipants: number
   completedAllTasks: number
+  completionRate: number
+}
+
+interface HourlyCompletionStatsResponse {
+  chainId: number
+  period: string
+  data: HourlyCompletionData[]
+  summary: {
+    totalHours: number
+    currentParticipants: number
+    currentCompleted: number
+    currentCompletionRate: number
+  }
 }
 
 enum Timeframe {
@@ -182,11 +188,11 @@ const getStartTimestampByTimeframe = (timeframe: Timeframe) => {
 
 export default function CampaignAnalytics() {
   const [dailyGrowth, setDailyGrowth] = useState<DailyGrowthResponse | null>(null)
-  const [campaignStats, setCampaignStats] = useState<CampaignStatsResponse | null>(null)
+  const [hourlyCompletion, setHourlyCompletion] = useState<HourlyCompletionStatsResponse | null>(null)
   const [isLoadingGrowth, setIsLoadingGrowth] = useState(true)
-  const [isLoadingStats, setIsLoadingStats] = useState(true)
+  const [isLoadingCompletion, setIsLoadingCompletion] = useState(true)
   const [growthError, setGrowthError] = useState<string | null>(null)
-  const [statsError, setStatsError] = useState<string | null>(null)
+  const [completionError, setCompletionError] = useState<string | null>(null)
   const [timeframe, setTimeframe] = useState<Timeframe>(Timeframe.ALL)
 
   useEffect(() => {
@@ -210,102 +216,84 @@ export default function CampaignAnalytics() {
       }
     }
 
-    const fetchCampaignStats = async () => {
+    const fetchHourlyCompletion = async () => {
       try {
-        setIsLoadingStats(true)
-        setStatsError(null)
+        setIsLoadingCompletion(true)
+        setCompletionError(null)
         const baseUrl = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
-        const response = await fetch(`${baseUrl}/campaign/stats?chainId=5115`)
+        const response = await fetch(`${baseUrl}/campaign/hourly-completion-stats?chainId=5115&hours=168`)
 
         if (!response.ok) {
-          throw new Error('Failed to fetch campaign stats')
+          throw new Error('Failed to fetch hourly completion stats')
         }
 
         const data = await response.json()
-        setCampaignStats(data)
+        setHourlyCompletion(data)
       } catch (error) {
-        setStatsError('Unable to load campaign stats')
+        setCompletionError('Unable to load completion stats')
       } finally {
-        setIsLoadingStats(false)
+        setIsLoadingCompletion(false)
       }
     }
 
     fetchDailyGrowth()
-    fetchCampaignStats()
+    fetchHourlyCompletion()
   }, [])
 
   const startTrades = getStartTimestampByTimeframe(timeframe)
 
-  const filteredGrowthData = useMemo(
+  const filteredCompletionData = useMemo(
     () =>
-      dailyGrowth?.data.filter((day) => {
-        return new Date(day.date).getTime() > startTrades
+      hourlyCompletion?.data.filter((hour) => {
+        return new Date(hour.hour).getTime() > startTrades
       }) || [],
-    [dailyGrowth?.data, startTrades],
+    [hourlyCompletion?.data, startTrades],
   )
 
-  const maxCumulative = useMemo(() => Math.max(...filteredGrowthData.map((d) => d.cumulative), 1), [filteredGrowthData])
-
-  const currentTotalUsers = dailyGrowth?.data.length ? dailyGrowth.data[dailyGrowth.data.length - 1].cumulative : 0
-
-  const completionRate =
-    campaignStats && campaignStats.totalParticipants > 0
-      ? (campaignStats.completedAllTasks / campaignStats.totalParticipants) * 100
-      : 0
-
-  const isLoading = isLoadingGrowth || isLoadingStats
-  const hasError = growthError || statsError
+  const isLoading = isLoadingGrowth || isLoadingCompletion
+  const hasError = growthError || completionError
 
   return (
     <AnalyticsContainer>
-      {/* Campaign Participants Timeline */}
+      {/* Combined Participants vs Completed */}
       <Section>
         <SectionHeader>
           <Chart size="$icon.20" color="$accent1" />
-          <SectionTitle>Campaign Participants Over Time</SectionTitle>
+          <SectionTitle>Total Participants vs Completed Participants</SectionTitle>
         </SectionHeader>
 
-        {isLoading && <LoadingText>Loading campaign participation data...</LoadingText>}
-        {hasError && <ErrorText>{growthError || statsError}</ErrorText>}
+        {isLoading && <LoadingText>Loading participant comparison data...</LoadingText>}
+        {hasError && <ErrorText>{completionError}</ErrorText>}
 
-        {!isLoading && !hasError && dailyGrowth && campaignStats && (
+        {!isLoading && !hasError && hourlyCompletion && (
           <>
             <StatsGrid>
               <StatCard>
-                <StatLabel>Total Campaign Participants</StatLabel>
-                <StatValue>{campaignStats.totalParticipants.toLocaleString()}</StatValue>
+                <StatLabel>Total Participants</StatLabel>
+                <StatValue>{hourlyCompletion.summary.currentParticipants.toLocaleString()}</StatValue>
               </StatCard>
               <StatCard>
-                <StatLabel>Completed All Tasks</StatLabel>
-                <StatValue>{campaignStats.completedAllTasks.toLocaleString()}</StatValue>
+                <StatLabel>Completed Participants</StatLabel>
+                <StatValue>{hourlyCompletion.summary.currentCompleted.toLocaleString()}</StatValue>
               </StatCard>
               <StatCard>
                 <StatLabel>Completion Rate</StatLabel>
-                <StatValue>{completionRate.toFixed(1)}%</StatValue>
+                <StatValue>{hourlyCompletion.summary.currentCompletionRate.toFixed(1)}%</StatValue>
               </StatCard>
               <StatCard>
                 <StatLabel>Days Running</StatLabel>
-                <StatValue>{dailyGrowth.summary.totalDays}</StatValue>
+                <StatValue>{dailyGrowth?.summary.totalDays || 0}</StatValue>
               </StatCard>
             </StatsGrid>
 
             <ChartContainer>
-              <ChartOverlay>
-                <StatValue>{currentTotalUsers.toLocaleString()}</StatValue>
-                <StatLabel>Total Participants</StatLabel>
-              </ChartOverlay>
               {typeof window !== 'undefined' && (
                 <Suspense fallback={<LoadingText>Loading chart...</LoadingText>}>
                   <ApexChart
+                    key={`combined-chart-${timeframe}`}
                     type="area"
                     height={300}
                     options={{
-                      theme: {
-                        monochrome: {
-                          color: '#FF6B00',
-                          enabled: true,
-                        },
-                      },
                       chart: {
                         type: 'area',
                         height: 300,
@@ -345,16 +333,22 @@ export default function CampaignAnalytics() {
                       yaxis: {
                         show: false,
                         min: 0,
-                        max: maxCumulative * 1.2,
                       },
                       fill: {
-                        colors: ['#FF6B0099'],
                         type: 'gradient',
                         gradient: {
                           type: 'vertical',
-                          opacityFrom: 1,
-                          opacityTo: 0.95,
-                          gradientToColors: ['#FFF5ED'],
+                          opacityFrom: 0.8,
+                          opacityTo: 0.2,
+                        },
+                      },
+                      colors: ['#FF6B00', '#10B981'],
+                      legend: {
+                        show: true,
+                        position: 'top',
+                        horizontalAlign: 'left',
+                        labels: {
+                          colors: '#FFFFFF',
                         },
                       },
                       tooltip: {
@@ -362,20 +356,37 @@ export default function CampaignAnalytics() {
                         theme: 'dark',
                         style: {
                           fontSize: '14px',
+                          fontFamily: 'inherit',
                         },
+                        cssClass: 'apexcharts-tooltip-dark',
                         x: {
-                          format: 'dd MMM yyyy',
+                          format: 'dd MMM yyyy HH:mm',
                         },
                         y: {
                           formatter: (value: number) => value.toLocaleString(),
+                          title: {
+                            formatter: (seriesName: string) => seriesName + ':',
+                          },
+                        },
+                        marker: {
+                          show: true,
+                        },
+                        fixed: {
+                          enabled: false,
                         },
                       },
                     }}
                     series={[
                       {
                         name: 'Total Participants',
-                        data: filteredGrowthData.map((day) => {
-                          return [new Date(day.date).getTime(), day.cumulative]
+                        data: filteredCompletionData.map((hour) => {
+                          return [new Date(hour.hour).getTime(), hour.totalParticipants]
+                        }),
+                      },
+                      {
+                        name: 'Completed Participants',
+                        data: filteredCompletionData.map((hour) => {
+                          return [new Date(hour.hour).getTime(), hour.completedAllTasks]
                         }),
                       },
                     ]}
