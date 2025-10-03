@@ -49,4 +49,5 @@ export type CustomSwapDataForRequest = {
   chainId: number
   amount?: string
   type?: string
+  slippageTolerance?: string
 }

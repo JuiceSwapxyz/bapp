@@ -7,11 +7,10 @@ import { BLAST_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/blast'
 import { BNB_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/bnb'
 import { CELO_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/celo'
 import { MAINNET_CHAIN_INFO, SEPOLIA_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/mainnet'
-import { MONAD_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/monad'
 import { OPTIMISM_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/optimism'
 import { POLYGON_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/polygon'
 import { SONEIUM_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/soneium'
-import { UNICHAIN_CHAIN_INFO, UNICHAIN_SEPOLIA_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/unichain'
+import { UNICHAIN_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/unichain'
 import { WORLD_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/worldchain'
 import { ZKSYNC_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/zksync'
 import { ZORA_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/zora'
@@ -19,13 +18,9 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { logger } from 'utilities/src/logger/logger'
 
-export const { USDT: USDT_MONAD_TESTNET } = MONAD_CHAIN_INFO.tokens
-
 export const { USDC: USDC_SEPOLIA } = SEPOLIA_CHAIN_INFO.tokens
 
 export const { USDC: USDC_UNICHAIN } = UNICHAIN_CHAIN_INFO.tokens
-
-export const { USDC: USDC_UNICHAIN_SEPOLIA } = UNICHAIN_SEPOLIA_CHAIN_INFO.tokens
 
 export const { USDC: USDC_SONEIUM } = SONEIUM_CHAIN_INFO.tokens
 
@@ -266,13 +261,6 @@ export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } =
     'CELO',
     'Celo',
   ),
-  [UniverseChainId.MonadTestnet]: new Token(
-    UniverseChainId.MonadTestnet,
-    '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701',
-    18,
-    'WMON',
-    'Wrapped Monad',
-  ),
   [UniverseChainId.Optimism]: new Token(
     UniverseChainId.Optimism,
     '0x4200000000000000000000000000000000000006',
@@ -303,13 +291,6 @@ export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } =
   ),
   [UniverseChainId.Unichain]: new Token(
     UniverseChainId.Unichain,
-    '0x4200000000000000000000000000000000000006',
-    18,
-    'WETH',
-    'Wrapped Ether',
-  ),
-  [UniverseChainId.UnichainSepolia]: new Token(
-    UniverseChainId.UnichainSepolia,
     '0x4200000000000000000000000000000000000006',
     18,
     'WETH',

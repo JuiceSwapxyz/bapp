@@ -27,8 +27,6 @@ export function getQuicknodeChainId(chainId: UniverseChainId): string {
       return 'bsc'
     case UniverseChainId.Celo:
       return 'celo-mainnet'
-    case UniverseChainId.MonadTestnet:
-      return 'monad-testnet'
     case UniverseChainId.Optimism:
       return 'optimism'
     case UniverseChainId.Polygon:
@@ -37,8 +35,6 @@ export function getQuicknodeChainId(chainId: UniverseChainId): string {
       return 'ethereum-sepolia'
     case UniverseChainId.Unichain:
       return 'unichain-mainnet'
-    case UniverseChainId.UnichainSepolia:
-      return 'unichain-sepolia'
     case UniverseChainId.WorldChain:
       return 'worldchain-mainnet'
     case UniverseChainId.Zksync:

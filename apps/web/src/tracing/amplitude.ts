@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-// eslint-disable-next-line import/no-unused-modules
+
 export function setupAmplitude() {
   // Amplitude analytics disabled
   // getAnalyticsAtomDirect(true).then((allowAnalytics) => {

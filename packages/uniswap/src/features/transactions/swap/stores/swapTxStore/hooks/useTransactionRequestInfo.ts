@@ -70,7 +70,7 @@ function useSwapTransactionRequestInfo({
         alreadyApproved,
         overrideSimulation,
       }),
-      customSwapData: getCustomSwapTokenData(derivedSwapInfo.trade.trade as ClassicTrade),
+      customSwapData: getCustomSwapTokenData(derivedSwapInfo.trade.trade as ClassicTrade, transactionSettings),
     }
   }, [
     swapQuoteResponse,

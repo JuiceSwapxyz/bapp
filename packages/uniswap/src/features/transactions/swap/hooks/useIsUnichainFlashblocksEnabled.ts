@@ -6,7 +6,7 @@ import { getFeatureFlag, useFeatureFlag } from 'uniswap/src/features/gating/hook
  * Hook to determine if Unichain flashblocks feature should be enabled
  * Returns true only when:
  * 1. The UnichainFlashblocks feature flag is enabled
- * 2. The current chain is Unichain mainnet or Unichain sepolia
+ * 2. The current chain is Unichain mainnet
  */
 export function useIsUnichainFlashblocksEnabled(chainId?: UniverseChainId): boolean {
   const flashblocksFlag = useFeatureFlag(FeatureFlags.UnichainFlashblocks)
@@ -15,14 +15,14 @@ export function useIsUnichainFlashblocksEnabled(chainId?: UniverseChainId): bool
     return false
   }
 
-  return chainId === UniverseChainId.Unichain || chainId === UniverseChainId.UnichainSepolia
+  return chainId === UniverseChainId.Unichain
 }
 
 /**
  * Sync function to check if Unichain flashblocks feature is enabled
  * Returns true only when:
  * 1. The UnichainFlashblocks feature flag is enabled
- * 2. The current chain is Unichain mainnet or Unichain sepolia
+ * 2. The current chain is Unichain mainnet
  */
 export function getIsFlashblocksEnabled(chainId?: UniverseChainId): boolean {
   const flashblocksFlag = getFeatureFlag(FeatureFlags.UnichainFlashblocks)
@@ -31,5 +31,5 @@ export function getIsFlashblocksEnabled(chainId?: UniverseChainId): boolean {
     return false
   }
 
-  return chainId === UniverseChainId.Unichain || chainId === UniverseChainId.UnichainSepolia
+  return chainId === UniverseChainId.Unichain
 }
