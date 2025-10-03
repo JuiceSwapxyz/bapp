@@ -60,5 +60,5 @@ export const useClientAsyncInit = (): {
   isLoading: boolean
   client: StatsigClient
 } => {
-  return { isLoading: true, client: getStatsigClient() }
+  return { isLoading: false, client: getStatsigClient() }
 }
