@@ -136,7 +136,7 @@ export function MaxSlippageTooltip({
       <Tooltip.Separator />
       <Tooltip.Description
         text={t('swap.slippage.description')}
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // learnMoreUrl={uniswapUrls.helpArticleUrls.swapSlippage}
       />
     </Tooltip.Outer>

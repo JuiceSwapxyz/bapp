@@ -14,7 +14,7 @@ export function LimitDisclaimer(props: FlexProps) {
       </DisclaimerText>
       <DisclaimerText>Canceling a limit has a network cost.</DisclaimerText>
       <DisclaimerText>
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         <ExternalLink href={`${uniswapUrls.helpUrl}/articles/24300813697933`}>
           <Trans i18nKey="common.button.learn" />
         </ExternalLink>

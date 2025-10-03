@@ -9,7 +9,7 @@ This document specifies the complete API requirements for the Citrea bApps Campa
 - **Base URL**: `https://ponder.juiceswap.com`
 - **Content-Type**: `application/json`
 - **Chain ID**: `5115` (Citrea Testnet)
-- **CORS**: Must allow origin `http://localhost:3001` and `https://bapp.juiceswap.xyz`
+- **CORS**: Must allow origin `http://localhost:3001` and `https://bapp.juiceswap.com`
 
 ## Campaign Tasks
 
@@ -334,7 +334,7 @@ REDIS_URL=redis://localhost:6379
 
 # API Configuration
 PORT=3000
-CORS_ORIGINS=http://localhost:3001,https://bapp.juiceswap.xyz
+CORS_ORIGINS=http://localhost:3001,https://bapp.juiceswap.com
 
 # Rate Limiting
 RATE_LIMIT_PER_SECOND=10

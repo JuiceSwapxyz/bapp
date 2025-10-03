@@ -9,7 +9,7 @@ export function LargePriceDifferenceTooltip(): JSX.Element {
       <Tooltip.Header title={{ title: t('large.price.difference') }} />
       <Tooltip.Description
         text={t('large.price.difference.tooltip')}
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // learnMoreUrl={uniswapUrls.helpArticleUrls.priceImpact}
       />
     </Tooltip.Outer>

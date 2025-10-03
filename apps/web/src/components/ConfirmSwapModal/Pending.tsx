@@ -191,7 +191,7 @@ export function Pending({
         {uniswapXOrder && uniswapXOrder.status === UniswapXOrderStatus.OPEN && (
           <Row justify="center" marginTop="32px" minHeight="24px">
             <ThemedText.BodySmall color="neutral2">
-              {/* TODO: Re-enable once support.juiceswap.xyz is configured
+              {/* TODO: Re-enable once support.juiceswap.com is configured
               <ExternalLink
                 href={
                   isLimitTrade(initialTrade)

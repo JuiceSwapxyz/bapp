@@ -380,7 +380,7 @@ export default function Pool() {
           {isConnected && (
             <Flex gap="$gap20" mb="$spacing24">
               <Text variant="subheading1">{t('liquidity.learnMoreLabel')}</Text>
-              {/* TODO: Re-enable once support.juiceswap.xyz is configured
+              {/* TODO: Re-enable once support.juiceswap.com is configured
               <ExternalArrowLink href={uniswapUrls.helpArticleUrls.positionsLearnMore}>
                 {t('common.button.learn')}
               </ExternalArrowLink>

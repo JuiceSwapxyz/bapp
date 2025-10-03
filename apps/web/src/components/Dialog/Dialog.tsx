@@ -90,7 +90,7 @@ export function Dialog({
         ) : (
           subtext
         )}
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         {learnMoreUrl && (
           <LearnMoreLink url={learnMoreUrl} textColor={learnMoreTextColor} textVariant={learnMoreTextVariant} />
         )}

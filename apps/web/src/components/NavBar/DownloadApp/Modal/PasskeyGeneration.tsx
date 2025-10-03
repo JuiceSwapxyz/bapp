@@ -72,7 +72,7 @@ export function PasskeyGenerationModal({
             </Flex>
           </Flex>
         }
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // learnMoreLink={uniswapUrls.helpArticleUrls.passkeysInfo} // TODO(WEB-7390): add learn more link
         onClose={onClose}
         goBack={goBack}

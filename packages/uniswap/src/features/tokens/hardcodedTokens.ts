@@ -12,7 +12,7 @@ const citreaNativeCurrency = {
     name: 'cBTC',
   }) as Currency,
   currencyId: `${UniverseChainId.CitreaTestnet}-0x0000000000000000000000000000000000000000`,
-  logoUrl: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
+  logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
 }
 
 const citreaWrappedNativeCurrency = {
@@ -24,7 +24,7 @@ const citreaWrappedNativeCurrency = {
     name: 'Wrapped Citrea BTC',
   }) as Currency,
   currencyId: `${UniverseChainId.CitreaTestnet}-0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0`,
-  logoUrl: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
+  logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
 }
 
 const citreaUsdcCurrency = {
@@ -48,7 +48,7 @@ const citreaCusdCurrency = {
     name: 'Citrus Dollar',
   }) as Currency,
   currencyId: `${UniverseChainId.CitreaTestnet}-0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0`,
-  logoUrl: 'https://docs.juiceswap.xyz/media/icons/cusd.png',
+  logoUrl: 'https://docs.juiceswap.com/media/icons/cusd.png',
 }
 
 const citreaNusdCurrency = {
@@ -60,7 +60,7 @@ const citreaNusdCurrency = {
     name: 'Nectra USD',
   }) as Currency,
   currencyId: `${UniverseChainId.CitreaTestnet}-0x9B28B690550522608890C3C7e63c0b4A7eBab9AA`,
-  logoUrl: 'https://docs.juiceswap.xyz/media/icons/nusd.png',
+  logoUrl: 'https://docs.juiceswap.com/media/icons/nusd.png',
 }
 
 export const suggestedCitreaTokens: CurrencyInfo[] = [
@@ -103,7 +103,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'TaprootFreakCoin',
     }) as Currency,
     currencyId: `${UniverseChainId.Sepolia}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
-    logoUrl: 'https://docs.juiceswap.xyz/media/icons/tfc.png',
+    logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
   },
   citreaWrappedNativeCurrency,
   citreaUsdcCurrency,
@@ -118,7 +118,7 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
       name: 'TaprootFreakCoin',
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
-    logoUrl: 'https://docs.juiceswap.xyz/media/icons/tfc.png',
+    logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
   },
 ]
 

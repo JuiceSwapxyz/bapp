@@ -261,7 +261,7 @@ export const OffRampConfirmTransferModal = ({
                 {t('common.youreSelling')}
               </Text>
             }
-            // TODO: Re-enable once support.juiceswap.xyz is configured
+            // TODO: Re-enable once support.juiceswap.com is configured
             // link={uniswapUrls.helpArticleUrls.fiatOffRampHelp}
             closeModal={onClose}
           />

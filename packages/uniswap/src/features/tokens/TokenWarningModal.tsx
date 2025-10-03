@@ -170,7 +170,7 @@ function TokenWarningModalContent({
           captionComponent={
             <Text color="$neutral2" textAlign="center" variant="body3">
               {`${subtitleText} `}
-              {/* TODO: Re-enable once support.juiceswap.xyz is configured
+              {/* TODO: Re-enable once support.juiceswap.com is configured
               <LearnMoreLink
                 display="inline"
                 textColor="$neutral1"

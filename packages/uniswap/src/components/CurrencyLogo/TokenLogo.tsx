@@ -41,11 +41,11 @@ export const TokenLogo = memo(function _TokenLogo({
   let logoUrl = url
   if (chainId === UniverseChainId.CitreaTestnet) {
     const tokenLogoOverrides: Record<string, string> = {
-      WcBTC: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
-      cBTC: 'https://docs.juiceswap.xyz/media/icons/cbtc.png',
-      cUSD: 'https://docs.juiceswap.xyz/media/icons/cusd.png',
-      NUSD: 'https://docs.juiceswap.xyz/media/icons/nusd.png',
-      TFC: 'https://docs.juiceswap.xyz/media/icons/tfc.png',
+      WcBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
+      cBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
+      cUSD: 'https://docs.juiceswap.com/media/icons/cusd.png',
+      NUSD: 'https://docs.juiceswap.com/media/icons/nusd.png',
+      TFC: 'https://docs.juiceswap.com/media/icons/tfc.png',
       USDC: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
     }
     if (symbol && tokenLogoOverrides[symbol]) {

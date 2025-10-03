@@ -28,7 +28,7 @@ function BaseTooltipContent({ children }: { children: ReactNode }) {
   return (
     <>
       {children}
-      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+      {/* TODO: Re-enable once support.juiceswap.com is configured
       <br />
       <ExternalLink href={url}>
         <Trans i18nKey="common.button.learn" />
@@ -39,7 +39,7 @@ function BaseTooltipContent({ children }: { children: ReactNode }) {
 }
 
 export function FOTTooltipContent() {
-  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // TODO: Re-enable once support.juiceswap.com is configured
   // return <BaseTooltipContent url={`${uniswapUrls.helpUrl}/articles/18673568523789-What-is-a-token-fee-`}>
   return (
     <BaseTooltipContent>
@@ -50,13 +50,13 @@ export function FOTTooltipContent() {
 
 function SwapFeeTooltipContent({ hasFee }: { hasFee: boolean }) {
   const message = hasFee ? <Trans i18nKey="swap.fees.experience" /> : <Trans i18nKey="swap.fees.noFee" />
-  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // TODO: Re-enable once support.juiceswap.com is configured
   // return <BaseTooltipContent url={`${uniswapUrls.helpUrl}/articles/20131678274957`}>{message}</BaseTooltipContent>
   return <BaseTooltipContent>{message}</BaseTooltipContent>
 }
 
 export function SlippageTooltipContent() {
-  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // TODO: Re-enable once support.juiceswap.com is configured
   // return <BaseTooltipContent url={`${uniswapUrls.helpUrl}/articles/20131678274957`}>
   return (
     <BaseTooltipContent>

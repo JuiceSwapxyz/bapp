@@ -93,7 +93,7 @@ function NetworkCostDescription({ native }: { native: Currency }) {
   return (
     <ThemedText.LabelMicro>
       <Trans i18nKey="swap.networkCost.paidIn" values={{ sym: native.symbol, chainName }} />{' '}
-      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+      {/* TODO: Re-enable once support.juiceswap.com is configured
       <ExternalLink href={`${uniswapUrls.helpUrl}/articles/8370337377805-What-is-a-network-fee-`}>
         <Trans i18nKey="common.button.learn" />
       </ExternalLink>
@@ -114,7 +114,7 @@ export function UniswapXDescription() {
           logo: <InlineUniswapXGradient>UniswapX</InlineUniswapXGradient>,
         }}
       />{' '}
-      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+      {/* TODO: Re-enable once support.juiceswap.com is configured
       <ExternalLink href={uniswapUrls.helpArticleUrls.uniswapXInfo}>
         <Trans i18nKey="common.button.learn" />
       </ExternalLink>

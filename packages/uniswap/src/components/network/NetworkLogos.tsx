@@ -105,7 +105,7 @@ export function NetworkLogos({ chains }: NetworkLogosProps): JSX.Element {
           {/* CONTENT */}
           {chainPills}
           {/* FOOTER */}
-          {/* TODO: Re-enable once support.juiceswap.xyz is configured
+          {/* TODO: Re-enable once support.juiceswap.com is configured
           <LearnMoreLink
             textColor="$neutral1"
             textVariant="buttonLabel3"

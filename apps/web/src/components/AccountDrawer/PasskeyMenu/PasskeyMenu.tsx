@@ -281,7 +281,7 @@ export default function PasskeyMenu({ onClose }: { onClose: () => void }) {
         title={t('common.passkeys')}
         onClose={handleCloseDrawer}
         rightIcon={
-          // TODO: Re-enable once support.juiceswap.xyz is configured
+          // TODO: Re-enable once support.juiceswap.com is configured
           // <Trace logPress element={ElementName.GetHelp}>
           //   <Anchor
           //     target="_blank"

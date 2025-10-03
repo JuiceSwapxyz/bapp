@@ -155,7 +155,7 @@ export function Step({ stepStatus, stepDetails }: { stepStatus: StepStatus; step
             stepDetails={stepDetails}
             isTimeRemaining={secondsRemaining === null || secondsRemaining > 0}
           />
-          {/* TODO: Re-enable once support.juiceswap.xyz is configured
+          {/* TODO: Re-enable once support.juiceswap.com is configured
           {stepStatus === StepStatus.Active && stepDetails.learnMoreLinkHref && (
             <StyledExternalLink href={stepDetails.learnMoreLinkHref || ''}>
               {stepDetails.learnMoreLinkText}

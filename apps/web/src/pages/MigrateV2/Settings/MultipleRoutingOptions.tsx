@@ -66,7 +66,7 @@ function UniswapXPreferenceLabel() {
         text={
           <>
             <Trans i18nKey="routing.aggregateLiquidity" />{' '}
-            {/* TODO: Re-enable once support.juiceswap.xyz is configured
+            {/* TODO: Re-enable once support.juiceswap.com is configured
             <ExternalLink href={uniswapUrls.helpArticleUrls.uniswapXInfo}>
               <Trans i18nKey="common.button.learn" />
             </ExternalLink>
