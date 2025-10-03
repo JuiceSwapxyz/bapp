@@ -533,7 +533,7 @@ export function createGetQuoteRoutingParams(ctx: {
 }
 
 // Used if dynamic config value fails to resolve
-const DEFAULT_L2_SLIPPAGE_TOLERANCE_VALUE = 2.5
+const DEFAULT_L2_SLIPPAGE_TOLERANCE_VALUE = 5.5
 
 export function getMinAutoSlippageToleranceL2(): number {
   return getDynamicConfigValue({
