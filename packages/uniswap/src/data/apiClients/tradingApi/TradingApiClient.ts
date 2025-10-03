@@ -319,7 +319,7 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
     chainId: params.chainId,
   }
 
-  const gasStrategy = params.gasStrategies?.[0] || {
+  const gasStrategy = (params as ApprovalRequest & { gasStrategies?: unknown[] }).gasStrategies?.[0] || {
     limitInflationFactor: 1.15,
     displayLimitInflationFactor: 1.15,
     priceInflationFactor: 1.5,

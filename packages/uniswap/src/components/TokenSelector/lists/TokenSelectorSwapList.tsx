@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo, useRef } from 'react'
 import { TokenSelectorList } from 'uniswap/src/components/TokenSelector/TokenSelectorList'
 import { useCommonTokensOptionsWithFallback } from 'uniswap/src/components/TokenSelector/hooks/useCommonTokensOptionsWithFallback'
+import { useCurrencyInfosToTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/useCurrencyInfosToTokenOptions'
 import { OnSelectCurrency, TokenSectionsHookProps } from 'uniswap/src/components/TokenSelector/types'
 import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/components/lists/OnchainItemList/types'
 import { TokenSelectorOption } from 'uniswap/src/components/lists/items/types'
@@ -8,6 +9,7 @@ import { useOnchainItemListSection } from 'uniswap/src/components/lists/utils'
 import { GqlResult } from 'uniswap/src/data/types'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { suggestedCitreaTokens } from 'uniswap/src/features/tokens/hardcodedTokens'
 
 function useTokenSectionsForSwap({
   activeAccountAddress,
@@ -46,13 +48,23 @@ function useTokenSectionsForSwap({
     options: suggestedSectionOptions,
   })
 
+  const yourTokensSectionOptions = useCurrencyInfosToTokenOptions({
+    currencyInfos: suggestedCitreaTokens,
+    portfolioBalancesById: {},
+  })
+
+  const yourTokensSection = useOnchainItemListSection({
+    sectionKey: OnchainItemSectionName.YourTokens,
+    options: yourTokensSectionOptions,
+  })
+
   const sections = useMemo(() => {
     if (commonTokenOptionsLoading) {
       return undefined
     }
 
-    return [...(suggestedSection ?? [])]
-  }, [commonTokenOptionsLoading, suggestedSection])
+    return [...(suggestedSection ?? []), ...(yourTokensSection ?? [])]
+  }, [commonTokenOptionsLoading, suggestedSection, yourTokensSection])
 
   return useMemo(
     () => ({
