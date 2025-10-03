@@ -2,8 +2,6 @@ import { useTranslation } from 'react-i18next'
 import { DappRequestContent } from 'src/app/features/dappRequests/DappRequestContent'
 import { Flex, Text } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { WalletEventName } from 'uniswap/src/features/telemetry/constants'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 
@@ -33,11 +31,6 @@ export function ActionCanNotBeCompletedContent(): JSX.Element {
               <Text color="$neutral2" variant="body4">
                 {t('dapp.request.actionCannotBeCompleted.description')}
               </Text>
-              <LearnMoreLink
-                textVariant="buttonLabel4"
-                url={uniswapUrls.helpArticleUrls.mismatchedImports}
-                textColor="$neutral1"
-              />
             </Flex>
           </Flex>
         </Flex>

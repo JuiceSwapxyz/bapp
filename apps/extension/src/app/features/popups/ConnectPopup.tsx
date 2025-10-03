@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
-import { Link } from 'react-router'
 import { useDappContext } from 'src/app/features/dapp/DappContext'
 import { removeDappConnection } from 'src/app/features/dapp/actions'
 import { SwitchNetworksModal } from 'src/app/features/home/SwitchNetworksModal'
@@ -23,7 +22,6 @@ import { Power, RotatableChevron, X } from 'ui/src/components/icons'
 import { borderRadii, iconSizes } from 'ui/src/theme'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { DappIconPlaceholder } from 'uniswap/src/components/dapps/DappIconPlaceholder'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { getChainLabel } from 'uniswap/src/features/chains/utils'
 import { pushNotification } from 'uniswap/src/features/notifications/slice'
 import { AppNotificationType } from 'uniswap/src/features/notifications/types'
@@ -160,25 +158,6 @@ export function ConnectPopupContent({
               </TouchableArea>
             )}
           </Flex>
-
-          {!isConnected && (
-            <Flex pt="$padding6">
-              <Link
-                style={{ textDecoration: 'none' }}
-                target="_blank"
-                to={uniswapUrls.helpArticleUrls.extensionDappTroubleshooting}
-                onClick={() =>
-                  sendAnalyticsEvent(ExtensionEventName.DappTroubleConnecting, {
-                    dappUrl,
-                  })
-                }
-              >
-                <Text color="$accent1" variant="buttonLabel4">
-                  {t('extension.connection.popup.trouble')}
-                </Text>
-              </Link>
-            </Flex>
-          )}
 
           <Flex gap="$spacing8" pt="$padding12">
             <Popover.Close onPress={openManageConnections}>

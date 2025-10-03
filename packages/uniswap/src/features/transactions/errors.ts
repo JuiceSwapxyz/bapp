@@ -1,6 +1,5 @@
 import { datadogRum } from '@datadog/browser-rum'
 import { AppTFunction } from 'ui/src/i18n/types'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
 import { TokenApprovalTransactionStep } from 'uniswap/src/features/transactions/steps/approve'
 import { TokenRevocationTransactionStep } from 'uniswap/src/features/transactions/steps/revoke'
@@ -121,7 +120,6 @@ export function getErrorContent(
   title: string
   buttonText?: string
   message: string
-  supportArticleURL?: string
 } {
   if (error instanceof TransactionStepFailedError) {
     return getStepSpecificErrorContent(t, error)
@@ -148,66 +146,56 @@ function getStepSpecificErrorContent(
   title: string
   buttonText?: string
   message: string
-  supportArticleURL?: string
 } {
   switch (error.step.type) {
     case TransactionStepType.WrapTransaction:
       return {
         title: t('common.wrap.failed'),
         message: t('token.wrap.fail.message'),
-        supportArticleURL: uniswapUrls.helpArticleUrls.wethExplainer,
       }
     case TransactionStepType.SwapTransaction:
     case TransactionStepType.SwapTransactionAsync:
       return {
         title: t('common.swap.failed'),
         message: t('swap.fail.message'),
-        supportArticleURL: uniswapUrls.helpArticleUrls.transactionFailure,
       }
     case TransactionStepType.SwapTransactionBatched:
       return {
         title: t('swap.fail.batched.title'),
         buttonText: t('swap.fail.batched.retry'),
         message: t('swap.fail.batched'),
-        supportArticleURL: uniswapUrls.helpArticleUrls.transactionFailure,
       }
     case TransactionStepType.UniswapXSignature:
       if (error.isBackendRejection) {
         return {
           title: t('common.swap.failed'),
           message: t('swap.fail.uniswapX'),
-          supportArticleURL: uniswapUrls.helpArticleUrls.uniswapXFailure,
         }
       }
       return {
         title: t('common.swap.failed'),
         message: t('swap.fail.message'),
-        supportArticleURL: uniswapUrls.helpArticleUrls.uniswapXFailure,
       }
     case TransactionStepType.Permit2Signature:
       return {
         title: t('permit.approval.fail'),
         message: t('permit.approval.fail.message'),
-        supportArticleURL: uniswapUrls.helpArticleUrls.approvalsExplainer,
       }
     case TransactionStepType.TokenApprovalTransaction:
       if (error instanceof ApprovalEditedInWalletError) {
         return {
           title: t('error.tokenApprovalEdited'),
           message: t('error.tokenApprovalEdited.message'),
-          supportArticleURL: uniswapUrls.helpArticleUrls.approvalsExplainer,
         }
       }
       return {
         title: t('error.tokenApproval'),
         message: t('error.tokenApproval.message'),
-        supportArticleURL: uniswapUrls.helpArticleUrls.approvalsExplainer,
       }
     case TransactionStepType.TokenRevocationTransaction:
       return {
         title: t('common.revoke.approval.failed'),
         message: t('revoke.failed.message'),
-        supportArticleURL: uniswapUrls.helpArticleUrls.revokeExplainer,
       }
     default:
       return {

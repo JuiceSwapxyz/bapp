@@ -74,7 +74,7 @@ export function SlippageInfoCaption({
         {isWeb && (
           <Flex display="inline-flex">
             {/* TODO: Re-enable once support.juiceswap.xyz is configured
-            <LearnMoreLink url={uniswapUrls.helpArticleUrls.swapSlippage} textVariant="body4" textColor="white" />
+            
             */}
           </Flex>
         )}

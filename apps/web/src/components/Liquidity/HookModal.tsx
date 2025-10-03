@@ -161,7 +161,7 @@ export function HookModal({
               {hasDangerous ? t('position.hook.warningInfo') : t('position.addingHook.disclaimer')}
             </Text>
             {/* TODO: Re-enable once support.juiceswap.xyz is configured
-            <LearnMoreLink centered url={uniswapUrls.helpArticleUrls.addingV4Hooks} textVariant="buttonLabel3" />
+            
             */}
           </Flex>
 

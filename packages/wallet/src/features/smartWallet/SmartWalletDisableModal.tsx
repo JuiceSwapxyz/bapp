@@ -7,8 +7,6 @@ import { DisplayNameText } from 'uniswap/src/components/accounts/DisplayNameText
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { AccountIcon } from 'uniswap/src/features/accounts/AccountIcon'
 import { useAvatar } from 'uniswap/src/features/address/avatar'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
@@ -87,13 +85,6 @@ export function SmartWalletDisableModal({
         <Flex row justifyContent="space-between">
           <Flex row>
             <WarningInfo
-              infoButton={
-                <LearnMoreLink
-                  textVariant="buttonLabel4"
-                  textColor={isWeb ? '$accent1' : '$accent3'}
-                  url={uniswapUrls.helpArticleUrls.multichainDelegation}
-                />
-              }
               trigger={<InfoCircle alignSelf="flex-start" color="$neutral3" size="$icon.16" />}
               modalProps={{
                 caption: t('smartWallets.activeNetworks.description'),

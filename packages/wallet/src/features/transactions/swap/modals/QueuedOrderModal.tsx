@@ -7,8 +7,6 @@ import { AlertTriangleFilled } from 'ui/src/components/icons'
 import { SwapTransactionDetails } from 'uniswap/src/components/activity/details/transactions/SwapTransactionDetails'
 import { isSwapTransactionInfo } from 'uniswap/src/components/activity/details/types'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { AssetType, TradeableAsset } from 'uniswap/src/entities/assets'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
@@ -90,11 +88,6 @@ export function QueuedOrderModal(): JSX.Element | null {
             <Text color="$neutral2" textAlign="center" variant="body3">
               {reason}
             </Text>
-            <LearnMoreLink
-              textColor="$neutral1"
-              textVariant="buttonLabel2"
-              url={uniswapUrls.helpArticleUrls.uniswapXFailure}
-            />
           </Flex>
           <Separator />
           <SwapTransactionDetails disableClick={isMobileApp} typeInfo={currentFailedOrder.typeInfo} />

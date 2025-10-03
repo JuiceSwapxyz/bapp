@@ -13,7 +13,6 @@ import { focusOrCreateOnboardingTab } from 'src/app/navigation/utils'
 import { Button, Flex, InputProps, Text } from 'ui/src'
 import { AlertTriangleFilled, Lock } from 'ui/src/components/icons'
 import { spacing, zIndexes } from 'ui/src/theme'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { useEvent } from 'utilities/src/react/hooks'
 import { LandingBackground } from 'wallet/src/components/landing/LandingBackground'
@@ -112,7 +111,6 @@ export function Locked(): JSX.Element {
       buttonText: t('extension.lock.button.reset'),
       description: t('extension.lock.password.reset.initial.description'),
       linkText: t('extension.lock.password.reset.initial.help'),
-      linkUrl: uniswapUrls.helpArticleUrls.recoveryPhraseHowToFind,
       icon: (
         <Flex backgroundColor="$surface2" borderRadius="$rounded12" p="$spacing12">
           <Lock color="$neutral1" size="$icon.24" />
@@ -127,7 +125,6 @@ export function Locked(): JSX.Element {
       buttonText: t('common.button.continue'),
       description: t('extension.lock.password.reset.speedbump.description'),
       linkText: t('extension.lock.password.reset.speedbump.help'),
-      linkUrl: uniswapUrls.helpArticleUrls.recoveryPhraseForgotten,
       icon: (
         <Flex backgroundColor="$statusCritical2" borderRadius="$rounded12" p="$spacing12">
           <AlertTriangleFilled color="$statusCritical" size="$icon.24" />

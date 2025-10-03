@@ -3,7 +3,6 @@ import { Flex, useSporeColors } from 'ui/src'
 import { Swap } from 'ui/src/components/icons/Swap' // TODO: update to LP icon
 import { StepRowProps, StepRowSkeleton } from 'uniswap/src/components/ConfirmSwapModal/steps/StepRowSkeleton'
 import { StepStatus } from 'uniswap/src/components/ConfirmSwapModal/types'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { CollectFeesSteps } from 'uniswap/src/features/transactions/liquidity/steps/collectFeesSteps'
 import { DecreasePositionTransactionStep } from 'uniswap/src/features/transactions/liquidity/steps/decreasePosition'
 import {
@@ -39,16 +38,5 @@ export function LPTransactionStepRow({ status }: StepRowProps<LPSteps>): JSX.Ele
     [StepStatus.Complete]: t('common.confirmWallet'),
   }[status]
 
-  return (
-    <StepRowSkeleton
-      title={title}
-      icon={<LPIcon />}
-      learnMore={{
-        url: uniswapUrls.helpArticleUrls.howToSwapTokens,
-        text: t('common.learnMoreSwap'),
-      }}
-      rippleColor={colors.DEP_blue400.val}
-      status={status}
-    />
-  )
+  return <StepRowSkeleton title={title} icon={<LPIcon />} rippleColor={colors.DEP_blue400.val} status={status} />
 }

@@ -6,8 +6,6 @@ import { Flex, Text } from 'ui/src'
 import { iconSizes } from 'ui/src/theme'
 import { CurrencyLogo } from 'uniswap/src/components/CurrencyLogo/CurrencyLogo'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { LearnMoreLink } from 'uniswap/src/components/text/LearnMoreLink'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useBridgingTokenWithHighestBalance } from 'uniswap/src/features/bridging/hooks/tokens'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -68,11 +66,6 @@ export function BuyNativeTokenModal({
                   })}
             </Text>
           </Flex>
-          <LearnMoreLink
-            textColor="$accent3"
-            textVariant="buttonLabel3"
-            url={uniswapUrls.helpArticleUrls.networkFeeInfo}
-          />
         </Flex>
         <Flex centered gap="$spacing8" width="100%">
           {bridgingTokenWithHighestBalance && (

@@ -1,10 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
 import { useFinishExtensionOnboarding } from 'src/app/features/onboarding/useFinishExtensionOnboarding'
 import { terminateStoreSynchronization } from 'src/store/storeSynchronization'
 import { Flex, Text } from 'ui/src'
-import { Check, GraduationCap } from 'ui/src/components/icons'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
+import { Check } from 'ui/src/components/icons'
 
 export function ResetComplete(): JSX.Element {
   const { t } = useTranslation()
@@ -24,18 +22,6 @@ export function ResetComplete(): JSX.Element {
             {t('onboarding.resetPassword.complete.subtitle')}
           </Text>
         </Flex>
-        <Link
-          style={{ textDecoration: 'none' }}
-          target="_blank"
-          to={uniswapUrls.helpArticleUrls.walletSecurityMeasures}
-        >
-          <Flex row alignItems="center" gap="$spacing8">
-            <GraduationCap color="$neutral3" size="$icon.20" />
-            <Text color="$neutral3" variant="buttonLabel2">
-              {t('onboarding.resetPassword.complete.safety')}
-            </Text>
-          </Flex>
-        </Link>
       </Flex>
     </>
   )

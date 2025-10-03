@@ -6,7 +6,6 @@ const companyMenu = [
   {
     label: 'Products',
     items: [
-      { label: 'Wallet', href: uniswapUrls.downloadWalletUrl },
       { label: 'UniswapX', href: uniswapUrls.uniswapXUrl },
       { label: 'API', href: uniswapUrls.tradingApiDocsUrl },
       { label: 'Unichain', href: 'https://www.unichain.org/' },
@@ -149,13 +148,8 @@ test.describe('Navigation', () => {
 
     await expect(page.getByTestId(TestID.HelpModal).getByText('Get help')).toBeVisible()
     await expect(page.getByTestId(TestID.HelpModal).getByText('Docs')).toBeVisible()
-    await expect(page.getByTestId(TestID.HelpModal).getByText('Contact us')).toBeVisible()
 
-    await expect(page.getByTestId(TestID.HelpModal).locator(`a[href="${uniswapUrls.helpUrl}"]`)).toBeVisible()
     await expect(page.getByTestId(TestID.HelpModal).locator(`a[href="${uniswapUrls.docsUrl}"]`)).toBeVisible()
-    await expect(
-      page.getByTestId(TestID.HelpModal).locator(`a[href="${uniswapUrls.helpUrl}/requests/new"]`),
-    ).toBeVisible()
   })
 })
 
@@ -220,13 +214,8 @@ test.describe('Mobile navigation', () => {
 
     await expect(page.getByTestId(TestID.HelpModal).getByText('Get help')).toBeVisible()
     await expect(page.getByTestId(TestID.HelpModal).getByText('Docs')).toBeVisible()
-    await expect(page.getByTestId(TestID.HelpModal).getByText('Contact us')).toBeVisible()
 
-    await expect(page.getByTestId(TestID.HelpModal).locator(`a[href="${uniswapUrls.helpUrl}"]`)).toBeVisible()
     await expect(page.getByTestId(TestID.HelpModal).locator(`a[href="${uniswapUrls.docsUrl}"]`)).toBeVisible()
-    await expect(
-      page.getByTestId(TestID.HelpModal).locator(`a[href="${uniswapUrls.helpUrl}/requests/new"]`),
-    ).toBeVisible()
   })
 })
 

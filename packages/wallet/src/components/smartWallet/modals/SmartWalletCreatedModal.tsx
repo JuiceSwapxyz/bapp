@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useSporeColors } from 'ui/src'
 import { SmartWallet } from 'ui/src/components/icons'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { SmartWalletModal } from 'wallet/src/components/smartWallet/modals/SmartWalletModal'
 
@@ -24,7 +23,6 @@ export function SmartWalletCreatedModal({ isOpen, onClose }: SmartWalletCreatedM
       primaryButtonVariant="default"
       primaryButtonEmphasis="secondary"
       primaryButtonOnClick={onClose}
-      learnMoreUrl={uniswapUrls.helpArticleUrls.smartWalletDelegation}
       modalName={ModalName.SmartWalletCreatedModal}
       onClose={onClose}
     />

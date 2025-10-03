@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { CloudSlash } from 'ui/src/components/icons'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { SmartWalletModal } from 'wallet/src/components/smartWallet/modals/SmartWalletModal'
 
@@ -24,7 +23,6 @@ export function SmartWalletUnavailableModal({
       title={t('smartWallets.unavailableModal.title')}
       subtext={t('smartWallets.unavailableModal.description', { displayName })}
       modalName={ModalName.SmartWalletUnavailableModal}
-      learnMoreUrl={uniswapUrls.helpArticleUrls.mismatchedImports}
       primaryButtonText={t('common.close')}
       primaryButtonVariant="default"
       primaryButtonEmphasis="secondary"

@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { Flex, UniversalImage } from 'ui/src'
 import { borderRadii } from 'ui/src/theme'
 import { DappIconPlaceholder } from 'uniswap/src/components/dapps/DappIconPlaceholder'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { SmartWalletIcon } from 'wallet/src/components/smartWallet/SmartWalletIcon'
@@ -90,7 +89,6 @@ export function SmartWalletNudge({
       subtext={t('smartWallets.educationalModal.description')}
       secondaryButtonText={t('common.button.notNow')}
       secondaryButtonOnClick={handleSecondaryButtonOnClick}
-      learnMoreUrl={uniswapUrls.helpArticleUrls.smartWalletDelegation}
       modalName={ModalName.SmartWalletNudge}
       primaryButtonText={t('smartWallets.postSwapNudge.enable')}
       primaryButtonOnClick={handlePrimaryButtonOnClick}

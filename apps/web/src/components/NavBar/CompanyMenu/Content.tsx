@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LayerGroup } from 'ui/src/components/icons/LayerGroup'
 import { Unichain } from 'ui/src/components/icons/Unichain'
-import { UniswapLogo } from 'ui/src/components/icons/UniswapLogo'
 import { UniswapXGeneric } from 'ui/src/components/icons/UniswapXGeneric'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 
@@ -30,7 +29,6 @@ export enum MenuSectionTitle {
 }
 
 const MENU_ICONS = {
-  wallet: <UniswapLogo size="$icon.20" color="$accent1" />,
   uniswapX: <UniswapXGeneric size="$icon.20" color="$accent1" />,
   tradingApi: <LayerGroup size="$icon.20" color="$accent1" />,
   unichain: <Unichain size="$icon.20" color="$accent1" />,
@@ -47,12 +45,6 @@ export const useMenuContent = (args?: {
       [MenuSectionTitle.Products]: {
         title: t('common.products'),
         items: [
-          {
-            label: t('common.wallet.label'),
-            href: uniswapUrls.downloadWalletUrl,
-            icon: MENU_ICONS.wallet,
-            body: t('nav.products.wallet'),
-          },
           {
             label: t('landing.api'),
             href: uniswapUrls.tradingApiDocsUrl,
