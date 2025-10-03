@@ -20,7 +20,6 @@ export enum DynamicConfigs {
   GasStrategies = 'gas_strategy',
   DatadogSessionSampleRate = 'datadog_session_sample_rate',
   DatadogIgnoredErrors = 'datadog_ignored_errors',
-  EmbeddedWalletConfig = 'embedded_wallet_config',
   ExtensionBiometricUnlock = 'extension_biometric_unlock_config',
 
   // Web
@@ -80,10 +79,6 @@ type ContentMessage = {
 }
 
 export type ForceUpgradeTranslations = Record<SupportedLocale, ContentMessage>
-
-export enum EmbeddedWalletConfigKey {
-  BaseUrl = 'baseUrl',
-}
 
 export enum ExtensionBiometricUnlockConfigKey {
   EnableOnboardingEnrollment = 'enableOnboardingEnrollment',
@@ -182,7 +177,6 @@ export type DynamicConfigKeys = {
   [DynamicConfigs.UwuLink]: UwuLinkConfigKey
   [DynamicConfigs.DatadogIgnoredErrors]: DatadogIgnoredErrorsConfigKey
   [DynamicConfigs.DatadogSessionSampleRate]: DatadogSessionSampleRateKey
-  [DynamicConfigs.EmbeddedWalletConfig]: EmbeddedWalletConfigKey
   [DynamicConfigs.ExtensionBiometricUnlock]: ExtensionBiometricUnlockConfigKey
   [DynamicConfigs.SyncTransactionSubmissionChainIds]: SyncTransactionSubmissionChainIdsConfigKey
 

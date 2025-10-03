@@ -38,14 +38,6 @@ export function RestoreMethodScreen({ navigation, route: { params } }: Props): J
   useNavigationHeader(navigation)
 
   const handleOnPress = async (nav: ImportMethodOption['nav'], importType: ImportType): Promise<void> => {
-    if (nav === OnboardingScreens.PasskeyImport) {
-      const error = new Error('Invalid screen passed to handleOnPress')
-      logger.error(error, {
-        tags: { file: 'RestoreMethodScreen', function: 'handleOnPress' },
-      })
-      throw error
-    }
-
     navigation.navigate({
       name: nav,
       params: { ...params, importType, entryPoint },

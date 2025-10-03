@@ -8,7 +8,6 @@ import {
 import { GatingButton } from 'uniswap/src/components/gating/GatingButton'
 import { ExperimentRow, LayerRow } from 'uniswap/src/components/gating/Rows'
 import {
-  EMBEDDED_WALLET_BASE_URL_OPTIONS,
   FORCE_UPGRADE_STATUS_OPTIONS,
   FORCE_UPGRADE_TRANSLATIONS_OPTIONS,
 } from 'uniswap/src/components/gating/dynamicConfigOverrides'
@@ -16,7 +15,6 @@ import { useForceUpgradeStatus } from 'uniswap/src/features/forceUpgrade/hooks/u
 import { useForceUpgradeTranslations } from 'uniswap/src/features/forceUpgrade/hooks/useForceUpgradeTranslations'
 import {
   DynamicConfigs,
-  EmbeddedWalletConfigKey,
   ExtensionBiometricUnlockConfigKey,
   ForceUpgradeConfigKey,
 } from 'uniswap/src/features/gating/configs'
@@ -24,7 +22,6 @@ import { Experiments, Layers } from 'uniswap/src/features/gating/experiments'
 import { FeatureFlags, WALLET_FEATURE_FLAG_NAMES, getFeatureFlagName } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlagWithExposureLoggingDisabled } from 'uniswap/src/features/gating/hooks'
 import { getOverrideAdapter } from 'uniswap/src/features/gating/sdk/statsig'
-import { useEmbeddedWalletBaseUrl } from 'uniswap/src/features/passkey/hooks/useEmbeddedWalletBaseUrl'
 import { isExtension, isMobileApp } from 'utilities/src/platform'
 import { useEvent } from 'utilities/src/react/hooks'
 
@@ -159,16 +156,6 @@ export function GatingOverrides(): JSX.Element {
                   config={DynamicConfigs.ExtensionBiometricUnlock}
                   configKey={ExtensionBiometricUnlockConfigKey.EnableSettingsEnrollment}
                   label="Settings Enrollment"
-                />
-              </DynamicConfigGroup>
-
-              <DynamicConfigGroup title="Embedded Wallet">
-                <DynamicConfigDropdown
-                  config={DynamicConfigs.EmbeddedWalletConfig}
-                  configKey={EmbeddedWalletConfigKey.BaseUrl}
-                  label="Base URL"
-                  options={EMBEDDED_WALLET_BASE_URL_OPTIONS}
-                  selected={useEmbeddedWalletBaseUrl()}
                 />
               </DynamicConfigGroup>
 

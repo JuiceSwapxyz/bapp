@@ -12,7 +12,6 @@ const FLOWS_USING_BETA: TrafficFlows[] = []
 const isDevOrBeta = isPlaywrightEnv() ? false : isDevEnv() || isBetaEnv()
 
 export const UNISWAP_WEB_HOSTNAME = 'bapp.juiceswap.xyz'
-const EMBEDDED_WALLET_HOSTNAME = isPlaywrightEnv() || isDevEnv() ? 'staging.ew.unihq.org' : UNISWAP_WEB_HOSTNAME
 
 export const UNISWAP_WEB_URL = `https://${UNISWAP_WEB_HOSTNAME}`
 export const UNISWAP_APP_URL = 'https://uniswap.org/app'
@@ -74,7 +73,6 @@ export const uniswapUrls = {
     revokeExplainer: createHelpArticleUrl('15724901841037-How-to-revoke-a-token-approval'),
     supportedNetworks: createHelpArticleUrl('14569415293325'),
     swapFeeInfo: createHelpArticleUrl('20131678274957'),
-    passkeysInfo: createHelpArticleUrl('35522111260173'),
     smartWalletDelegation: createHelpArticleUrl('36391987158797'),
     swapProtection: createHelpArticleUrl('18814993155853'),
     swapSlippage: createHelpArticleUrl('8643879653261-What-is-Price-Slippage-'),
@@ -134,14 +132,6 @@ export const uniswapUrls = {
 
   // Merkl Docs for LP Incentives
   merklDocsUrl: 'https://docs.merkl.xyz/earn-with-merkl/faq-earn#how-are-aprs-calculated',
-
-  // Embedded Wallet URL's
-  // Totally fine that these are public
-  evervaultDevUrl: 'https://embedded-wallet-dev.app-907329d19a06.enclave.evervault.com',
-  evervaultStagingUrl: 'https://embedded-wallet-staging.app-907329d19a06.enclave.evervault.com',
-  evervaultProductionUrl: 'https://embedded-wallet.app-907329d19a06.enclave.evervault.com',
-  embeddedWalletUrl: `https://${EMBEDDED_WALLET_HOSTNAME}`,
-  passkeysManagementUrl: `https://${EMBEDDED_WALLET_HOSTNAME}/manage/passkey`,
 
   // API Paths
   trmPath: '/v1/screen',
