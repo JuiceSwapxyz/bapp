@@ -58,6 +58,7 @@ interface EVMSwapInstructionsServiceContext {
 
 export const getCustomSwapTokenData = (
   trade: ClassicTrade | BridgeTrade | WrapTrade | UnwrapTrade | undefined,
+  transactionSettings?: TransactionSettings,
 ): CustomSwapDataForRequest | undefined => {
   if (!trade) {
     return undefined
@@ -76,6 +77,7 @@ export const getCustomSwapTokenData = (
       tokenOutChainId: currencyOut.chainId,
       tokenOutAddress: currencyOut.isNative ? ZERO_ADDRESS : currencyOut.address,
       tokenOutDecimals: currencyOut.decimals,
+      slippageTolerance: transactionSettings?.customSlippageTolerance?.toString() ?? '5.5',
     }
   }
 
@@ -126,7 +128,7 @@ function createLegacyEVMSwapInstructionsService(
         return { response: null, unsignedPermit: permitData, swapRequestParams }
       }
 
-      const customSwapData = getCustomSwapTokenData(trade)
+      const customSwapData = getCustomSwapTokenData(trade, transactionSettings)
       const response = await swapRepository.fetchSwapData({ ...swapRequestParams, customSwapData })
       return { response, unsignedPermit: null, swapRequestParams: null }
     },
