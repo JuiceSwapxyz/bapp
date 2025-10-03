@@ -1,10 +1,9 @@
 import { expect, test } from 'playwright/fixtures'
-import { FeatureFlags, getFeatureFlagName } from 'uniswap/src/features/gating/flags'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 
 test.describe('Wallet Connection', () => {
   test('disconnect wallet', async ({ page }) => {
-    await page.goto(`/swap?featureFlagOverrideOff=${getFeatureFlagName(FeatureFlags.EmbeddedWallet)}`)
+    await page.goto('/swap')
     await page.getByTestId(TestID.AmountInputIn).fill('1')
 
     // Verify wallet is connected
@@ -25,9 +24,7 @@ test.describe('Wallet Connection', () => {
   })
 
   test('should connect wallet', async ({ page }) => {
-    await page.goto(
-      `/swap?eagerlyConnect=false&featureFlagOverrideOff=${getFeatureFlagName(FeatureFlags.EmbeddedWallet)}`,
-    )
+    await page.goto('/swap?eagerlyConnect=false')
 
     await page.getByText('Connect Wallet').click()
     await page.getByText('Mock Connector').click()

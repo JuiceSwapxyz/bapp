@@ -7,11 +7,8 @@ import { useTranslation } from 'react-i18next'
 import { Button, Flex, Image } from 'ui/src'
 import { UNISWAP_MONO_LOGO_LARGE } from 'ui/src/assets'
 import { iconSizes } from 'ui/src/theme'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { Trace } from 'uniswap/src/features/telemetry/Trace'
-import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 
 function Header() {
   return (
@@ -49,8 +46,6 @@ export function GetStarted({
 }) {
   const { t } = useTranslation()
 
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
-
   return (
     <Trace logImpression modal={ModalName.SignUp}>
       <ModalContent
@@ -71,18 +66,6 @@ export function GetStarted({
         }
       >
         <Flex gap="$spacing20" width="100%" px="$spacing32" pb="$spacing24">
-          <Flex row>
-            <Trace logPress element={ElementName.CreateAWallet}>
-              <Button
-                testID={TestID.CreateAccount}
-                variant="branded"
-                onPress={() => setPage(Page.ChooseUnitag)}
-                display={isEmbeddedWalletEnabled ? 'flex' : 'none'}
-              >
-                {t('nav.createAccount.button')}
-              </Button>
-            </Trace>
-          </Flex>
           <Trace logPress element={ElementName.ConnectExistingWallet}>
             <Button variant="branded" emphasis="text-only" onPress={toConnectWalletDrawer}>
               {t('downloadApp.modal.connectExistingWallet')}

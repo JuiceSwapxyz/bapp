@@ -17,8 +17,6 @@ import { useAppSelector } from 'state/hooks'
 import { AnimatePresence, Button, ButtonProps, Flex, Popover, Text } from 'ui/src'
 import { Unitag } from 'ui/src/components/icons/Unitag'
 import { breakpoints } from 'ui/src/theme'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, InterfaceEventName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
@@ -73,9 +71,6 @@ const ExistingUserCTAButton = forwardRef<HTMLDivElement, { onPress: () => void }
 ) {
   const { t } = useTranslation()
 
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
-  const isLogIn = isEmbeddedWalletEnabled
-
   return (
     <Button
       fill={false}
@@ -87,7 +82,7 @@ const ExistingUserCTAButton = forwardRef<HTMLDivElement, { onPress: () => void }
       ref={ref}
       onPress={onPress}
     >
-      {isLogIn ? t('nav.logIn.button') : t('common.connect.button')}
+      {t('common.connect.button')}
     </Button>
   )
 })

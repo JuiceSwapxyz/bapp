@@ -5,8 +5,6 @@ import { useModalState } from 'hooks/useModalState'
 import { useState } from 'react'
 import { Trans } from 'react-i18next'
 import { Flex, Image, Text } from 'ui/src'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { useEvent } from 'utilities/src/react/hooks'
@@ -41,7 +39,6 @@ function BackgroundImage({ backgroundImage, isHovered }: BackgroundImageProps) {
 export const DownloadWalletOption = () => {
   const accountDrawer = useAccountDrawer()
   const { openModal: openGetTheAppModal } = useModalState(ModalName.GetTheApp)
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
   // Hovered state is passed from the background component to the background image which is layered underneath the option container
   const [optionHovered, setOptionHovered] = useState(false)
 
@@ -65,13 +62,7 @@ export const DownloadWalletOption = () => {
       >
         <BackgroundImage backgroundImage="/images/extension_promo/background_connector.png" isHovered={optionHovered} />
         <OptionContainer onPress={onClickDownload} hideBackground>
-          <Image
-            src={UNIWALLET_ICON}
-            alt="uniswap-app-icon"
-            height={isEmbeddedWalletEnabled ? 32 : 40}
-            width={isEmbeddedWalletEnabled ? 32 : 40}
-            borderRadius={12}
-          />
+          <Image src={UNIWALLET_ICON} alt="uniswap-app-icon" height={40} width={40} borderRadius={12} />
           <Flex row gap={4}>
             <Flex>
               <Text variant="buttonLabel2" color="$white" whiteSpace="nowrap">

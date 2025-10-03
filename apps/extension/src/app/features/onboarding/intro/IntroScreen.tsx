@@ -4,7 +4,6 @@ import { Complete } from 'src/app/features/onboarding/Complete'
 import { SyncFromPhoneButton } from 'src/app/features/onboarding/SyncFromPhoneButton'
 import { Terms } from 'src/app/features/onboarding/Terms'
 import { MainIntroWrapper } from 'src/app/features/onboarding/intro/MainIntroWrapper'
-import { useIsExtensionPasskeyImportEnabled } from 'src/app/hooks/useIsExtensionPasskeyImportEnabled'
 import { OnboardingRoutes, TopLevelRoutes } from 'src/app/navigation/constants'
 import { navigate } from 'src/app/navigation/state'
 import { checksIfSupportsSidePanel } from 'src/app/utils/chrome'
@@ -16,7 +15,7 @@ import { useTimeout } from 'utilities/src/time/timing'
 
 export function IntroScreen(): JSX.Element {
   const { t } = useTranslation()
-  const isPasskeyImportEnabled = useIsExtensionPasskeyImportEnabled()
+  const isPasskeyImportEnabled = false
 
   const isOnboarded = useSelector(isOnboardedSelector)
   // Detections for some unsupported browsers may not work until stylesheet is loaded
