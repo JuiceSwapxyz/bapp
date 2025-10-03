@@ -59,9 +59,9 @@ const migrator = createMigrate(
 )
 
 describe('migration to v19', () => {
-  it('should translate locale to a user language, retaining customization', async () => {
+  it('should always set language to English', async () => {
     const result: any = await migrator(previousState, 19)
     expect(result.user.userLocale).toBe(undefined)
-    expect(result.userSettings.currentLanguage).toBe(Language.Italian)
+    expect(result.userSettings.currentLanguage).toBe(Language.English)
   })
 })
