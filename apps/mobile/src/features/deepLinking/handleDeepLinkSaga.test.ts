@@ -556,9 +556,9 @@ describe(handleDeepLink, () => {
       .silentRun()
   })
 
-  it('Handles MoonPay exclusive fiat onramp deeplink', () => {
+  it('Handles fiat onramp deeplink with amount', () => {
     const payload = {
-      url: `uniswap://app/fiatonramp?moonpayOnly=true&source=moonpay-ad`,
+      url: `uniswap://app/fiatonramp?userAddress=${account.address}&amount=100&source=fiat-ad`,
       coldStart: false,
     }
     return expectSaga(handleDeepLink, {
@@ -571,41 +571,7 @@ describe(handleDeepLink, () => {
         openModal({
           name: ModalName.FiatOnRampAggregator,
           initialState: {
-            moonpayOnly: true,
-            prefilledAmount: undefined,
-            moonpayCurrencyCode: undefined,
-          },
-        }),
-      )
-      .call(sendAnalyticsEvent, MobileEventName.DeepLinkOpened, {
-        action: DeepLinkAction.FiatOnRampScreen,
-        url: payload.url,
-        screen: 'other',
-        is_cold_start: payload.coldStart,
-        source: 'moonpay-ad',
-      })
-      .returns(undefined)
-      .silentRun()
-  })
-
-  it('Handles MoonPay exclusive fiat onramp deeplink with token and amount', () => {
-    const payload = {
-      url: `uniswap://app/fiatonramp?moonpayOnly=true&moonpayCurrencyCode=eth&amount=100&source=moonpay-ad`,
-      coldStart: false,
-    }
-    return expectSaga(handleDeepLink, {
-      payload,
-      type: '',
-    })
-      .withState(stateWithActiveAccountAddress)
-      .provide([[delay(ONRAMP_DEEPLINK_DELAY), undefined]])
-      .put(
-        openModal({
-          name: ModalName.FiatOnRampAggregator,
-          initialState: {
-            moonpayOnly: true,
             prefilledAmount: '100',
-            moonpayCurrencyCode: 'eth',
           },
         }),
       )
@@ -614,7 +580,7 @@ describe(handleDeepLink, () => {
         url: payload.url,
         screen: 'other',
         is_cold_start: payload.coldStart,
-        source: 'moonpay-ad',
+        source: 'fiat-ad',
       })
       .returns(undefined)
       .silentRun()

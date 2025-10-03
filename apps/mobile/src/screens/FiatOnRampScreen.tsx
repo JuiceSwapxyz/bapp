@@ -110,8 +110,6 @@ export function FiatOnRampScreen({ navigation }: Props): JSX.Element {
     isTokenInputMode,
     setIsTokenInputMode,
     externalTransactionIdSuffix,
-    moonpayOnly,
-    moonpayCurrencyCode,
   } = useFiatOnRampContext()
 
   const [showTokenSelector, setShowTokenSelector] = useState(false)
@@ -250,14 +248,8 @@ export function FiatOnRampScreen({ navigation }: Props): JSX.Element {
       return undefined
     }
 
-    // In MoonPay exclusive mode, only show MoonPay quotes if one exists
-    if (moonpayOnly) {
-      const moonpayQuotes = quotes.filter((quote) => quote.serviceProviderDetails.serviceProvider === 'MOONPAY')
-      return moonpayQuotes.length > 0 ? moonpayQuotes : quotes
-    }
-
     return quotes
-  }, [quotes, moonpayOnly])
+  }, [quotes])
 
   const prevQuotes = usePrevious(filteredQuotes)
   useEffect(() => {
@@ -388,18 +380,6 @@ export function FiatOnRampScreen({ navigation }: Props): JSX.Element {
     countryCode,
     rampDirection: isOffRamp ? RampDirection.OFFRAMP : RampDirection.ONRAMP,
   })
-
-  useEffect(() => {
-    if (!moonpayCurrencyCode || !supportedTokensList) {
-      return
-    }
-
-    const matchingCurrency = supportedTokensList.find(
-      (token) => token.meldCurrencyCode?.toLowerCase() === moonpayCurrencyCode.toLowerCase(),
-    )
-
-    matchingCurrency && setQuoteCurrency(matchingCurrency)
-  }, [moonpayCurrencyCode, supportedTokensList, setQuoteCurrency])
 
   const onSelectCurrency = (currency: FORCurrencyOrBalance): void => {
     if (isTokenInputMode) {

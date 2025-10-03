@@ -380,11 +380,7 @@ function BuyFormInner({ disabled, initialCurrency }: BuyFormProps) {
           onSelectCurrency={(currency) => {
             setBuyFormState((state) => ({ ...state, quoteCurrency: currency }))
             sendAnalyticsEvent(FiatOnRampEventName.FiatOnRampTokenSelected, {
-              token:
-                currency.meldCurrencyCode ??
-                currency.moonpayCurrencyCode ??
-                currency.currencyInfo?.currency.symbol ??
-                '',
+              token: currency.meldCurrencyCode ?? currency.currencyInfo?.currency.symbol ?? '',
             })
           }}
           currencies={supportedTokens}

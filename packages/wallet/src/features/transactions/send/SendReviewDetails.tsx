@@ -203,7 +203,6 @@ export function SendReviewDetails({
       navigateToFiatOnRamp({
         prefilledCurrency: {
           currencyInfo: currencyInInfo,
-          moonpayCurrencyCode: fiatOffRampMetaData.moonpayCurrencyCode,
           meldCurrencyCode: fiatOffRampMetaData.meldCurrencyCode,
         },
         isOfframp: true,

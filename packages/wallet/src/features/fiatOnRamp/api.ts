@@ -81,26 +81,15 @@ export async function fetchFORTransaction({
 
 export async function fetchOffRampTransferDetails({
   sessionId,
-  baseCurrencyCode,
-  baseCurrencyAmount,
-  depositWalletAddress,
 }: {
   sessionId: string | null
-  baseCurrencyCode: string | null
-  baseCurrencyAmount: number | null
-  depositWalletAddress: string | null
+  baseCurrencyCode?: string | null
+  baseCurrencyAmount?: number | null
+  depositWalletAddress?: string | null
 }): Promise<OffRampTransferDetailsResponse> {
   let requestParams: OffRampTransferDetailsRequest | undefined
 
-  if (baseCurrencyCode && baseCurrencyAmount && depositWalletAddress) {
-    requestParams = {
-      moonpayDetails: {
-        baseCurrencyCode,
-        baseCurrencyAmount,
-        depositWalletAddress,
-      },
-    }
-  } else if (sessionId) {
+  if (sessionId) {
     requestParams = {
       meldDetails: {
         sessionId,

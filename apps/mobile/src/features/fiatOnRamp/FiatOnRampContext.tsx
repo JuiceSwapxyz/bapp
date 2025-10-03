@@ -37,9 +37,6 @@ interface FiatOnRampContextType {
   isTokenInputMode: boolean
   setIsTokenInputMode: React.Dispatch<React.SetStateAction<boolean>>
   externalTransactionIdSuffix: string
-  moonpayOnly: boolean
-  setMoonpayOnly: (moonpayOnly: boolean) => void
-  moonpayCurrencyCode?: string
 }
 
 const initialState: FiatOnRampContextType = {
@@ -62,9 +59,6 @@ const initialState: FiatOnRampContextType = {
   isTokenInputMode: false,
   setIsTokenInputMode: () => undefined,
   externalTransactionIdSuffix: '',
-  moonpayOnly: false,
-  setMoonpayOnly: () => undefined,
-  moonpayCurrencyCode: undefined,
 }
 
 const FiatOnRampContext = createContext<FiatOnRampContextType>(initialState)
@@ -75,7 +69,7 @@ export function useFiatOnRampContext(): FiatOnRampContextType {
 
 export function FiatOnRampProvider({ children }: { children: React.ReactNode }): JSX.Element {
   const { initialState: initialModalState } = useSelector(selectModalState(ModalName.FiatOnRampAggregator))
-  const { prefilledCurrency, prefilledAmount, moonpayCurrencyCode } = initialModalState ?? {}
+  const { prefilledCurrency, prefilledAmount } = initialModalState ?? {}
 
   const [quotesSections, setQuotesSections] = useState<FiatOnRampContextType['quotesSections']>()
   const [selectedQuote, setSelectedQuote] = useState<FORQuote | undefined>()
@@ -105,7 +99,6 @@ export function FiatOnRampProvider({ children }: { children: React.ReactNode }):
   )
   const [quoteCurrency, setQuoteCurrency] = useState<FiatOnRampCurrency>(prefilledCurrency ?? defaultCurrency)
   const [isOffRamp, setIsOffRamp] = useState<boolean>(initialModalState?.isOfframp ?? false)
-  const [moonpayOnly, setMoonpayOnly] = useState<boolean>(initialModalState?.moonpayOnly ?? false)
 
   useEffect(() => {
     if (prefilledCurrency || quoteCurrency.currencyInfo) {
@@ -142,9 +135,6 @@ export function FiatOnRampProvider({ children }: { children: React.ReactNode }):
         isTokenInputMode,
         setIsTokenInputMode,
         externalTransactionIdSuffix,
-        moonpayOnly,
-        setMoonpayOnly,
-        moonpayCurrencyCode,
       }}
     >
       {children}

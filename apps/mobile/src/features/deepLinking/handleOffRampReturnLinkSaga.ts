@@ -27,13 +27,9 @@ export function* handleOffRampReturnLink(url: URL) {
 
 function* _handleOffRampReturnLink(url: URL) {
   const externalTransactionId = url.searchParams.get('externalTransactionId')
-  const currencyCode = url.searchParams.get('baseCurrencyCode')
-  const currencyAmount = url.searchParams.get('baseCurrencyAmount')
-  const walletAddress = url.searchParams.get('depositWalletAddress')
 
-  const hasValidMoonpayData = currencyCode && currencyAmount && walletAddress
-  if (!externalTransactionId && !hasValidMoonpayData) {
-    throw new Error('Missing externalTransactionId or moonpay data in fiat offramp deep link')
+  if (!externalTransactionId) {
+    throw new Error('Missing externalTransactionId in fiat offramp deep link')
   }
 
   let offRampTransferDetails: OffRampTransferDetailsResponse | undefined
@@ -41,9 +37,6 @@ function* _handleOffRampReturnLink(url: URL) {
   try {
     offRampTransferDetails = yield* call(fetchOffRampTransferDetails, {
       sessionId: externalTransactionId,
-      baseCurrencyCode: currencyCode,
-      baseCurrencyAmount: Number(currencyAmount),
-      depositWalletAddress: walletAddress,
     })
   } catch (error) {
     logger.error(error, {
@@ -87,7 +80,6 @@ function* _handleOffRampReturnLink(url: URL) {
     onSubmitCallback: (amountUSD?: number) => {
       sendAnalyticsEvent(FiatOffRampEventName.FiatOffRampFundsSent, { ...analyticsProperties, amountUSD })
     },
-    moonpayCurrencyCode: baseCurrencyCode,
     meldCurrencyCode: baseCurrencyCode,
   }
 
