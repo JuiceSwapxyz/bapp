@@ -14,14 +14,12 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
 import { liquiditySaga } from 'state/sagas/liquidity/liquiditySaga'
 import { Button, Flex, Separator, Text } from 'ui/src'
-import { Passkey } from 'ui/src/components/icons/Passkey'
 import { iconSizes } from 'ui/src/theme'
 import { ProgressIndicator } from 'uniswap/src/components/ConfirmSwapModal/ProgressIndicator'
 import { CurrencyLogo } from 'uniswap/src/components/CurrencyLogo/CurrencyLogo'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
-import { useGetPasskeyAuthStatus } from 'uniswap/src/features/passkey/hooks/useGetPasskeyAuthStatus'
 import { useUSDCValue } from 'uniswap/src/features/transactions/hooks/useUSDCPrice'
 import { isValidLiquidityTxContext } from 'uniswap/src/features/transactions/liquidity/types'
 import { TransactionStep } from 'uniswap/src/features/transactions/steps/types'
@@ -46,7 +44,6 @@ export function RemoveLiquidityReview({ onClose }: { onClose: () => void }) {
   const account = useWallet().evmAccount
   const dispatch = useDispatch()
   const trace = useTrace()
-  const { needsPasskeySignin } = useGetPasskeyAuthStatus(connectedAccount.connector?.id)
 
   const { txContext, gasFeeEstimateUSD } = removeLiquidityTxContext
 
@@ -299,12 +296,8 @@ export function RemoveLiquidityReview({ onClose }: { onClose: () => void }) {
             />
           </Flex>
           <Flex row>
-            <Button
-              size="large"
-              onPress={onDecreaseLiquidity}
-              icon={needsPasskeySignin ? <Passkey size="$icon.24" /> : undefined}
-            >
-              {needsPasskeySignin ? t('pool.removeLiquidity') : t('common.confirm')}
+            <Button size="large" onPress={onDecreaseLiquidity}>
+              {t('common.confirm')}
             </Button>
           </Flex>
         </>

@@ -4,7 +4,6 @@ import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { SwapBottomCard } from 'components/SwapBottomCard'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
-import { useAccount } from 'hooks/useAccount'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { PageType, useIsPage } from 'hooks/useIsPage'
 import { useModalState } from 'hooks/useModalState'
@@ -28,7 +27,6 @@ import { useIsModeMismatch } from 'uniswap/src/features/chains/hooks/useEnabledC
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
-import { useGetPasskeyAuthStatus } from 'uniswap/src/features/passkey/hooks/useGetPasskeyAuthStatus'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import type {
@@ -277,9 +275,6 @@ function UniversalSwapFlow({
   const swapCallback = useSwapCallback(onSubmitSwapRef)
   const wrapCallback = useWrapCallback()
 
-  const connectorId = useAccount().connector?.id
-  const passkeyAuthStatus = useGetPasskeyAuthStatus(connectorId)
-
   return (
     <Flex>
       {/* Removed header completely - no tabs or title shown */}
@@ -296,7 +291,6 @@ function UniversalSwapFlow({
               prefilledState={prefilledState}
               tokenColor={tokenColor}
               onSubmitSwap={handleSubmitSwap}
-              passkeyAuthStatus={passkeyAuthStatus}
             />
           </SwapDependenciesStoreContextProvider>
           <CitreaCampaignProgress />
