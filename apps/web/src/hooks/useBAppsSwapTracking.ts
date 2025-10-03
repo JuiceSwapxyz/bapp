@@ -13,8 +13,10 @@ function useBAppsSwapTracking(options: {
   chainId?: number
   inputToken?: string
   outputToken?: string
+  poolAddress?: string
+  recipient?: string
 }) {
-  const { txHash, chainId, inputToken, outputToken } = options
+  const { txHash, chainId, inputToken, outputToken, poolAddress, recipient } = options
   const { trackSwapCompletion } = useTracking()
   const hasTracked = useRef(new Set<string>())
 
@@ -29,7 +31,7 @@ function useBAppsSwapTracking(options: {
     // Only track when transaction is confirmed as successful and not already tracked
     if (transaction?.status === TransactionStatus.Success && !hasTracked.current.has(txHash)) {
       hasTracked.current.add(txHash)
-      trackSwapCompletion({ txHash, inputToken, outputToken })
+      trackSwapCompletion({ txHash, inputToken, outputToken, poolAddress, recipient })
         .then(() => {
           // Task completion tracked successfully
         })

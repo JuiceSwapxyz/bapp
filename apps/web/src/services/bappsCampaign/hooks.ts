@@ -70,9 +70,11 @@ export function useBAppsCampaignProgress() {
       txHash: string
       inputToken?: string
       outputToken?: string
+      poolAddress?: string
+      recipient?: string
       retryCount?: number
     }): Promise<number | null> => {
-      const { txHash, inputToken, outputToken, retryCount = 0 } = params
+      const { txHash, inputToken, outputToken, poolAddress, recipient, retryCount = 0 } = params
       if (!account.address) {
         return null
       }
@@ -83,6 +85,8 @@ export function useBAppsCampaignProgress() {
         chainId: defaultChainId,
         inputToken,
         outputToken,
+        poolAddress,
+        recipient,
       })
 
       // Status information is available in result.status, result.message, and result.confirmations
@@ -94,7 +98,14 @@ export function useBAppsCampaignProgress() {
           // Max 10 retries
           const delay = Math.min(1000 * Math.pow(1.5, retryCount), 10000) // Max 10 seconds
           await new Promise((resolve) => setTimeout(resolve, delay))
-          return checkSwapTaskCompletion({ txHash, inputToken, outputToken, retryCount: retryCount + 1 })
+          return checkSwapTaskCompletion({
+            txHash,
+            inputToken,
+            outputToken,
+            poolAddress,
+            recipient,
+            retryCount: retryCount + 1,
+          })
         }
 
         // Max retries reached, transaction still pending
@@ -279,10 +290,16 @@ export function useBAppsSwapTracking() {
   const { defaultChainId } = useEnabledChains()
 
   const trackSwapCompletion = useCallback(
-    async (params: { txHash: string; inputToken?: string; outputToken?: string }) => {
-      const { txHash, inputToken, outputToken } = params
+    async (params: {
+      txHash: string
+      inputToken?: string
+      outputToken?: string
+      poolAddress?: string
+      recipient?: string
+    }) => {
+      const { txHash, inputToken, outputToken, poolAddress, recipient } = params
       // First check which task this swap completed (locally first, then API)
-      const taskId = await checkSwapTaskCompletion({ txHash, inputToken, outputToken })
+      const taskId = await checkSwapTaskCompletion({ txHash, inputToken, outputToken, poolAddress, recipient })
 
       if (taskId !== null) {
         // Task was identified by API

@@ -185,6 +185,33 @@ function* getSwapTxRequest(step: SwapTransactionStep | SwapTransactionStepAsync,
   return txRequest
 }
 
+/**
+ * Extract pool addresses from a ClassicTrade
+ * Returns empty array for non-classic trades
+ */
+function getPoolAddressesFromTrade(trade: any): string[] {
+  if (!trade || trade.routing !== Routing.CLASSIC) {
+    return []
+  }
+
+  const classicTrade = trade as ClassicTrade
+  const poolAddresses: string[] = []
+
+  if (classicTrade.swaps) {
+    for (const swap of classicTrade.swaps) {
+      if (swap.route.pools) {
+        for (const pool of swap.route.pools) {
+          if ('address' in pool && typeof pool.address === 'string') {
+            poolAddresses.push(pool.address)
+          }
+        }
+      }
+    }
+  }
+
+  return poolAddresses
+}
+
 type SwapParams = {
   selectChain: (chainId: number) => Promise<boolean>
   startChainId?: number
@@ -330,7 +357,14 @@ export const swapSaga = createSaga(swap, 'swapSaga')
 /** Callback to submit trades and track progress */
 export function useSwapCallback(
   onSubmitSwapRef?: React.MutableRefObject<
-    ((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined
+    | ((
+        txHash?: string,
+        inputToken?: string,
+        outputToken?: string,
+        poolAddress?: string,
+        recipient?: string,
+      ) => Promise<void> | void)
+    | undefined
   >,
 ): SwapCallback {
   const appDispatch = useDispatch()
@@ -413,7 +447,15 @@ export function useSwapCallback(
             const outputToken = trade.outputAmount.currency.isNative
               ? NATIVE_CHAIN_ID
               : trade.outputAmount.currency.address
-            await onSubmitSwapRef.current(hash, inputToken, outputToken)
+
+            // Extract pool addresses from trade
+            const poolAddresses = getPoolAddressesFromTrade(trade)
+            const poolAddress = poolAddresses.length > 0 ? poolAddresses[0] : undefined
+
+            // Recipient is the connected wallet address
+            const recipient = account.address
+
+            await onSubmitSwapRef.current(hash, inputToken, outputToken, poolAddress, recipient)
           }
         },
       }

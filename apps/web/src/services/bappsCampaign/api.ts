@@ -3,6 +3,16 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 // API endpoints for bApps campaign
 const BAPPS_API_BASE_URL = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
 
+// Cache version - increment when validation logic changes
+const CACHE_VERSION = 'v2'
+
+// Campaign pool addresses per documentation (/docs/campaigns/citrea-bapps-campaign.md)
+const CAMPAIGN_POOLS = {
+  TASK_1: '0x6006797369E2A595D31Df4ab3691044038AAa7FE', // CBTC/NUSD
+  TASK_2: '0xA69De906B9A830Deb64edB97B2eb0848139306d2', // CBTC/cUSD
+  TASK_3: '0xD8C7604176475eB8D350bC1EE452dA4442637C09', // CBTC/USDC
+} as const
+
 // eslint-disable-next-line import/no-unused-modules
 export interface CampaignTask {
   id: number
@@ -37,6 +47,7 @@ class BAppsCampaignAPI {
 
   constructor() {
     this.baseUrl = BAPPS_API_BASE_URL
+    this.clearLegacyCache()
   }
 
   /**
@@ -117,22 +128,52 @@ class BAppsCampaignAPI {
     chainId: UniverseChainId
     inputToken?: string
     outputToken?: string
+    poolAddress?: string
+    recipient?: string
   }): Promise<{
     taskId: number | null
     status?: 'pending' | 'confirmed' | 'failed' | 'not_found' | 'error'
     message?: string
     confirmations?: number
   }> {
-    const { txHash, walletAddress, chainId, inputToken, outputToken } = params
+    const { txHash, walletAddress, chainId, inputToken, outputToken, poolAddress, recipient } = params
 
-    // Local validation based on token pairs
+    // Complete local validation: Token + Pool + Recipient
+    if (inputToken && outputToken && poolAddress && recipient) {
+      const taskId = this.getTaskIdFromTokenPair(inputToken, outputToken)
+      const isCorrectPool = this.validatePoolAddress(taskId, poolAddress)
+      const isCorrectRecipient = recipient.toLowerCase() === walletAddress.toLowerCase()
+
+      if (taskId !== null && isCorrectPool && isCorrectRecipient) {
+        return {
+          taskId,
+          status: 'confirmed',
+          message: 'Task completed - all validations passed',
+        }
+      } else if (taskId !== null) {
+        const reasons = []
+        if (!isCorrectPool) {
+          reasons.push('wrong pool')
+        }
+        if (!isCorrectRecipient) {
+          reasons.push('wrong recipient')
+        }
+        return {
+          taskId: null,
+          status: 'not_found',
+          message: `Validation failed: ${reasons.join(', ')}`,
+        }
+      }
+    }
+
+    // Fallback: token-only validation (incomplete - needs API confirmation)
     if (inputToken && outputToken) {
       const taskId = this.getTaskIdFromTokenPair(inputToken, outputToken)
       if (taskId !== null) {
         return {
           taskId,
-          status: 'confirmed',
-          message: 'Task completed locally',
+          status: 'pending',
+          message: 'Token pair matches - awaiting pool and recipient confirmation',
         }
       }
     }
@@ -222,7 +263,7 @@ class BAppsCampaignAPI {
    */
   private getLocalCompletedTasks(walletAddress: string): number[] {
     try {
-      const key = `citrea_bapps_completed_${walletAddress}`
+      const key = `citrea_bapps_${CACHE_VERSION}_completed_${walletAddress}`
       const stored = localStorage.getItem(key)
       return stored ? JSON.parse(stored) : []
     } catch {
@@ -235,7 +276,7 @@ class BAppsCampaignAPI {
    */
   private storeLocalCompletion(completion: SwapTaskCompletion): void {
     try {
-      const key = `citrea_bapps_completed_${completion.walletAddress}`
+      const key = `citrea_bapps_${CACHE_VERSION}_completed_${completion.walletAddress}`
       const stored = localStorage.getItem(key)
       const tasks = stored ? JSON.parse(stored) : []
 
@@ -245,7 +286,7 @@ class BAppsCampaignAPI {
       }
 
       // Also store the full completion details
-      const detailsKey = `citrea_bapps_details_${completion.walletAddress}_${completion.taskId}`
+      const detailsKey = `citrea_bapps_${CACHE_VERSION}_details_${completion.walletAddress}_${completion.taskId}`
       localStorage.setItem(detailsKey, JSON.stringify(completion))
     } catch (error) {
       // Silently fail for localStorage errors
@@ -257,16 +298,33 @@ class BAppsCampaignAPI {
    */
   clearLocalProgress(walletAddress: string): void {
     try {
-      const key = `citrea_bapps_completed_${walletAddress}`
+      const key = `citrea_bapps_${CACHE_VERSION}_completed_${walletAddress}`
       localStorage.removeItem(key)
 
       // Clear task details
       for (let i = 1; i <= 3; i++) {
-        const detailsKey = `citrea_bapps_details_${walletAddress}_${i}`
+        const detailsKey = `citrea_bapps_${CACHE_VERSION}_details_${walletAddress}_${i}`
         localStorage.removeItem(detailsKey)
       }
     } catch (error) {
       // Silently fail for localStorage errors
+    }
+  }
+
+  /**
+   * Clear legacy cache from v1 (old validation logic)
+   * Called once when API is initialized
+   */
+  private clearLegacyCache(): void {
+    try {
+      const legacyPattern = /^citrea_bapps_(completed|details)_/
+      Object.keys(localStorage).forEach((key) => {
+        if (legacyPattern.test(key) && !key.includes(`_${CACHE_VERSION}_`)) {
+          localStorage.removeItem(key)
+        }
+      })
+    } catch (error) {
+      // Silently fail
     }
   }
 
@@ -327,6 +385,28 @@ class BAppsCampaignAPI {
     }
 
     return null
+  }
+
+  /**
+   * Validate if pool address matches the expected pool for a task
+   */
+  validatePoolAddress(taskId: number | null, poolAddress: string): boolean {
+    if (taskId === null) {
+      return false
+    }
+
+    const poolLower = poolAddress.toLowerCase()
+
+    switch (taskId) {
+      case 1:
+        return poolLower === CAMPAIGN_POOLS.TASK_1.toLowerCase()
+      case 2:
+        return poolLower === CAMPAIGN_POOLS.TASK_2.toLowerCase()
+      case 3:
+        return poolLower === CAMPAIGN_POOLS.TASK_3.toLowerCase()
+      default:
+        return false
+    }
   }
 }
 

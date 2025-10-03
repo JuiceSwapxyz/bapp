@@ -208,7 +208,14 @@ function UniversalSwapFlow({
   const { pathname } = useLocation()
   // Store onSubmitSwap callback ref for access in swapCallback
   const onSubmitSwapRef = useRef<
-    ((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined
+    | ((
+        txHash?: string,
+        inputToken?: string,
+        outputToken?: string,
+        poolAddress?: string,
+        recipient?: string,
+      ) => Promise<void> | void)
+    | undefined
   >()
 
   // Removed Limit and Buy form imports as we only support Swap now
@@ -242,6 +249,8 @@ function UniversalSwapFlow({
     chainId: number
     inputToken: string
     outputToken: string
+    poolAddress?: string
+    recipient?: string
   } | null>(null)
 
   // Use automatic blockchain confirmation tracking
@@ -250,12 +259,14 @@ function UniversalSwapFlow({
     chainId: currentTransaction?.chainId,
     inputToken: currentTransaction?.inputToken,
     outputToken: currentTransaction?.outputToken,
+    poolAddress: currentTransaction?.poolAddress,
+    recipient: currentTransaction?.recipient,
   })
 
   // Handle swap submission - store transaction details for monitoring
   const handleSubmitSwap = useCallback(
     // eslint-disable-next-line max-params
-    async (txHash?: string, inputToken?: string, outputToken?: string) => {
+    async (txHash?: string, inputToken?: string, outputToken?: string, poolAddress?: string, recipient?: string) => {
       resetDisableOneClickSwap()
 
       // Store transaction details for blockchain confirmation tracking
@@ -265,6 +276,8 @@ function UniversalSwapFlow({
           chainId: 5115, // Citrea Testnet
           inputToken,
           outputToken,
+          poolAddress,
+          recipient,
         })
       }
     },
