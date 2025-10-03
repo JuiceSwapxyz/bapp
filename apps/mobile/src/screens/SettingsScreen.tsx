@@ -45,7 +45,6 @@ import {
   LineChartDots,
   Lock,
   MessageQuestion,
-  Passkey,
   Sliders,
   TouchId,
   UniswapLogo,
@@ -145,7 +144,6 @@ export function SettingsScreen(): JSX.Element {
   const signerAccount = useSignerAccounts()[0]
   // We sync backup state across all accounts under the same mnemonic, so can check status with any account.
   const hasCloudBackup = hasBackup(BackupType.Cloud, signerAccount)
-  const hasPasskeyBackup = hasBackup(BackupType.Passkey, signerAccount)
   const noSignerAccountImported = !signerAccount
   const { walletNeedsRestore, walletRestoreType } = useWalletRestore()
 
@@ -333,13 +331,6 @@ export function SettingsScreen(): JSX.Element {
                 isHidden: noSignerAccountImported,
               },
           {
-            navigationModal: ModalName.PasskeyManagement,
-            isHidden: !hasPasskeyBackup,
-            text: t('common.passkeys'),
-            icon: <Passkey {...iconProps} />,
-            navigationProps: { address: signerAccount?.address },
-          },
-          {
             navigationModal: ModalName.PermissionsModal,
             text: t('settings.setting.permissions.title'),
             icon: <LineChartDots {...iconProps} />,
@@ -428,7 +419,6 @@ export function SettingsScreen(): JSX.Element {
     signerAccount?.address,
     walletNeedsRestore,
     hasCloudBackup,
-    hasPasskeyBackup,
     isTestnetModeEnabled,
     isSmartWalletSettingsEnabled,
     handleTestnetModeToggle,
