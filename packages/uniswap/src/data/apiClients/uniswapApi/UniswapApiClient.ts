@@ -3,6 +3,7 @@ import { config } from 'uniswap/src/config'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { GasEstimate, GasStrategy } from 'uniswap/src/data/tradingApi/types'
+import { isUniswapGasApiSupportedChain } from 'uniswap/src/features/gas/chainSupport'
 import { convertGasFeeToDisplayValue } from 'uniswap/src/features/gas/hooks'
 import {
   GasFeeResponse,
@@ -88,6 +89,15 @@ export function createFetchGasFee({
   }
 
   const fetchGasFee: FetchGasFn = async ({ tx, fallbackGasLimit }) => {
+    // Check if this chain is supported by the Uniswap Gas API
+    // For unsupported chains (like Citrea Testnet), skip the API call and use client-side estimation
+    if (!isUniswapGasApiSupportedChain(tx.chainId)) {
+      if (isInterface) {
+        return tryClientSideFallback({ tx, fallbackGasLimit })
+      }
+      throw new Error(`Gas estimation not available for chain ${tx.chainId}`)
+    }
+
     const body = JSON.stringify(injectGasStrategies(injectSmartContractDelegationAddress(tx)))
 
     try {

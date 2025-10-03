@@ -1,6 +1,8 @@
 import { TransactionRequest } from '@ethersproject/abstract-provider'
 import { UseQueryResult, useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
+import { isUniswapGasApiSupportedChain } from 'uniswap/src/features/gas/chainSupport'
+import { createEthersProvider } from 'uniswap/src/features/providers/createEthersProvider'
 import { ReactQueryCacheKey } from 'utilities/src/reactQuery/cache'
 import { queryWithoutCache } from 'utilities/src/reactQuery/queryOptions'
 
@@ -102,10 +104,65 @@ const UNISWAP_API_URL = process.env.REACT_APP_UNISWAP_BASE_API_URL
 const isErrorResponse = (res: Response, gasFee: GasFeeResponse): gasFee is GasFeeResponseError =>
   res.status < 200 || res.status > 202
 
+async function tryClientSideFallback(tx: TransactionRequest): Promise<GasFeeResponseLegacy | null> {
+  try {
+    if (!tx.chainId) {
+      return null
+    }
+
+    const provider = createEthersProvider({ chainId: tx.chainId })
+    if (!provider) {
+      return null
+    }
+
+    const [gasLimit, gasPrice, feeData] = await Promise.all([
+      provider.estimateGas(tx).catch(() => null),
+      provider.getGasPrice().catch(() => null),
+      provider.getFeeData().catch(() => null),
+    ])
+
+    if (!gasLimit || !gasPrice) {
+      return null
+    }
+
+    // Calculate gas fees for different speeds
+    const normalGasPrice = gasPrice
+    const fastGasPrice = gasPrice.mul(110).div(100) // 10% higher
+    const urgentGasPrice = gasPrice.mul(120).div(100) // 20% higher
+
+    const normalGasFee = gasLimit.mul(normalGasPrice)
+    const fastGasFee = gasLimit.mul(fastGasPrice)
+    const urgentGasFee = gasLimit.mul(urgentGasPrice)
+
+    return {
+      type: FeeType.Legacy,
+      gasLimit: gasLimit.toString(),
+      gasPrice: {
+        normal: normalGasPrice.toString(),
+        fast: fastGasPrice.toString(),
+        urgent: urgentGasPrice.toString(),
+      },
+      gasFee: {
+        normal: normalGasFee.toString(),
+        fast: fastGasFee.toString(),
+        urgent: urgentGasFee.toString(),
+      },
+    }
+  } catch (error) {
+    console.warn('Client-side gas estimation failed:', error)
+    return null
+  }
+}
+
 function useGasFeeQuery(tx?: TransactionRequest): UseQueryResult<GasFeeResponseEip1559 | GasFeeResponseLegacy | null> {
   const skip = !tx
 
   const gasFeeFetcher = useCallback(async () => {
+    // For chains not supported by Uniswap Gas API, use client-side estimation
+    if (!isUniswapGasApiSupportedChain(tx?.chainId)) {
+      return tryClientSideFallback(tx!)
+    }
+
     const res = await fetch(`${UNISWAP_API_URL}/v1/gas-fee`, {
       method: 'POST',
       body: JSON.stringify(tx),
@@ -114,7 +171,8 @@ function useGasFeeQuery(tx?: TransactionRequest): UseQueryResult<GasFeeResponseE
     const body = (await res.json()) as GasFeeResponse
 
     if (isErrorResponse(res, body)) {
-      return null
+      // Fallback to client-side estimation on API errors
+      return tryClientSideFallback(tx!)
     }
 
     return body
