@@ -123,7 +123,7 @@ function InfoButton({
   if (includesDelegation && isMobileApp) {
     return (
       <Flex mb="$spacing8">
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         <LearnMoreLink
           textVariant={isWeb ? 'body4' : 'buttonLabel3'}
           url={uniswapUrls.helpArticleUrls.networkFeeInfo}
@@ -141,7 +141,7 @@ function InfoButton({
     return <UniswapXFeeContent uniswapXGasFeeInfo={uniswapXGasFeeInfo} />
   }
 
-  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // TODO: Re-enable once support.juiceswap.com is configured
   // return <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.networkFeeInfo} />
   return null
 }
@@ -207,7 +207,7 @@ function UniswapXFeeContent({ uniswapXGasFeeInfo }: { uniswapXGasFeeInfo: Format
   return (
     <Flex gap="$spacing12">
       <Flex row centered={isMobileApp} width="100%">
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.uniswapXInfo} />
         */}
       </Flex>
