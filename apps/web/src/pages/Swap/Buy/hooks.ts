@@ -92,25 +92,14 @@ export function useOffRampTransferDetailsRequest(): Maybe<OffRampTransferDetails
   const [searchParams] = useSearchParams()
 
   const externalTransactionId = searchParams.get('externalTransactionId')
-  const baseCurrencyCode = searchParams.get('baseCurrencyCode')
-  const baseCurrencyAmount = searchParams.get('baseCurrencyAmount')
-  const depositWalletAddress = searchParams.get('depositWalletAddress')
 
   return useMemo(() => {
-    if (baseCurrencyCode && baseCurrencyAmount && depositWalletAddress) {
-      return {
-        moonpayDetails: {
-          baseCurrencyCode,
-          baseCurrencyAmount: Number(baseCurrencyAmount),
-          depositWalletAddress,
-        },
-      }
-    } else if (externalTransactionId) {
+    if (externalTransactionId) {
       return {
         meldDetails: { sessionId: externalTransactionId },
       }
     }
 
     return null
-  }, [baseCurrencyCode, baseCurrencyAmount, depositWalletAddress, externalTransactionId])
+  }, [externalTransactionId])
 }
