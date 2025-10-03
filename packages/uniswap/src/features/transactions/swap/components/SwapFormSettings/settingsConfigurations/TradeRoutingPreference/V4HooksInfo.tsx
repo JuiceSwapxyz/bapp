@@ -12,7 +12,7 @@ export function V4HooksInfo(): JSX.Element {
     <WarningInfo
       infoButton={
         // TODO: Re-enable once support.juiceswap.xyz is configured
-        // <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.v4HooksInfo} />
+        //
         null
       }
       modalProps={{

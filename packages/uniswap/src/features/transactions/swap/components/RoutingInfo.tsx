@@ -1,14 +1,13 @@
 import type { PropsWithChildren } from 'react'
 import { useMemo } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Flex, Text, TouchableArea, UniswapXText } from 'ui/src'
+import { Flex, Text, UniswapXText } from 'ui/src'
 import { OrderRouting } from 'ui/src/components/icons/OrderRouting'
 import { zIndexes } from 'ui/src/theme'
 import { RouterLabel } from 'uniswap/src/components/RouterLabel/RouterLabel'
 import RoutingDiagram from 'uniswap/src/components/RoutingDiagram/RoutingDiagram'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useUSDValueOfGasFee } from 'uniswap/src/features/gas/hooks'
 import type { GasFeeResult } from 'uniswap/src/features/gas/types'
@@ -23,7 +22,6 @@ import { useV4SwapEnabled } from 'uniswap/src/features/transactions/swap/hooks/u
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
 import { isClassic, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 import getRoutingDiagramEntries from 'uniswap/src/utils/getRoutingDiagramEntries'
-import { openUri } from 'uniswap/src/utils/linking'
 import { NumberType } from 'utilities/src/format/types'
 import { isWeb } from 'utilities/src/platform'
 
@@ -93,26 +91,7 @@ export function RoutingInfo({
   }, [t, trade, routes, gasFeeFormatted])
 
   const InfoButton = useMemo(() => {
-    if (!trade) {
-      return null
-    }
-    if (!isMaybeV4 && !isUniswapX(trade)) {
-      return null
-    }
-
-    const helpCenterUrl = uniswapUrls.helpArticleUrls.routingSettings
-
-    return (
-      <TouchableArea
-        onPress={async () => {
-          await openUri({ uri: helpCenterUrl })
-        }}
-      >
-        <Text color="$accent1" variant={isWeb ? 'body4' : 'buttonLabel2'}>
-          {t('common.button.learn')}
-        </Text>
-      </TouchableArea>
-    )
+    return null
   }, [t, trade, isMaybeV4])
 
   return (

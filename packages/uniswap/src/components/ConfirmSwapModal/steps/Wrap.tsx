@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { StepRowProps, StepRowSkeleton } from 'uniswap/src/components/ConfirmSwapModal/steps/StepRowSkeleton'
 import { StepStatus } from 'uniswap/src/components/ConfirmSwapModal/types'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { WrapTransactionStep } from 'uniswap/src/features/transactions/steps/wrap'
 
 export function WrapTransactionStepRow({ step, status }: StepRowProps<WrapTransactionStep>): JSX.Element {
@@ -18,15 +17,5 @@ export function WrapTransactionStepRow({ step, status }: StepRowProps<WrapTransa
     [StepStatus.Complete]: t('common.wrap', { symbol }),
   }[status]
 
-  return (
-    <StepRowSkeleton
-      title={title}
-      currency={currency}
-      learnMore={{
-        url: uniswapUrls.helpArticleUrls.wethExplainer,
-        text: t('common.whyWrap', { symbol }),
-      }}
-      status={status}
-    />
-  )
+  return <StepRowSkeleton title={title} currency={currency} status={status} />
 }

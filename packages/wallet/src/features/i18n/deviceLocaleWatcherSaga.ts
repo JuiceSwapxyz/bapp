@@ -3,11 +3,7 @@ import { EventChannel, eventChannel } from 'redux-saga'
 import { call, put, select, takeLatest } from 'typed-redux-saga'
 import { selectCurrentLanguage } from 'uniswap/src/features/settings/selectors'
 import { setCurrentLanguage } from 'uniswap/src/features/settings/slice'
-import i18n from 'uniswap/src/i18n'
-import { getWalletDeviceLanguage, getWalletDeviceLocale } from 'uniswap/src/i18n/utils'
-import { logger } from 'utilities/src/logger/logger'
-import { isMobileApp } from 'utilities/src/platform'
-import { restartApp } from 'wallet/src/components/ErrorBoundary/restartApp'
+import { getWalletDeviceLanguage } from 'uniswap/src/i18n/utils'
 
 function createAppStateChannel(): EventChannel<string> {
   return eventChannel((emit) => {

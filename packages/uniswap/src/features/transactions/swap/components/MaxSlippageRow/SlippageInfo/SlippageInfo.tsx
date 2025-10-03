@@ -49,7 +49,7 @@ export function SlippageInfo({
       infoButton={
         isMobileApp
           ? // TODO: Re-enable once support.juiceswap.xyz is configured
-            // <LearnMoreLink url={uniswapUrls.helpArticleUrls.swapSlippage} />
+            //
             null
           : null
       }

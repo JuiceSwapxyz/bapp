@@ -4,7 +4,6 @@ import { Flex, useSporeColors } from 'ui/src'
 import { Swap } from 'ui/src/components/icons/Swap'
 import { StepRowProps, StepRowSkeleton } from 'uniswap/src/components/ConfirmSwapModal/steps/StepRowSkeleton'
 import { StepStatus } from 'uniswap/src/components/ConfirmSwapModal/types'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 import { UniswapXSignatureStep } from 'uniswap/src/features/transactions/swap/steps/signOrder'
 import {
@@ -44,13 +43,6 @@ export function SwapTransactionStepRow({ step, status }: StepRowProps<SwapSteps>
     <StepRowSkeleton
       title={title}
       icon={<SwapIcon />}
-      learnMore={{
-        url:
-          step.type === TransactionStepType.SwapTransactionBatched
-            ? uniswapUrls.helpArticleUrls.batchedSwaps
-            : uniswapUrls.helpArticleUrls.howToSwapTokens,
-        text: t('common.learnMoreSwap'),
-      }}
       rippleColor={colors.DEP_blue400.val}
       status={status}
       secondsRemaining={secondsRemaining}
