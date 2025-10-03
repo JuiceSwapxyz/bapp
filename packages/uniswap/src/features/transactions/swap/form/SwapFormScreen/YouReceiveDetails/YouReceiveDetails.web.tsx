@@ -127,8 +127,8 @@ function PriceDifferenceDisplay({
 }: {
   priceDifference: UsePriceDifferenceReturnType
 }): JSX.Element | null {
-  const { t } = useTranslation()
-  const { formatPercent } = useLocalizationContext()
+  // const { t } = useTranslation()
+  // const { formatPercent } = useLocalizationContext()
 
   if (!priceDifference.showPriceDifferenceWarning) {
     return null

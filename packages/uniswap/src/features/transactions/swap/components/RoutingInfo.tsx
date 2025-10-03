@@ -18,7 +18,6 @@ import {
   BestRouteUniswapXTooltip,
 } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormTooltips/BestRouteTooltip'
 import { usePriceUXEnabled } from 'uniswap/src/features/transactions/swap/hooks/usePriceUXEnabled'
-import { useV4SwapEnabled } from 'uniswap/src/features/transactions/swap/hooks/useV4SwapEnabled'
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
 import { isClassic, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 import getRoutingDiagramEntries from 'uniswap/src/utils/getRoutingDiagramEntries'
@@ -41,9 +40,6 @@ export function RoutingInfo({
     gasFeeUSD !== undefined ? convertFiatAmountFormatted(gasFeeUSD, NumberType.FiatGasPrice) : undefined
 
   const routes = useMemo(() => (trade && isClassic(trade) ? getRoutingDiagramEntries(trade) : []), [trade])
-
-  const v4SwapEnabled = useV4SwapEnabled(chainId)
-  const isMaybeV4 = trade && v4SwapEnabled && isClassic(trade)
 
   const caption = useMemo(() => {
     if (!trade) {
@@ -92,7 +88,7 @@ export function RoutingInfo({
 
   const InfoButton = useMemo(() => {
     return null
-  }, [t, trade, isMaybeV4])
+  }, [])
 
   return (
     <Flex row alignItems="center" justifyContent="space-between">

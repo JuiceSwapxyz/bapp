@@ -206,6 +206,7 @@ export async function openFORSupportLink(serviceProvider: ServiceProviderInfo): 
   if (serviceProvider.supportUrl) {
     return openUri({ uri: serviceProvider.supportUrl })
   }
+  return undefined
 }
 
 export function getProfileUrl(walletAddress: string): string {
