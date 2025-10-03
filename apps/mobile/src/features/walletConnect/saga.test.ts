@@ -146,7 +146,7 @@ describe('WalletConnect Saga', () => {
             },
           },
           authPayload: {
-            chains: ['eip155:1', 'eip155:137', 'solana:1'], // Include both supported and unsupported chains
+            chains: ['eip155:1', 'eip155:137'], // EVM chains only (Solana removed)
             domain: 'auth-dapp.com',
             aud: 'https://auth-dapp.com/login',
             nonce: '1234567890',
@@ -186,6 +186,13 @@ describe('WalletConnect Saga', () => {
       // Run the saga and verify action is dispatched
       await expectSaga(handleSessionAuthenticate, mockAuthenticate)
         .provide({
+          call(effect, next) {
+            // Mock getEnabledChainIdsSaga to return supported chains
+            if (effect.fn.name === 'getEnabledChainIdsSaga') {
+              return { chains: [UniverseChainId.Mainnet, UniverseChainId.Polygon] }
+            }
+            return next()
+          },
           select({ selector }, next) {
             if (selector === selectActiveAccountAddress) {
               return activeAccountAddress

@@ -38,7 +38,12 @@ const mockCreateGetV4SwapEnabled = createGetV4SwapEnabled as jest.Mock
 const mockCreateGetSupportedChainId = createGetSupportedChainId as jest.Mock
 
 describe('protocols', () => {
-  const allProtocols: FrontendSupportedProtocol[] = [ProtocolItems.V3]
+  const allProtocols: ProtocolItems[] = [
+    ProtocolItems.UNISWAPX_V2,
+    ProtocolItems.V4,
+    ProtocolItems.V3,
+    ProtocolItems.V2,
+  ]
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -53,7 +58,7 @@ describe('protocols', () => {
         getArbitrumDutchV3Enabled: () => false,
       })
 
-      const result = protocolFilter(allProtocols, UniverseChainId.Mainnet)
+      const result = protocolFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Mainnet)
       expect(result).toEqual(allProtocols)
     })
 
@@ -65,7 +70,7 @@ describe('protocols', () => {
         getArbitrumDutchV3Enabled: () => false,
       })
 
-      const result = protocolFilter(allProtocols, UniverseChainId.Mainnet)
+      const result = protocolFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Mainnet)
       expect(result).toEqual([ProtocolItems.V4, ProtocolItems.V3, ProtocolItems.V2])
     })
 
@@ -78,7 +83,7 @@ describe('protocols', () => {
       })
 
       // Polygon is not in LAUNCHED_UNISWAPX_CHAINS
-      const result = protocolFilter(allProtocols, UniverseChainId.Polygon)
+      const result = protocolFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Polygon)
       expect(result).toEqual([ProtocolItems.V4, ProtocolItems.V3, ProtocolItems.V2])
     })
 
@@ -91,7 +96,7 @@ describe('protocols', () => {
       })
 
       // Even though Base is not in LAUNCHED_UNISWAPX_CHAINS, priority orders allow it
-      const result = protocolFilter(allProtocols, UniverseChainId.Base)
+      const result = protocolFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Base)
       expect(result).toEqual(allProtocols)
     })
 
@@ -103,7 +108,7 @@ describe('protocols', () => {
         getArbitrumDutchV3Enabled: () => true,
       })
 
-      const result = protocolFilter(allProtocols, UniverseChainId.ArbitrumOne)
+      const result = protocolFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.ArbitrumOne)
       expect(result).toEqual([
         ProtocolItems.UNISWAPX_V3, // V2 replaced with V3
         ProtocolItems.V4,
@@ -120,7 +125,7 @@ describe('protocols', () => {
         getArbitrumDutchV3Enabled: () => false,
       })
 
-      const result = protocolFilter(allProtocols, UniverseChainId.Mainnet)
+      const result = protocolFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Mainnet)
       expect(result).toEqual([ProtocolItems.UNISWAPX_V2, ProtocolItems.V3, ProtocolItems.V2])
     })
 
@@ -144,7 +149,7 @@ describe('protocols', () => {
         getArbitrumDutchV3Enabled: () => false,
       })
 
-      const result = protocolFilter(allProtocols, undefined)
+      const result = protocolFilter(allProtocols as FrontendSupportedProtocol[], undefined)
       // When chainId is undefined, uniswapXAllowedForChain is false
       expect(result).toEqual([ProtocolItems.V4, ProtocolItems.V3, ProtocolItems.V2])
     })
@@ -158,9 +163,14 @@ describe('protocols', () => {
       })
 
       // Start with duplicate UNISWAPX_V2 entries
-      const protocolsWithDuplicates: FrontendSupportedProtocol[] = [ProtocolItems.V3]
+      const protocolsWithDuplicates: ProtocolItems[] = [
+        ProtocolItems.UNISWAPX_V2,
+        ProtocolItems.V4,
+        ProtocolItems.V3,
+        ProtocolItems.UNISWAPX_V2,
+      ]
 
-      const result = protocolFilter(protocolsWithDuplicates, UniverseChainId.Mainnet)
+      const result = protocolFilter(protocolsWithDuplicates as FrontendSupportedProtocol[], UniverseChainId.Mainnet)
       // Both duplicates should be filtered out
       expect(result).toEqual([ProtocolItems.V4, ProtocolItems.V3])
     })
@@ -237,7 +247,7 @@ describe('protocols', () => {
 
       expect(typeof getProtocolsFilter).toBe('function')
 
-      const result = getProtocolsFilter(allProtocols, UniverseChainId.Mainnet)
+      const result = getProtocolsFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Mainnet)
       expect(Array.isArray(result)).toBe(true)
     })
 
@@ -256,7 +266,7 @@ describe('protocols', () => {
         getEnabledChains: () => [UniverseChainId.ArbitrumOne],
       })
 
-      const result = getProtocolsFilter(allProtocols, UniverseChainId.ArbitrumOne)
+      const result = getProtocolsFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.ArbitrumOne)
       // Should have UNISWAPX_V3 instead of V2 due to ArbitrumDutchV3 flag
       expect(result).toContain(ProtocolItems.UNISWAPX_V3)
       expect(result).not.toContain(ProtocolItems.UNISWAPX_V2)
@@ -272,7 +282,7 @@ describe('protocols', () => {
         // No getIsUniswapXSupported provided
       })
 
-      const result = getProtocolsFilter(allProtocols, UniverseChainId.Mainnet)
+      const result = getProtocolsFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Mainnet)
       expect(result).toContain(ProtocolItems.UNISWAPX_V2)
     })
 
@@ -288,7 +298,7 @@ describe('protocols', () => {
         getIsUniswapXSupported,
       })
 
-      const result = getProtocolsFilter(allProtocols, UniverseChainId.Mainnet)
+      const result = getProtocolsFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Mainnet)
       // Should not contain UniswapX because chain support returned false
       expect(result).not.toContain(ProtocolItems.UNISWAPX_V2)
       expect(getIsUniswapXSupported).toHaveBeenCalledWith(UniverseChainId.Mainnet)
@@ -303,11 +313,11 @@ describe('protocols', () => {
       })
 
       // Test Mainnet (V4 allowed)
-      const mainnetResult = getProtocolsFilter(allProtocols, UniverseChainId.Mainnet)
+      const mainnetResult = getProtocolsFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Mainnet)
       expect(mainnetResult).toContain(ProtocolItems.V4)
 
       // Test Polygon (V4 not allowed)
-      const polygonResult = getProtocolsFilter(allProtocols, UniverseChainId.Polygon)
+      const polygonResult = getProtocolsFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Polygon)
       expect(polygonResult).not.toContain(ProtocolItems.V4)
     })
 
@@ -324,7 +334,7 @@ describe('protocols', () => {
       })
 
       // Mainnet should have all protocols (it's in LAUNCHED_UNISWAPX_CHAINS)
-      const mainnetResult = getProtocolsFilter(allProtocols, UniverseChainId.Mainnet)
+      const mainnetResult = getProtocolsFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Mainnet)
       expect(mainnetResult).toEqual(allProtocols)
 
       // Base should not have UniswapX (not in LAUNCHED_UNISWAPX_CHAINS and no priority flag)
@@ -338,7 +348,7 @@ describe('protocols', () => {
         return false
       })
 
-      const baseResult = getProtocolsFilter(allProtocols, UniverseChainId.Base)
+      const baseResult = getProtocolsFilter(allProtocols as FrontendSupportedProtocol[], UniverseChainId.Base)
       expect(baseResult).toEqual([ProtocolItems.V4, ProtocolItems.V3, ProtocolItems.V2])
     })
   })

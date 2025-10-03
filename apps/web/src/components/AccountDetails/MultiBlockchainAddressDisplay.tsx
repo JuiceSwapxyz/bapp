@@ -8,23 +8,19 @@ import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { InfoTooltip } from 'uniswap/src/components/tooltip/InfoTooltip'
 import { useUnitagsAddressQuery } from 'uniswap/src/data/apiClients/unitagsApi/useUnitagsAddressQuery'
 import { MAINNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/mainnet'
-import { SOLANA_CHAIN_INFO } from 'uniswap/src/features/chains/svm/info/solana'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useENSName } from 'uniswap/src/features/ens/api'
 import { Wallet } from 'uniswap/src/features/wallet/types/Wallet'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
-import { ellipseMiddle, shortenAddress } from 'utilities/src/addresses'
+import { shortenAddress } from 'utilities/src/addresses'
 
 function AddressDisplay({
   unitag,
   ensName,
   shortenedEvmAddress,
-  shortenedSvmAddress,
 }: {
   unitag?: string
   ensName?: string
   shortenedEvmAddress?: string
-  shortenedSvmAddress?: string
 }) {
   return (
     <Flex row gap="$spacing2" alignItems="center" data-testid={TestID.AddressDisplay}>
@@ -35,7 +31,7 @@ function AddressDisplay({
         $xxl={{ maxWidth: '180px' }}
         {...EllipsisTamaguiStyle}
       >
-        {unitag ?? ensName ?? (shortenedEvmAddress || shortenedSvmAddress)}
+        {unitag ?? ensName ?? shortenedEvmAddress}
       </Text>
       {unitag && <Unitag size={18} />}
     </Flex>
@@ -78,35 +74,21 @@ export function MultiBlockchainAddressDisplay({
   const unitag = unitagData?.username
   const shortenedEvmAddress = shortenAddress(evmAddress)
 
-  const svmAddress = wallet.svmAccount?.address
-  // TODO(WEB-8155): update shortenAddress to also take Solana addresses
-  const shortenedSvmAddress = ellipseMiddle({ str: svmAddress ?? '', charsStart: 6, charsEnd: 6 })
-
-  const primaryAddress = evmAddress ?? svmAddress
+  const primaryAddress = evmAddress
   if (!primaryAddress) {
     throw new Error('No addresses to display')
   }
 
   const addresses: AddressItem[] = useMemo(() => {
-    const addressList: AddressItem[] = []
-    if (evmAddress) {
-      addressList.push({
+    return [
+      {
         image: <NetworkLogo chainId={null} size={20} />,
         address: shortenedEvmAddress,
         fullAddress: evmAddress,
         label: MAINNET_CHAIN_INFO.name,
-      })
-    }
-    if (svmAddress) {
-      addressList.push({
-        image: <NetworkLogo chainId={UniverseChainId.Solana} size={20} />,
-        address: shortenedSvmAddress,
-        fullAddress: svmAddress,
-        label: SOLANA_CHAIN_INFO.name,
-      })
-    }
-    return addressList
-  }, [evmAddress, svmAddress, shortenedEvmAddress, shortenedSvmAddress])
+      },
+    ]
+  }, [evmAddress, shortenedEvmAddress])
 
   return (
     <InfoTooltip
@@ -122,20 +104,10 @@ export function MultiBlockchainAddressDisplay({
       trigger={
         enableCopyAddress ? (
           <CopyHelper iconSize={iconSizes.icon12} iconPosition="right" toCopy={primaryAddress}>
-            <AddressDisplay
-              unitag={unitag}
-              ensName={ENSName ?? undefined}
-              shortenedEvmAddress={shortenedEvmAddress}
-              shortenedSvmAddress={shortenedSvmAddress}
-            />
+            <AddressDisplay unitag={unitag} ensName={ENSName ?? undefined} shortenedEvmAddress={shortenedEvmAddress} />
           </CopyHelper>
         ) : (
-          <AddressDisplay
-            unitag={unitag}
-            ensName={ENSName ?? undefined}
-            shortenedEvmAddress={shortenedEvmAddress}
-            shortenedSvmAddress={shortenedSvmAddress}
-          />
+          <AddressDisplay unitag={unitag} ensName={ENSName ?? undefined} shortenedEvmAddress={shortenedEvmAddress} />
         )
       }
     />

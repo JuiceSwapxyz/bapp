@@ -18,7 +18,6 @@ import { FALLBACK_SWAP_REQUEST_POLL_INTERVAL_MS } from 'uniswap/src/features/tra
 import { createEVMSwapInstructionsService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/evmSwapInstructionsService'
 import { usePresignPermit } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/hooks'
 import { createDecorateSwapTxInfoServiceWithEVMLogging } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/logging'
-import { createSolanaSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/svm/solanaSwapTxAndGasInfoService'
 import type {
   RoutingServicesMap,
   SwapTxAndGasInfoParameters,
@@ -120,10 +119,6 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     return decorateWithEVMLogging(wrapService)
   }, [swapConfig, transactionSettings, instructionService, decorateWithEVMLogging])
 
-  const solanaSwapTxInfoService = useMemo(() => {
-    return createSolanaSwapTxAndGasInfoService()
-  }, [])
-
   const services = useMemo(() => {
     return {
       [Routing.CLASSIC]: classicSwapTxInfoService,
@@ -135,15 +130,9 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [Routing.UNWRAP]: wrapTxInfoService,
       [Routing.LIMIT_ORDER]: createNoopService(),
       [Routing.DUTCH_LIMIT]: createNoopService(),
-      [Routing.JUPITER]: solanaSwapTxInfoService,
+      [Routing.JUPITER]: createNoopService(),
     } satisfies RoutingServicesMap
-  }, [
-    classicSwapTxInfoService,
-    bridgeSwapTxInfoService,
-    uniswapXSwapTxInfoService,
-    wrapTxInfoService,
-    solanaSwapTxInfoService,
-  ])
+  }, [classicSwapTxInfoService, bridgeSwapTxInfoService, uniswapXSwapTxInfoService, wrapTxInfoService])
 
   return useMemo(() => {
     return createSwapTxAndGasInfoService({ services })

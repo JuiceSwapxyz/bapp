@@ -12,9 +12,8 @@ export type BaseAccountDetails<TPlatform extends Platform, TAddressType extends 
 }
 
 export type EVMAccountDetails = BaseAccountDetails<Platform.EVM, HexString>
-export type SVMAccountDetails = BaseAccountDetails<Platform.SVM, string>
 
-type PlatformAccountDetails = EVMAccountDetails | SVMAccountDetails
+type PlatformAccountDetails = EVMAccountDetails
 export type SignerMnemonicAccountDetails = PlatformAccountDetails & { accountType: AccountType.SignerMnemonic }
 type ReadOnlyAccountDetails = PlatformAccountDetails & { accountType: AccountType.Readonly }
 

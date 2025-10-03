@@ -1,16 +1,15 @@
 import { Routing, CreateSwapRequest } from "uniswap/src/data/tradingApi/__generated__/index"
 import { GasEstimate } from "uniswap/src/data/tradingApi/types"
 import { GasFeeResult, ValidatedGasFeeResult, validateGasFeeResult } from "uniswap/src/features/gas/types"
-import { SolanaTrade } from "uniswap/src/features/transactions/swap/types/solana"
 import { BridgeTrade, ClassicTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
-import { isBridge, isClassic, isJupiter, isUniswapX, isWrap } from "uniswap/src/features/transactions/swap/utils/routing"
+import { isBridge, isClassic, isUniswapX, isWrap } from "uniswap/src/features/transactions/swap/utils/routing"
 import { isInterface } from "utilities/src/platform"
 import { Prettify } from "viem"
 import { ValidatedPermit } from "uniswap/src/features/transactions/swap/utils/trade"
 import { PopulatedTransactionRequestArray, ValidatedTransactionRequest } from "uniswap/src/features/transactions/types/transactionRequests"
 
-export type SwapTxAndGasInfo = ClassicSwapTxAndGasInfo | UniswapXSwapTxAndGasInfo | BridgeSwapTxAndGasInfo | WrapSwapTxAndGasInfo | SolanaSwapTxAndGasInfo
-export type ValidatedSwapTxContext = ValidatedClassicSwapTxAndGasInfo | ValidatedUniswapXSwapTxAndGasInfo | ValidatedBridgeSwapTxAndGasInfo | ValidatedWrapSwapTxAndGasInfo | ValidatedSolanaSwapTxAndGasInfo
+export type SwapTxAndGasInfo = ClassicSwapTxAndGasInfo | UniswapXSwapTxAndGasInfo | BridgeSwapTxAndGasInfo | WrapSwapTxAndGasInfo
+export type ValidatedSwapTxContext = ValidatedClassicSwapTxAndGasInfo | ValidatedUniswapXSwapTxAndGasInfo | ValidatedBridgeSwapTxAndGasInfo | ValidatedWrapSwapTxAndGasInfo
 
 export function isValidSwapTxContext(swapTxContext: SwapTxAndGasInfo): swapTxContext is ValidatedSwapTxContext {
   // Validation fn prevents/future-proofs typeguard against illicit casts
@@ -31,7 +30,7 @@ export type UniswapXGasBreakdown = {
 
 export interface BaseSwapTxAndGasInfo {
   routing: Routing
-  trade?: ClassicTrade | UniswapXTrade | BridgeTrade | WrapTrade | UnwrapTrade | SolanaTrade
+  trade?: ClassicTrade | UniswapXTrade | BridgeTrade | WrapTrade | UnwrapTrade
   approveTxRequest: ValidatedTransactionRequest | undefined
   revocationTxRequest: ValidatedTransactionRequest | undefined
   gasFee: GasFeeResult
@@ -86,17 +85,6 @@ export interface BridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
   txRequests: PopulatedTransactionRequestArray | undefined
 }
 
-export interface SolanaSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
-  routing: Routing.JUPITER
-  trade: SolanaTrade
-  transactionBase64?: string
-  approveTxRequest: undefined
-  revocationTxRequest: undefined
-  gasFee: GasFeeResult
-  gasFeeEstimation: SwapGasFeeEstimation
-  includesDelegation: false
-}
-
 interface BaseRequiredSwapTxContextFields {
   gasFee: ValidatedGasFeeResult
 }
@@ -123,8 +111,6 @@ export type ValidatedUniswapXSwapTxAndGasInfo =  Prettify<Required<Omit<UniswapX
   // Permit should always be defined for UniswapX orders
   permit: PermitTypedData
 } & Pick<UniswapXSwapTxAndGasInfo, 'includesDelegation'>>
-
-export type ValidatedSolanaSwapTxAndGasInfo = Prettify<Required<SolanaSwapTxAndGasInfo> & BaseRequiredSwapTxContextFields>
 
 /**
  * Validates a SwapTxAndGasInfo object without any casting and returns a ValidatedSwapTxContext object if the object is valid.
@@ -172,8 +158,6 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
       } else {
         return undefined
       }
-    } else if (isJupiter(swapTxContext) && swapTxContext.transactionBase64) {
-      return { ...swapTxContext, transactionBase64: swapTxContext.transactionBase64, gasFee }
     } else {
       return undefined
     }

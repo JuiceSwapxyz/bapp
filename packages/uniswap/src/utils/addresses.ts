@@ -1,6 +1,5 @@
 import { getAddress } from '@ethersproject/address'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { is32ByteBase58String } from 'uniswap/src/features/platforms/svm/utils'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { chainIdToPlatform } from 'uniswap/src/features/platforms/utils/chains'
 import { tryCatch } from 'utilities/src/errors'
@@ -30,7 +29,6 @@ type GetValidAddressParams = {
 const VALIDATION_CACHE_KEY_FN_MAP = {
   [Platform.EVM]: (params: GetValidAddressParams) =>
     `${Platform.EVM}-${params.address}-${Boolean(params.withEVMChecksum)}`,
-  [Platform.SVM]: (params: GetValidAddressParams) => `${Platform.SVM}-${params.address}`,
 } as const
 
 const ADDRESS_VALIDATION_CACHE = new Map<string, string | null>()
@@ -47,18 +45,13 @@ function getCachedAddress(params: GetValidAddressParams): {
 
 const VALIDATION_FN_MAP = {
   [Platform.EVM]: getValidEVMAddress,
-  [Platform.SVM]: getValidSVMAddress,
 } as const
 
 /**
- * Validates an EVM or SVM address and returns the normalized address. EVM addresses will be lowercased or checksummed depending on the `withEVMChecksum` field.
+ * Validates an EVM address and returns the normalized address. EVM addresses will be lowercased or checksummed depending on the `withEVMChecksum` field.
  *
- * FOR EVM ADDRESSES:
  * When withEVMChecksum === true, this method performs a checksum on the address. Please, use only for validating user input.
  * When withEVMChecksum === false, it checks: length === 42 and startsWith('0x') and returns a lowercased address.
- *
- * FOR SVM ADDRESSES:
- * withEVMChecksum is ignored. SVM does not have checksum; addresses are validated to ensure they are 32 byte base58 strings.
  *
  * @param address The address to validate and normalize
  * @param withEVMChecksum Whether to perform a checksum on the address if it is an EVM address
@@ -112,21 +105,6 @@ function getValidEVMAddress({ address, withEVMChecksum }: { address: string; wit
     throw new Error('Address has an invalid format')
   }
   return normalizeAddress(addressWith0x, AddressStringFormat.Lowercase)
-}
-
-/**
- * Validates a Solana address and returns the normalized address.
- *
- * @param address The address to validate and normalize
- * @returns The input address, if it is a valid SVM address (32 byte base58 string)
- * @throws {Error} If the address is invalid
- */
-function getValidSVMAddress({ address }: { address: string }): string {
-  if (!is32ByteBase58String(address)) {
-    throw new Error('Address has an invalid format')
-  }
-
-  return address
 }
 
 /**

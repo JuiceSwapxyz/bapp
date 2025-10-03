@@ -86,7 +86,7 @@ interface ChainTheme {
   textColor: string
 }
 
-const CHAIN_THEME_LIGHT: Record<UniverseChainId, ChainTheme> = {
+const CHAIN_THEME_LIGHT: Partial<Record<UniverseChainId, ChainTheme>> = {
   [UniverseChainId.Mainnet]: { bgColor: '#6B8AFF33', textColor: '#6B8AFF' },
   [UniverseChainId.ArbitrumOne]: { bgColor: '#00A3FF33', textColor: '#00A3FF' },
   [UniverseChainId.Avalanche]: { bgColor: '#E8414233', textColor: '#E84142' },
@@ -97,7 +97,6 @@ const CHAIN_THEME_LIGHT: Record<UniverseChainId, ChainTheme> = {
   [UniverseChainId.Optimism]: { bgColor: '#FF042033', textColor: '#FF0420' },
   [UniverseChainId.Polygon]: { bgColor: '#9558FF33', textColor: '#9558FF' },
   [UniverseChainId.Sepolia]: { bgColor: '#6B8AFF33', textColor: '#6B8AFF' },
-  [UniverseChainId.Solana]: { bgColor: '#9945FF33', textColor: '#000000' },
   [UniverseChainId.Soneium]: { bgColor: '#FFFFFF', textColor: '#000000' },
   [UniverseChainId.Unichain]: { bgColor: '#F50DB433', textColor: '#F50DB4' },
   [UniverseChainId.WorldChain]: { bgColor: 'rgba(0, 0, 0, 0.12)', textColor: '#000000' },
@@ -106,7 +105,7 @@ const CHAIN_THEME_LIGHT: Record<UniverseChainId, ChainTheme> = {
   [UniverseChainId.CitreaTestnet]: { bgColor: '#FF6B3533', textColor: '#FF6B35' },
 }
 
-const CHAIN_THEME_DARK: Record<UniverseChainId, ChainTheme> = {
+const CHAIN_THEME_DARK: Partial<Record<UniverseChainId, ChainTheme>> = {
   ...CHAIN_THEME_LIGHT,
   [UniverseChainId.Blast]: { bgColor: 'rgba(252, 252, 3, 0.12)', textColor: 'rgba(252, 252, 3, 1) ' },
   [UniverseChainId.Celo]: { bgColor: '#FCFF5299', textColor: '#655947' },
@@ -117,7 +116,7 @@ const CHAIN_THEME_DARK: Record<UniverseChainId, ChainTheme> = {
   [UniverseChainId.CitreaTestnet]: { bgColor: '#FF6B3533', textColor: '#FF6B35' },
 }
 
-function useChainTheme(chainId: UniverseChainId): ChainTheme {
+function useChainTheme(chainId: UniverseChainId): ChainTheme | undefined {
   const isDarkMode = useIsDarkMode()
   return isDarkMode ? CHAIN_THEME_DARK[chainId] : CHAIN_THEME_LIGHT[chainId]
 }
@@ -125,7 +124,7 @@ function useChainTheme(chainId: UniverseChainId): ChainTheme {
 function MaybeExternalBridgeCard({ chainId }: { chainId: UniverseChainId }) {
   const { t } = useTranslation()
 
-  const { bgColor, textColor } = useChainTheme(chainId)
+  const chainTheme = useChainTheme(chainId)
   const chainInfo = getChainInfo(chainId)
   const logoUri = chainInfo.logo as string
 
@@ -135,8 +134,8 @@ function MaybeExternalBridgeCard({ chainId }: { chainId: UniverseChainId }) {
         image={<img width="40px" height="40px" style={{ borderRadius: '12px' }} src={logoUri} />}
         title={t('token.bridge', { label: chainInfo.label })}
         subtitle={t('common.deposit.toNetwork', { label: chainInfo.label })}
-        textColor={textColor}
-        backgroundColor={bgColor}
+        textColor={chainTheme?.textColor}
+        backgroundColor={chainTheme?.bgColor}
       />
     </ExternalLink>
   ) : null

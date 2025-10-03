@@ -8,7 +8,6 @@ import { useCallback, useRef } from 'react'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { AssetType } from 'uniswap/src/entities/assets'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
-import { isSVMChain } from 'uniswap/src/features/platforms/utils/chains'
 import { InterfaceEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import type { SendTokenTransactionInfo } from 'uniswap/src/features/transactions/types/transactionDetails'
@@ -51,11 +50,6 @@ export function useSendCallback({
     }
     if (!supportedTransactionChainId) {
       throw new Error('missing chainId in transactionRequest')
-    }
-
-    // TODO(WEB-7953): Implement Solana send
-    if (isSVMChain(supportedTransactionChainId)) {
-      throw new Error('Solana send is not supported')
     }
 
     try {

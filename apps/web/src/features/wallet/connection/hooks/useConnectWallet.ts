@@ -1,7 +1,6 @@
 import { noop } from '@tanstack/react-query'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { useConnectCustomWalletsMap } from 'features/wallet/connection/connectors/custom'
-import { useConnectSolanaWallet } from 'features/wallet/connection/connectors/solana'
 import { wrapConnectWalletServiceWithStateTracking } from 'features/wallet/connection/connectors/state'
 import { connectWagmiWallet } from 'features/wallet/connection/connectors/wagmi'
 import {
@@ -20,17 +19,15 @@ import { useEvent } from 'utilities/src/react/hooks'
 import { getCurrentPageFromLocation } from 'utils/urlRoutes'
 
 function useConnectWalletService(): ConnectWalletService {
-  const connectSolanaWallet = useConnectSolanaWallet()
   const connectCustomWalletsMap = useConnectCustomWalletsMap()
 
   return useMemo(
     () =>
       createConnectWalletService({
-        connectSolanaWallet,
         connectWagmiWallet,
         connectCustomWalletsMap,
       }),
-    [connectSolanaWallet, connectCustomWalletsMap],
+    [connectCustomWalletsMap],
   )
 }
 

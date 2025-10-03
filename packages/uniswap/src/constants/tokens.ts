@@ -14,11 +14,8 @@ import { UNICHAIN_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/unicha
 import { WORLD_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/worldchain'
 import { ZKSYNC_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/zksync'
 import { ZORA_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/zora'
-import { SOLANA_CHAIN_INFO } from 'uniswap/src/features/chains/svm/info/solana'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { isUniverseChainId } from 'uniswap/src/features/chains/utils'
-import { isSVMChain } from 'uniswap/src/features/platforms/utils/chains'
-import { SolanaToken } from 'uniswap/src/features/tokens/SolanaToken'
 import { logger } from 'utilities/src/logger/logger'
 
 export const { USDC: USDC_SEPOLIA } = SEPOLIA_CHAIN_INFO.tokens
@@ -28,16 +25,6 @@ export const { USDC: USDC_UNICHAIN } = UNICHAIN_CHAIN_INFO.tokens
 export const { USDC: USDC_SONEIUM } = SONEIUM_CHAIN_INFO.tokens
 
 export const { DAI } = MAINNET_CHAIN_INFO.tokens
-
-export const { USDC: USDC_SOLANA } = SOLANA_CHAIN_INFO.tokens
-
-export const SOL = new SolanaToken(
-  UniverseChainId.Solana,
-  'So11111111111111111111111111111111111111112',
-  9,
-  'SOL',
-  'Solana',
-)
 
 export const { USDT } = MAINNET_CHAIN_INFO.tokens
 
@@ -369,10 +356,6 @@ export function nativeOnChain(chainId: number): NativeCurrencyImpl | Token {
 
   if (cached) {
     return cached
-  }
-
-  if (isSVMChain(chainId)) {
-    return SOL
   }
 
   const result = new NativeCurrencyImpl(chainId)

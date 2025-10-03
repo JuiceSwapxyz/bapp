@@ -1,41 +1,34 @@
+// Mock modules BEFORE any imports
+const mockGetDeviceLocalesFn = jest.fn()
+const mockGetLocaleFn = jest.fn()
+const mockLoggerErrorFn = jest.fn()
+
+jest.mock('utilities/src/device/locales', () => ({
+  getDeviceLocales: jest.fn((...args) => mockGetDeviceLocalesFn(...args)),
+}))
+
+jest.mock('uniswap/src/features/language/hooks', () => ({
+  getLocale: jest.fn((...args) => mockGetLocaleFn(...args)),
+}))
+
+jest.mock('utilities/src/logger/logger', () => ({
+  logger: {
+    error: jest.fn((...args) => mockLoggerErrorFn(...args)),
+  },
+}))
+
+// Import types and module under test AFTER mocks
 import { Language, Locale } from 'uniswap/src/features/language/constants'
 import { getWalletDeviceLanguage, getWalletDeviceLocale } from 'uniswap/src/i18n/utils'
 
-// Manual mocks
-const originalModules = {
-  deviceLocales: require('utilities/src/device/locales'),
-  hooks: require('uniswap/src/features/language/hooks'),
-  logger: require('utilities/src/logger/logger'),
-}
-
-// Store original implementations to restore later
-const originalGetDeviceLocales = originalModules.deviceLocales.getDeviceLocales
-const originalGetLocale = originalModules.hooks.getLocale
-const originalLoggerError = originalModules.logger.logger.error
-
 describe('i18n utils', () => {
-  // Setup mocks before each test
   beforeEach(() => {
-    // Mock getDeviceLocales
-    originalModules.deviceLocales.getDeviceLocales = jest.fn()
-
-    // Mock getLocale
-    originalModules.hooks.getLocale = jest.fn()
-
-    // Mock logger.error
-    originalModules.logger.logger.error = jest.fn()
-  })
-
-  // Restore original implementations after each test
-  afterEach(() => {
-    originalModules.deviceLocales.getDeviceLocales = originalGetDeviceLocales
-    originalModules.hooks.getLocale = originalGetLocale
-    originalModules.logger.logger.error = originalLoggerError
+    jest.clearAllMocks()
   })
 
   describe('getWalletDeviceLanguage', () => {
     it('should always return English', () => {
-      originalModules.deviceLocales.getDeviceLocales.mockReturnValue([
+      mockGetDeviceLocalesFn.mockReturnValue([
         { languageCode: 'fr', languageTag: 'fr-FR' },
         { languageCode: 'en', languageTag: 'en-US' },
       ])
@@ -45,16 +38,14 @@ describe('i18n utils', () => {
     })
 
     it('should return English even with non-English device locales', () => {
-      originalModules.deviceLocales.getDeviceLocales.mockReturnValue([
-        { languageCode: 'zh', languageTag: 'zh-Hans-cn' },
-      ])
+      mockGetDeviceLocalesFn.mockReturnValue([{ languageCode: 'zh', languageTag: 'zh-Hans-cn' }])
 
       const result = getWalletDeviceLanguage()
       expect(result).toBe(Language.English)
     })
 
     it('should default to English if getDeviceLocales throws an error', () => {
-      originalModules.deviceLocales.getDeviceLocales.mockImplementation(() => {
+      mockGetDeviceLocalesFn.mockImplementation(() => {
         throw new Error('Test error')
       })
 
@@ -63,7 +54,7 @@ describe('i18n utils', () => {
     })
 
     it('should handle empty device locales array', () => {
-      originalModules.deviceLocales.getDeviceLocales.mockReturnValue([])
+      mockGetDeviceLocalesFn.mockReturnValue([])
 
       const result = getWalletDeviceLanguage()
       expect(result).toBe(Language.English)
@@ -72,23 +63,21 @@ describe('i18n utils', () => {
 
   describe('getWalletDeviceLocale', () => {
     it('should always return English locale', () => {
-      originalModules.deviceLocales.getDeviceLocales.mockReturnValue([{ languageCode: 'fr', languageTag: 'fr-FR' }])
-      originalModules.hooks.getLocale.mockReturnValue(Locale.EnglishUnitedStates)
-
       const result = getWalletDeviceLocale()
       expect(result).toBe(Locale.EnglishUnitedStates)
-      expect(originalModules.hooks.getLocale).toHaveBeenCalledWith(Language.English)
     })
 
-    it('should default to English locale if getDeviceLocales fails', () => {
-      originalModules.deviceLocales.getDeviceLocales.mockImplementation(() => {
-        throw new Error('Test error')
-      })
-      originalModules.hooks.getLocale.mockReturnValue(Locale.EnglishUnitedStates)
+    it('should return consistent locale regardless of device settings', () => {
+      // Even with different device locales, should always return English
+      mockGetDeviceLocalesFn.mockReturnValue([{ languageCode: 'fr', languageTag: 'fr-FR' }])
+      const result1 = getWalletDeviceLocale()
 
-      const result = getWalletDeviceLocale()
-      expect(result).toBe(Locale.EnglishUnitedStates)
-      expect(originalModules.hooks.getLocale).toHaveBeenCalledWith(Language.English)
+      mockGetDeviceLocalesFn.mockReturnValue([{ languageCode: 'zh', languageTag: 'zh-CN' }])
+      const result2 = getWalletDeviceLocale()
+
+      expect(result1).toBe(Locale.EnglishUnitedStates)
+      expect(result2).toBe(Locale.EnglishUnitedStates)
+      expect(result1).toBe(result2)
     })
   })
 })

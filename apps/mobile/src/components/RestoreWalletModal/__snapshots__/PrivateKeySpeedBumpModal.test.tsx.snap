@@ -40,7 +40,7 @@ exports[`PrivateKeySpeedBumpModal renders correctly 1`] = `
   onAnimate={[Function]}
   onDismiss={[MockFunction]}
   stackBehavior="push"
-  topInset={0}
+  topInset={44}
 >
   <View
     style={
@@ -443,7 +443,7 @@ exports[`PrivateKeySpeedBumpModal renders correctly 1`] = `
           dd-action-name="Continue"
           focusVisibleStyle={
             {
-              "backgroundColor": "#E500A5",
+              "backgroundColor": "#E57A0B",
             }
           }
           forwardedRef={[Function]}
@@ -472,7 +472,7 @@ exports[`PrivateKeySpeedBumpModal renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#FF37C7",
+              "backgroundColor": "#F7911A",
               "borderBottomColor": "transparent",
               "borderBottomLeftRadius": 16,
               "borderBottomRightRadius": 16,

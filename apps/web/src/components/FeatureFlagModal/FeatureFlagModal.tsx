@@ -168,10 +168,6 @@ export default function FeatureFlagModal() {
           <ModalCloseIcon onClose={closeModal} />
         </CenteredRow>
         <Flex maxHeight="600px" pb="$gap8" overflow="scroll" $md={{ maxHeight: 'unset' }}>
-          <FeatureFlagGroup name="Solana">
-            <FeatureFlagOption flag={FeatureFlags.Solana} label="Enable Solana UX" />
-            <FeatureFlagOption flag={FeatureFlags.SolanaPromo} label="Turn on Solana promo banners" />
-          </FeatureFlagGroup>
           <FeatureFlagGroup name="Swap Refactor">
             <FeatureFlagOption
               flag={FeatureFlags.ServiceBasedSwapTransactionInfo}

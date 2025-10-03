@@ -244,7 +244,7 @@ exports[`GenericImportForm renders a placeholder when there is no value 1`] = `
           role="button"
           style={
             {
-              "backgroundColor": "rgba(255, 55, 199, 0.08)",
+              "backgroundColor": "rgba(247, 145, 26, 0.08)",
               "borderBottomLeftRadius": 12,
               "borderBottomRightRadius": 12,
               "borderTopLeftRadius": 12,
@@ -284,8 +284,8 @@ exports[`GenericImportForm renders a placeholder when there is no value 1`] = `
                 {
                   "color": {
                     "dynamic": {
-                      "dark": "#FF37C7",
-                      "light": "#FF37C7",
+                      "dark": "#F7911A",
+                      "light": "#F7911A",
                     },
                   },
                   "fontFamily": "Basel Grotesk",
@@ -315,7 +315,7 @@ exports[`GenericImportForm renders a placeholder when there is no value 1`] = `
                     "borderWidth": 0,
                   },
                   {
-                    "color": "#FF37C7",
+                    "color": "#F7911A",
                     "height": 16,
                     "width": 16,
                   },
@@ -330,7 +330,7 @@ exports[`GenericImportForm renders a placeholder when there is no value 1`] = `
               vbWidth={16}
             >
               <RNSVGGroup
-                color="#FF37C7"
+                color="#F7911A"
                 fill={
                   {
                     "type": 2,

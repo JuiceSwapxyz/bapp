@@ -45,7 +45,6 @@ export const createTransactionSettingsStore = (): { store: TransactionSettingsSt
           toggleProtocol: (protocol: FrontendSupportedProtocol): void => {
             const { selectedProtocols } = get()
             if (selectedProtocols.includes(protocol)) {
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
               set({ selectedProtocols: selectedProtocols.filter((p: FrontendSupportedProtocol) => p !== protocol) })
             } else {
               set({ selectedProtocols: [...selectedProtocols, protocol] })

@@ -89,9 +89,6 @@ describe('useOrderedWalletConnectors', () => {
       if (flag === FeatureFlags.EmbeddedWallet) {
         return false
       }
-      if (flag === FeatureFlags.Solana) {
-        return false
-      }
       return false
     })
     mocked(useRecentConnectorId).mockReturnValue(undefined)
@@ -196,9 +193,6 @@ describe('useOrderedWalletConnectors', () => {
         if (flag === FeatureFlags.EmbeddedWallet) {
           return true
         }
-        if (flag === FeatureFlags.Solana) {
-          return false
-        }
         return false
       })
     })
@@ -241,9 +235,6 @@ describe('useOrderedWalletConnectors', () => {
       mocked(useFeatureFlag).mockImplementation((flag) => {
         if (flag === FeatureFlags.EmbeddedWallet) {
           return true
-        }
-        if (flag === FeatureFlags.Solana) {
-          return false
         }
         return false
       })

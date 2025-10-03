@@ -39,7 +39,6 @@ import type {
   TransactionStep,
 } from 'uniswap/src/features/transactions/steps/types'
 import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
-import { SolanaTrade } from 'uniswap/src/features/transactions/swap/types/solana'
 import type { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import type { BridgeTrade, ClassicTrade, UniswapXTrade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -505,12 +504,10 @@ export async function getSigner(account: string): Promise<JsonRpcSigner> {
 }
 
 type SwapInfo = ExactInputSwapTransactionInfo | ExactOutputSwapTransactionInfo
-export function getSwapTransactionInfo(
-  trade: ClassicTrade | BridgeTrade | SolanaTrade,
-): SwapInfo | BridgeTransactionInfo
+export function getSwapTransactionInfo(trade: ClassicTrade | BridgeTrade): SwapInfo | BridgeTransactionInfo
 export function getSwapTransactionInfo(trade: UniswapXTrade): SwapInfo & { isUniswapXOrder: true }
 export function getSwapTransactionInfo(
-  trade: ClassicTrade | BridgeTrade | UniswapXTrade | SolanaTrade,
+  trade: ClassicTrade | BridgeTrade | UniswapXTrade,
 ): SwapInfo | BridgeTransactionInfo {
   if (trade.routing === Routing.BRIDGE) {
     return {
@@ -546,9 +543,9 @@ export function getSwapTransactionInfo(
 }
 
 export function addTransactionBreadcrumb({
-  step,
-  data = {},
-  status = 'initiated',
+  step: _step,
+  data: _data = {},
+  status: _status = 'initiated',
 }: {
   step: TransactionStep
   data?: {

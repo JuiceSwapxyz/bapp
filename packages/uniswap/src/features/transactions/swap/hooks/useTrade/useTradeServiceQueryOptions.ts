@@ -1,5 +1,4 @@
 import { queryOptions, UseQueryOptions } from '@tanstack/react-query'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import type {
   TradeService,
   TradeWithGasEstimates,
@@ -28,13 +27,7 @@ export function createTradeServiceQueryOptions(ctx: {
         }
         return ctx.tradeService.getTrade(params)
       },
-      enabled:
-        !!params &&
-        !params.skip &&
-        !!validatedInput &&
-        params.otherCurrency?.chainId !== 1 && // TODO: re-enable
-        // TODO(SWAP-153): Integrate Solana into TradeService
-        params.amountSpecified?.currency.chainId !== UniverseChainId.Solana,
+      enabled: !!params && !params.skip && !!validatedInput && params.otherCurrency?.chainId !== 1, // TODO: re-enable
     })
   }
 }

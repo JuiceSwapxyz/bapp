@@ -1,11 +1,9 @@
-import React, { memo, useState } from 'react'
+import React, { memo } from 'react'
 import { useTranslation } from 'react-i18next'
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { useTokenDetailsContext } from 'src/components/TokenDetails/TokenDetailsContext'
 import { LongText } from 'src/components/text/LongText'
-import { Flex, Text, TouchableArea, useSporeColors } from 'ui/src'
-import { ChartBar, ChartPie, ChartPyramid, Language as LanguageIcon, TrendDown, TrendUp } from 'ui/src/components/icons'
-import { DEP_accentColors, validColor } from 'ui/src/theme'
+import { Flex, Text, useSporeColors } from 'ui/src'
+import { ChartBar, ChartPie, ChartPyramid, TrendDown, TrendUp } from 'ui/src/components/icons'
 import { useTokenProjectDescriptionQuery } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import {
   useTokenBasicInfoPartsFragment,
@@ -15,8 +13,6 @@ import {
 } from 'uniswap/src/data/graphql/uniswap-data-api/fragments'
 import { currencyIdToContractInput } from 'uniswap/src/features/dataApi/utils/currencyIdToContractInput'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
-import { Language } from 'uniswap/src/features/language/constants'
-import { useCurrentLanguage, useCurrentLanguageInfo } from 'uniswap/src/features/language/hooks'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { NumberType } from 'utilities/src/format/types'
 
@@ -121,17 +117,11 @@ const TokenDetailsMarketData = memo(function _TokenDetailsMarketData(): JSX.Elem
 export const TokenDetailsStats = memo(function _TokenDetailsStats(): JSX.Element {
   const { t } = useTranslation()
   const colors = useSporeColors()
-  const currentLanguage = useCurrentLanguage()
-  const currentLanguageInfo = useCurrentLanguageInfo()
-
-  const [showTranslation, setShowTranslation] = useState(false)
 
   const { currencyId, tokenColor } = useTokenDetailsContext()
 
   const onChainData = useTokenBasicInfoPartsFragment({ currencyId }).data
   const offChainData = useTokenBasicProjectPartsFragment({ currencyId }).data.project
-
-  const language = useCurrentLanguage()
 
   const descriptions = useTokenProjectDescriptionQuery({
     variables: {
@@ -150,17 +140,8 @@ export const TokenDetailsStats = memo(function _TokenDetailsStats(): JSX.Element
 
   const description = descriptions?.description
 
-  const translatedDescription =
-    descriptions?.descriptionTranslations?.descriptionEsEs ||
-    descriptions?.descriptionTranslations?.descriptionFrFr ||
-    descriptions?.descriptionTranslations?.descriptionJaJp ||
-    descriptions?.descriptionTranslations?.descriptionPtPt ||
-    descriptions?.descriptionTranslations?.descriptionViVn ||
-    descriptions?.descriptionTranslations?.descriptionZhHans ||
-    descriptions?.descriptionTranslations?.descriptionZhHant
-
   const name = offChainData?.name ?? onChainData.name
-  const currentDescription = showTranslation && translatedDescription ? translatedDescription : description
+  const currentDescription = description
 
   return (
     <Flex gap="$spacing24">
@@ -181,37 +162,6 @@ export const TokenDetailsStats = memo(function _TokenDetailsStats(): JSX.Element
               text={currentDescription.trim()}
             />
           </Flex>
-
-          {currentLanguage !== Language.English && !!translatedDescription && (
-            <TouchableArea onPress={(): void => setShowTranslation(!showTranslation)}>
-              <Flex alignItems="center" backgroundColor="$surface3" borderRadius="$rounded12" p="$spacing12">
-                {showTranslation ? (
-                  <Flex row alignItems="center" gap="$spacing12" width="100%">
-                    <Flex fill row alignItems="center" gap="$spacing12">
-                      <LanguageIcon color="$neutral2" size="$icon.20" />
-                      <Text color="$neutral2" variant="body3">
-                        {currentLanguageInfo.displayName}
-                      </Text>
-                    </Flex>
-                    <Text color={validColor(DEP_accentColors.blue400)} variant="buttonLabel2">
-                      {t('token.stats.translation.original')}
-                    </Text>
-                  </Flex>
-                ) : (
-                  <Animated.View entering={FadeIn.duration(100)} exiting={FadeOut.duration(100)}>
-                    <Flex row alignItems="center" gap="$spacing12">
-                      <LanguageIcon color="$neutral2" size="$icon.20" />
-                      <Text color="$neutral2" variant="body3">
-                        {t('token.stats.translation.translate', {
-                          language: currentLanguageInfo.displayName,
-                        })}
-                      </Text>
-                    </Flex>
-                  </Animated.View>
-                )}
-              </Flex>
-            </TouchableArea>
-          )}
         </Flex>
       )}
 
