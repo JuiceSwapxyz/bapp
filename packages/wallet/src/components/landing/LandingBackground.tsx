@@ -25,7 +25,6 @@ import {
   BuyElement,
   FroggyElement,
   HeartElement,
-  OpenseaElement,
   PolygonElement,
   ReceiveUSDCElement,
   SendElement,
@@ -128,10 +127,7 @@ const AnimatedElements = ({
         element: <HeartElement />,
         coordinates: { deg: 2.0, ...innerProps },
       },
-      {
-        element: <OpenseaElement />,
-        coordinates: { deg: 0.3, ...innerProps },
-      },
+      // OpenseaElement removed - OpenSea dependencies removed
       {
         element: <BuyElement />,
         coordinates: { deg: 5.5, ...innerProps },

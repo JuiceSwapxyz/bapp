@@ -1,3 +1,4 @@
+import { atom } from 'jotai'
 import { atomWithStorage, createJSONStorage } from 'jotai/utils'
 
 // Note:
@@ -5,12 +6,12 @@ import { atomWithStorage, createJSONStorage } from 'jotai/utils'
 // This would be something similar to the current feature flag implementation, but utilizing session instead
 //
 // Motivation:
-// some dapp browsers need to be able to disable the NFT portion of the app in order to pass Apple's app store review
-// this atom persists the inclusion of the `disableNFTs=boolean` query parameter via the webview's session storage
+// NFT features have been disabled to remove OpenSea dependencies
 const storage = createJSONStorage(() => sessionStorage)
 const persistStorage = createJSONStorage(() => localStorage)
 
-export const shouldDisableNFTRoutesAtom = atomWithStorage('shouldDisableNFTRoutes', false, storage)
+// NFTs are now permanently disabled
+export const shouldDisableNFTRoutesAtom = atom(true)
 export const hideMobileAppPromoBannerAtom = atomWithStorage('hideMobileAppPromoBanner', false, storage)
 export const persistHideMobileAppPromoBannerAtom = atomWithStorage(
   'persistHideMobileAppPromoBanner',
