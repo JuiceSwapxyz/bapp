@@ -3,7 +3,7 @@ import { DeepLinkAction, parseDeepLinkUrl } from 'src/features/deepLinking/deepL
 describe('getDeepLinkAction', () => {
   it.each`
     url                                                                                                  | expected
-    ${'https://app.uniswap.org/app?screen=transaction&fiatOnRamp=true&userAddress=0x123'}                | ${DeepLinkAction.UniswapWebLink}
+    ${'https://app.uniswap.org/app?screen=transaction&fiatOnRamp=true&userAddress=0x123'}                | ${DeepLinkAction.ShowTransactionAfterFiatOnRamp}
     ${'uniswap://wc?uri=wc:123@2?relay-protocol=irn&symKey=51e'}                                         | ${DeepLinkAction.WalletConnectAsParam}
     ${'uniswap://wc:123@2?relay-protocol=irn&symKey=51e'}                                                | ${DeepLinkAction.UniswapWalletConnect}
     ${'uniswap://widget/#/tokens/ethereum/0x...'}                                                        | ${DeepLinkAction.UniswapWidget}

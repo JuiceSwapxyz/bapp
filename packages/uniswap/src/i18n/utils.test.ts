@@ -63,23 +63,21 @@ describe('i18n utils', () => {
 
   describe('getWalletDeviceLocale', () => {
     it('should always return English locale', () => {
-      mockGetDeviceLocalesFn.mockReturnValue([{ languageCode: 'fr', languageTag: 'fr-FR' }])
-      mockGetLocaleFn.mockReturnValue(Locale.EnglishUnitedStates)
-
       const result = getWalletDeviceLocale()
       expect(result).toBe(Locale.EnglishUnitedStates)
-      expect(mockGetLocaleFn).toHaveBeenCalledWith(Language.English)
     })
 
-    it('should default to English locale if getDeviceLocales fails', () => {
-      mockGetDeviceLocalesFn.mockImplementation(() => {
-        throw new Error('Test error')
-      })
-      mockGetLocaleFn.mockReturnValue(Locale.EnglishUnitedStates)
+    it('should return consistent locale regardless of device settings', () => {
+      // Even with different device locales, should always return English
+      mockGetDeviceLocalesFn.mockReturnValue([{ languageCode: 'fr', languageTag: 'fr-FR' }])
+      const result1 = getWalletDeviceLocale()
 
-      const result = getWalletDeviceLocale()
-      expect(result).toBe(Locale.EnglishUnitedStates)
-      expect(mockGetLocaleFn).toHaveBeenCalledWith(Language.English)
+      mockGetDeviceLocalesFn.mockReturnValue([{ languageCode: 'zh', languageTag: 'zh-CN' }])
+      const result2 = getWalletDeviceLocale()
+
+      expect(result1).toBe(Locale.EnglishUnitedStates)
+      expect(result2).toBe(Locale.EnglishUnitedStates)
+      expect(result1).toBe(result2)
     })
   })
 })

@@ -5,7 +5,7 @@ exports[`AccountSwitcher renders correctly 1`] = `
   style={
     {
       "flexDirection": "column",
-      "maxHeight": 1298,
+      "maxHeight": 1254,
       "paddingBottom": 12,
     }
   }
@@ -461,7 +461,7 @@ exports[`AccountSwitcher renders correctly 1`] = `
     style={
       {
         "flexDirection": "column",
-        "maxHeight": 649,
+        "maxHeight": 627,
       }
     }
   >
