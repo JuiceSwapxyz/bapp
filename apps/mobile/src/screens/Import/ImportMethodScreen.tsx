@@ -5,16 +5,11 @@ import { OnboardingStackParamList } from 'src/app/navigation/types'
 import { checkCloudBackupOrShowAlert } from 'src/components/mnemonic/cloudImportUtils'
 import { OnboardingScreen } from 'src/features/onboarding/OnboardingScreen'
 import { OptionCard } from 'src/features/onboarding/OptionCard'
-import {
-  ImportMethodOption,
-  importFromCloudBackupOption,
-  seedPhraseImportOption,
-} from 'src/screens/Import/constants'
+import { ImportMethodOption, importFromCloudBackupOption, seedPhraseImportOption } from 'src/screens/Import/constants'
 import { useNavigationHeader } from 'src/utils/useNavigationHeader'
-import { Flex, SpinningLoader, Text, TouchableArea } from 'ui/src'
+import { Flex, Text, TouchableArea } from 'ui/src'
 import { Eye, WalletFilled } from 'ui/src/components/icons'
 import { useIsDarkMode } from 'ui/src/hooks/useIsDarkMode'
-import { iconSizes } from 'ui/src/theme'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
@@ -67,10 +62,7 @@ export function ImportMethodScreen({ navigation, route: { params } }: Props): JS
       : options
 
   return (
-    <OnboardingScreen
-      Icon={WalletFilled}
-      title={t('onboarding.import.title')}
-    >
+    <OnboardingScreen Icon={WalletFilled} title={t('onboarding.import.title')}>
       <Flex
         grow
         gap="$spacing12"
