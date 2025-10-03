@@ -59,7 +59,6 @@ vi.mock('ui/src/assets', () => ({
   SOLANA_LOGO: 'solana-logo.png',
   SONEIUM_LOGO: 'soneium-logo.png',
   UNICHAIN_LOGO: 'unichain-logo.png',
-  UNICHAIN_SEPOLIA_LOGO: 'unichain-sepolia-logo.png',
   UNISWAP_LOGO: 'uniswap-logo.png',
   UNISWAP_LOGO_LARGE: 'uniswap-logo-large.png',
   UNISWAP_MONO_LOGO_LARGE: 'uniswap-mono-logo-large.png',

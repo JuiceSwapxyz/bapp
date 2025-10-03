@@ -34,47 +34,19 @@ describe('i18n utils', () => {
   })
 
   describe('getWalletDeviceLanguage', () => {
-    it('should return first supported language from device locales', () => {
+    it('should always return English', () => {
       originalModules.deviceLocales.getDeviceLocales.mockReturnValue([
         { languageCode: 'fr', languageTag: 'fr-FR' },
         { languageCode: 'en', languageTag: 'en-US' },
       ])
 
       const result = getWalletDeviceLanguage()
-      expect(result).toBe(Language.French)
+      expect(result).toBe(Language.English)
     })
 
-    it('should handle normalized language tags', () => {
+    it('should return English even with non-English device locales', () => {
       originalModules.deviceLocales.getDeviceLocales.mockReturnValue([
         { languageCode: 'zh', languageTag: 'zh-Hans-cn' },
-      ])
-
-      const result = getWalletDeviceLanguage()
-      expect(result).toBe(Language.ChineseSimplified)
-    })
-
-    it('should fall back to languageCode if no match for languageTag', () => {
-      originalModules.deviceLocales.getDeviceLocales.mockReturnValue([
-        { languageCode: 'ja', languageTag: 'custom-tag' },
-      ])
-
-      const result = getWalletDeviceLanguage()
-      expect(result).toBe(Language.Japanese)
-    })
-
-    it('should skip unsupported languages and use the first supported one', () => {
-      originalModules.deviceLocales.getDeviceLocales.mockReturnValue([
-        { languageCode: 'xx', languageTag: 'xx-XX' }, // Unsupported
-        { languageCode: 'es', languageTag: 'es-ES' }, // Supported
-      ])
-
-      const result = getWalletDeviceLanguage()
-      expect(result).toBe(Language.SpanishSpain)
-    })
-
-    it('should default to English if no supported language is found', () => {
-      originalModules.deviceLocales.getDeviceLocales.mockReturnValue([
-        { languageCode: 'xx', languageTag: 'xx-XX' }, // Unsupported
       ])
 
       const result = getWalletDeviceLanguage()
@@ -88,7 +60,6 @@ describe('i18n utils', () => {
 
       const result = getWalletDeviceLanguage()
       expect(result).toBe(Language.English)
-      expect(originalModules.logger.logger.error).toHaveBeenCalled()
     })
 
     it('should handle empty device locales array', () => {
@@ -100,13 +71,13 @@ describe('i18n utils', () => {
   })
 
   describe('getWalletDeviceLocale', () => {
-    it('should get the language and return the corresponding locale', () => {
+    it('should always return English locale', () => {
       originalModules.deviceLocales.getDeviceLocales.mockReturnValue([{ languageCode: 'fr', languageTag: 'fr-FR' }])
-      originalModules.hooks.getLocale.mockReturnValue(Locale.FrenchFrance)
+      originalModules.hooks.getLocale.mockReturnValue(Locale.EnglishUnitedStates)
 
       const result = getWalletDeviceLocale()
-      expect(result).toBe(Locale.FrenchFrance)
-      expect(originalModules.hooks.getLocale).toHaveBeenCalledWith(Language.French)
+      expect(result).toBe(Locale.EnglishUnitedStates)
+      expect(originalModules.hooks.getLocale).toHaveBeenCalledWith(Language.English)
     })
 
     it('should default to English locale if getDeviceLocales fails', () => {

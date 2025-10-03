@@ -13,10 +13,6 @@ export const CHAIN_TO_UNIVERSAL_ROUTER_ADDRESS: Partial<Record<UniverseChainId, 
     '0x4D73A4411CA1c660035e4AECC8270E5DdDEC8C17',
     '0xef740bf23acae26f6492b10de645d6b98dc8eaf3',
   ],
-  [UniverseChainId.UnichainSepolia]: [
-    '0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6',
-    '0xf70536b3bcc1bd1a972dc186a2cf84cc6da6be5d',
-  ],
 }
 
 export const FLASHBLOCKS_UI_SKIP_ROUTES: Routing[] = [Routing.WRAP, Routing.UNWRAP, Routing.BRIDGE]

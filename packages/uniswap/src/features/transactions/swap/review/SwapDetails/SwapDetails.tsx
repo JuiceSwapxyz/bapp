@@ -128,7 +128,6 @@ export function SwapDetails({
         estimatedBridgingTime={estimatedBridgingTime}
         isBridgeTrade={isBridgeTrade ?? false}
         txSimulationErrors={txSimulationErrors}
-        amountUserWillReceive={derivedSwapInfo.outputAmountUserWillReceive ?? undefined}
         includesDelegation={includesDelegation}
         onShowWarning={onShowWarning}
       >

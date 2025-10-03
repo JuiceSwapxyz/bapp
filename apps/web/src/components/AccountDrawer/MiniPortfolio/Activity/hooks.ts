@@ -130,7 +130,7 @@ export function usePendingActivity() {
   const isOnlyUnichainPendingActivity =
     hasPendingActivity &&
     [...pendingTransactions, ...pendingOrdersWithoutLimits].every((tx) =>
-      [UniverseChainId.Unichain, UniverseChainId.UnichainSepolia].includes(tx.chainId),
+      [UniverseChainId.Unichain].includes(tx.chainId),
     )
 
   return { hasPendingActivity, pendingActivityCount, isOnlyUnichainPendingActivity }

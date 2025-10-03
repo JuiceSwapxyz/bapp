@@ -1,4 +1,3 @@
-import type { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { Percent } from '@juiceswapxyz/sdk-core'
 import { useTranslation } from 'react-i18next'
 import { Flex, HeightAnimator, Separator, Text, TouchableArea, UniswapXText } from 'ui/src'
@@ -25,7 +24,6 @@ import {
   AutoSlippageBadge,
   MaxSlippageTooltip,
 } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormTooltips/MaxSlippageTooltip'
-import { YouReceiveDetailsTooltip } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormTooltips/YouReceiveDetailsTooltip'
 import { SwapDetailsRow } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/YouReceiveDetails/SwapDetailsRow'
 import type { YouReceiveDetailsProps } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/YouReceiveDetails/YouReceiveDetails'
 import { useFeeOnTransferAmounts } from 'uniswap/src/features/transactions/swap/hooks/useFeeOnTransferAmount'
@@ -47,56 +45,14 @@ import { useBooleanState } from 'utilities/src/react/useBooleanState'
 const ZERO_PERCENT = new Percent(0, 100)
 const MAX_TOOLTIP_WIDTH = 300
 
-function YouReceiveDisplay({
-  isBridge,
-  outputAmountUserWillReceive,
-  formattedPostFeesAmount,
-  priceDifference,
-  feeOnTransferProps,
-  isIndicative,
-  isLoading,
-  isLoadingIndicative,
-  isOpen,
-}: {
-  isBridge: boolean
-  outputAmountUserWillReceive: Maybe<CurrencyAmount<Currency>>
-  formattedPostFeesAmount?: string
-  priceDifference?: UsePriceDifferenceReturnType
-  feeOnTransferProps?: FeeOnTransferFeeGroupProps
-  isIndicative: boolean
-  isLoading: boolean
-  isLoadingIndicative: boolean
-  isOpen: boolean
-}): JSX.Element {
+function YouReceiveDisplay({ isOpen }: { isOpen: boolean }): JSX.Element {
   const { t } = useTranslation()
   const ExpandoIcon = isOpen ? AnglesDownUp : SortVertical
 
   return (
     <SwapDetailsRow.Outer>
-      <SwapDetailsRow.Label
-        label={t('common.youReceive')}
-        analyticsTitle="You receive"
-        tooltip={
-          isBridge ? (
-            <AcrossRoutingInfoTooltip />
-          ) : (
-            <YouReceiveDetailsTooltip
-              receivedAmount={formattedPostFeesAmount ?? '-'}
-              feeOnTransferProps={feeOnTransferProps}
-            />
-          )
-        }
-      />
+      <SwapDetailsRow.Label label={t('common.moreDetails')} analyticsTitle="You receive" tooltip={null} />
       <Flex row gap="$spacing6" alignItems="center">
-        <SwapDetailsRow.ReceivingAmount
-          amount={outputAmountUserWillReceive}
-          formattedAmount={formattedPostFeesAmount}
-          priceDifferenceWarning={priceDifference}
-          isIndicative={isIndicative}
-          isLoading={isLoading}
-          feeOnTransferProps={feeOnTransferProps}
-          isLoadingIndicative={isLoadingIndicative}
-        />
         {isInterfaceDesktop && (
           <Flex rotate={isOpen ? '180deg' : '0deg'} animation="simple" transition="ease-in-out">
             <ExpandoIcon color="$neutral2" size="$icon.24" />
@@ -292,12 +248,7 @@ function InlineWarningDisplay({ warning }: { warning: WarningWithStyle }): JSX.E
   )
 }
 
-export function YouReceiveDetails({
-  isIndicative,
-  isLoading,
-  isLoadingIndicative,
-  isBridge,
-}: YouReceiveDetailsProps): JSX.Element | null {
+export function YouReceiveDetails({ isBridge }: YouReceiveDetailsProps): JSX.Element | null {
   const account = useWallet().evmAccount
   const { value: isOpen, toggle } = useBooleanState(false)
   const { formatPercent } = useLocalizationContext()
@@ -367,17 +318,7 @@ export function YouReceiveDetails({
         {inlineWarning && !isPriceImpactWarning ? (
           <InlineWarningDisplay warning={inlineWarning} />
         ) : (
-          <YouReceiveDisplay
-            isBridge={isBridge}
-            outputAmountUserWillReceive={derivedSwapInfo.outputAmountUserWillReceive}
-            formattedPostFeesAmount={formattedPostFeesAmount}
-            priceDifference={priceDifference}
-            feeOnTransferProps={feeOnTransferProps}
-            isIndicative={isIndicative}
-            isLoading={isLoading}
-            isLoadingIndicative={isLoadingIndicative}
-            isOpen={isOpen}
-          />
+          <YouReceiveDisplay isOpen={isOpen} />
         )}
         <HeightAnimator open={isOpen}>
           <Separator my="$spacing16" />

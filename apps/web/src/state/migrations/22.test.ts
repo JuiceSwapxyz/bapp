@@ -95,21 +95,13 @@ describe('migration to v22', () => {
     expect(result.userSettings.currentLanguage).toEqual(Language.English)
   })
 
-  it('should preserve non-English language settings if user language is not set to English', async () => {
-    const japaneseState = {
-      ...previousState,
-      userSettings: { currentLanguage: Language.Japanese },
-    }
-    const result: any = await migrator(japaneseState, 22)
-    expect(result.userSettings.currentLanguage).toEqual(Language.Japanese)
+  it('should always set language to English', async () => {
+    const result: any = await migrator(previousState, 22)
+    expect(result.userSettings.currentLanguage).toEqual(Language.English)
   })
 
-  it('should update current language if state is set to English but navigator language is not English', async () => {
-    mockGetCurrentLanguageFromNavigator.mockReturnValue(Language.French)
-
+  it('should always set language to English even if navigator language is different', async () => {
     const result: any = await migrator(previousState, 22)
-
-    expect(mockGetCurrentLanguageFromNavigator).toHaveBeenCalled()
-    expect(result.userSettings.currentLanguage).toEqual(Language.French)
+    expect(result.userSettings.currentLanguage).toEqual(Language.English)
   })
 })

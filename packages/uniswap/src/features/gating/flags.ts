@@ -16,8 +16,6 @@ export enum FeatureFlags {
   EmbeddedWallet,
   FiatOffRamp,
   InstantTokenBalanceUpdate,
-  MonadTestnet,
-  MonadTestnetDown,
   PortionFields,
   Soneium,
   TwoSecondSwapQuotePollingInterval,
