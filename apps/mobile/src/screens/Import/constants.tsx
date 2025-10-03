@@ -1,5 +1,5 @@
 import React from 'react'
-import { OSDynamicCloudIcon, PaperStack, Passkey } from 'ui/src/components/icons'
+import { OSDynamicCloudIcon, PaperStack } from 'ui/src/components/icons'
 import { AppTFunction } from 'ui/src/i18n/types'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { TestID, TestIDType } from 'uniswap/src/test/fixtures/testIDs'
@@ -11,7 +11,6 @@ type ImportMethodScreens =
   | OnboardingScreens.SeedPhraseInput
   | OnboardingScreens.RestoreCloudBackupLoading
   | OnboardingScreens.RestoreCloudBackup
-  | OnboardingScreens.PasskeyImport
   | OnboardingScreens.WatchWallet
 
 export interface ImportMethodOption<T extends ImportMethodScreens = ImportMethodScreens> {
@@ -22,19 +21,6 @@ export interface ImportMethodOption<T extends ImportMethodScreens = ImportMethod
   importType: ImportType
   name: ElementName
   testID: TestIDType
-}
-
-/**
- * Sign in with Passkey
- */
-export const passKeySignInOption: ImportMethodOption<OnboardingScreens.PasskeyImport> = {
-  title: (t: AppTFunction) => t('onboarding.import.selectMethod.passkey.title'),
-  blurb: (t: AppTFunction) => t('onboarding.import.selectMethod.passkey.subtitle'),
-  icon: <Passkey color="$accent1" size="$icon.18" />,
-  nav: OnboardingScreens.PasskeyImport,
-  importType: ImportType.Passkey,
-  name: ElementName.OnboardingPasskey,
-  testID: TestID.OnboardingPasskey,
 }
 
 /**

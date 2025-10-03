@@ -41,7 +41,6 @@ type SettingsNavigationModal =
   | typeof ModalName.EditLabelSettingsModal
   | typeof ModalName.ConnectionsDappListModal
   | typeof ModalName.SmartWalletAdvancedSettingsModal
-  | typeof ModalName.PasskeyManagement
   | typeof ModalName.Experiments
   | typeof ModalName.SettingsAppearance
   | typeof ModalName.PermissionsModal

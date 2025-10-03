@@ -7,13 +7,11 @@ export const CONNECTION_PROVIDER_IDS = {
   METAMASK_RDNS: 'io.metamask',
   UNISWAP_EXTENSION_RDNS: 'org.uniswap.app',
   SAFE_CONNECTOR_ID: 'safe',
-  EMBEDDED_WALLET_CONNECTOR_ID: 'embeddedUniswapWalletConnector',
   MOCK_CONNECTOR_ID: 'mock',
 } as const
 
 export const CONNECTION_PROVIDER_NAMES = {
   WALLET_CONNECT: 'WalletConnect',
-  EMBEDDED_WALLET: 'Uniswap Embedded Wallet',
   METAMASK: 'MetaMask',
   UNISWAP_EXTENSION: 'Uniswap Extension',
   UNISWAP_WALLET: 'Uniswap Wallet',

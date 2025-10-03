@@ -23,7 +23,6 @@ import {
   Language,
   LineChartDots,
   Lock,
-  Passkey,
   Settings,
   Sliders,
   Wrench,
@@ -35,7 +34,6 @@ import { getFiatCurrencyName, useAppFiatCurrencyInfo } from 'uniswap/src/feature
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useCurrentLanguageInfo } from 'uniswap/src/features/language/hooks'
-import { PasskeyManagementModal } from 'uniswap/src/features/passkey/PasskeyManagementModal'
 import { setCurrentFiatCurrency, setIsTestnetModeEnabled } from 'uniswap/src/features/settings/slice'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { WalletEventName } from 'uniswap/src/features/telemetry/constants'
@@ -55,9 +53,6 @@ import { authActions } from 'wallet/src/features/auth/saga'
 import { AuthActionType } from 'wallet/src/features/auth/types'
 import { selectHasViewedConnectionMigration } from 'wallet/src/features/behaviorHistory/selectors'
 import { resetWalletBehaviorHistory, setHasViewedConnectionMigration } from 'wallet/src/features/behaviorHistory/slice'
-import { BackupType } from 'wallet/src/features/wallet/accounts/types'
-import { hasBackup } from 'wallet/src/features/wallet/accounts/utils'
-import { useSignerAccounts } from 'wallet/src/features/wallet/hooks'
 
 const manifestVersion = chrome.runtime.getManifest().version
 
@@ -77,15 +72,11 @@ export function SettingsScreen(): JSX.Element {
 
   const isSmartWalletEnabled = useFeatureFlag(FeatureFlags.SmartWalletSettings)
 
-  const signerAccount = useSignerAccounts()[0]
-  const hasPasskeyBackup = hasBackup(BackupType.Passkey, signerAccount)
-
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false)
   const [isPortfolioBalanceModalOpen, setIsPortfolioBalanceModalOpen] = useState(false)
   const [isTestnetModalOpen, setIsTestnetModalOpen] = useState(false)
   const [isAdvancedModalOpen, setIsAdvancedModalOpen] = useState(false)
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false)
-  const [isPasskeyModalOpen, setIsPasskeyModalOpen] = useState(false)
   const [isDefaultProvider, setIsDefaultProvider] = useState(true)
 
   const onPressLockWallet = async (): Promise<void> => {
@@ -173,13 +164,6 @@ export function SettingsScreen(): JSX.Element {
         onClose={handleAdvancedModalClose}
         onPressSmartWallet={handleSmartWalletPress}
       />
-      {hasPasskeyBackup && (
-        <PasskeyManagementModal
-          isOpen={isPasskeyModalOpen}
-          onClose={() => setIsPasskeyModalOpen(false)}
-          address={signerAccount?.address}
-        />
-      )}
       <Flex fill backgroundColor="$surface1" gap="$spacing8">
         <ScreenHeader title={t('settings.title')} />
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -296,15 +280,6 @@ export function SettingsScreen(): JSX.Element {
                 title={t('settings.setting.recoveryPhrase.title')}
                 onPress={(): void => navigateTo(`/${AppRoutes.Settings}/${SettingsRoutes.ViewRecoveryPhrase}`)}
               />
-              <>
-                {hasPasskeyBackup && (
-                  <SettingsItem
-                    Icon={Passkey}
-                    title={t('common.passkeys')}
-                    onPress={(): void => setIsPasskeyModalOpen(true)}
-                  />
-                )}
-              </>
               <SettingsItem
                 Icon={LineChartDots}
                 title={t('settings.setting.permissions.title')}

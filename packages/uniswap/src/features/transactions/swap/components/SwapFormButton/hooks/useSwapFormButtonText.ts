@@ -25,10 +25,9 @@ export const useSwapFormButtonText = (): string => {
   const isTokenSelectionInvalid = useIsTokenSelectionInvalid()
   const isAmountSelectionInvalid = useIsAmountSelectionInvalid()
 
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
   const { insufficientBalanceWarning, blockingWarning, insufficientGasFundsWarning } = useParsedSwapWarnings()
 
-  const isLogIn = isEmbeddedWalletEnabled
+  const isLogIn = false
 
   const nativeCurrency = nativeOnChain(chainId)
 

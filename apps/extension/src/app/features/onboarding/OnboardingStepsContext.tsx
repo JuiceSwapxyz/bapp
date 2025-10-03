@@ -11,11 +11,6 @@ export enum SelectImportMethodSteps {
   SelectMethod = 'selectMethod',
 }
 
-export enum ImportPasskeySteps {
-  InitiatePasskeyAuth = 'initiatePasskeyAuth',
-  PasskeyImport = 'passkeyImport',
-}
-
 export enum ImportOnboardingSteps {
   Mnemonic = 'mnemonic',
   Password = 'password',
@@ -54,7 +49,6 @@ export type Step =
   | ScanOnboardingSteps
   | ClaimUnitagSteps
   | SelectImportMethodSteps
-  | ImportPasskeySteps
 export type OnboardingStepsContextState = {
   step: Step
   going?: 'forward' | 'backward'
