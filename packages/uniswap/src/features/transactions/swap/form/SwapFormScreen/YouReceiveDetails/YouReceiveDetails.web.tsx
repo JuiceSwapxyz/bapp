@@ -135,6 +135,9 @@ function PriceDifferenceDisplay({
     return null
   }
 
+  return null // TODO: add price difference warning when calculation is implemented
+
+  /*
   return (
     <SwapDetailsRow.Outer>
       <SwapDetailsRow.Label
@@ -151,6 +154,7 @@ function PriceDifferenceDisplay({
       </Flex>
     </SwapDetailsRow.Outer>
   )
+  */
 }
 
 function MaxSlippageDisplay({
