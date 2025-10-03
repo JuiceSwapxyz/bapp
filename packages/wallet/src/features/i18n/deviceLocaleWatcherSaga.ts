@@ -31,6 +31,7 @@ function* syncAppWithDeviceLanguage(): Generator {
   const deviceLanguage = getWalletDeviceLanguage()
 
   // Always English now, but keep the sync logic for consistency
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (currentAppLanguage !== deviceLanguage) {
     yield* put(setCurrentLanguage(deviceLanguage))
   }
