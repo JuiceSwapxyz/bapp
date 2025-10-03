@@ -2,11 +2,11 @@ import { useMutation, UseMutationOptions, UseMutationResult } from '@tanstack/re
 import { useModalState } from 'hooks/useModalState'
 import { atom } from 'jotai'
 import { useUpdateAtom } from 'jotai/utils'
-import { PasskeysHelpModalTypes } from 'uniswap/src/features/passkey/PasskeysHelpModal'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { logger } from 'utilities/src/logger/logger'
 
-export const PasskeysHelpModalTypeAtom = atom<PasskeysHelpModalTypes>(PasskeysHelpModalTypes.Default)
+// Note: PasskeysHelpModalTypes enum was removed with embedded wallet feature
+export const PasskeysHelpModalTypeAtom = atom<string>('Default')
 
 /**
  * Hook that provides a wrapper around useMutation for passkey operations
@@ -32,17 +32,17 @@ export function usePasskeyAuthWithHelpModal<TData = unknown, TError = Error, TVa
         variables,
         context,
         message: '',
-        type: PasskeysHelpModalTypes.Default,
+        type: 'Default',
       }
-      let errorType = PasskeysHelpModalTypes.Default
+      let errorType = 'Default'
 
       // Verify if the error message contains a transactionID from our BE
       const uuidRegex = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/
       if (error instanceof Error && uuidRegex.test(error.message)) {
         if (error.message.includes('not_found')) {
-          errorType = PasskeysHelpModalTypes.InvalidPasskey
+          errorType = 'InvalidPasskey'
         } else {
-          errorType = PasskeysHelpModalTypes.TechnicalError
+          errorType = 'TechnicalError'
         }
         errorContext.message = error.message
         errorContext.type = errorType

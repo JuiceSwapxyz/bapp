@@ -1,7 +1,6 @@
 import { NetworkStatus } from '@apollo/client'
 import { CurrencyAmount, Token } from '@juiceswapxyz/sdk-core'
 import { MultiBlockchainAddressDisplay } from 'components/AccountDetails/MultiBlockchainAddressDisplay'
-import { DownloadGraduatedWalletCard } from 'components/AccountDrawer/DownloadGraduatedWalletCard'
 import IconButton, { IconWithConfirmTextButton } from 'components/AccountDrawer/IconButton'
 import { EmptyWallet } from 'components/AccountDrawer/MiniPortfolio/EmptyWallet'
 import { ExtensionDeeplinks } from 'components/AccountDrawer/MiniPortfolio/ExtensionDeeplinks'
@@ -17,7 +16,6 @@ import { useAccount } from 'hooks/useAccount'
 import { useDisconnect } from 'hooks/useDisconnect'
 import { useIsUniExtensionConnected } from 'hooks/useIsUniExtensionConnected'
 import { useModalState } from 'hooks/useModalState'
-import { useSignOutWithPasskey } from 'hooks/useSignOutWithPasskey'
 import { useCallback, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -30,7 +28,6 @@ import AnimatedNumber, {
 } from 'uniswap/src/components/AnimatedNumber/AnimatedNumber'
 import { RelativeChange } from 'uniswap/src/components/RelativeChange/RelativeChange'
 import { TestnetModeBanner } from 'uniswap/src/components/banners/TestnetModeBanner'
-import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { useUnitagsAddressQuery } from 'uniswap/src/data/apiClients/unitagsApi/useUnitagsAddressQuery'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { usePortfolioTotalValue } from 'uniswap/src/features/dataApi/balances/balances'
@@ -62,9 +59,6 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
 
   const { isTestnetModeEnabled } = useEnabledChains()
   const connectedAccount = useAccount()
-  const connectedWithEmbeddedWallet =
-    connectedAccount.connector?.id === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID
-  const { signOutWithPasskey } = useSignOutWithPasskey()
   const isRightToLeft = i18next.dir() === 'rtl'
 
   const unclaimedAmount: CurrencyAmount<Token> | undefined = useUserUnclaimedAmount(account)
@@ -74,14 +68,11 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
   const accountDrawer = useAccountDrawer()
 
   const handleDisconnect = useCallback(async () => {
-    if (connectedWithEmbeddedWallet) {
-      await signOutWithPasskey()
-    }
     // Testnet mode is always enabled
     // dispatch(setIsTestnetModeEnabled(false))
     disconnect()
     accountDrawer.close()
-  }, [connectedWithEmbeddedWallet, disconnect, accountDrawer, signOutWithPasskey])
+  }, [disconnect, accountDrawer])
 
   const handleBuyCryptoClick = useCallback(() => {
     accountDrawer.close()
@@ -196,10 +187,7 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
               {isPortfolioZero ? (
                 <EmptyWallet handleBuyCryptoClick={handleBuyCryptoClick} />
               ) : (
-                <>
-                  <DownloadGraduatedWalletCard />
-                  <MiniPortfolio account={account} />
-                </>
+                <MiniPortfolio account={account} />
               )}
               {isUnclaimed && (
                 <Button

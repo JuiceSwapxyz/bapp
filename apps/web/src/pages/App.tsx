@@ -12,13 +12,12 @@ import { Navigate, useLocation } from 'react-router'
 import DarkModeQueryParamReader from 'theme/components/DarkModeQueryParamReader'
 import { useSporeColors } from 'ui/src'
 import { initializeScrollWatcher } from 'uniswap/src/components/modals/ScrollLock'
-import { EXTENSION_PASSKEY_AUTH_PATH } from 'uniswap/src/features/passkey/constants'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { isPathBlocked } from 'utils/blockedPaths'
 import { MICROSITE_LINK } from 'utils/openDownloadApp'
 import { getCurrentPageFromLocation } from 'utils/urlRoutes'
 
-const OVERRIDE_PAGE_LAYOUT = [EXTENSION_PASSKEY_AUTH_PATH]
+const OVERRIDE_PAGE_LAYOUT: string[] = []
 
 export default function App() {
   const colors = useSporeColors()

@@ -134,6 +134,9 @@ function PriceDifferenceDisplay({
   return null // TODO: add price difference warning when calculation is implemented
 
   /*
+  const { t } = useTranslation()
+  const { formatPercent } = useLocalizationContext()
+
   return (
     <SwapDetailsRow.Outer>
       <SwapDetailsRow.Label
