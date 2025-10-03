@@ -2,7 +2,7 @@ import { URL } from 'react-native-url-polyfill'
 import { expectSaga } from 'redux-saga-test-plan'
 import { navigate } from 'src/app/navigation/rootNavigation'
 import { handleSwapLink } from 'src/features/deepLinking/handleSwapLinkSaga'
-import { DAI, UNI, USDC_UNICHAIN_SEPOLIA } from 'uniswap/src/constants/tokens'
+import { DAI, UNI } from 'uniswap/src/constants/tokens'
 import { AssetType } from 'uniswap/src/entities/assets'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
@@ -65,7 +65,7 @@ const swapUrl = formSwapUrl({
 const testnetSwapUrl = formSwapUrl({
   userAddress: account.address,
   chain: UniverseChainId.Sepolia,
-  inputAddress: USDC_UNICHAIN_SEPOLIA.address,
+  inputAddress: DAI.address,
   outputAddress: UNI[UniverseChainId.Sepolia].address,
   currencyField: 'input',
   amount: '100',
@@ -150,7 +150,7 @@ describe(handleSwapLink, () => {
         ModalName.Swap,
         expect.objectContaining({
           input: {
-            address: USDC_UNICHAIN_SEPOLIA.address,
+            address: DAI.address,
             chainId: UniverseChainId.Sepolia,
             type: AssetType.Currency,
           },

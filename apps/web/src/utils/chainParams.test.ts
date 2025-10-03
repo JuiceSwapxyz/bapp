@@ -28,20 +28,10 @@ describe('getChainUrlParam', () => {
   it('should return url param for ethereum', () => {
     expect(getChainUrlParam(UniverseChainId.Mainnet)).toBe('ethereum')
   })
-
-  it('should return url param for unichain sepolia', () => {
-    expect(getChainUrlParam(UniverseChainId.UnichainSepolia)).toBe('unichain_sepolia')
-  })
 })
 
 describe('getChainIdFromBackendChain', () => {
   it('should return url param for ethereum', () => {
     expect(getChainIdFromBackendChain(toGraphQLChain(UniverseChainId.Mainnet))).toBe(UniverseChainId.Mainnet)
-  })
-
-  it('should return url param for unichain sepolia', () => {
-    expect(getChainIdFromBackendChain(toGraphQLChain(UniverseChainId.UnichainSepolia))).toBe(
-      UniverseChainId.UnichainSepolia,
-    )
   })
 })
