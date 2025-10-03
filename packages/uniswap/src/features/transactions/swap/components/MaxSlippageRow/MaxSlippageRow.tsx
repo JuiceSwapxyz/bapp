@@ -73,7 +73,7 @@ export function MaxSlippageRow({
             )
           ) : null}
           <Text color={showSlippageWarning ? '$statusWarning' : '$neutral1'} variant="body3">
-            {formatPercent(acceptedTrade.slippageTolerance)}
+            {formatPercent(customSlippageTolerance ?? acceptedTrade.slippageTolerance)}
           </Text>
         </Flex>
       </IndicativeLoadingWrapper>
