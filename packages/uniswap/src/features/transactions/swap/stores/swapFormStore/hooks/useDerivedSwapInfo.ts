@@ -2,7 +2,6 @@ import { TradeType } from '@juiceswapxyz/sdk-core'
 import { useMemo } from 'react'
 import { useUniswapContextSelector } from 'uniswap/src/contexts/UniswapContext'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useOnChainCurrencyBalance } from 'uniswap/src/features/portfolio/api'
@@ -57,9 +56,9 @@ export function useDerivedSwapInfo({
 
   const chainId = currencyIn?.chainId ?? currencyOut?.chainId ?? defaultChainId
 
-  const { evmAccount, svmAccount } = useWallet()
+  const { evmAccount } = useWallet()
 
-  const account = chainId === UniverseChainId.Solana ? svmAccount : evmAccount
+  const account = evmAccount
 
   const currencies = useMemo(() => {
     return {

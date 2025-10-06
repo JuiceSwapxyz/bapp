@@ -282,7 +282,7 @@ function* handleGoToFiatOnRampDeepLink(data: PayloadWithFiatOnRampParams) {
   if (disableForKorea) {
     navigate(ModalName.KoreaCexTransferInfoModal)
   } else {
-    const { moonpayOnly, amount, moonpayCurrencyCode } = data
+    const { amount } = data
 
     // Add delay to fix android onramp issue causing isSheetReady to remain false
     yield* delay(isAndroid ? ONRAMP_DEEPLINK_DELAY : 0)
@@ -291,9 +291,7 @@ function* handleGoToFiatOnRampDeepLink(data: PayloadWithFiatOnRampParams) {
       openModal({
         name: ModalName.FiatOnRampAggregator,
         initialState: {
-          moonpayOnly,
           prefilledAmount: amount,
-          moonpayCurrencyCode,
         },
       }),
     )

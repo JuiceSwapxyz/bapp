@@ -68,15 +68,11 @@ type PayloadWithScantasticParams = BasePayload & { scantasticQueryParams: string
 /**
  * Payload for all deep link actions that include fiat onramp params.
  *
- * @param userAddress - The user address (optional when moonpayOnly is true).
- * @param moonpayOnly - Show the moonpay only mode.
- * @param moonpayCurrencyCode - The moonpay currency code (eth, usdc, etc).
+ * @param userAddress - The user address.
  * @param amount - The input amount to prefill
  */
 export type PayloadWithFiatOnRampParams = BasePayload & {
   userAddress?: string
-  moonpayOnly?: boolean
-  moonpayCurrencyCode?: string
   amount?: string
 }
 
@@ -150,13 +146,11 @@ export function parseDeepLinkUrl(urlString: string): DeepLinkActionResult {
       }
     }
     case '/fiatonramp': {
-      const moonpayOnly = url.searchParams.get('moonpayOnly') === 'true'
-      const moonpayCurrencyCode = url.searchParams.get('moonpayCurrencyCode') ?? undefined
       const amount = url.searchParams.get('amount') ?? undefined
 
-      if (!moonpayOnly && !userAddress) {
+      if (!userAddress) {
         return logAndReturnError({
-          errorMsg: `No userAddress or moonpayOnly param found`,
+          errorMsg: `No userAddress found`,
           action: DeepLinkAction.FiatOnRampScreen,
           urlString,
           data,
@@ -164,7 +158,7 @@ export function parseDeepLinkUrl(urlString: string): DeepLinkActionResult {
       }
       return {
         action: DeepLinkAction.FiatOnRampScreen,
-        data: { ...data, userAddress, moonpayOnly, moonpayCurrencyCode, amount },
+        data: { ...data, userAddress, amount },
       }
     }
   }

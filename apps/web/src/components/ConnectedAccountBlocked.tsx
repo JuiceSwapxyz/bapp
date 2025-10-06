@@ -34,7 +34,7 @@ export default function ConnectedAccountBlocked(props: ModalState) {
           <Trans
             i18nKey="common.blocked.reason"
             components={{
-              // TODO: Re-enable once support.juiceswap.xyz is configured
+              // TODO: Re-enable once support.juiceswap.com is configured
               // link: <ExternalLink href="https://help.uniswap.org/en/articles/6149816" />
               link: <span />,
             }}
