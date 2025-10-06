@@ -57,7 +57,6 @@ export const uniswapUrls = {
     ),
     mismatchedImports: createHelpArticleUrl('36393527081997'),
     mobileWalletHelp: createHelpArticleUrl('20317941356429'),
-    moonpayRegionalAvailability: createHelpArticleUrl('11306664890381-Why-isn-t-MoonPay-available-in-my-region-'),
     multichainDelegation: createHelpArticleUrl('36392482755341'),
     networkFeeInfo: createHelpArticleUrl('8370337377805-What-is-a-network-fee-'),
     poolOutOfSync: createHelpArticleUrl('25845512413069'),
