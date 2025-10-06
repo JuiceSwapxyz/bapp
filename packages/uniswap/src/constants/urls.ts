@@ -125,8 +125,6 @@ export const uniswapUrls = {
   tradingApiUrl: config.tradingApiUrlOverride || getCloudflareApiBaseUrl(TrafficFlows.TradingApi),
 
   // Disabled services (kept for backwards compatibility)
-  amplitudeProxyUrl: config.amplitudeProxyUrlOverride || '',
-  statsigProxyUrl: config.statsigProxyUrlOverride || '',
   unitagsApiUrl: config.unitagsApiUrlOverride || '',
   scantasticApiUrl: config.scantasticApiUrlOverride || '',
   forApiUrl: config.forApiUrlOverride || '',
