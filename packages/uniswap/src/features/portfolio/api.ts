@@ -1,24 +1,16 @@
 import { Currency, CurrencyAmount, NativeCurrency as NativeCurrencyClass } from '@juiceswapxyz/sdk-core'
-import { PublicKey } from '@solana/web3.js'
 import { skipToken, useQuery } from '@tanstack/react-query'
 import { Contract } from 'ethers/lib/ethers'
 import { useMemo } from 'react'
 import ERC20_ABI from 'uniswap/src/abis/erc20.json'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
-import { SharedQueryClient } from 'uniswap/src/data/apiClients/SharedQueryClient'
-import { getSolanaParsedTokenAccountsByOwnerQueryOptions } from 'uniswap/src/data/solanaConnection/getSolanaParsedTokenAccountsByOwnerQueryOptions'
-import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getPollingIntervalByBlocktime } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, SyncTransactionSubmissionChainIdsConfigKey } from 'uniswap/src/features/gating/configs'
 import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
-import { Platform } from 'uniswap/src/features/platforms/types/Platform'
-import { chainIdToPlatform } from 'uniswap/src/features/platforms/utils/chains'
 import { createEthersProvider } from 'uniswap/src/features/providers/createEthersProvider'
-import { getSolanaConnection } from 'uniswap/src/features/providers/getSolanaConnection'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
 import { currencyAddress as getCurrencyAddress } from 'uniswap/src/utils/currencyId'
-import { logger } from 'utilities/src/logger/logger'
 import { ReactQueryCacheKey } from 'utilities/src/reactQuery/cache'
 
 export type BalanceLookupParams = {
@@ -30,19 +22,7 @@ export type BalanceLookupParams = {
 
 /** Custom fetcher that uses an ethers provider to fetch. */
 export async function getOnChainBalancesFetch(params: BalanceLookupParams): Promise<{ balance?: string }> {
-  switch (chainIdToPlatform(params.chainId)) {
-    case Platform.EVM:
-      return getOnChainBalancesFetchEVM(params)
-    case Platform.SVM:
-      return getOnChainBalancesFetchSVM(params)
-    default: {
-      logger.error(new Error(`Unexpected chainId for balance lookup: ${params.chainId}`), {
-        tags: { file: 'api.ts', function: 'getOnChainBalancesFetch' },
-        extra: { params },
-      })
-      return { balance: undefined }
-    }
-  }
+  return getOnChainBalancesFetchEVM(params)
 }
 
 async function getOnChainBalancesFetchEVM(params: BalanceLookupParams): Promise<{ balance?: string }> {
@@ -113,32 +93,6 @@ export async function getOnChainBalancesFetchWithPending(params: BalanceLookupPa
 
   const decodedBalance = erc20Contract.interface.decodeFunctionResult('balanceOf', balance)[0]
   return { balance: decodedBalance.toString() }
-}
-
-async function getOnChainBalancesFetchSVM(params: BalanceLookupParams): Promise<{ balance?: string }> {
-  const { currencyAddress, chainId, accountAddress } = params
-
-  try {
-    // Native currency lookup
-    if (currencyAddress === getChainInfo(chainId).nativeCurrency.address) {
-      const connection = getSolanaConnection()
-      const balance = await connection.getBalance(new PublicKey(accountAddress))
-      return { balance: balance.toString() }
-    }
-
-    // SPL token lookup with caching
-    const tokenAccountsMap = await SharedQueryClient.ensureQueryData(
-      getSolanaParsedTokenAccountsByOwnerQueryOptions({ params: { accountAddress } }),
-    )
-
-    return { balance: tokenAccountsMap[currencyAddress]?.tokenAmount }
-  } catch (error) {
-    logger.error(error, {
-      tags: { file: 'api.ts', function: 'getOnChainBalancesFetchSVM' },
-      extra: { params },
-    })
-    return { balance: undefined }
-  }
 }
 
 export function useOnChainCurrencyBalance(
