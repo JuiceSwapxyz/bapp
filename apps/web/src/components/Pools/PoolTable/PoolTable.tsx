@@ -130,14 +130,7 @@ function PoolTableHeader({
     [PoolSortFields.Volume30D]: t('pool.volume.thirtyDay'),
     [PoolSortFields.VolOverTvl]: undefined,
     [PoolSortFields.Apr]: t('pool.apr.description'),
-    [PoolSortFields.RewardApr]: (
-      <>
-        {t('pool.incentives.merklDocs')}
-        {/* TODO: Re-enable once support.juiceswap.com is configured
-        <LearnMoreLink textVariant="buttonLabel4" url={uniswapUrls.merklDocsUrl} />
-        */}
-      </>
-    ),
+    [PoolSortFields.RewardApr]: t('pool.apr.reward'),
   }
   const HEADER_TEXT = {
     [PoolSortFields.TVL]: t('common.totalValueLocked'),

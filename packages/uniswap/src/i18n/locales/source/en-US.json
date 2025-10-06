@@ -1352,7 +1352,6 @@
   "pool.incentives.collectRewardsCanceled": "Collect rewards canceled",
   "pool.incentives.daysLeft": "days left",
   "pool.incentives.eligible": "Eligible pools have token rewards so you can earn more",
-  "pool.incentives.merklDocs": "Calculated by Merkl from emission rewards and pool TVL.",
   "pool.incentives.rewardsDistribution": "Rewards distribution",
   "pool.incentives.rewardsEarned": "Rewards earned",
   "pool.incentives.similarPoolHasRewards": "A similar pool has UNI rewards",

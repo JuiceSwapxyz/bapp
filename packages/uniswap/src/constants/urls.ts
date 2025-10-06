@@ -132,9 +132,6 @@ export const uniswapUrls = {
   scantasticApiUrl: config.scantasticApiUrlOverride || '',
   forApiUrl: config.forApiUrlOverride || '',
 
-  // Merkl Docs for LP Incentives
-  merklDocsUrl: 'https://docs.merkl.xyz/earn-with-merkl/faq-earn#how-are-aprs-calculated',
-
   // Embedded Wallet URL's
   // Totally fine that these are public
   evervaultDevUrl: 'https://embedded-wallet-dev.app-907329d19a06.enclave.evervault.com',
