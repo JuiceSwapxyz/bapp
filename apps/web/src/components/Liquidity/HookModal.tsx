@@ -160,8 +160,8 @@ export function HookModal({
             <Text variant="body2" color="$neutral2" textAlign="center" my="$padding8">
               {hasDangerous ? t('position.hook.warningInfo') : t('position.addingHook.disclaimer')}
             </Text>
-            {/* TODO: Re-enable once support.juiceswap.com is configured
-            <LearnMoreLink centered url={uniswapUrls.helpArticleUrls.addingV4Hooks} textVariant="buttonLabel3" />
+            {/* TODO: Re-enable once support.juiceswap.xyz is configured
+            
             */}
           </Flex>
 

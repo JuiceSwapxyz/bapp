@@ -1,7 +1,6 @@
 import { Percent } from '@juiceswapxyz/sdk-core'
 import { TFunction } from 'i18next'
 import { Warning, WarningAction, WarningLabel, WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { LocalizationContextState } from 'uniswap/src/features/language/LocalizationContext'
 import { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { formatPriceImpact } from 'uniswap/src/features/transactions/swap/utils/formatPriceImpact'
@@ -46,6 +45,5 @@ export function getPriceImpactWarning({
           outputCurrencySymbol: currencies[CurrencyField.OUTPUT]?.currency.symbol ?? '',
           inputCurrencySymbol: currencies[CurrencyField.INPUT]?.currency.symbol ?? '',
         }),
-    link: uniswapUrls.helpArticleUrls.priceImpact,
   }
 }

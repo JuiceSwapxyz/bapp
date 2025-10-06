@@ -31,7 +31,6 @@ import { importFromCloudBackupOption, restoreFromCloudBackupOption } from 'src/s
 import { Flex, IconProps, Text, useSporeColors } from 'ui/src'
 import {
   Bell,
-  BookOpen,
   Chart,
   Cloud,
   Coins,
@@ -41,10 +40,7 @@ import {
   Fingerprint,
   Key,
   Language,
-  LikeSquare,
   LineChartDots,
-  Lock,
-  MessageQuestion,
   Passkey,
   Sliders,
   TouchId,
@@ -53,7 +49,6 @@ import {
   Wrench,
 } from 'ui/src/components/icons'
 import { iconSizes } from 'ui/src/theme'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useAppFiatCurrencyInfo } from 'uniswap/src/features/fiatCurrency/hooks'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
@@ -343,52 +338,6 @@ export function SettingsScreen(): JSX.Element {
             navigationModal: ModalName.PermissionsModal,
             text: t('settings.setting.permissions.title'),
             icon: <LineChartDots {...iconProps} />,
-          },
-        ],
-      },
-      {
-        subTitle: t('settings.section.support'),
-        data: [
-          {
-            screen: MobileScreens.WebView,
-            screenProps: {
-              uriLink: uniswapUrls.walletFeedbackForm,
-              headerTitle: t('settings.action.feedback'),
-            },
-            text: t('settings.action.feedback'),
-            icon: <LikeSquare color="$neutral2" size="$icon.24" />,
-          },
-          {
-            screen: MobileScreens.WebView,
-            screenProps: {
-              uriLink: uniswapUrls.helpArticleUrls.mobileWalletHelp,
-              headerTitle: t('settings.action.help'),
-            },
-            text: t('settings.action.help'),
-            icon: <MessageQuestion {...svgProps} />,
-          },
-        ],
-      },
-      {
-        subTitle: t('settings.section.about'),
-        data: [
-          {
-            screen: MobileScreens.WebView,
-            screenProps: {
-              uriLink: uniswapUrls.privacyPolicyUrl,
-              headerTitle: t('settings.action.privacy'),
-            },
-            text: t('settings.action.privacy'),
-            icon: <Lock {...svgProps} />,
-          },
-          {
-            screen: MobileScreens.WebView,
-            screenProps: {
-              uriLink: uniswapUrls.termsOfServiceUrl,
-              headerTitle: t('settings.action.terms'),
-            },
-            text: t('settings.action.terms'),
-            icon: <BookOpen {...svgProps} />,
           },
         ],
       },

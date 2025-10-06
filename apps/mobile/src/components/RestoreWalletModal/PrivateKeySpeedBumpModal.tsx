@@ -5,11 +5,9 @@ import { useReactNavigationModal } from 'src/components/modals/useReactNavigatio
 import { Button, Flex, IconButton, InlineCard, Text, useSporeColors } from 'ui/src'
 import { AlertTriangleFilled, Key } from 'ui/src/components/icons'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { MobileScreens } from 'uniswap/src/types/screens/mobile'
-import { openUri } from 'uniswap/src/utils/linking'
 import { SPACE_STRING } from 'utilities/src/primitives/string'
 
 /**
@@ -81,6 +79,4 @@ const PrivateKeySpeedBumpModalContent = ({
   )
 }
 
-const openLearnMore = async (): Promise<void> => {
-  await openUri({ uri: uniswapUrls.helpArticleUrls.whatIsPrivateKey })
-}
+const openLearnMore = async (): Promise<void> => {}

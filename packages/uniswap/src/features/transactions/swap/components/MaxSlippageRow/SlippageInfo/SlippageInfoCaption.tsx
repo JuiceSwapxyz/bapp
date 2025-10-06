@@ -73,8 +73,8 @@ export function SlippageInfoCaption({
           : t('swap.settings.slippage.output.message')}{' '}
         {isWeb && (
           <Flex display="inline-flex">
-            {/* TODO: Re-enable once support.juiceswap.com is configured
-            <LearnMoreLink url={uniswapUrls.helpArticleUrls.swapSlippage} textVariant="body4" textColor="white" />
+            {/* TODO: Re-enable once support.juiceswap.xyz is configured
+            
             */}
           </Flex>
         )}

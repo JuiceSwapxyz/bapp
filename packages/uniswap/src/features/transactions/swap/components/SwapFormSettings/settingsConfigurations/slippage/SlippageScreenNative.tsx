@@ -140,8 +140,8 @@ export function SlippageScreenNative(): JSX.Element {
           {t('swap.settings.slippage.description')}
         </Text>
       )}
-      {/* TODO: Re-enable once support.juiceswap.com is configured
-      {!isBridgeTrade && <LearnMoreLink url={uniswapUrls.helpArticleUrls.swapSlippage} />}
+      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+      {!isBridgeTrade && }
       */}
       <Flex gap="$spacing12">
         <Flex centered row gap="$spacing16" mt="$spacing12">

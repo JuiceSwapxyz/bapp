@@ -1,24 +1,18 @@
 import { PropsWithChildren } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableArea, useSporeColors } from 'ui/src'
+import { Text, useSporeColors } from 'ui/src'
 import { AlertCircleFilled } from 'ui/src/components/icons/AlertCircleFilled'
 import { zIndexes } from 'ui/src/theme'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { usePriceUXEnabled } from 'uniswap/src/features/transactions/swap/hooks/usePriceUXEnabled'
-import { openUri } from 'uniswap/src/utils/linking'
 import { isWeb } from 'utilities/src/platform'
 
 export function SwapFeeWarning({ noFee, children }: PropsWithChildren<{ noFee: boolean }>): JSX.Element {
   const priceUXEnabled = usePriceUXEnabled()
   const colors = useSporeColors()
   const { t } = useTranslation()
-
-  const onPressLearnMore = async (): Promise<void> => {
-    await openUri({ uri: uniswapUrls.helpArticleUrls.swapFeeInfo })
-  }
 
   const caption = priceUXEnabled
     ? t('fee.uniswap.description')
@@ -28,13 +22,6 @@ export function SwapFeeWarning({ noFee, children }: PropsWithChildren<{ noFee: b
 
   return (
     <WarningInfo
-      infoButton={
-        <TouchableArea onPress={onPressLearnMore}>
-          <Text color="$accent1" variant={isWeb ? (priceUXEnabled ? 'buttonLabel4' : 'body4') : 'buttonLabel2'}>
-            {t('common.button.learn')}
-          </Text>
-        </TouchableArea>
-      }
       modalProps={{
         icon: <AlertCircleFilled color="$neutral1" size="$icon.20" />,
         backgroundIconColor: colors.surface2.get(),

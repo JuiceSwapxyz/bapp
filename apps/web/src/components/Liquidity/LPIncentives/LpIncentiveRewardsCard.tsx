@@ -246,7 +246,7 @@ function LpIncentiveRewardsCard({
                       {/* TODO: Re-enable once support.juiceswap.com is configured
                       {!rewardsError && (
                         <Trace logPress eventOnTrigger={UniswapEventName.LpIncentiveLearnMoreCtaClicked}>
-                          <LearnMoreLink textVariant="buttonLabel4" url={uniswapUrls.helpArticleUrls.lpIncentiveInfo} />
+                          
                         </Trace>
                       )}
                       */}

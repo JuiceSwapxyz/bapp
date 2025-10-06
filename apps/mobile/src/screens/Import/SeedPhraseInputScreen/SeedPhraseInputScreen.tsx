@@ -16,14 +16,12 @@ import { useFunctionAfterNavigationTransitionEndWithDelay } from 'src/utils/hook
 import { useNavigationHeader } from 'src/utils/useNavigationHeader'
 import { Button, Flex, MobileDeviceHeight, Text, TouchableArea, useIsShortMobileDevice } from 'ui/src'
 import { PapersText, QuestionInCircleFilled } from 'ui/src/components/icons'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, MobileEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { ImportType } from 'uniswap/src/types/onboarding'
 import { OnboardingScreens } from 'uniswap/src/types/screens/mobile'
-import { openUri } from 'uniswap/src/utils/linking'
 import { useEvent } from 'utilities/src/react/hooks'
 import { useBooleanState } from 'utilities/src/react/useBooleanState'
 import { useOnboardingContext } from 'wallet/src/features/onboarding/OnboardingContext'
@@ -100,10 +98,9 @@ export function SeedPhraseInputScreen({ navigation, route: { params } }: SeedPhr
     [dispatch, generateImportedAccounts, setIsSubmitEnabled, isRestoringMnemonic, navigation, params],
   )
 
-  const onPressRecoveryHelpButton = useCallback(
-    () => openUri({ uri: uniswapUrls.helpArticleUrls.recoveryPhraseHowToImport }),
-    [],
-  )
+  const onPressRecoveryHelpButton = useCallback(() => {
+    // Help functionality removed
+  }, [])
 
   const handleSubmit = useEvent(() => {
     setIsSubmitEnabled(false)

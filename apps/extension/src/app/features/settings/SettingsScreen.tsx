@@ -15,12 +15,10 @@ import { useExtensionNavigation } from 'src/app/navigation/utils'
 import { getIsDefaultProviderFromStorage, setIsDefaultProviderToStorage } from 'src/app/utils/provider'
 import { Button, Flex, ScrollView, Text } from 'ui/src'
 import {
-  ArrowUpRight,
   Chart,
   Coins,
   FileListLock,
   Global,
-  HelpCenter,
   Key,
   Language,
   LineChartDots,
@@ -30,7 +28,6 @@ import {
   Sliders,
   Wrench,
 } from 'ui/src/components/icons'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { resetUniswapBehaviorHistory } from 'uniswap/src/features/behaviorHistory/slice'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { FiatCurrency, ORDERED_CURRENCIES } from 'uniswap/src/features/fiatCurrency/constants'
@@ -317,12 +314,6 @@ export function SettingsScreen(): JSX.Element {
           </Flex>
           <Flex pt="$padding16">
             <SettingsSection title={t('settings.section.support')}>
-              <SettingsItem
-                Icon={HelpCenter}
-                title={t('settings.setting.helpCenter.title')}
-                url={uniswapUrls.helpArticleUrls.extensionHelp}
-                RightIcon={ArrowUpRight}
-              />
               <Text
                 color="$neutral3"
                 px="$spacing12"

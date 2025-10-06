@@ -42,8 +42,8 @@ export function AcrossRoutingInfo(): JSX.Element {
     () =>
       isMobileApp ? (
         <Flex centered gap="$spacing16">
-          {/* TODO: Re-enable once support.juiceswap.com is configured
-          <LearnMoreLink textVariant="buttonLabel3" url={uniswapUrls.helpArticleUrls.acrossRoutingInfo} />
+          {/* TODO: Re-enable once support.juiceswap.xyz is configured
+          
           */}
           <Flex row alignItems="center" gap="$spacing6" justifyContent="center">
             <Text color="$neutral3" variant="buttonLabel4">

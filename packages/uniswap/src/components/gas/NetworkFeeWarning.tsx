@@ -13,11 +13,8 @@ import { UniswapXFee } from 'uniswap/src/components/gas/NetworkFee'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
 import { InfoTooltipProps } from 'uniswap/src/components/tooltip/InfoTooltipProps'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
-import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FormattedUniswapXGasFeeInfo } from 'uniswap/src/features/gas/types'
-import { NetworkCostBanner } from 'uniswap/src/features/smartWallet/banner/NetworkCostBanner'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { usePriceUXEnabled } from 'uniswap/src/features/transactions/swap/hooks/usePriceUXEnabled'
 import { isInterface, isMobileApp, isWeb } from 'utilities/src/platform'
@@ -46,15 +43,6 @@ export function NetworkFeeWarning({
 
   return (
     <WarningInfo
-      mobileBanner={
-        includesDelegation &&
-        isMobileApp && (
-          <NetworkCostBanner
-            bannerText={t('smartWallet.banner.networkCost', { chainName: getChainInfo(chainId).label })}
-            url={uniswapUrls.helpArticleUrls.smartWalletDelegation}
-          />
-        )
-      }
       infoButton={
         <InfoButton
           includesDelegation={includesDelegation}
@@ -123,11 +111,8 @@ function InfoButton({
   if (includesDelegation && isMobileApp) {
     return (
       <Flex mb="$spacing8">
-        {/* TODO: Re-enable once support.juiceswap.com is configured
-        <LearnMoreLink
-          textVariant={isWeb ? 'body4' : 'buttonLabel3'}
-          url={uniswapUrls.helpArticleUrls.networkFeeInfo}
-        />
+        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        
         */}
       </Flex>
     )
@@ -141,8 +126,8 @@ function InfoButton({
     return <UniswapXFeeContent uniswapXGasFeeInfo={uniswapXGasFeeInfo} />
   }
 
-  // TODO: Re-enable once support.juiceswap.com is configured
-  // return <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.networkFeeInfo} />
+  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // return
   return null
 }
 
@@ -207,8 +192,8 @@ function UniswapXFeeContent({ uniswapXGasFeeInfo }: { uniswapXGasFeeInfo: Format
   return (
     <Flex gap="$spacing12">
       <Flex row centered={isMobileApp} width="100%">
-        {/* TODO: Re-enable once support.juiceswap.com is configured
-        <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.uniswapXInfo} />
+        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        
         */}
       </Flex>
       <Separator />
