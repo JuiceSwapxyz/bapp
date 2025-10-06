@@ -1,4 +1,3 @@
-import { useApolloClient } from '@apollo/client'
 import { SharedEventName } from '@uniswap/analytics-events'
 import { memo, useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -20,7 +19,6 @@ import { HomeQueryParams, HomeTabs } from 'src/app/navigation/constants'
 import { navigate } from 'src/app/navigation/state'
 import { Flex, Loader, Text, TouchableArea, styled } from 'ui/src'
 import { SMART_WALLET_UPGRADE_VIDEO } from 'ui/src/assets'
-import { NFTS_TAB_DATA_DEPENDENCIES } from 'uniswap/src/components/nfts/NftsList'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useSelectAddressHasNotifications } from 'uniswap/src/features/notifications/hooks'
@@ -29,7 +27,7 @@ import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { logger } from 'utilities/src/logger/logger'
 import { useEvent } from 'utilities/src/react/hooks'
-import { ONE_MINUTE_MS, ONE_SECOND_MS } from 'utilities/src/time/time'
+import { ONE_SECOND_MS } from 'utilities/src/time/time'
 import { useTimeout } from 'utilities/src/time/timing'
 import { SmartWalletEnabledModal } from 'wallet/src/components/smartWallet/modals/SmartWalletEnabledModal'
 import { SmartWalletUpgradeModals } from 'wallet/src/components/smartWallet/modals/SmartWalletUpgradeModal'
@@ -61,8 +59,6 @@ export const HomeScreen = memo(function _HomeScreen(): JSX.Element {
   const { t } = useTranslation()
   const activeAccount = useActiveAccountWithThrow()
   const [showTabs, setShowTabs] = useState(false)
-
-  const apolloClient = useApolloClient()
 
   // The tabs are too slow to render on the first load, so we delay them to speed up the perceived loading time.
   useTimeout(() => setShowTabs(true), 0)
@@ -138,27 +134,6 @@ export const HomeScreen = memo(function _HomeScreen(): JSX.Element {
     }
   }, [dispatch, address, hasNotifications, selectedTab])
 
-  const [lastNftFetchTime, setLastNftFetchTime] = useState(0)
-
-  useEffect(() => {
-    // NFTs tab is first fetched on mount, so we need to set the last fetch time here
-    setLastNftFetchTime(Date.now())
-  }, [])
-
-  const shouldRefetchNfts = useCallback(() => {
-    const now = Date.now()
-    return now - lastNftFetchTime >= ONE_MINUTE_MS
-  }, [lastNftFetchTime])
-
-  const maybeRefetchNfts = useCallback(() => {
-    if (shouldRefetchNfts()) {
-      setLastNftFetchTime(Date.now())
-      apolloClient.refetchQueries({ include: NFTS_TAB_DATA_DEPENDENCIES }).catch((e) => {
-        logger.error('Error refetching NFTs tab data', e)
-      })
-    }
-  }, [apolloClient, shouldRefetchNfts])
-
   const { appRatingModalVisible, onAppRatingModalClose } = useAppRating()
 
   return (
@@ -188,7 +163,8 @@ export const HomeScreen = memo(function _HomeScreen(): JSX.Element {
                   {t('home.tokens.title')}
                 </TabButton>
 
-                <TabButton
+                {/* NFT tab disabled - OpenSea dependencies removed */}
+                {/* <TabButton
                   isActive={selectedTab === HomeTabs.NFTs}
                   onPress={() => {
                     setSelectedTab(HomeTabs.NFTs)
@@ -196,7 +172,7 @@ export const HomeScreen = memo(function _HomeScreen(): JSX.Element {
                   }}
                 >
                   {t('home.nfts.title')}
-                </TabButton>
+                </TabButton> */}
 
                 <TabButton
                   showPendingNotificationBadge
@@ -344,5 +320,6 @@ function useSelectedTabState(): [HomeTabs | null, (tab: HomeTabs) => void] {
 }
 
 function isValidHomeTab(tab: unknown): tab is HomeTabs {
-  return tab === HomeTabs.Tokens || tab === HomeTabs.NFTs || tab === HomeTabs.Activity
+  // NFTs tab is disabled, so we treat it as invalid
+  return tab === HomeTabs.Tokens || tab === HomeTabs.Activity
 }

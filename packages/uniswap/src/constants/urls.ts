@@ -11,7 +11,7 @@ const FLOWS_USING_BETA: TrafficFlows[] = []
 
 const isDevOrBeta = isPlaywrightEnv() ? false : isDevEnv() || isBetaEnv()
 
-export const UNISWAP_WEB_HOSTNAME = 'bapp.juiceswap.xyz'
+export const UNISWAP_WEB_HOSTNAME = 'bapp.juiceswap.com'
 const EMBEDDED_WALLET_HOSTNAME = isPlaywrightEnv() || isDevEnv() ? 'staging.ew.unihq.org' : UNISWAP_WEB_HOSTNAME
 
 export const UNISWAP_WEB_URL = `https://${UNISWAP_WEB_HOSTNAME}`
@@ -24,26 +24,26 @@ const tradingApiVersionPrefix = config.tradingApiWebTestEnv === 'true' ? '' : '/
 export const CHROME_EXTENSION_UNINSTALL_URL_PATH = '/extension/uninstall'
 
 export const uniswapUrls = {
-  tradingApiDocsUrl: 'https://api.juiceswap.xyz/',
+  tradingApiDocsUrl: 'https://api.juiceswap.com/',
   unichainUrl: 'https://www.unichain.org/',
-  uniswapXUrl: 'https://x.juiceswap.xyz/',
-  helpCenterUrl: 'https://help.juiceswap.xyz/',
-  blogUrl: 'https://blog.juiceswap.xyz/',
-  docsUrl: 'https://docs.juiceswap.xyz/',
+  uniswapXUrl: 'https://x.juiceswap.com/',
+  helpCenterUrl: 'https://help.juiceswap.com/',
+  blogUrl: 'https://blog.juiceswap.com/',
+  docsUrl: 'https://docs.juiceswap.com/',
   voteUrl: 'https://vote.juiceswapfoundation.org',
-  governanceUrl: 'https://juiceswap.xyz/governance',
-  developersUrl: 'https://juiceswap.xyz/developers',
-  aboutUrl: 'https://about.juiceswap.xyz/',
-  careersUrl: 'https://careers.juiceswap.xyz/',
+  governanceUrl: 'https://juiceswap.com/governance',
+  developersUrl: 'https://juiceswap.com/developers',
+  aboutUrl: 'https://about.juiceswap.com/',
+  careersUrl: 'https://careers.juiceswap.com/',
   social: {
     x: 'https://x.com/JuiceSwap_com',
     telegram: 'https://t.me/JuiceSwap',
     github: 'https://github.com/JuiceSwapxyz',
   },
-  termsOfServiceUrl: 'https://juiceswap.xyz/terms-of-service',
-  privacyPolicyUrl: 'https://juiceswap.xyz/privacy-policy',
-  chromeExtension: 'http://juiceswap.xyz/ext',
-  chromeExtensionUninstallUrl: `https://juiceswap.xyz${CHROME_EXTENSION_UNINSTALL_URL_PATH}`,
+  termsOfServiceUrl: 'https://juiceswap.com/terms-of-service',
+  privacyPolicyUrl: 'https://juiceswap.com/privacy-policy',
+  chromeExtension: 'http://juiceswap.com/ext',
+  chromeExtensionUninstallUrl: `https://juiceswap.com${CHROME_EXTENSION_UNINSTALL_URL_PATH}`,
 
   // Download links
   appStoreDownloadUrl: 'https://apps.apple.com/us/app/uniswap-crypto-nft-wallet/id6443944476',
@@ -59,14 +59,9 @@ export const uniswapUrls = {
   tradingApiUrl: config.tradingApiUrlOverride || getCloudflareApiBaseUrl(TrafficFlows.TradingApi),
 
   // Disabled services (kept for backwards compatibility)
-  amplitudeProxyUrl: config.amplitudeProxyUrlOverride || '',
-  statsigProxyUrl: config.statsigProxyUrlOverride || '',
   unitagsApiUrl: config.unitagsApiUrlOverride || '',
   scantasticApiUrl: config.scantasticApiUrlOverride || '',
   forApiUrl: config.forApiUrlOverride || '',
-
-  // Merkl Docs for LP Incentives
-  merklDocsUrl: 'https://docs.merkl.xyz/earn-with-merkl/faq-earn#how-are-aprs-calculated',
 
   // Embedded Wallet URL's
   // Totally fine that these are public
@@ -118,8 +113,6 @@ export const uniswapUrls = {
   webInterfaceTokensUrl: `${UNISWAP_WEB_URL}/explore/tokens`,
   webInterfacePoolsUrl: `${UNISWAP_WEB_URL}/explore/pools`,
   webInterfaceAddressUrl: `${UNISWAP_WEB_URL}/address`,
-  webInterfaceNftItemUrl: `${UNISWAP_WEB_URL}/nfts/asset`,
-  webInterfaceNftCollectionUrl: `${UNISWAP_WEB_URL}/nfts/collection`,
   webInterfaceBuyUrl: `${UNISWAP_WEB_URL}/buy`,
 
   // Feedback Links

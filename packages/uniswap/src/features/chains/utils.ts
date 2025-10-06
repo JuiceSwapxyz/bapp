@@ -89,8 +89,6 @@ export function fromGraphQLChain(chain: Chain | string | undefined): UniverseCha
       return UniverseChainId.Sepolia
     case Chain.Unichain:
       return UniverseChainId.Unichain
-    case Chain.Solana:
-      return UniverseChainId.Solana
     case Chain.Soneium:
       return UniverseChainId.Soneium
     case Chain.Worldchain:
@@ -209,19 +207,24 @@ export function getEnabledChains({
   includeTestnets?: boolean
   isCitreaOnlyEnabled?: boolean
 }): EnabledChainsInfo {
-  // Kept for API compatibility but currently unused as we always show testnets
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _unused1 = includeTestnets
   const enabledChainInfos = ORDERED_CHAINS.filter((chainInfo) => {
-    // Filter by platform
-    if (platform !== undefined && platform !== chainInfo.platform) {
-      return false
+    // Filter by platform - removed conditional as all chains are EVM now
+    if (platform !== undefined) {
+      // All chains are now Platform.EVM, so no filtering needed
     }
 
-    // ALWAYS filter to only show testnets, regardless of settings
-    // This ensures mainnet chains are never available
-    if (!isTestnetChain(chainInfo.id)) {
-      return false
+    // Filter mainnet vs testnet based on mode
+    const isTestnet = isTestnetChain(chainInfo.id)
+    if (isTestnetModeEnabled) {
+      // In testnet mode, only show testnets
+      if (!isTestnet) {
+        return false
+      }
+    } else {
+      // In mainnet mode, show mainnets, or also testnets if includeTestnets is true
+      if (isTestnet && !includeTestnets) {
+        return false
+      }
     }
 
     // If Citrea only is enabled, only show CitreaTestnet
@@ -257,7 +260,7 @@ export function getEnabledChains({
 }
 
 function getDefaultChainId({
-  platform,
+  platform: _platform,
   isTestnetModeEnabled,
   isCitreaOnlyEnabled = false,
 }: {
@@ -265,21 +268,19 @@ function getDefaultChainId({
   isTestnetModeEnabled: boolean
   isCitreaOnlyEnabled?: boolean
 }): UniverseChainId {
-  // Kept for API compatibility but currently unused as we always return testnets
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _unused2 = isTestnetModeEnabled
-  if (platform === Platform.SVM) {
-    // TODO(Solana): is there a Solana testnet we can return here?
-    return UniverseChainId.Solana
-  }
-
   // If Citrea only is enabled, return CitreaTestnet as default
   if (isCitreaOnlyEnabled) {
     return UniverseChainId.CitreaTestnet
   }
 
-  // Always return Sepolia as default chain since we only support testnets
-  return UniverseChainId.Sepolia
+  // Return default based on testnet mode
+  if (isTestnetModeEnabled) {
+    return UniverseChainId.Sepolia
+  }
+
+  // Default to mainnet for production
+  // All platforms now use EVM chains, so platform parameter is unused
+  return UniverseChainId.Mainnet
 }
 
 /** Returns all stablecoins for a given chainId. */

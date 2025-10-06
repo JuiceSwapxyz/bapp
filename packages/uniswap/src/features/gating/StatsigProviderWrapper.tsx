@@ -1,5 +1,4 @@
 import { ReactNode, useEffect } from 'react'
-import { config } from 'uniswap/src/config'
 import {
   StatsigProvider,
   StatsigUser,
@@ -23,11 +22,7 @@ export function StatsigProviderWrapper({
   storageProvider: _storageProvider,
   onInit,
 }: StatsigProviderWrapperProps): ReactNode {
-  if (!config.statsigApiKey) {
-    throw new Error('statsigApiKey is not set')
-  }
-
-  // Statsig options are configured in the base config
+  // Statsig disabled for JuiceSwap - no initialization required
 
   const { client, isLoading: isStatsigLoading } = useClientAsyncInit()
 

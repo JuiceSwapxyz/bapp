@@ -82,8 +82,8 @@ exports[`FavoriteHeaderRow when editing renders without error 1`] = `
         {
           "color": {
             "dynamic": {
-              "dark": "#FF37C7",
-              "light": "#FF37C7",
+              "dark": "#F7911A",
+              "light": "#F7911A",
             },
           },
           "fontFamily": "Basel Grotesk",

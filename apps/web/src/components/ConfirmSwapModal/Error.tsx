@@ -34,35 +34,35 @@ function getErrorContent({ errorType, trade }: { errorType: PendingModalError; t
       return {
         title: <Trans i18nKey="error.tokenApproval" />,
         message: <Trans i18nKey="error.tokenApproval.message" />,
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // supportArticleURL: uniswapUrls.helpArticleUrls.approvalsExplainer,
       }
     case PendingModalError.PERMIT_ERROR:
       return {
         title: <Trans i18nKey="permit.approval.fail" />,
         message: <Trans i18nKey="permit.approval.fail.message" />,
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // supportArticleURL: uniswapUrls.helpArticleUrls.approvalsExplainer,
       }
     case PendingModalError.XV2_HARD_QUOTE_ERROR:
       return {
         title: <Trans i18nKey="common.swap.failed" />,
         message: <Trans i18nKey="swap.fail.uniswapX" />,
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // supportArticleURL: uniswapUrls.helpArticleUrls.uniswapXFailure,
       }
     case PendingModalError.CONFIRMATION_ERROR:
       if (isLimitTrade(trade)) {
         return {
           title: <Trans i18nKey="common.limit.failed" />,
-          // TODO: Re-enable once support.juiceswap.xyz is configured
+          // TODO: Re-enable once support.juiceswap.com is configured
           // supportArticleURL: uniswapUrls.helpArticleUrls.limitsFailure,
         }
       } else {
         return {
           title: <Trans i18nKey="common.swap.failed" />,
           message: <Trans i18nKey="swap.fail.message" />,
-          // TODO: Re-enable once support.juiceswap.xyz is configured
+          // TODO: Re-enable once support.juiceswap.com is configured
           // supportArticleURL: isUniswapXTrade(trade)
           //   ? uniswapUrls.helpArticleUrls.uniswapXFailure
           //   : uniswapUrls.helpArticleUrls.transactionFailure,
@@ -72,7 +72,7 @@ function getErrorContent({ errorType, trade }: { errorType: PendingModalError; t
       return {
         title: <Trans i18nKey="common.wrap.failed" />,
         message: <Trans i18nKey="token.wrap.fail.message" />,
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // supportArticleURL: uniswapUrls.helpArticleUrls.wethExplainer,
       }
     default:
@@ -108,7 +108,7 @@ export default function Error({ errorType, trade, showTrade, swapResult, onRetry
       </Text>
       <Flex gap="$gap8" justifyContent="center" alignItems="center">
         {showTrade && trade && <TradeSummary trade={trade} />}
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         {supportArticleURL && <LearnMoreLink url={supportArticleURL} centered />}
         */}
         {swapResult && swapResult.type === TradeFillType.Classic && (

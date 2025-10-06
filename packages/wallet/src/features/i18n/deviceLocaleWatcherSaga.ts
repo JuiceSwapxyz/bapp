@@ -1,7 +1,6 @@
 import { AppState } from 'react-native'
 import { EventChannel, eventChannel } from 'redux-saga'
-import { call, put, select, takeLatest } from 'typed-redux-saga'
-import { selectCurrentLanguage } from 'uniswap/src/features/settings/selectors'
+import { call, put, takeLatest } from 'typed-redux-saga'
 import { setCurrentLanguage } from 'uniswap/src/features/settings/slice'
 import { getWalletDeviceLanguage } from 'uniswap/src/i18n/utils'
 
@@ -27,11 +26,7 @@ export function* deviceLocaleWatcher(): Generator {
 }
 
 function* syncAppWithDeviceLanguage(): Generator {
-  const currentAppLanguage = yield* select(selectCurrentLanguage)
   const deviceLanguage = getWalletDeviceLanguage()
-
-  // Always English now, but keep the sync logic for consistency
-  if (currentAppLanguage !== deviceLanguage) {
-    yield* put(setCurrentLanguage(deviceLanguage))
-  }
+  // Always set to English (only supported language)
+  yield* put(setCurrentLanguage(deviceLanguage))
 }

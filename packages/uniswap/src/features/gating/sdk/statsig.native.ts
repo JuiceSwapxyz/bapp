@@ -1,6 +1,4 @@
 import { StatsigClient } from '@statsig/react-bindings'
-import { StatsigClientRN } from '@statsig/react-native-bindings'
-import { config } from 'uniswap/src/config'
 import { LocalOverrideAdapterWrapper } from 'uniswap/src/features/gating/LocalOverrideAdapterWrapper'
 
 export {
@@ -13,9 +11,8 @@ export {
 
 export {
   StatsigContext,
-  StatsigProviderRN as StatsigProvider,
+  StatsigProvider,
   Storage,
-  useClientAsyncInitRN as useClientAsyncInit,
   useDynamicConfig,
   useExperiment,
   useFeatureGate,
@@ -29,9 +26,32 @@ let localOverrideAdapter: LocalOverrideAdapterWrapper | undefined
 
 export const getOverrideAdapter = (): LocalOverrideAdapterWrapper => {
   if (!localOverrideAdapter) {
-    localOverrideAdapter = new LocalOverrideAdapterWrapper(config.statsigApiKey)
+    localOverrideAdapter = new LocalOverrideAdapterWrapper('dummy-disabled-key')
   }
   return localOverrideAdapter
 }
 
-export const getStatsigClient = (): StatsigClient => StatsigClientRN.instance(config.statsigApiKey)
+let statsigClient: StatsigClient | undefined
+export const getStatsigClient = (): StatsigClient => {
+  if (!statsigClient) {
+    statsigClient = new StatsigClient(
+      'dummy-disabled-key',
+      {},
+      {
+        networkConfig: {
+          networkOverrideFunc: async (_url: string, _args: unknown): Promise<Response> => {
+            return new Response(null, { status: 200 })
+          },
+        },
+      },
+    )
+  }
+  return statsigClient
+}
+
+export const useClientAsyncInit = (): {
+  isLoading: boolean
+  client: StatsigClient
+} => {
+  return { isLoading: false, client: getStatsigClient() }
+}

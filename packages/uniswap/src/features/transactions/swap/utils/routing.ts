@@ -27,13 +27,9 @@ export function isWrap<T extends { routing: Routing }>(obj: T): obj is T & { rou
   return obj.routing === Routing.WRAP || obj.routing === Routing.UNWRAP
 }
 
-export function isJupiter<T extends { routing: Routing }>(obj: T): obj is T & { routing: Routing.JUPITER } {
-  return obj.routing === Routing.JUPITER
-}
-
 // Returns the first EVM txRequest in a SwapTxAndGasInfo object if it exists, otherwise undefined
 export function getEVMTxRequest(swapTxContext: SwapTxAndGasInfo): ValidatedTransactionRequest | undefined {
-  if (isJupiter(swapTxContext) || isUniswapX(swapTxContext)) {
+  if (isUniswapX(swapTxContext)) {
     return undefined
   }
   return swapTxContext.txRequests?.[0]

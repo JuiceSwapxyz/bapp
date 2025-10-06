@@ -201,7 +201,7 @@ function LpIncentiveBannerContent({ handleClose }: { handleClose: () => void }) 
           mt: '$spacing12',
         }}
       >
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         <Trace logPress eventOnTrigger={UniswapEventName.LpIncentiveLearnMoreCtaClicked}>
           
         </Trace>

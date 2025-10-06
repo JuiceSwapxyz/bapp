@@ -128,7 +128,6 @@ export function useGraphQLPortfolioData({
     notifyOnNetworkStatusChange: true,
     pollInterval: internalPollInterval,
     variables: address ? { ownerAddress: address, valueModifiers, chains: gqlChains } : undefined,
-    skip: true, // TODO: re-enable
     // Prevents wiping out the cache with partial data on error.
     errorPolicy: 'none',
   })
