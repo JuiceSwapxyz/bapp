@@ -218,11 +218,11 @@ class BAppsCampaignAPI {
   }
 
   /**
-   * Get locally stored completed tasks
+   * Get locally stored completed tasks (V2)
    */
   private getLocalCompletedTasks(walletAddress: string): number[] {
     try {
-      const key = `citrea_bapps_completed_${walletAddress}`
+      const key = `citrea_bapps_v2_completed_${walletAddress}`
       const stored = localStorage.getItem(key)
       return stored ? JSON.parse(stored) : []
     } catch {
@@ -231,11 +231,11 @@ class BAppsCampaignAPI {
   }
 
   /**
-   * Store completion in localStorage as fallback
+   * Store completion in localStorage as fallback (V2)
    */
   private storeLocalCompletion(completion: SwapTaskCompletion): void {
     try {
-      const key = `citrea_bapps_completed_${completion.walletAddress}`
+      const key = `citrea_bapps_v2_completed_${completion.walletAddress}`
       const stored = localStorage.getItem(key)
       const tasks = stored ? JSON.parse(stored) : []
 
@@ -245,7 +245,7 @@ class BAppsCampaignAPI {
       }
 
       // Also store the full completion details
-      const detailsKey = `citrea_bapps_details_${completion.walletAddress}_${completion.taskId}`
+      const detailsKey = `citrea_bapps_v2_details_${completion.walletAddress}_${completion.taskId}`
       localStorage.setItem(detailsKey, JSON.stringify(completion))
     } catch (error) {
       // Silently fail for localStorage errors
@@ -257,12 +257,12 @@ class BAppsCampaignAPI {
    */
   clearLocalProgress(walletAddress: string): void {
     try {
-      const key = `citrea_bapps_completed_${walletAddress}`
+      const key = `citrea_bapps_v2_completed_${walletAddress}`
       localStorage.removeItem(key)
 
       // Clear task details
       for (let i = 1; i <= 3; i++) {
-        const detailsKey = `citrea_bapps_details_${walletAddress}_${i}`
+        const detailsKey = `citrea_bapps_v2_details_${walletAddress}_${i}`
         localStorage.removeItem(detailsKey)
       }
     } catch (error) {

@@ -11,7 +11,6 @@ import { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
-import { jupiterSwap } from 'state/sagas/transactions/solana'
 import { handleUniswapXSignatureStep } from 'state/sagas/transactions/uniswapx'
 import {
   HandleOnChainStepParams,
@@ -28,7 +27,6 @@ import { call } from 'typed-redux-saga'
 import { Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
 import { isL2ChainId } from 'uniswap/src/features/chains/utils'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
-import { isSVMChain } from 'uniswap/src/features/platforms/utils/chains'
 import { SwapEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { SwapTradeBaseProperties } from 'uniswap/src/features/telemetry/types'
@@ -54,7 +52,7 @@ import { PermitMethod, ValidatedSwapTxContext } from 'uniswap/src/features/trans
 import { BridgeTrade, ClassicTrade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { slippageToleranceToPercent } from 'uniswap/src/features/transactions/swap/utils/format'
 import { generateSwapTransactionSteps } from 'uniswap/src/features/transactions/swap/utils/generateSwapTransactionSteps'
-import { UNISWAPX_ROUTING_VARIANTS, isClassic, isJupiter } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { UNISWAPX_ROUTING_VARIANTS, isClassic } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import {
@@ -219,7 +217,7 @@ async function handleSwitchChains(
   const { selectChain, startChainId, swapTxContext } = params
 
   const swapChainId = swapTxContext.trade.inputAmount.currency.chainId
-  if (isJupiter(swapTxContext) || swapChainId === startChainId) {
+  if (swapChainId === startChainId) {
     return { chainSwitchFailed: false }
   }
 
@@ -254,13 +252,6 @@ function* swap(params: SwapParams) {
   let step: TransactionStep | undefined
 
   try {
-    // TODO(SWAP-287): Integrate jupiter swap into TransactionStep, rather than special-casing.
-    if (isJupiter(swapTxContext)) {
-      yield* call(jupiterSwap, { ...params, swapTxContext })
-      yield* call(onSuccess)
-      return
-    }
-
     for (step of steps) {
       switch (step.type) {
         case TransactionStepType.TokenRevocationTransaction:
@@ -383,7 +374,7 @@ export function useSwapCallback(
         includedPermitTransactionStep,
       })
 
-      const account = isSVMChain(trade.inputAmount.currency.chainId) ? wallet.svmAccount : wallet.evmAccount
+      const account = wallet.evmAccount
 
       if (!account || !isSignerMnemonicAccountDetails(account)) {
         throw new Error('No account found')
@@ -447,7 +438,6 @@ export function useSwapCallback(
       getOnPressRetry,
       disableOneClickSwap,
       wallet.evmAccount,
-      wallet.svmAccount,
       updateSwapForm,
       onSubmitSwapRef,
     ],

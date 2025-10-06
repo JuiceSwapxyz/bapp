@@ -27,7 +27,6 @@ export function* deviceLocaleWatcher(): Generator {
 
 function* syncAppWithDeviceLanguage(): Generator {
   const deviceLanguage = getWalletDeviceLanguage()
-
-  // Always set to device language (which is always English now)
+  // Always set to English (only supported language)
   yield* put(setCurrentLanguage(deviceLanguage))
 }

@@ -11,12 +11,12 @@ const FLOWS_USING_BETA: TrafficFlows[] = []
 
 const isDevOrBeta = isPlaywrightEnv() ? false : isDevEnv() || isBetaEnv()
 
-export const UNISWAP_WEB_HOSTNAME = 'bapp.juiceswap.xyz'
+export const UNISWAP_WEB_HOSTNAME = 'bapp.juiceswap.com'
 const EMBEDDED_WALLET_HOSTNAME = isPlaywrightEnv() || isDevEnv() ? 'staging.ew.unihq.org' : UNISWAP_WEB_HOSTNAME
 
 export const UNISWAP_WEB_URL = `https://${UNISWAP_WEB_HOSTNAME}`
 export const UNISWAP_APP_URL = 'https://uniswap.org/app'
-export const UNISWAP_SUPPORT_URL = 'https://support.juiceswap.xyz/hc/en-us'
+export const UNISWAP_SUPPORT_URL = 'https://support.juiceswap.com/hc/en-us'
 export const UNISWAP_MOBILE_REDIRECT_URL = 'https://uniswap.org/mobile-redirect'
 
 // The trading api uses custom builds for testing which may not use the v1 prefix
@@ -57,7 +57,6 @@ export const uniswapUrls = {
     ),
     mismatchedImports: createHelpArticleUrl('36393527081997'),
     mobileWalletHelp: createHelpArticleUrl('20317941356429'),
-    moonpayRegionalAvailability: createHelpArticleUrl('11306664890381-Why-isn-t-MoonPay-available-in-my-region-'),
     multichainDelegation: createHelpArticleUrl('36392482755341'),
     networkFeeInfo: createHelpArticleUrl('8370337377805-What-is-a-network-fee-'),
     poolOutOfSync: createHelpArticleUrl('25845512413069'),
@@ -90,27 +89,27 @@ export const uniswapUrls = {
     whatIsPrivateKey: createHelpArticleUrl('11306371824653-What-is-a-private-key'),
     wethExplainer: createHelpArticleUrl('16015852009997-Why-do-ETH-swaps-involve-converting-to-WETH'),
   },
-  downloadWalletUrl: 'https://wallet.juiceswap.xyz/',
-  tradingApiDocsUrl: 'https://api.juiceswap.xyz/',
+  downloadWalletUrl: 'https://wallet.juiceswap.com/',
+  tradingApiDocsUrl: 'https://api.juiceswap.com/',
   unichainUrl: 'https://www.unichain.org/',
-  uniswapXUrl: 'https://x.juiceswap.xyz/',
-  helpCenterUrl: 'https://help.juiceswap.xyz/',
-  blogUrl: 'https://blog.juiceswap.xyz/',
-  docsUrl: 'https://docs.juiceswap.xyz/',
+  uniswapXUrl: 'https://x.juiceswap.com/',
+  helpCenterUrl: 'https://help.juiceswap.com/',
+  blogUrl: 'https://blog.juiceswap.com/',
+  docsUrl: 'https://docs.juiceswap.com/',
   voteUrl: 'https://vote.juiceswapfoundation.org',
-  governanceUrl: 'https://juiceswap.xyz/governance',
-  developersUrl: 'https://juiceswap.xyz/developers',
-  aboutUrl: 'https://about.juiceswap.xyz/',
-  careersUrl: 'https://careers.juiceswap.xyz/',
+  governanceUrl: 'https://juiceswap.com/governance',
+  developersUrl: 'https://juiceswap.com/developers',
+  aboutUrl: 'https://about.juiceswap.com/',
+  careersUrl: 'https://careers.juiceswap.com/',
   social: {
     x: 'https://x.com/JuiceSwap_com',
     telegram: 'https://t.me/JuiceSwap',
     github: 'https://github.com/JuiceSwapxyz',
   },
-  termsOfServiceUrl: 'https://juiceswap.xyz/terms-of-service',
-  privacyPolicyUrl: 'https://juiceswap.xyz/privacy-policy',
-  chromeExtension: 'http://juiceswap.xyz/ext',
-  chromeExtensionUninstallUrl: `https://juiceswap.xyz${CHROME_EXTENSION_UNINSTALL_URL_PATH}`,
+  termsOfServiceUrl: 'https://juiceswap.com/terms-of-service',
+  privacyPolicyUrl: 'https://juiceswap.com/privacy-policy',
+  chromeExtension: 'http://juiceswap.com/ext',
+  chromeExtensionUninstallUrl: `https://juiceswap.com${CHROME_EXTENSION_UNINSTALL_URL_PATH}`,
 
   // Download links
   appStoreDownloadUrl: 'https://apps.apple.com/us/app/uniswap-crypto-nft-wallet/id6443944476',
@@ -129,9 +128,6 @@ export const uniswapUrls = {
   unitagsApiUrl: config.unitagsApiUrlOverride || '',
   scantasticApiUrl: config.scantasticApiUrlOverride || '',
   forApiUrl: config.forApiUrlOverride || '',
-
-  // Merkl Docs for LP Incentives
-  merklDocsUrl: 'https://docs.merkl.xyz/earn-with-merkl/faq-earn#how-are-aprs-calculated',
 
   // Embedded Wallet URL's
   // Totally fine that these are public
@@ -183,8 +179,6 @@ export const uniswapUrls = {
   webInterfaceTokensUrl: `${UNISWAP_WEB_URL}/explore/tokens`,
   webInterfacePoolsUrl: `${UNISWAP_WEB_URL}/explore/pools`,
   webInterfaceAddressUrl: `${UNISWAP_WEB_URL}/address`,
-  webInterfaceNftItemUrl: `${UNISWAP_WEB_URL}/nfts/asset`,
-  webInterfaceNftCollectionUrl: `${UNISWAP_WEB_URL}/nfts/collection`,
   webInterfaceBuyUrl: `${UNISWAP_WEB_URL}/buy`,
 
   // Feedback Links

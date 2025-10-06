@@ -160,7 +160,7 @@ exports[`SplitLogo renders without error 1`] = `
   role="button"
   style={
     {
-      "backgroundColor": "rgba(255, 55, 199, 0.08)",
+      "backgroundColor": "rgba(247, 145, 26, 0.08)",
       "borderBottomLeftRadius": 12,
       "borderBottomRightRadius": 12,
       "borderTopLeftRadius": 12,
@@ -198,7 +198,7 @@ exports[`SplitLogo renders without error 1`] = `
       onFocus={[Function]}
       style={
         {
-          "color": "#FF37C7",
+          "color": "#F7911A",
           "fontFamily": "Basel Grotesk",
           "fontSize": 15,
           "fontWeight": "500",
@@ -226,7 +226,7 @@ exports[`SplitLogo renders without error 1`] = `
             "borderWidth": 0,
           },
           {
-            "color": "#FF37C7",
+            "color": "#F7911A",
             "height": 16,
             "width": 16,
           },
@@ -241,7 +241,7 @@ exports[`SplitLogo renders without error 1`] = `
       vbWidth={16}
     >
       <RNSVGGroup
-        color="#FF37C7"
+        color="#F7911A"
         fill={
           {
             "type": 2,

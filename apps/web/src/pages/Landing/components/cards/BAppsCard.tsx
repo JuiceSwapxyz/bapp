@@ -52,19 +52,19 @@ const CAMPAIGN_TASKS = [
     id: 1,
     title: 'Swap cBTC → NUSD',
     description: 'Nectra USD',
-    url: 'https://bapp.juiceswap.xyz/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001',
+    url: 'https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001',
   },
   {
     id: 2,
     title: 'Swap cBTC → cUSD',
     description: 'Citrea USD',
-    url: 'https://bapp.juiceswap.xyz/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001',
+    url: 'https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001',
   },
   {
     id: 3,
     title: 'Swap cBTC → USDC',
     description: 'USD Coin',
-    url: 'https://bapp.juiceswap.xyz/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001',
+    url: 'https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001',
   },
 ]
 

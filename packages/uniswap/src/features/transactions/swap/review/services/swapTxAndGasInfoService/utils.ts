@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import type { providers } from 'ethers/lib/ethers'
 import { useMemo } from 'react'
 import type {
@@ -27,7 +26,6 @@ import type { ApprovalTxInfo } from 'uniswap/src/features/transactions/swap/revi
 import { UNKNOWN_SIM_ERROR } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/constants'
 import type { SwapData } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/evmSwapRepository'
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
-import { SolanaTrade } from 'uniswap/src/features/transactions/swap/types/solana'
 import {
   BaseSwapTxAndGasInfo,
   BridgeSwapTxAndGasInfo,
@@ -403,11 +401,7 @@ const EMPTY_PERMIT_TX_INFO: PermitTxInfo = {
   },
 }
 
-export function usePermitTxInfo({
-  quote,
-}: {
-  quote?: DiscriminatedQuoteResponse | SolanaTrade['quote']
-}): PermitTxInfo {
+export function usePermitTxInfo({ quote }: { quote?: DiscriminatedQuoteResponse }): PermitTxInfo {
   const classicQuote = quote && isClassic(quote) ? quote : undefined
   const gasStrategy = useActiveGasStrategy(classicQuote?.quote.chainId, 'swap')
 

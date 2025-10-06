@@ -92,8 +92,8 @@ exports[`LinkButton renders without error 1`] = `
             {
               "color": {
                 "dynamic": {
-                  "dark": "#FF37C7",
-                  "light": "#FF37C7",
+                  "dark": "#F7911A",
+                  "light": "#F7911A",
                 },
               },
               "height": 20,
@@ -113,8 +113,8 @@ exports[`LinkButton renders without error 1`] = `
           color={
             {
               "dynamic": {
-                "dark": "#FF37C7",
-                "light": "#FF37C7",
+                "dark": "#F7911A",
+                "light": "#F7911A",
               },
             }
           }

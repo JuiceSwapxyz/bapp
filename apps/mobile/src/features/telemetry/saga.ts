@@ -1,5 +1,4 @@
 import { fork } from 'typed-redux-saga'
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { watchTransactionEvents } from 'wallet/src/features/transactions/watcher/transactionFinalizationSaga'
 
 export function* telemetrySaga() {

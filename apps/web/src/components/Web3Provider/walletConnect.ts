@@ -36,8 +36,8 @@ export const WC_PARAMS = {
   metadata: {
     name: 'JuiceSwap',
     description: 'JuiceSwap Interface',
-    url: 'https://bapp.juiceswap.xyz',
-    icons: ['https://bapp.juiceswap.xyz/favicon.png'],
+    url: 'https://bapp.juiceswap.com',
+    icons: ['https://bapp.juiceswap.com/favicon.png'],
   },
   qrModalOptions: {
     themeVariables: {

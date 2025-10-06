@@ -127,8 +127,6 @@ function PriceDifferenceDisplay({
 }: {
   priceDifference: UsePriceDifferenceReturnType
 }): JSX.Element | null {
-  // Removed unused variables: t, formatPercent
-
   if (!priceDifference.showPriceDifferenceWarning) {
     return null
   }
