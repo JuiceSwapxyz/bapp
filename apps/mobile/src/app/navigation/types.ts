@@ -20,7 +20,6 @@ import { ReceiveCryptoModalState } from 'src/screens/ReceiveCryptoModalState'
 import { ViewPrivateKeysScreenState } from 'src/screens/ViewPrivateKeys/ViewPrivateKeysScreenState'
 import { FORServiceProvider } from 'uniswap/src/features/fiatOnRamp/types'
 import { NFTItem } from 'uniswap/src/features/nfts/types'
-import { PasskeyManagementModalState } from 'uniswap/src/features/passkey/PasskeyManagementModal'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { TestnetModeModalState } from 'uniswap/src/features/testnets/TestnetModeModal'
 import { TransactionState } from 'uniswap/src/features/transactions/types/transactionState'
@@ -51,10 +50,6 @@ type BackupFormParams = {
 type CloudBackupFormParams = {
   address: Address
   password: string
-}
-
-type PasskeyImportParams = {
-  passkeyCredential: string
 }
 
 export type ExploreStackParamList = {
@@ -124,7 +119,6 @@ export type OnboardingStackParamList = {
   [OnboardingScreens.Landing]: OnboardingStackBaseParams
   [OnboardingScreens.Notifications]: OnboardingStackBaseParams
   [OnboardingScreens.WelcomeWallet]: OnboardingStackBaseParams
-  [OnboardingScreens.PasskeyImport]: PasskeyImportParams & OnboardingStackBaseParams
   [OnboardingScreens.Security]: OnboardingStackBaseParams
   [MobileScreens.ViewPrivateKeys]?: ViewPrivateKeysScreenState
 
@@ -189,8 +183,6 @@ export type AppStackParamList = {
   [ModalName.BuyNativeToken]: BuyNativeTokenModalState
   [ModalName.HiddenTokenInfoModal]: undefined
   [ModalName.ScreenshotWarning]: { acknowledgeText?: string } | undefined
-  [ModalName.PasskeyManagement]: PasskeyManagementModalState
-  [ModalName.PasskeysHelp]: undefined
   [ModalName.BiometricsModal]: undefined
   [ModalName.FiatCurrencySelector]: undefined
   [ModalName.ManageWalletsModal]: ManageWalletsModalState

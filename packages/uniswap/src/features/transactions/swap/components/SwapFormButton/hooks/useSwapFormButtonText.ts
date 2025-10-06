@@ -1,7 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useTransactionModalContext } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
 import { useInterfaceWrap } from 'uniswap/src/features/transactions/swap/components/SwapFormButton/hooks/useInterfaceWrap'
 import { useIsAmountSelectionInvalid } from 'uniswap/src/features/transactions/swap/components/SwapFormButton/hooks/useIsAmountSelectionInvalid'
@@ -25,10 +23,7 @@ export const useSwapFormButtonText = (): string => {
   const isTokenSelectionInvalid = useIsTokenSelectionInvalid()
   const isAmountSelectionInvalid = useIsAmountSelectionInvalid()
 
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
   const { insufficientBalanceWarning, blockingWarning, insufficientGasFundsWarning } = useParsedSwapWarnings()
-
-  const isLogIn = isEmbeddedWalletEnabled
 
   const nativeCurrency = nativeOnChain(chainId)
 
@@ -45,7 +40,7 @@ export const useSwapFormButtonText = (): string => {
   }
 
   if (!activeAccount) {
-    return isLogIn ? t('nav.logIn.button') : t('common.connectWallet.button')
+    return t('common.connectWallet.button')
   }
 
   if (blockingWarning?.buttonText) {

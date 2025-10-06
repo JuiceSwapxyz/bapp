@@ -43,8 +43,6 @@ import { HorizontalEdgeGestureTarget } from 'src/components/layout/screens/EdgeG
 import { AdvancedSettingsModal } from 'src/components/modals/ReactNavigationModals/AdvancedSettingsModal'
 import { HiddenTokenInfoModalScreen } from 'src/components/modals/ReactNavigationModals/HiddenTokenInfoModalScreen'
 import { LanguageSettingsScreen } from 'src/components/modals/ReactNavigationModals/LanguageSettingsScreen'
-import { PasskeyHelpModalScreen } from 'src/components/modals/ReactNavigationModals/PasskeyHelpModalScreen'
-import { PasskeyManagementModalScreen } from 'src/components/modals/ReactNavigationModals/PasskeyManagementModalScreen'
 import { PermissionsSettingsScreen } from 'src/components/modals/ReactNavigationModals/PermissionsSettingsScreen'
 import { PortfolioBalanceSettingsScreen } from 'src/components/modals/ReactNavigationModals/PortfolioBalanceSettingsScreen'
 import { SmartWalletEnabledModalScreen } from 'src/components/modals/ReactNavigationModals/SmartWalletEnabledModalScreen'
@@ -71,7 +69,6 @@ import { HomeScreen } from 'src/screens/HomeScreen/HomeScreen'
 import { ImportMethodScreen } from 'src/screens/Import/ImportMethodScreen'
 import { OnDeviceRecoveryScreen } from 'src/screens/Import/OnDeviceRecoveryScreen'
 import { OnDeviceRecoveryViewSeedPhraseScreen } from 'src/screens/Import/OnDeviceRecoveryViewSeedPhraseScreen'
-import { PasskeyImportScreen } from 'src/screens/Import/PasskeyImportScreen'
 import { RestoreCloudBackupLoadingScreen } from 'src/screens/Import/RestoreCloudBackupLoadingScreen'
 import { RestoreCloudBackupPasswordScreen } from 'src/screens/Import/RestoreCloudBackupPasswordScreen'
 import { RestoreCloudBackupScreen } from 'src/screens/Import/RestoreCloudBackupScreen'
@@ -261,7 +258,6 @@ function OnboardingStackNavigator(): JSX.Element {
           <OnboardingStack.Screen component={SecuritySetupScreen} name={OnboardingScreens.Security} />
           <OnboardingStack.Screen component={ManualBackupScreen} name={OnboardingScreens.BackupManual} />
           <OnboardingStack.Screen component={WelcomeWalletScreen} name={OnboardingScreens.WelcomeWallet} />
-          <OnboardingStack.Screen component={PasskeyImportScreen} name={OnboardingScreens.PasskeyImport} />
           <OnboardingStack.Screen
             component={CloudBackupProcessingScreen}
             name={OnboardingScreens.BackupCloudProcessing}
@@ -417,8 +413,6 @@ export function AppStackNavigator(): JSX.Element {
         <AppStack.Screen component={BuyNativeTokenModal} name={ModalName.BuyNativeToken} />
         <AppStack.Screen component={HiddenTokenInfoModalScreen} name={ModalName.HiddenTokenInfoModal} />
         <AppStack.Screen component={ScreenshotWarningModal} name={ModalName.ScreenshotWarning} />
-        <AppStack.Screen component={PasskeyManagementModalScreen} name={ModalName.PasskeyManagement} />
-        <AppStack.Screen component={PasskeyHelpModalScreen} name={ModalName.PasskeysHelp} />
         <AppStack.Screen component={SettingsBiometricModal} name={ModalName.BiometricsModal} />
         <AppStack.Screen component={SettingsFiatCurrencyModal} name={ModalName.FiatCurrencySelector} />
         <AppStack.Screen component={ManageWalletsModal} name={ModalName.ManageWalletsModal} />

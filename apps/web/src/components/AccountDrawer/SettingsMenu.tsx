@@ -5,7 +5,6 @@ import { SlideOutMenu } from 'components/AccountDrawer/SlideOutMenu'
 import { TestnetModeToggle } from 'components/AccountDrawer/TestnetModeToggle'
 import Column from 'components/deprecated/Column'
 import Row from 'components/deprecated/Row'
-import { useAccount } from 'hooks/useAccount'
 import styled from 'lib/styled-components'
 import { ReactNode } from 'react'
 import { ChevronRight } from 'react-feather'
@@ -13,7 +12,6 @@ import { Trans, useTranslation } from 'react-i18next'
 import { ThemedText } from 'theme/components'
 import ThemeToggle from 'theme/components/ThemeToggle'
 import { Flex, Text } from 'ui/src'
-import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { useAppFiatCurrency } from 'uniswap/src/features/fiatCurrency/hooks'
 
 const Container = styled(Column)`
@@ -55,18 +53,14 @@ const SettingsButton = ({
 export default function SettingsMenu({
   onClose,
   openLocalCurrencySettings,
-  openPasskeySettings,
   openPortfolioBalanceSettings,
 }: {
   onClose: () => void
   openLocalCurrencySettings: () => void
-  openPasskeySettings: () => void
   openPortfolioBalanceSettings: () => void
 }) {
   const { t } = useTranslation()
   const activeLocalCurrency = useAppFiatCurrency()
-  const connectedWithEmbeddedWallet =
-    useAccount().connector?.id === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID
 
   return (
     <SlideOutMenu title={<Trans i18nKey="common.settings" />} onClose={onClose} versionComponent={<AppVersionRow />}>
@@ -85,7 +79,6 @@ export default function SettingsMenu({
             onClick={openPortfolioBalanceSettings}
             testId="portfolio-balance-settings-button"
           />
-          {connectedWithEmbeddedWallet && <SettingsButton title={t('common.passkeys')} onClick={openPasskeySettings} />}
         </Flex>
         <TestnetModeToggle />
         <CitreaOnlyToggle />

@@ -8,8 +8,6 @@ import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect, useState } from 'react'
 import { AnimatedPager, Flex } from 'ui/src'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 
@@ -23,8 +21,7 @@ export enum Page {
 export const downloadAppModalPageAtom = atom<Page>(Page.GetApp)
 
 export function GetTheAppModal() {
-  const isEmbeddedWalletEnabled = useFeatureFlag(FeatureFlags.EmbeddedWallet)
-  const initialPage = isEmbeddedWalletEnabled ? Page.GetStarted : Page.GetApp
+  const initialPage = Page.GetApp
 
   const [page, setPage] = useAtom(downloadAppModalPageAtom)
   const { isOpen, closeModal } = useModalState(ModalName.GetTheApp)
@@ -60,10 +57,7 @@ export function GetTheAppModal() {
               accountDrawer.open()
             }}
           />
-          <DownloadAppsModal
-            goBack={isEmbeddedWalletEnabled ? () => setPage(Page.GetStarted) : undefined}
-            onClose={close}
-          />
+          <DownloadAppsModal goBack={undefined} onClose={close} />
           <ChooseUnitagModal
             setUnitag={setUnitag}
             goBack={() => setPage(Page.GetStarted)}

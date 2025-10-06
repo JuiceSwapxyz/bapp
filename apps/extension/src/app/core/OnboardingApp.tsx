@@ -13,7 +13,6 @@ import { Complete } from 'src/app/features/onboarding/Complete'
 import {
   CreateOnboardingSteps,
   ImportOnboardingSteps,
-  ImportPasskeySteps,
   OnboardingStepsProvider,
   ResetSteps,
   ScanOnboardingSteps,
@@ -23,9 +22,6 @@ import { OnboardingWrapper } from 'src/app/features/onboarding/OnboardingWrapper
 import { PasswordImport } from 'src/app/features/onboarding/PasswordImport'
 import { PasswordCreate } from 'src/app/features/onboarding/create/PasswordCreate'
 import { ImportMnemonic } from 'src/app/features/onboarding/import/ImportMnemonic'
-import { InitiatePasskeyAuth } from 'src/app/features/onboarding/import/InitiatePasskeyAuth'
-import { PasskeyImport } from 'src/app/features/onboarding/import/PasskeyImport'
-import { PasskeyImportContextProvider } from 'src/app/features/onboarding/import/PasskeyImportContextProvider'
 import { SelectImportMethod } from 'src/app/features/onboarding/import/SelectImportMethod'
 import { SelectWallets } from 'src/app/features/onboarding/import/SelectWallets'
 import { IntroScreen } from 'src/app/features/onboarding/intro/IntroScreen'
@@ -80,22 +76,6 @@ const allRoutes = [
         key={OnboardingRoutes.SelectImportMethod}
         steps={{
           [SelectImportMethodSteps.SelectMethod]: <SelectImportMethod />,
-        }}
-      />
-    ),
-  },
-  {
-    path: OnboardingRoutes.ImportPasskey,
-    element: (
-      <OnboardingStepsProvider
-        ContainerComponent={PasskeyImportContextProvider}
-        key={OnboardingRoutes.ImportPasskey}
-        steps={{
-          [ImportPasskeySteps.InitiatePasskeyAuth]: <InitiatePasskeyAuth />,
-          [ImportPasskeySteps.PasskeyImport]: <PasskeyImport />,
-          [ImportOnboardingSteps.Password]: <PasswordImport flow={ExtensionOnboardingFlow.Passkey} />,
-          [ImportOnboardingSteps.Select]: <SelectWallets flow={ExtensionOnboardingFlow.Passkey} />,
-          [ImportOnboardingSteps.Complete]: <Complete flow={ExtensionOnboardingFlow.Passkey} />,
         }}
       />
     ),

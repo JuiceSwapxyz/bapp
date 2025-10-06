@@ -14,12 +14,10 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
 import { liquiditySaga } from 'state/sagas/liquidity/liquiditySaga'
 import { Button, Flex, Separator, Text } from 'ui/src'
-import { Passkey } from 'ui/src/components/icons/Passkey'
 import { iconSizes } from 'ui/src/theme'
 import { ProgressIndicator } from 'uniswap/src/components/ConfirmSwapModal/ProgressIndicator'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
-import { useGetPasskeyAuthStatus } from 'uniswap/src/features/passkey/hooks/useGetPasskeyAuthStatus'
 import { useUSDCValue } from 'uniswap/src/features/transactions/hooks/useUSDCPrice'
 import { isValidLiquidityTxContext } from 'uniswap/src/features/transactions/liquidity/types'
 import { getErrorMessageToDisplay } from 'uniswap/src/features/transactions/liquidity/utils'
@@ -38,7 +36,6 @@ export function IncreaseLiquidityReview({ onClose }: { onClose: () => void }) {
   const startChainId = connectedAccount.chainId
   const account = useWallet().evmAccount
   const trace = useTrace()
-  const { needsPasskeySignin } = useGetPasskeyAuthStatus(connectedAccount.connector?.id)
 
   const { formatCurrencyAmount, formatPercent } = useLocalizationContext()
 
@@ -275,13 +272,8 @@ export function IncreaseLiquidityReview({ onClose }: { onClose: () => void }) {
             />
           </Flex>
           <Flex row>
-            <Button
-              variant="branded"
-              size="large"
-              onPress={onIncreaseLiquidity}
-              icon={needsPasskeySignin ? <Passkey size="$icon.24" /> : undefined}
-            >
-              {needsPasskeySignin ? t('common.addLiquidity') : t('common.confirm')}
+            <Button variant="branded" size="large" onPress={onIncreaseLiquidity}>
+              {t('common.confirm')}
             </Button>
           </Flex>
         </>
