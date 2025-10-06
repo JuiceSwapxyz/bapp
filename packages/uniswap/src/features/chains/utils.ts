@@ -97,6 +97,8 @@ export function fromGraphQLChain(chain: Chain | string | undefined): UniverseCha
       return UniverseChainId.Zksync
     case Chain.Zora:
       return UniverseChainId.Zora
+    case 'CITREA_TESTNET':
+      return UniverseChainId.CitreaTestnet
   }
 
   return null
