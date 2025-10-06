@@ -15,7 +15,6 @@ import {
   EmojiElement,
   FroggyElement,
   HeartElement,
-  OpenseaElement,
   ReceiveUSDCElement,
   SendElement,
   SwapElement,
@@ -52,7 +51,7 @@ export function UnitagConfirmationScreen({
     () => [
       { element: <FroggyElement />, coordinates: { x: 5, y: 0 } },
       { element: <ReceiveUSDCElement />, coordinates: { x: 10, y: 2 } },
-      { element: <OpenseaElement />, coordinates: { x: 8.2, y: 4 } },
+      // OpenseaElement removed - OpenSea dependencies removed
       { element: <HeartElement />, coordinates: { x: 9, y: 7 } },
       { element: <SwapElement />, coordinates: { x: 10, y: 10 } },
       { element: <ENSElement />, coordinates: { x: 1, y: 8.5 } },
