@@ -1,6 +1,6 @@
 import { CurrencyAmount } from '@uniswap/sdk-core'
 import { CITREA_LOGO } from 'ui/src/assets'
-import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
+import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { DEFAULT_NATIVE_ADDRESS_LEGACY } from 'uniswap/src/features/chains/evm/rpc'
 import { buildChainTokens } from 'uniswap/src/features/chains/evm/tokens'
 import {
@@ -56,9 +56,9 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   platform: Platform.EVM,
   assetRepoNetworkName: undefined,
   backendChain: {
-    chain: BackendChainId.UnknownChain as GqlChainId,
+    chain: 'CITREA_TESTNET' as GqlChainId,
     backendSupported: true,
-    nativeTokenBackendAddress: undefined,
+    nativeTokenBackendAddress: ZERO_ADDRESS,
   },
   blockPerMainnetEpochForChainId: 1,
   blockWaitMsBeforeWarning: undefined,

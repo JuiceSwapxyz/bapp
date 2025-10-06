@@ -1,7 +1,7 @@
-import { PositionStatus, ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
+import { PositionStatus } from '@uniswap/client-pools/dist/pools/v1/types_pb'
 import { DropdownSelector } from 'components/DropdownSelector'
 import { lpStatusConfig } from 'components/Liquidity/constants'
-import { getProtocolStatusLabel, getProtocolVersionLabel } from 'components/Liquidity/utils/protocolVersion'
+import { getProtocolStatusLabel } from 'components/Liquidity/utils/protocolVersion'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -30,22 +30,16 @@ const StyledDropdownButton = {
 type PositionsHeaderProps = {
   showFilters?: boolean
   selectedChain: UniverseChainId | null
-  selectedVersions?: ProtocolVersion[]
   selectedStatus?: PositionStatus[]
   onChainChange: (selectedChain: UniverseChainId | null) => void
-  onVersionChange: (toggledVersion: ProtocolVersion) => void
   onStatusChange: (toggledStatus: PositionStatus) => void
 }
-
-const PROTOCOL_VERSIONS = [ProtocolVersion.V4, ProtocolVersion.V3, ProtocolVersion.V2]
 
 export function PositionsHeader({
   showFilters = true,
   selectedChain,
-  selectedVersions,
   selectedStatus,
   onChainChange,
-  onVersionChange,
   onStatusChange,
 }: PositionsHeaderProps) {
   const { t } = useTranslation()
@@ -86,22 +80,7 @@ export function PositionsHeader({
     })
   }, [selectedStatus, onStatusChange, t])
 
-  const versionFilterOptions = useMemo(() => {
-    return PROTOCOL_VERSIONS.map((version) => (
-      <LabeledCheckbox
-        key={`PositionsHeader-version-${version}`}
-        py="$spacing4"
-        hoverStyle={{ opacity: 0.8, backgroundColor: 'unset' }}
-        checkboxPosition="end"
-        checked={selectedVersions?.includes(version) ?? false}
-        text={getProtocolVersionLabel(version)}
-        onCheckPressed={() => onVersionChange(version)}
-      />
-    ))
-  }, [selectedVersions, onVersionChange])
-
   const [protocolDropdownOpen, setProtocolDropdownOpen] = useState(false)
-  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
 
   return (
     <Flex gap={16}>
@@ -140,15 +119,6 @@ export function PositionsHeader({
                 alignRight={false}
               >
                 {statusFilterOptions}
-              </DropdownSelector>
-              <DropdownSelector
-                isOpen={statusDropdownOpen}
-                toggleOpen={() => setStatusDropdownOpen((prev) => !prev)}
-                menuLabel={<Text variant="buttonLabel3">{t('common.protocol')}</Text>}
-                dropdownStyle={{ width: 160 }}
-                buttonStyle={StyledDropdownButton}
-              >
-                {versionFilterOptions}
               </DropdownSelector>
               <Flex
                 alignItems="center"
