@@ -133,7 +133,7 @@ function PoolTableHeader({
     [PoolSortFields.RewardApr]: (
       <>
         {t('pool.incentives.merklDocs')}
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         <LearnMoreLink textVariant="buttonLabel4" url={uniswapUrls.merklDocsUrl} />
         */}
       </>
