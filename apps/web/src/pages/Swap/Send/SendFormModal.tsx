@@ -81,7 +81,7 @@ const SendFormModalInner = (props: SendFormModalProps) => {
   return (
     <ContentWrapper>
       <GetHelpHeader
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // link={uniswapUrls.helpArticleUrls.transferCryptoHelp}
         title={screen === TransactionScreen.Review ? t('sendReviewModal.title') : t('title.sendCrypto')}
         closeModal={onClose}

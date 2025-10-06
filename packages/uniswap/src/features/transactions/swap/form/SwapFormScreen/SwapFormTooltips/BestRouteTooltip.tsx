@@ -40,7 +40,7 @@ export function BestRouteTooltip(): JSX.Element | null {
       </Tooltip.Content>
       <Tooltip.Separator />
       <Tooltip.Description
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // learnMoreUrl={uniswapUrls.helpArticleUrls.routingSettings}
         text={t('swap.autoRouter')}
       />
@@ -67,7 +67,7 @@ export function BestRouteUniswapXTooltip(): JSX.Element {
         </Tooltip.Row>
       </Tooltip.Content>
       <Tooltip.Description
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // learnMoreUrl={uniswapUrls.helpArticleUrls.uniswapXInfo}
         text={t('routing.aggregateLiquidity.uniswapx')}
       />

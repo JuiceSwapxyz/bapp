@@ -1,24 +1,18 @@
 import { useModalState } from 'hooks/useModalState'
 import styledDep from 'lib/styled-components'
-import { useExternallyConnectableExtensionId } from 'pages/ExtensionPasskeyAuthPopUp/useExternallyConnectableExtensionId'
 import type { ChangeEvent, PropsWithChildren } from 'react'
 import { useCallback } from 'react'
 import { Button, Flex, ModalCloseIcon, Text, styled } from 'ui/src'
 import { LayerRow } from 'uniswap/src/components/gating/Rows'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import type { DynamicConfigKeys } from 'uniswap/src/features/gating/configs'
-import {
-  DynamicConfigs,
-  ExternallyConnectableExtensionConfigKey,
-  NetworkRequestsConfigKey,
-} from 'uniswap/src/features/gating/configs'
+import { DynamicConfigs, NetworkRequestsConfigKey } from 'uniswap/src/features/gating/configs'
 import { Layers } from 'uniswap/src/features/gating/experiments'
 import { FeatureFlags, getFeatureFlagName } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlagWithExposureLoggingDisabled } from 'uniswap/src/features/gating/hooks'
 import { getOverrideAdapter } from 'uniswap/src/features/gating/sdk/statsig'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { isPlaywrightEnv } from 'utilities/src/environment/env'
-import { TRUSTED_CHROME_EXTENSION_IDS } from 'utilities/src/environment/extensionId'
 
 const CenteredRow = styled(Flex, {
   flexDirection: 'row',
@@ -168,10 +162,6 @@ export default function FeatureFlagModal() {
           <ModalCloseIcon onClose={closeModal} />
         </CenteredRow>
         <Flex maxHeight="600px" pb="$gap8" overflow="scroll" $md={{ maxHeight: 'unset' }}>
-          <FeatureFlagGroup name="Solana">
-            <FeatureFlagOption flag={FeatureFlags.Solana} label="Enable Solana UX" />
-            <FeatureFlagOption flag={FeatureFlags.SolanaPromo} label="Turn on Solana promo banners" />
-          </FeatureFlagGroup>
           <FeatureFlagGroup name="Swap Refactor">
             <FeatureFlagOption
               flag={FeatureFlags.ServiceBasedSwapTransactionInfo}
@@ -217,18 +207,6 @@ export default function FeatureFlagModal() {
           </FeatureFlagGroup>
           <FeatureFlagGroup name="FOR">
             <FeatureFlagOption flag={FeatureFlags.FiatOffRamp} label="Enable Fiat OffRamp" />
-          </FeatureFlagGroup>
-          <FeatureFlagGroup name="Embedded Wallet">
-            <FeatureFlagOption flag={FeatureFlags.EmbeddedWallet} label="Add internal embedded wallet functionality" />
-            <DynamicConfigDropdown
-              selected={[useExternallyConnectableExtensionId()]}
-              options={TRUSTED_CHROME_EXTENSION_IDS}
-              parser={(id) => id}
-              config={DynamicConfigs.ExternallyConnectableExtension}
-              configKey={ExternallyConnectableExtensionConfigKey.ExtensionId}
-              label="Which Extension the web app will communicate with"
-              allowMultiple={false}
-            />
           </FeatureFlagGroup>
           <FeatureFlagGroup name="Search">
             <FeatureFlagOption

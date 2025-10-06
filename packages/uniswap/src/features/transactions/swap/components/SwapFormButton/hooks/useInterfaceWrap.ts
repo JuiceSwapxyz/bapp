@@ -5,7 +5,7 @@ import {
   useSwapFormStoreDerivedSwapInfo,
 } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
-import { isJupiter, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { WrapType } from 'uniswap/src/features/transactions/types/wrap'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import { CurrencyField } from 'uniswap/src/types/currency'
@@ -26,7 +26,7 @@ export function useInterfaceWrap(): {
     wrapType: s.wrapType,
   }))
   const { txRequest, gasFeeEstimation } = useSwapTxStore((s) => {
-    if (isUniswapX(s) || isJupiter(s)) {
+    if (isUniswapX(s)) {
       return {
         txRequest: undefined,
         gasFeeEstimation: s.gasFeeEstimation,

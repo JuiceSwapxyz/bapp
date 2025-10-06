@@ -201,14 +201,9 @@ function LpIncentiveBannerContent({ handleClose }: { handleClose: () => void }) 
           mt: '$spacing12',
         }}
       >
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         <Trace logPress eventOnTrigger={UniswapEventName.LpIncentiveLearnMoreCtaClicked}>
-          <LearnMoreLink
-            textVariant="body4"
-            textColor="$neutral2"
-            url={uniswapUrls.helpArticleUrls.lpIncentiveInfo}
-            hoverStyle={{ color: '$neutral3' }}
-          />
+          
         </Trace>
         */}
         <Button size="small" emphasis="primary" maxWidth="fit-content" onPress={onClickViewMore}>

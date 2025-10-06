@@ -89,7 +89,7 @@ export function OutageBanner({ chainId, version }: ChainOutageData) {
           <Text variant="body3" color={theme.neutral2}>
             <Trans i18nKey="outageBanner.message.sub" />
           </Text>
-          {/* TODO: Re-enable once support.juiceswap.xyz is configured
+          {/* TODO: Re-enable once support.juiceswap.com is configured
           <ExternalLink href={`${uniswapUrls.helpUrl}/articles/23952001935373-Subgraph-downtime`}>
             <Text variant="body3" color={theme.accent1}>
               <Trans i18nKey="common.button.learn" />

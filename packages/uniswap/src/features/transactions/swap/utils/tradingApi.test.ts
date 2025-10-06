@@ -65,7 +65,7 @@ describe('useQuoteRoutingParams', () => {
       const isV4HookPoolsEnabled = true
 
       it('should return V4_HOOKS_INCLUSIVE for hooksOptions if V4 is already in protocols', () => {
-        const selectedProtocols: FrontendSupportedProtocol[] = [ProtocolItems.V3]
+        const selectedProtocols: FrontendSupportedProtocol[] = [ProtocolItems.V3, ProtocolItems.V4]
         // eslint-disable-next-line max-nested-callbacks
         mockUseProtocolsForChain.mockImplementation(() => selectedProtocols)
 
@@ -88,7 +88,7 @@ describe('useQuoteRoutingParams', () => {
 
       it('should add V4 to protocols and return V4_HOOKS_ONLY for hooksOptions if V4 is not in protocols', () => {
         const selectedProtocols: FrontendSupportedProtocol[] = [ProtocolItems.V3]
-        const expectedProtocols = [ProtocolItems.V2, ProtocolItems.V3, ProtocolItems.V4]
+        const expectedProtocols = [ProtocolItems.V3, ProtocolItems.V4]
         // eslint-disable-next-line max-nested-callbacks
         mockUseProtocolsForChain.mockImplementation(() => selectedProtocols) // Original protocols without V4
 

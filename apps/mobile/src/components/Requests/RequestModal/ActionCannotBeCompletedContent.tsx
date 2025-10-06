@@ -8,9 +8,7 @@ import { WalletConnectSigningRequest } from 'src/features/walletConnect/walletCo
 import { Flex, Text } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons'
 import { spacing } from 'ui/src/theme'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
-import { openUri } from 'uniswap/src/utils/linking'
 import { AddressFooter } from 'wallet/src/features/transactions/TransactionRequest/AddressFooter'
 
 export function ActionCannotBeCompletedContent({
@@ -20,9 +18,7 @@ export function ActionCannotBeCompletedContent({
   request: WalletConnectSigningRequest
   onReject: () => void
 }): JSX.Element {
-  const handleLearnMore = async (): Promise<void> => {
-    await openUri({ uri: uniswapUrls.helpArticleUrls.mismatchedImports })
-  }
+  const handleLearnMore = async (): Promise<void> => {}
 
   return (
     <ModalWithOverlay

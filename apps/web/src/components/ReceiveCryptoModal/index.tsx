@@ -61,7 +61,7 @@ export function ReceiveCryptoModal() {
       <ContentWrapper>
         <GetHelpHeader
           goBack={modalState === ReceiveModalState.QR_CODE || connectedProvider || errorProvider ? goBack : undefined}
-          // TODO: Re-enable once support.juiceswap.xyz is configured
+          // TODO: Re-enable once support.juiceswap.com is configured
           // link={uniswapUrls.helpArticleUrls.transferCryptoHelp}
           closeModal={onClose}
         />

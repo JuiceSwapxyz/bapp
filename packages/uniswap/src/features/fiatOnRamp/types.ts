@@ -10,8 +10,6 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { FiatCurrencyComponents } from 'utilities/src/format/localeBased'
 
-// Moonpay Legacy Info
-
 export type FiatOnRampTransactionDetails = TransactionDetails & {
   typeInfo: LocalOnRampTransactionInfo | OnRampPurchaseInfo | OnRampTransferInfo
 }
@@ -173,23 +171,13 @@ export type FORTransferWidgetUrlRequest = {
 
 // /offramp-transfer-details
 
-export type OffRampTransferDetailsRequest = MoonpayOffRampTransferDetailsRequest | MeldOffRampTransferDetailsRequest
-
-// TODO: verify that this is needed and BE cannot also use a sessionId
-type MoonpayOffRampTransferDetailsRequest = {
-  moonpayDetails: {
-    baseCurrencyCode: string
-    baseCurrencyAmount: number
-    depositWalletAddress: string
-    depositWalletAddressTag?: string
-  }
-}
-
 type MeldOffRampTransferDetailsRequest = {
   meldDetails: {
     sessionId: string
   }
 }
+
+export type OffRampTransferDetailsRequest = MeldOffRampTransferDetailsRequest
 
 export type OffRampTransferDetailsResponse = {
   chainId: string
@@ -245,7 +233,6 @@ export type FORTransactionResponse = {
 
 export type FiatOnRampCurrency = {
   currencyInfo: Maybe<CurrencyInfo>
-  moonpayCurrencyCode?: string
   meldCurrencyCode?: string
 }
 
@@ -254,7 +241,6 @@ export interface FiatOffRampMetaData {
   logoUrl: string
   onSubmitCallback: (amountUSD?: number) => void
   meldCurrencyCode?: string
-  moonpayCurrencyCode?: string
 }
 
 export enum InitialQuoteSelection {

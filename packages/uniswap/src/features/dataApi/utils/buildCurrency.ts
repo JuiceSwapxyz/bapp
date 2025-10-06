@@ -3,7 +3,6 @@ import { NativeCurrency, Token } from '@juiceswapxyz/sdk-core'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
-import { SolanaToken } from 'uniswap/src/features/tokens/SolanaToken'
 import { isNativeCurrencyAddress } from 'uniswap/src/utils/currencyId'
 import { sortKeysRecursively } from 'utilities/src/primitives/objects'
 
@@ -53,17 +52,12 @@ export function buildCurrency(args: BuildCurrencyParams): Token | NativeCurrency
     return CURRENCY_CACHE.get(cacheKey)
   }
 
-  let result: Token | NativeCurrency | undefined
-  if (chainId === UniverseChainId.Solana && address) {
-    result = new SolanaToken(chainId, address, decimals, symbol ?? undefined, name ?? undefined)
-  } else {
-    const buyFee = buyFeeBps && BigNumber.from(buyFeeBps).gt(0) ? BigNumber.from(buyFeeBps) : undefined
-    const sellFee = sellFeeBps && BigNumber.from(sellFeeBps).gt(0) ? BigNumber.from(sellFeeBps) : undefined
+  const buyFee = buyFeeBps && BigNumber.from(buyFeeBps).gt(0) ? BigNumber.from(buyFeeBps) : undefined
+  const sellFee = sellFeeBps && BigNumber.from(sellFeeBps).gt(0) ? BigNumber.from(sellFeeBps) : undefined
 
-    result = isNonNativeAddress(chainId, address)
-      ? new Token(chainId, address, decimals, symbol ?? undefined, name ?? undefined, bypassChecksum, buyFee, sellFee)
-      : nativeOnChain(chainId)
-  }
+  const result = isNonNativeAddress(chainId, address)
+    ? new Token(chainId, address, decimals, symbol ?? undefined, name ?? undefined, bypassChecksum, buyFee, sellFee)
+    : nativeOnChain(chainId)
 
   CURRENCY_CACHE.set(cacheKey, result)
   return result

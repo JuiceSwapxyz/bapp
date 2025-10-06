@@ -57,11 +57,6 @@ export function ExtensionStatsigProvider({
 }
 
 export async function initStatSigForBrowserScripts(): Promise<void> {
-  const uniqueId = await getUniqueId()
-  const statsigClient = new StatsigClient(config.statsigApiKey, makeStatsigUser(uniqueId), statsigBaseConfig)
-  await statsigClient.initializeAsync().catch((error) => {
-    logger.error(error, {
-      tags: { file: 'StatsigProvider.tsx', function: 'initStatSigForBrowserScripts' },
-    })
-  })
+  // Statsig disabled for JuiceSwap - no initialization
+  return
 }

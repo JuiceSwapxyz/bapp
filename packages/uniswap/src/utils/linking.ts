@@ -202,16 +202,11 @@ export async function openTransactionLink(hash: string | undefined, chainId: Uni
   return openUri({ uri: explorerUrl })
 }
 
-export async function openUniswapHelpLink(): Promise<void> {
-  return openUri({ uri: uniswapUrls.helpRequestUrl })
-}
-
 export async function openFORSupportLink(serviceProvider: ServiceProviderInfo): Promise<void> {
-  return openUri({ uri: serviceProvider.supportUrl ?? uniswapUrls.helpRequestUrl })
-}
-
-export async function openOfframpPendingSupportLink(): Promise<void> {
-  return openUri({ uri: uniswapUrls.helpArticleUrls.fiatOffRampHelp })
+  if (serviceProvider.supportUrl) {
+    return openUri({ uri: serviceProvider.supportUrl })
+  }
+  return undefined
 }
 
 export function getProfileUrl(walletAddress: string): string {

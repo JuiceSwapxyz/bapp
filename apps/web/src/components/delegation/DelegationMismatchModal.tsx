@@ -84,7 +84,7 @@ function DelegationMismatchModal({ onClose }: DelegationMismatchModalProps) {
         secondaryButtonOnClick={handleContinue}
         secondaryButtonVariant="default"
         secondaryButtonEmphasis="primary"
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // learnMoreUrl={uniswapUrls.helpArticleUrls.mismatchedImports}
         _learnMoreTextColor="$accent1"
         _learnMoreTextVariant="buttonLabel3"

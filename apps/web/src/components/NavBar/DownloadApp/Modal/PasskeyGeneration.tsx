@@ -1,7 +1,5 @@
 import { Page } from 'components/NavBar/DownloadApp/Modal'
 import { ModalContent } from 'components/NavBar/DownloadApp/Modal/Content'
-import { useModalState } from 'hooks/useModalState'
-import { useSignInWithPasskey } from 'hooks/useSignInWithPasskey'
 import { Dispatch, SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Flex } from 'ui/src'
@@ -11,10 +9,8 @@ import { Passkey } from 'ui/src/components/icons/Passkey'
 import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { Trace } from 'uniswap/src/features/telemetry/Trace'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
-import { useEvent } from 'utilities/src/react/hooks'
 
 export function PasskeyGenerationModal({
-  unitag,
   setPage,
   onClose,
   goBack,
@@ -25,21 +21,6 @@ export function PasskeyGenerationModal({
   goBack: () => void
 }) {
   const { t } = useTranslation()
-  const { closeModal } = useModalState(ModalName.GetTheApp)
-
-  const onSuccess = useEvent(() => {
-    closeModal()
-    setPage(Page.GetStarted)
-  })
-
-  const { signInWithPasskey } = useSignInWithPasskey({
-    createNewWallet: true,
-    unitag,
-    onSuccess,
-    onError: () => {
-      setPage(Page.GetStarted)
-    },
-  })
 
   return (
     <Trace logImpression modal={ModalName.CreatePasskey}>
@@ -72,7 +53,7 @@ export function PasskeyGenerationModal({
             </Flex>
           </Flex>
         }
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         // learnMoreLink={uniswapUrls.helpArticleUrls.passkeysInfo} // TODO(WEB-7390): add learn more link
         onClose={onClose}
         goBack={goBack}
@@ -85,7 +66,7 @@ export function PasskeyGenerationModal({
               icon={<Passkey size="$icon.24" />}
               variant="branded"
               size="large"
-              onPress={() => signInWithPasskey()}
+              onPress={() => setPage(Page.GetStarted)}
             >
               {t('onboarding.passkey.create')}
             </Button>

@@ -3,7 +3,6 @@ import LocalCurrencyMenu from 'components/AccountDrawer/LocalCurrencyMenu'
 import { LimitsMenu } from 'components/AccountDrawer/MiniPortfolio/Limits/LimitsMenu'
 import { UniExtensionPoolsMenu } from 'components/AccountDrawer/MiniPortfolio/Pools/UniExtensionPoolsMenu'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
-import PasskeyMenu from 'components/AccountDrawer/PasskeyMenu/PasskeyMenu'
 import PortfolioBalanceMenu from 'components/AccountDrawer/PortfolioBalanceMenu'
 import SettingsMenu from 'components/AccountDrawer/SettingsMenu'
 import { MenuState, miniPortfolioMenuStateAtom } from 'components/AccountDrawer/constants'
@@ -28,7 +27,6 @@ function DefaultMenu() {
   const openPortfolioBalanceSettings = useCallback(() => setMenu(MenuState.PORTFOLIO_BALANCE), [setMenu])
   const closeLimitsMenu = useCallback(() => setMenu(MenuState.DEFAULT), [setMenu])
   const { isOpen: drawerOpen } = useAccountDrawer()
-  const openPasskeySettings = useCallback(() => setMenu(MenuState.PASSKEYS), [setMenu])
 
   const prevMenu = usePrevious(menu)
 
@@ -74,7 +72,6 @@ function DefaultMenu() {
     sendAnalyticsEvent(InterfaceEventName.PortfolioMenuOpened, { name: menu })
   }, [menu])
 
-  // eslint-disable-next-line consistent-return
   const SubMenu = useMemo(() => {
     switch (menu) {
       case MenuState.DEFAULT:
@@ -90,7 +87,6 @@ function DefaultMenu() {
           <SettingsMenu
             onClose={closeSettings}
             openLocalCurrencySettings={openLocalCurrencySettings}
-            openPasskeySettings={openPasskeySettings}
             openPortfolioBalanceSettings={openPortfolioBalanceSettings}
           />
         )
@@ -103,8 +99,8 @@ function DefaultMenu() {
         return account.address ? <LimitsMenu onClose={closeLimitsMenu} account={account.address} /> : null
       case MenuState.POOLS:
         return account.address ? <UniExtensionPoolsMenu account={account.address} onClose={closeLimitsMenu} /> : null
-      case MenuState.PASSKEYS:
-        return <PasskeyMenu onClose={openSettings} />
+      default:
+        return null
     }
   }, [
     account.address,
@@ -113,7 +109,6 @@ function DefaultMenu() {
     menu,
     openLocalCurrencySettings,
     openPortfolioBalanceSettings,
-    openPasskeySettings,
     openSettings,
   ])
 

@@ -10,9 +10,8 @@ import { EnterPasswordModal } from 'src/app/features/settings/password/EnterPass
 import { builtInBiometricCapabilitiesQuery } from 'src/app/utils/device/builtInBiometricCapabilitiesQuery'
 import { Flex, GeneratedIcon, Text } from 'ui/src'
 import { Button } from 'ui/src/components/buttons/Button/Button'
-import { Fingerprint, HelpCenter } from 'ui/src/components/icons'
+import { Fingerprint } from 'ui/src/components/icons'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { useEvent } from 'utilities/src/react/hooks'
 
@@ -119,20 +118,8 @@ function WaitingForBiometricsModal({
 }): JSX.Element | null {
   const { t } = useTranslation()
 
-  const onPressGetHelp = useEvent((): void => {
-    window.open(uniswapUrls.helpArticleUrls.extensionBiometricsEnrollment, '_blank')
-  })
-
   return (
     <Modal name={ModalName.WaitingForBiometricsEnrollment} isModalOpen={true} onClose={onClose}>
-      <Flex grow alignItems="flex-end" mb="$spacing16">
-        <Flex row>
-          <Button icon={<HelpCenter />} size="xsmall" emphasis="tertiary" onPress={onPressGetHelp}>
-            {t('common.getHelp.button')}
-          </Button>
-        </Flex>
-      </Flex>
-
       <Flex gap="$spacing16" alignItems="center">
         <Flex borderRadius="$rounded12" backgroundColor="$surface3" p="$padding16">
           <Icon color="$neutral1" size="$icon.28" />

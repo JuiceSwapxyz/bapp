@@ -8,7 +8,6 @@ import { TripleDot } from 'src/components/icons/TripleDot'
 import { disableOnPress } from 'src/utils/disableOnPress'
 import { Flex, TouchableArea } from 'ui/src'
 import { iconSizes } from 'ui/src/theme'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useUnitagsAddressQuery } from 'uniswap/src/data/apiClients/unitagsApi/useUnitagsAddressQuery'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -55,16 +54,6 @@ export function ProfileContextMenu({ address }: { address: Address }): JSX.Eleme
     })
   }, [address, defaultChainId])
 
-  const onReportProfile = useCallback(async () => {
-    const params = new URLSearchParams()
-    params.append('tf_11041337007757', address) // Wallet Address
-    params.append('tf_7005922218125', 'report_unitag') // Report Type Dropdown
-    const prefilledRequestUrl = uniswapUrls.helpRequestUrl + '?' + params.toString()
-    openUri({ uri: prefilledRequestUrl }).catch((e) =>
-      logger.error(e, { tags: { file: 'ProfileContextMenu', function: 'reportProfileLink' } }),
-    )
-  }, [address])
-
   const onPressShare = useCallback(async () => {
     if (!address) {
       return
@@ -103,15 +92,8 @@ export function ProfileContextMenu({ address }: { address: Address }): JSX.Eleme
         systemIcon: 'square.and.arrow.up',
       },
     ]
-    if (unitag) {
-      options.push({
-        title: t('account.wallet.action.report'),
-        action: onReportProfile,
-        systemIcon: 'flag',
-      })
-    }
     return options
-  }, [onPressCopyAddress, onPressShare, onReportProfile, openExplorerLink, t, unitag, defaultChainId])
+  }, [onPressCopyAddress, onPressShare, openExplorerLink, t, defaultChainId])
 
   return (
     <ContextMenu

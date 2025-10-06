@@ -77,7 +77,7 @@ exports[`NetworkFilter renders a NetworkFilter 1`] = `
       >
         <Image
           resizeMode="contain"
-          source="mock-asset-ETHEREUM_LOGO.png"
+          source="mock-asset-CITREA_LOGO.png"
           style={
             {
               "height": 20,

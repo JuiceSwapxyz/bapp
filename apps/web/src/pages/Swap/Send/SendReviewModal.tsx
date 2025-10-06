@@ -10,13 +10,11 @@ import { useSendContext } from 'state/send/SendContext'
 import { ThemedText } from 'theme/components'
 import { capitalize } from 'tsafe'
 import { Button, Flex, Separator, styled } from 'ui/src'
-import { Passkey } from 'ui/src/components/icons/Passkey'
 import { Unitag } from 'ui/src/components/icons/Unitag'
 import { selectHasDismissedLowNetworkTokenWarning } from 'uniswap/src/features/behaviorHistory/selectors'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useAppFiatCurrency } from 'uniswap/src/features/fiatCurrency/hooks'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
-import { useGetPasskeyAuthStatus } from 'uniswap/src/features/passkey/hooks/useGetPasskeyAuthStatus'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, UniswapEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send.web'
@@ -81,8 +79,6 @@ export function SendReviewModalInner({ onConfirm, isConfirming }: SendModalInner
     setTrue: handleShowMaxTransferModal,
     setFalse: handleHideMaxTransferModal,
   } = useBooleanState(false)
-
-  const { needsPasskeySignin } = useGetPasskeyAuthStatus(account.connector?.id)
 
   const {
     sendState: { inputCurrency, inputInFiat, exactAmountFiat },
@@ -170,7 +166,6 @@ export function SendReviewModalInner({ onConfirm, isConfirming }: SendModalInner
               size="large"
               loading={isConfirming}
               isDisabled={isConfirming}
-              icon={needsPasskeySignin ? <Passkey size="$icon.24" /> : undefined}
               onPress={handleConfirm}
             >
               <Trans i18nKey="common.confirmSend.button" />

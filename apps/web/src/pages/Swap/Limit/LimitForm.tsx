@@ -394,7 +394,7 @@ function LimitForm({ onCurrencyChange }: LimitFormProps) {
                 components={{
                   link: (
                     <>
-                      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+                      {/* TODO: Re-enable once support.juiceswap.com is configured
                       <Anchor
                         textDecorationLine="none"
                         href={uniswapUrls.helpArticleUrls.limitsNetworkSupport}
@@ -416,7 +416,7 @@ function LimitForm({ onCurrencyChange }: LimitFormProps) {
                 components={{
                   link: (
                     <>
-                      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+                      {/* TODO: Re-enable once support.juiceswap.com is configured
                       <Anchor textDecorationLine="none" href={uniswapUrls.helpArticleUrls.limitsFailure} target="_blank">
                         <LearnMore>
                           <Trans i18nKey="common.button.learn" />

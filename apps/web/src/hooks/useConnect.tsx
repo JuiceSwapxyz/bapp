@@ -2,7 +2,6 @@ import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { walletTypeToAmplitudeWalletType } from 'components/Web3Provider/walletConnect'
 import { PropsWithChildren, createContext, useContext } from 'react'
 import { useLocation } from 'react-router'
-import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { InterfaceEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { WalletConnectionResult } from 'uniswap/src/features/telemetry/types'
@@ -25,11 +24,7 @@ export function ConnectionProvider({ children }: PropsWithChildren) {
       },
       onSuccess(_, { connector }) {
         logger.debug('useConnect', 'ConnectionProvider', `Connection activated: ${connector.name}`)
-        if ('id' in connector && connector.id === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID) {
-          accountDrawer.open()
-        } else {
-          accountDrawer.close()
-        }
+        accountDrawer.close()
       },
       onError(error, { connector }) {
         if (error instanceof UserRejectedRequestError) {

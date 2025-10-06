@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { StepRowProps, StepRowSkeleton } from 'uniswap/src/components/ConfirmSwapModal/steps/StepRowSkeleton'
 import { StepStatus } from 'uniswap/src/components/ConfirmSwapModal/types'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { TokenApprovalTransactionStep } from 'uniswap/src/features/transactions/steps/approve'
 import { TokenRevocationTransactionStep } from 'uniswap/src/features/transactions/steps/revoke'
 
@@ -20,18 +19,7 @@ export function TokenApprovalTransactionStepRow({
     [StepStatus.Complete]: t('common.approveSpend', { symbol }),
   }[status]
 
-  return (
-    <StepRowSkeleton
-      title={title}
-      currency={token}
-      pair={pair}
-      learnMore={{
-        url: uniswapUrls.helpArticleUrls.approvalsExplainer,
-        text: t('common.whyApprove'),
-      }}
-      status={status}
-    />
-  )
+  return <StepRowSkeleton title={title} currency={token} pair={pair} status={status} />
 }
 
 export function TokenRevocationTransactionStepRow(props: StepRowProps<TokenRevocationTransactionStep>): JSX.Element {

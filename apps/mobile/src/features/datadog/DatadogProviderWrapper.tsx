@@ -37,62 +37,9 @@ const datadogAutoInstrumentation = {
   trackResources: datadogEnabledBuild,
 }
 
-async function initializeDatadog(sessionSamplingRate: number): Promise<void> {
-  const datadogConfig: DatadogProviderConfiguration = {
-    clientToken: config.datadogClientToken,
-    env: getDatadogEnvironment(),
-    applicationId: config.datadogProjectId,
-    // @ts-expect-error - Favored getting types from DatadogProviderConfiguration over fixing ths type
-    trackingConsent: undefined,
-    site: 'US1',
-    longTaskThresholdMs: 100,
-    nativeCrashReportEnabled: true,
-    verbosity: SdkVerbosity.INFO,
-    errorEventMapper: (event: ReturnType<ErrorEventMapper>): ReturnType<ErrorEventMapper> | null => {
-      const ignoredErrors = getDynamicConfigValue<
-        DynamicConfigs.DatadogIgnoredErrors,
-        DatadogIgnoredErrorsConfigKey,
-        DatadogIgnoredErrorsValType
-      >({
-        config: DynamicConfigs.DatadogIgnoredErrors,
-        key: DatadogIgnoredErrorsConfigKey.Errors,
-        defaultValue: [],
-      })
-
-      const ignoredError = ignoredErrors.find(({ messageContains }) => event?.message.includes(messageContains))
-      if (ignoredError) {
-        return Math.random() < ignoredError.sampleRate ? event : null
-      }
-
-      return event
-    },
-    sessionSamplingRate,
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (localDevDatadogEnabled) {
-    Object.assign(datadogConfig, {
-      sessionSamplingRate: 100,
-      uploadFrequency: UploadFrequency.FREQUENT,
-      batchSize: BatchSize.SMALL,
-      verbosity: SdkVerbosity.DEBUG,
-      trackingConsent: TrackingConsent.GRANTED,
-    })
-  }
-
-  if (config.isE2ETest) {
-    Object.assign(datadogConfig, {
-      sessionSamplingRate: 100,
-      trackingConsent: TrackingConsent.GRANTED,
-      verbosity: SdkVerbosity.DEBUG,
-    })
-  }
-
-  await DatadogProvider.initialize(datadogConfig)
-
-  setAttributesToDatadog({
-    isE2ETest: config.isE2ETest,
-  }).catch(() => undefined)
+async function initializeDatadog(_sessionSamplingRate: number): Promise<void> {
+  // Datadog disabled for JuiceSwap - no initialization
+  return
 }
 
 /**

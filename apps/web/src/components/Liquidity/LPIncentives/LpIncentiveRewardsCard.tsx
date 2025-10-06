@@ -243,10 +243,10 @@ function LpIncentiveRewardsCard({
                           ? t('pool.incentives.yourRewards.error.description')
                           : t('pool.incentives.administeredRewards')}
                       </Text>
-                      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+                      {/* TODO: Re-enable once support.juiceswap.com is configured
                       {!rewardsError && (
                         <Trace logPress eventOnTrigger={UniswapEventName.LpIncentiveLearnMoreCtaClicked}>
-                          <LearnMoreLink textVariant="buttonLabel4" url={uniswapUrls.helpArticleUrls.lpIncentiveInfo} />
+                          
                         </Trace>
                       )}
                       */}

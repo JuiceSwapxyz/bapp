@@ -31,7 +31,6 @@ import { importFromCloudBackupOption, restoreFromCloudBackupOption } from 'src/s
 import { Flex, IconProps, Text, useSporeColors } from 'ui/src'
 import {
   Bell,
-  BookOpen,
   Chart,
   Cloud,
   Coins,
@@ -41,11 +40,7 @@ import {
   Fingerprint,
   Key,
   Language,
-  LikeSquare,
   LineChartDots,
-  Lock,
-  MessageQuestion,
-  Passkey,
   Sliders,
   TouchId,
   UniswapLogo,
@@ -53,7 +48,6 @@ import {
   Wrench,
 } from 'ui/src/components/icons'
 import { iconSizes } from 'ui/src/theme'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useAppFiatCurrencyInfo } from 'uniswap/src/features/fiatCurrency/hooks'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
@@ -145,7 +139,6 @@ export function SettingsScreen(): JSX.Element {
   const signerAccount = useSignerAccounts()[0]
   // We sync backup state across all accounts under the same mnemonic, so can check status with any account.
   const hasCloudBackup = hasBackup(BackupType.Cloud, signerAccount)
-  const hasPasskeyBackup = hasBackup(BackupType.Passkey, signerAccount)
   const noSignerAccountImported = !signerAccount
   const { walletNeedsRestore, walletRestoreType } = useWalletRestore()
 
@@ -333,62 +326,9 @@ export function SettingsScreen(): JSX.Element {
                 isHidden: noSignerAccountImported,
               },
           {
-            navigationModal: ModalName.PasskeyManagement,
-            isHidden: !hasPasskeyBackup,
-            text: t('common.passkeys'),
-            icon: <Passkey {...iconProps} />,
-            navigationProps: { address: signerAccount?.address },
-          },
-          {
             navigationModal: ModalName.PermissionsModal,
             text: t('settings.setting.permissions.title'),
             icon: <LineChartDots {...iconProps} />,
-          },
-        ],
-      },
-      {
-        subTitle: t('settings.section.support'),
-        data: [
-          {
-            screen: MobileScreens.WebView,
-            screenProps: {
-              uriLink: uniswapUrls.walletFeedbackForm,
-              headerTitle: t('settings.action.feedback'),
-            },
-            text: t('settings.action.feedback'),
-            icon: <LikeSquare color="$neutral2" size="$icon.24" />,
-          },
-          {
-            screen: MobileScreens.WebView,
-            screenProps: {
-              uriLink: uniswapUrls.helpArticleUrls.mobileWalletHelp,
-              headerTitle: t('settings.action.help'),
-            },
-            text: t('settings.action.help'),
-            icon: <MessageQuestion {...svgProps} />,
-          },
-        ],
-      },
-      {
-        subTitle: t('settings.section.about'),
-        data: [
-          {
-            screen: MobileScreens.WebView,
-            screenProps: {
-              uriLink: uniswapUrls.privacyPolicyUrl,
-              headerTitle: t('settings.action.privacy'),
-            },
-            text: t('settings.action.privacy'),
-            icon: <Lock {...svgProps} />,
-          },
-          {
-            screen: MobileScreens.WebView,
-            screenProps: {
-              uriLink: uniswapUrls.termsOfServiceUrl,
-              headerTitle: t('settings.action.terms'),
-            },
-            text: t('settings.action.terms'),
-            icon: <BookOpen {...svgProps} />,
           },
         ],
       },
@@ -428,7 +368,6 @@ export function SettingsScreen(): JSX.Element {
     signerAccount?.address,
     walletNeedsRestore,
     hasCloudBackup,
-    hasPasskeyBackup,
     isTestnetModeEnabled,
     isSmartWalletSettingsEnabled,
     handleTestnetModeToggle,

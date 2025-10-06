@@ -1,7 +1,6 @@
 import { noop } from '@tanstack/react-query'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { useConnectCustomWalletsMap } from 'features/wallet/connection/connectors/custom'
-import { useConnectSolanaWallet } from 'features/wallet/connection/connectors/solana'
 import { wrapConnectWalletServiceWithStateTracking } from 'features/wallet/connection/connectors/state'
 import { connectWagmiWallet } from 'features/wallet/connection/connectors/wagmi'
 import {
@@ -10,7 +9,6 @@ import {
 } from 'features/wallet/connection/services/ConnectWalletService'
 import { WalletConnectorMeta } from 'features/wallet/connection/types/WalletConnectorMeta'
 import { useMemo } from 'react'
-import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { InterfaceEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { WalletConnectionResult } from 'uniswap/src/features/telemetry/types'
@@ -20,17 +18,15 @@ import { useEvent } from 'utilities/src/react/hooks'
 import { getCurrentPageFromLocation } from 'utils/urlRoutes'
 
 function useConnectWalletService(): ConnectWalletService {
-  const connectSolanaWallet = useConnectSolanaWallet()
   const connectCustomWalletsMap = useConnectCustomWalletsMap()
 
   return useMemo(
     () =>
       createConnectWalletService({
-        connectSolanaWallet,
         connectWagmiWallet,
         connectCustomWalletsMap,
       }),
-    [connectSolanaWallet, connectCustomWalletsMap],
+    [connectCustomWalletsMap],
   )
 }
 
@@ -41,12 +37,8 @@ function createWrapConnectWalletServiceWithUIUpdates(accountDrawer: ReturnType<t
       connect: async (params: { walletConnector: WalletConnectorMeta }) => {
         await service.connect(params)
 
-        // Open the drawer if the user is connecting an embedded wallet, otherwise close
-        if (params.walletConnector.customConnectorId === CONNECTION_PROVIDER_IDS.EMBEDDED_WALLET_CONNECTOR_ID) {
-          accountDrawer.open()
-        } else {
-          accountDrawer.close()
-        }
+        // Close the drawer after connection
+        accountDrawer.close()
 
         return
       },

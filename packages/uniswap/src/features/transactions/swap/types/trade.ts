@@ -23,7 +23,6 @@ import { MAX_AUTO_SLIPPAGE_TOLERANCE } from 'uniswap/src/constants/transactions'
 import { getSwapFee } from 'uniswap/src/features/transactions/swap/types/getSwapFee'
 import { GasEstimate } from 'uniswap/src/data/tradingApi/types'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
-import { SolanaTrade } from 'uniswap/src/features/transactions/swap/types/solana'
 import { slippageToleranceToPercent } from 'uniswap/src/features/transactions/swap/utils/format'
 
 type QuoteResponseWithAggregatedOutputs = ClassicQuoteResponse | DutchQuoteResponse | DutchV3QuoteResponse | PriorityQuoteResponse
@@ -399,7 +398,7 @@ export type Trade<
   TInput extends Currency = Currency,
   TOutput extends Currency = Currency,
   TTradeType extends TradeType = TradeType,
-> = ClassicTrade<TInput, TOutput, TTradeType> | UniswapXTrade | BridgeTrade | WrapTrade | UnwrapTrade | SolanaTrade
+> = ClassicTrade<TInput, TOutput, TTradeType> | UniswapXTrade | BridgeTrade | WrapTrade | UnwrapTrade
 
 export type TradeWithSlippage = Exclude<Trade, BridgeTrade>
 

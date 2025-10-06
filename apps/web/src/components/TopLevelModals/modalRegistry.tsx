@@ -32,11 +32,6 @@ const PrivacyChoicesModal = createLazy(() =>
   import('components/PrivacyChoices').then((module) => ({ default: module.PrivacyChoicesModal })),
 )
 const FeatureFlagModal = createLazy(() => import('components/FeatureFlagModal/FeatureFlagModal'))
-const SolanaPromoModal = createLazy(() =>
-  import('components/Banner/SolanaPromo/SolanaPromoModal').then((module) => ({
-    default: module.SolanaPromoModal,
-  })),
-)
 // const DevFlagsBox = createLazy(() => import('dev/DevFlagsBox'))
 const TokenNotFoundModal = createLazy(() => import('components/NotFoundModal/TokenNotFoundModal'))
 const PoolNotFoundModal = createLazy(() => import('components/NotFoundModal/PoolNotFoundModal'))
@@ -50,9 +45,6 @@ const RemoveLiquidityModal = createLazy(() =>
 )
 const ClaimFeeModal = createLazy(() =>
   import('components/Liquidity/ClaimFeeModal').then((module) => ({ default: module.ClaimFeeModal })),
-)
-const PasskeysHelpModal = createLazy(() =>
-  import('uniswap/src/features/passkey/PasskeysHelpModal').then((module) => ({ default: module.PasskeysHelpModal })),
 )
 
 const DelegationMismatchModal = createLazy(() =>
@@ -125,10 +117,6 @@ export const modalRegistry: ModalRegistry = {
     component: FeatureFlagModal,
     shouldMount: (state) => state.application.openModal?.name === ModalName.FeatureFlags,
   },
-  [ModalName.SolanaPromo]: {
-    component: SolanaPromoModal,
-    shouldMount: (state) => state.application.openModal?.name === ModalName.SolanaPromo,
-  },
   [ModalName.AddLiquidity]: {
     component: IncreaseLiquidityModal,
     shouldMount: (state) => state.application.openModal?.name === ModalName.AddLiquidity,
@@ -153,10 +141,6 @@ export const modalRegistry: ModalRegistry = {
   //   component: DevFlagsBox,
   //   shouldMount: () => true,
   // },
-  [ModalName.PasskeysHelp]: {
-    component: PasskeysHelpModal,
-    shouldMount: (state) => state.application.openModal?.name === ModalName.PasskeysHelp,
-  },
   [ModalName.DelegationMismatch]: {
     component: DelegationMismatchModal,
     shouldMount: (state) => state.application.openModal?.name === ModalName.DelegationMismatch,

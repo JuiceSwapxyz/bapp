@@ -23,7 +23,7 @@ export function UniswapXInfo({
     <WarningInfo
       infoButton={
         // TODO: Re-enable once support.juiceswap.xyz is configured
-        // <LearnMoreLink textVariant={isWeb ? 'body4' : undefined} url={uniswapUrls.helpArticleUrls.uniswapXInfo} />
+        //
         null
       }
       modalProps={{

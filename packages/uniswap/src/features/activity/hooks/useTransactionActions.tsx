@@ -4,11 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
 import { Clear } from 'ui/src/components/icons/Clear'
 import { CopySheets } from 'ui/src/components/icons/CopySheets'
-import { HelpCenter } from 'ui/src/components/icons/HelpCenter'
 import { X } from 'ui/src/components/icons/X'
 import { MenuOptionItem } from 'uniswap/src/components/menus/ContextMenuV2'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { AccountType } from 'uniswap/src/features/accounts/types'
 import { AuthTrigger } from 'uniswap/src/features/auth/types'
 import { pushNotification } from 'uniswap/src/features/notifications/slice'
@@ -26,16 +24,6 @@ import {
 import { isFinalizedTx } from 'uniswap/src/features/transactions/types/utils'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import { setClipboard } from 'uniswap/src/utils/clipboard'
-import { openFORSupportLink, openUri } from 'uniswap/src/utils/linking'
-import { logger } from 'utilities/src/logger/logger'
-import { isWeb } from 'utilities/src/platform'
-
-enum SupportLinkParams {
-  WalletAddress = 'tf_11041337007757',
-  ReportType = 'tf_7005922218125',
-  IssueType = 'tf_13686083567501',
-  TransactionId = 'tf_9807731675917',
-}
 
 export function useTransactionActions({
   authTrigger,
@@ -163,14 +151,6 @@ function useTransactionActionItems(transactionDetails: TransactionDetails): Menu
     })
   }
 
-  items.push({
-    label: t('settings.action.help'),
-    Icon: HelpCenter,
-    onPress: async (): Promise<void> => {
-      await openSupportLink(transactionDetails)
-    },
-  })
-
   if (
     (isClassic(transactionDetails) || isBridge(transactionDetails)) &&
     !isFinalizedTx(transactionDetails) &&
@@ -187,24 +167,6 @@ function useTransactionActionItems(transactionDetails: TransactionDetails): Menu
   }
 
   return items
-}
-
-async function openSupportLink(transactionDetails: TransactionDetails): Promise<void> {
-  const params = new URLSearchParams()
-  switch (transactionDetails.typeInfo.type) {
-    case TransactionType.OnRampPurchase:
-    case TransactionType.OnRampTransfer:
-    case TransactionType.OffRampSale:
-      return openFORSupportLink(transactionDetails.typeInfo.serviceProvider)
-    default:
-      params.append(SupportLinkParams.WalletAddress, transactionDetails.ownerAddress ?? '') // Wallet Address
-      params.append(SupportLinkParams.ReportType, isWeb ? 'uniswap_extension_issue' : 'uw_ios_app') // Report Type Dropdown
-      params.append(SupportLinkParams.IssueType, 'uw_transaction_details_page_submission') // Issue type Dropdown
-      params.append(SupportLinkParams.TransactionId, transactionDetails.hash ?? 'N/A') // Transaction id
-      return openUri({ uri: uniswapUrls.helpRequestUrl + '?' + params.toString() }).catch((e) =>
-        logger.error(e, { tags: { file: 'TransactionActionsModal', function: 'getHelpLink' } }),
-      )
-  }
 }
 
 function getTransactionId(transactionDetails: TransactionDetails): string | undefined {

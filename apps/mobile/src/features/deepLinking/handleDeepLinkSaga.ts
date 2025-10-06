@@ -86,37 +86,16 @@ export function* handleUniswapAppDeepLink({
   // which causes the bottom sheet to break
   navigate(MobileScreens.Home)
 
+  // NFT deep linking disabled - OpenSea dependencies removed
   // Handle NFT Item share (ex. https://app.uniswap.org/nfts/asset/0x.../123)
   if (NFT_ITEM_SHARE_LINK_HASH_REGEX.test(path)) {
-    const [, , contractAddress, tokenId] = path.match(NFT_ITEM_SHARE_LINK_HASH_REGEX) || []
-    if (!contractAddress || !tokenId) {
-      return
-    }
-    yield* call(navigate, MobileScreens.NFTItem, {
-      address: contractAddress,
-      tokenId,
-      isSpam: false,
-    })
-    yield* call(sendAnalyticsEvent, MobileEventName.ShareLinkOpened, {
-      entity: ShareableEntity.NftItem,
-      url,
-    })
+    // NFT features are disabled
     return
   }
 
   // Handle NFT collection share (ex. https://app.uniswap.org/nfts/collection/0x...)
   if (NFT_COLLECTION_SHARE_LINK_HASH_REGEX.test(path)) {
-    const [, , contractAddress] = path.match(NFT_COLLECTION_SHARE_LINK_HASH_REGEX) || []
-    if (!contractAddress) {
-      return
-    }
-    yield* call(navigate, MobileScreens.NFTCollection, {
-      collectionAddress: contractAddress,
-    })
-    yield* call(sendAnalyticsEvent, MobileEventName.ShareLinkOpened, {
-      entity: ShareableEntity.NftCollection,
-      url,
-    })
+    // NFT features are disabled
     return
   }
 
@@ -303,7 +282,7 @@ function* handleGoToFiatOnRampDeepLink(data: PayloadWithFiatOnRampParams) {
   if (disableForKorea) {
     navigate(ModalName.KoreaCexTransferInfoModal)
   } else {
-    const { moonpayOnly, amount, moonpayCurrencyCode } = data
+    const { amount } = data
 
     // Add delay to fix android onramp issue causing isSheetReady to remain false
     yield* delay(isAndroid ? ONRAMP_DEEPLINK_DELAY : 0)
@@ -312,9 +291,7 @@ function* handleGoToFiatOnRampDeepLink(data: PayloadWithFiatOnRampParams) {
       openModal({
         name: ModalName.FiatOnRampAggregator,
         initialState: {
-          moonpayOnly,
           prefilledAmount: amount,
-          moonpayCurrencyCode,
         },
       }),
     )
