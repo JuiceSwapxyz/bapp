@@ -84,14 +84,93 @@ export function useFirstSqueezerProgress() {
 }
 
 /**
+ * Hook to handle URL-based campaign override
+ * Detects ?first-squeezer=true/false and manages localStorage
+ * @internal
+ */
+function useUrlFirstSqueezerOverride(): boolean {
+  const [overrideActive, setOverrideActive] = useState(() => {
+    return localStorage.getItem('firstSqueezerOverride') === 'true'
+  })
+
+  useEffect(() => {
+    const checkUrlParams = () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const firstSqueezerParam = urlParams.get('first-squeezer')
+
+      if (firstSqueezerParam === 'true') {
+        localStorage.setItem('firstSqueezerOverride', 'true')
+        // Hard refresh to ensure all components re-render with new state
+        window.location.href = window.location.pathname
+        return
+      }
+
+      if (firstSqueezerParam === 'false') {
+        localStorage.removeItem('firstSqueezerOverride')
+        // Hard refresh to ensure all components re-render with new state
+        window.location.href = window.location.pathname
+        return
+      }
+    }
+
+    // Check on mount
+    checkUrlParams()
+
+    // Listen for manual localStorage changes (from other tabs/windows)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'firstSqueezerOverride') {
+        setOverrideActive(e.newValue === 'true')
+      }
+    }
+
+    // Listen for URL changes (navigation)
+    const handlePopState = () => {
+      checkUrlParams()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
+  return overrideActive
+}
+
+/**
+ * Hook to check if campaign is currently active (time-based only)
+ * @internal
+ */
+function useIsFirstSqueezerTimeActive(): boolean {
+  const hasUrlOverride = useUrlFirstSqueezerOverride()
+
+  // Campaign start time: October 12, 2025 at 00:00 UTC
+  return useMemo(() => {
+    // URL Override has priority - if active, campaign is always on
+    if (hasUrlOverride) {
+      return true
+    }
+
+    // Normal time-based logic
+    const campaignStartTime = new Date('2025-10-12T00:00:00.000Z').getTime()
+    const now = Date.now()
+    return now >= campaignStartTime
+  }, [hasUrlOverride])
+}
+
+/**
  * Hook to check if campaign is currently visible
  */
 export function useIsFirstSqueezerCampaignVisible(): boolean {
   const { defaultChainId } = useEnabledChains()
+  const isCampaignTimeActive = useIsFirstSqueezerTimeActive()
 
-  // Campaign is visible on Citrea Testnet
-  // TODO: Add time-based logic if needed
-  return defaultChainId === UniverseChainId.CitreaTestnet
+  const isCorrectChain = defaultChainId === UniverseChainId.CitreaTestnet
+
+  return isCampaignTimeActive && isCorrectChain
 }
 
 /**
