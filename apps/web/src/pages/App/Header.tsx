@@ -1,5 +1,5 @@
 import Navbar from 'components/NavBar/index'
-import { CitreaBAppsBanner, useCitreaBAppsBannerEligible } from 'components/TopLevelBanners/CitreaBAppsBanner'
+import { FirstSqueezerBanner, useFirstSqueezerBannerEligible } from 'components/TopLevelBanners/FirstSqueezerBanner'
 import { MobileAppPromoBanner, useMobileAppPromoBannerEligible } from 'components/TopLevelBanners/MobileAppPromoBanner'
 import { UkBanner, useRenderUkBanner } from 'components/TopLevelBanners/UkBanner'
 import { useScroll } from 'hooks/useScroll'
@@ -13,7 +13,7 @@ export const Header = memo(function Header() {
   const isHeaderTransparent = !isScrolledDown
   const renderUkBanner = useRenderUkBanner()
   const extensionEligible = useMobileAppPromoBannerEligible()
-  const citreaBAppsEligible = useCitreaBAppsBannerEligible()
+  const firstSqueezerEligible = useFirstSqueezerBannerEligible()
 
   return (
     <Flex
@@ -36,7 +36,7 @@ export const Header = memo(function Header() {
         `}
       </style>
       <Flex position="relative" zIndex={zIndexes.sticky} pointerEvents="auto">
-        {citreaBAppsEligible && <CitreaBAppsBanner />}
+        {firstSqueezerEligible && <FirstSqueezerBanner />}
         {extensionEligible && <MobileAppPromoBanner />}
         {renderUkBanner && <UkBanner />}
       </Flex>
