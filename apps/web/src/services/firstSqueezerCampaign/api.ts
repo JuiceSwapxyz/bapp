@@ -27,25 +27,42 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
-   * Get campaign progress for a wallet address
-   * Currently uses localStorage + bApps progress check
-   * Will be replaced with actual API call later
+   * Get campaign progress for a wallet address from API
    */
   async getProgress(walletAddress: string, chainId: UniverseChainId): Promise<FirstSqueezerProgress> {
-    // For now, return mock data with localStorage state
-    // TODO: Replace with actual API call when backend is ready
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/v1/campaign/first-squeezer/progress?address=${walletAddress}&chainId=${chainId}`,
+      )
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Failed to fetch campaign progress:', error)
+      // Fallback to mock data for development
+      return this.getMockProgress(walletAddress, chainId)
+    }
+  }
+
+  /**
+   * Fallback mock data (for development when API is unavailable)
+   */
+  private getMockProgress(walletAddress: string, chainId: UniverseChainId): FirstSqueezerProgress {
     const twitterVerified = this.getLocalVerification('twitter')
     const discordVerified = this.getLocalVerification('discord')
     const nftClaimed = this.getLocalNFTStatus()
 
-    // We'll check bApps completion in the hook layer
     const conditions = [
       {
         id: 1,
         type: ConditionType.BAPPS_COMPLETED,
         name: 'Complete ₿apps Campaign',
         description: 'Complete all 3 swap tasks in the Citrea ₿apps Campaign',
-        status: ConditionStatus.PENDING, // Will be updated by hook
+        status: ConditionStatus.PENDING,
         ctaText: 'View Campaign',
         ctaUrl: '/bapps',
       },
@@ -53,11 +70,11 @@ class FirstSqueezerCampaignAPI {
         id: 2,
         type: ConditionType.TWITTER_FOLLOW,
         name: 'Follow JuiceSwap on X',
-        description: 'Follow @JuiceSwap on X (Twitter)',
+        description: 'Follow @JuiceSwap_com on X (Twitter)',
         status: twitterVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
         completedAt: twitterVerified ? new Date().toISOString() : undefined,
         ctaText: 'Follow on X',
-        ctaUrl: 'https://x.com/JuiceSwap',
+        ctaUrl: 'https://x.com/JuiceSwap_com',
         icon: '🐦',
       },
       {
@@ -92,26 +109,120 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
+   * Start Twitter OAuth flow - redirects user to Twitter for authorization
+   */
+  async startTwitterOAuth(walletAddress: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/v1/campaign/first-squeezer/twitter/auth?address=${walletAddress}`)
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`)
+      }
+
+      const { url, state } = await response.json()
+
+      // Store state for verification
+      localStorage.setItem('twitter_oauth_state', state)
+      localStorage.setItem('twitter_oauth_address', walletAddress)
+
+      // Redirect to Twitter OAuth
+      window.location.href = url
+    } catch (error) {
+      console.error('Failed to start Twitter OAuth:', error)
+      throw new Error('Failed to initiate Twitter verification')
+    }
+  }
+
+  /**
+   * Complete Twitter OAuth flow after callback
+   * Should be called from the callback page/component
+   */
+  async completeTwitterOAuth(code: string, state: string, walletAddress: string): Promise<SocialVerificationResponse> {
+    try {
+      // Verify state matches stored state
+      const storedState = localStorage.getItem('twitter_oauth_state')
+      const storedAddress = localStorage.getItem('twitter_oauth_address')
+
+      if (storedState !== state || storedAddress !== walletAddress) {
+        throw new Error('OAuth state mismatch')
+      }
+
+      // Call backend to complete OAuth
+      const response = await fetch(`${this.baseUrl}/v1/campaign/first-squeezer/verify/twitter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: walletAddress,
+          code,
+          state,
+        }),
+      })
+
+      const data = await response.json()
+
+      // Clean up stored OAuth data
+      localStorage.removeItem('twitter_oauth_state')
+      localStorage.removeItem('twitter_oauth_address')
+
+      if (!data.success || !data.verified) {
+        return {
+          success: false,
+          verified: false,
+          error: data.error || 'You must follow @JuiceSwap_com to complete this task',
+        }
+      }
+
+      return {
+        success: true,
+        verified: true,
+        username: data.user?.username,
+      }
+    } catch (error) {
+      console.error('Failed to complete Twitter OAuth:', error)
+      return {
+        success: false,
+        verified: false,
+        error: error instanceof Error ? error.message : 'Verification failed',
+      }
+    }
+  }
+
+  /**
    * Verify social media connection
-   * Currently uses localStorage for mock verification
-   * TODO: Replace with OAuth flow when backend is ready
+   * For Twitter: Starts OAuth flow
+   * For Discord: TODO - implement Discord OAuth
    */
   async verifySocial(request: SocialVerificationRequest): Promise<SocialVerificationResponse> {
-    // Mock verification - just store in localStorage
-    // TODO: Replace with actual API call + OAuth
-    const { walletAddress, type } = request
+    const { walletAddress, type, code, state } = request
 
+    if (type === 'twitter') {
+      // If we have a code and state, we're completing the OAuth flow
+      if (code && state) {
+        return this.completeTwitterOAuth(code, state, walletAddress)
+      }
+
+      // Otherwise, start the OAuth flow
+      await this.startTwitterOAuth(walletAddress)
+
+      // Return pending status (user will be redirected)
+      return {
+        success: true,
+        verified: false,
+        error: 'Redirecting to Twitter...',
+      }
+    }
+
+    // Discord - fallback to mock for now
     try {
-      // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // Store verification
       this.storeLocalVerification(type, walletAddress)
 
       return {
         success: true,
         verified: true,
-        username: type === 'twitter' ? '@JuiceSwapUser' : 'DiscordUser#1234',
+        username: 'DiscordUser#1234',
       }
     } catch (error) {
       return {
