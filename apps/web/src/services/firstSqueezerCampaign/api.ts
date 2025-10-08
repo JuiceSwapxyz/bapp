@@ -268,11 +268,18 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
-   * Manual verification (for now)
-   * User clicks "I've followed/joined" button
+   * Manual verification
+   * For Twitter: Starts OAuth flow
+   * For Discord: Stores local verification (OAuth not yet implemented)
    */
-  manualVerify(type: 'twitter' | 'discord', walletAddress: string): void {
-    this.storeLocalVerification(type, walletAddress)
+  async manualVerify(type: 'twitter' | 'discord', walletAddress: string): Promise<void> {
+    if (type === 'twitter') {
+      // Start Twitter OAuth flow
+      await this.startTwitterOAuth(walletAddress)
+    } else {
+      // Discord - fallback to localStorage for now
+      this.storeLocalVerification(type, walletAddress)
+    }
   }
 
   /**

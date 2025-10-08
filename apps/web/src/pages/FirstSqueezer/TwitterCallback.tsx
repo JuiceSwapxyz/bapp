@@ -1,8 +1,8 @@
+import { useAccount } from 'hooks/useAccount'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { useAccount } from 'hooks/useAccount'
 import { firstSqueezerCampaignAPI } from 'services/firstSqueezerCampaign/api'
-import { Flex, Text, Spinner, styled } from 'ui/src'
+import { Flex, SpinningLoader, Text, styled } from 'ui/src'
 
 const Container = styled(Flex, {
   width: '100%',
@@ -38,7 +38,11 @@ export default function TwitterCallback() {
         return
       }
 
-      if (!account.address) {
+      // Get wallet address from account or localStorage (in case wallet disconnected during redirect)
+      const storedAddress = localStorage.getItem('twitter_oauth_address')
+      const walletAddress = account.address || storedAddress
+
+      if (!walletAddress) {
         setStatus('error')
         setErrorMessage('Please connect your wallet')
         setTimeout(() => navigate('/first-squeezer'), 3000)
@@ -46,13 +50,13 @@ export default function TwitterCallback() {
       }
 
       try {
-        const result = await firstSqueezerCampaignAPI.completeTwitterOAuth(code, state, account.address)
+        const result = await firstSqueezerCampaignAPI.completeTwitterOAuth(code, state, walletAddress)
 
         if (result.success && result.verified) {
           setStatus('success')
           // Dispatch event to trigger progress refresh
           window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
-          setTimeout(() => navigate('/first-squeezer'), 2000)
+          setTimeout(() => navigate('/first-squeezer'), 5000)
         } else {
           setStatus('error')
           setErrorMessage(result.error || 'You must follow @JuiceSwap_com to complete this task')
@@ -72,7 +76,7 @@ export default function TwitterCallback() {
     <Container>
       {status === 'processing' && (
         <>
-          <Spinner size={48} />
+          <SpinningLoader size={48} />
           <Message variant="heading3">Verifying your Twitter account...</Message>
           <Message variant="body2" color="$neutral2">
             Please wait while we check if you follow @JuiceSwap_com

@@ -1,11 +1,10 @@
 import { useAccount } from 'hooks/useAccount'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useBAppsCampaignProgress } from 'services/bappsCampaign/hooks'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 import { firstSqueezerCampaignAPI } from './api'
-import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest } from './types'
+import { FirstSqueezerProgress, NFTClaimRequest } from './types'
 
 /**
  * Hook to fetch and manage First Squeezer campaign progress
@@ -13,7 +12,6 @@ import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest 
 export function useFirstSqueezerProgress() {
   const account = useAccount()
   const { defaultChainId } = useEnabledChains()
-  const { progress: bAppsProgress } = useBAppsCampaignProgress()
 
   const [progress, setProgress] = useState<FirstSqueezerProgress | null>(null)
   const [loading, setLoading] = useState(false)
@@ -31,32 +29,13 @@ export function useFirstSqueezerProgress() {
 
     try {
       const data = await firstSqueezerCampaignAPI.getProgress(account.address, defaultChainId)
-
-      // Update bApps condition based on actual progress
-      if (bAppsProgress) {
-        const bAppsCondition = data.conditions.find((c) => c.type === ConditionType.BAPPS_COMPLETED)
-        if (bAppsCondition) {
-          const isCompleted = bAppsProgress.completedTasks === 3
-          bAppsCondition.status = isCompleted ? ConditionStatus.COMPLETED : ConditionStatus.PENDING
-          if (isCompleted && bAppsProgress.tasks[2]?.completedAt) {
-            bAppsCondition.completedAt = bAppsProgress.tasks[2].completedAt
-          }
-        }
-
-        // Recalculate progress
-        const completedConditions = data.conditions.filter((c) => c.status === ConditionStatus.COMPLETED).length
-        data.completedConditions = completedConditions
-        data.progress = (completedConditions / data.totalConditions) * 100
-        data.isEligibleForNFT = completedConditions === data.totalConditions && !data.nftMinted
-      }
-
       setProgress(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch campaign progress')
     } finally {
       setLoading(false)
     }
-  }, [account.address, defaultChainId, bAppsProgress])
+  }, [account.address, defaultChainId])
 
   // Fetch progress on mount and when dependencies change
   useEffect(() => {
@@ -227,14 +206,22 @@ export function useVerifySocial() {
   )
 
   const manualVerify = useCallback(
-    (type: 'twitter' | 'discord') => {
+    async (type: 'twitter' | 'discord') => {
       if (!account.address) {
         setError('Please connect your wallet first')
         return
       }
 
-      firstSqueezerCampaignAPI.manualVerify(type, account.address)
-      window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
+      try {
+        await firstSqueezerCampaignAPI.manualVerify(type, account.address)
+        // For Discord, dispatch event immediately
+        // For Twitter, user will be redirected to OAuth, so no need to dispatch here
+        if (type === 'discord') {
+          window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Verification failed')
+      }
     },
     [account.address],
   )
