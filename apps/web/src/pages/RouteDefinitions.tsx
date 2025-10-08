@@ -37,6 +37,7 @@ const TokenDetails = lazy(() => import('pages/TokenDetails'))
 const ExtensionUninstall = lazy(() => import('pages/ExtensionUninstall/ExtensionUninstall'))
 const Bapps = lazy(() => import('pages/Bapps'))
 const FirstSqueezer = lazy(() => import('pages/FirstSqueezer'))
+const TwitterCallback = lazy(() => import('pages/FirstSqueezer/TwitterCallback'))
 
 interface RouterConfig {
   browserRouterEnabled?: boolean
@@ -366,6 +367,13 @@ export const routes: RouteDefinition[] = [
     getElement: () => <FirstSqueezer />,
     getTitle: () => 'First Squeezer NFT - JuiceSwap',
     getDescription: () => 'Complete 3 simple tasks to earn your exclusive First Squeezer NFT on Citrea Testnet.',
+  }),
+  // Twitter OAuth Callback for First Squeezer Campaign
+  createRouteDefinition({
+    path: '/first-squeezer/twitter/callback',
+    getElement: () => <TwitterCallback />,
+    getTitle: () => 'Twitter Verification - JuiceSwap',
+    getDescription: () => 'Verifying your Twitter account for the First Squeezer NFT campaign.',
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),

@@ -55,4 +55,5 @@ export const paths = [
   '/extension/uninstall',
   '/bapps',
   '/first-squeezer',
+  '/first-squeezer/twitter/callback',
 ]
