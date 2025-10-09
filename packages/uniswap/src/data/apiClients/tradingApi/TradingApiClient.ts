@@ -109,7 +109,7 @@ const TradingApiClient = createApiClient({
 
 // Custom quote client for selective endpoint override
 const CustomQuoteApiClient = createApiClient({
-  baseUrl: process.env.REACT_APP_CUSTOM_QUOTE_API_URL || uniswapUrls.tradingApiUrl,
+  baseUrl: uniswapUrls.tradingApiUrl,
   additionalHeaders: {
     'x-api-key': config.tradingApiKey,
   },

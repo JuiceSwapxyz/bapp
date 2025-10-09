@@ -24,6 +24,7 @@ import {
   useRESTPortfolioTotalValue,
   useRestPortfolioCacheUpdater,
 } from 'uniswap/src/features/dataApi/balances/balancesRest'
+import { useJuiceSwapPortfolioData } from 'uniswap/src/features/dataApi/balances/balancesJuiceSwap'
 import { sortBalancesByName } from 'uniswap/src/features/dataApi/balances/utils'
 import { PortfolioBalance } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
@@ -72,19 +73,40 @@ export function usePortfolioBalances({
 }: {
   address?: Address
 } & QueryHookOptions<PortfolioBalancesQuery, PortfolioBalancesQueryVariables>): PortfolioDataResult {
+  const { defaultChainId } = useEnabledChains()
   const isRestEnabled = useFeatureFlag(FeatureFlags.GqlToRestBalances)
+
+  // Use JuiceSwap API for Citrea Testnet (not supported by Uniswap Data API)
+  const isJuiceSwapChain = defaultChainId === UniverseChainId.CitreaTestnet
+
+  const juiceSwapResult = useJuiceSwapPortfolioData({
+    address,
+    pollInterval: queryOptions.pollInterval,
+    onCompleted: queryOptions.onCompleted
+      ? (): void => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          queryOptions.onCompleted?.(undefined as any)
+        }
+      : undefined,
+    skip: !isJuiceSwapChain || queryOptions.skip,
+  })
 
   const graphqlResult = useGraphQLPortfolioData({
     address,
     ...queryOptions,
-    skip: isRestEnabled || queryOptions.skip,
+    skip: isRestEnabled || isJuiceSwapChain || queryOptions.skip,
   })
 
   const restResult = useRESTPortfolioData({
     evmAddress: address || '',
     ...queryOptions,
-    skip: !address || !isRestEnabled || queryOptions.skip,
+    skip: !address || !isRestEnabled || isJuiceSwapChain || queryOptions.skip,
   })
+
+  // Return appropriate result based on chain
+  if (isJuiceSwapChain) {
+    return juiceSwapResult
+  }
 
   const result = isRestEnabled ? restResult : graphqlResult
 
@@ -534,6 +556,7 @@ export function useSortedPortfolioBalances({
     loading,
     networkStatus,
     refetch,
+    error,
   } = usePortfolioBalances({
     address,
     pollInterval,
@@ -551,6 +574,7 @@ export function useSortedPortfolioBalances({
     loading,
     networkStatus,
     refetch,
+    error,
   }
 }
 

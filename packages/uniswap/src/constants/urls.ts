@@ -55,8 +55,8 @@ export const uniswapUrls = {
   apiBaseUrlV2: config.apiBaseUrlV2Override || `${getCloudflareApiBaseUrl()}/v2`,
   graphQLUrl: config.graphqlUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.GraphQL)}/v1/graphql`,
 
-  // Trading API
-  tradingApiUrl: config.tradingApiUrlOverride || getCloudflareApiBaseUrl(TrafficFlows.TradingApi),
+  // Trading API (JuiceSwap)
+  tradingApiUrl: config.tradingApiUrlOverride || 'https://dev.api.juiceswap.com',
 
   // Disabled services (kept for backwards compatibility)
   unitagsApiUrl: config.unitagsApiUrlOverride || '',
