@@ -55,8 +55,9 @@ export function ExploreContextProvider({
     isLoading: exploreStatsLoading,
     error: exploreStatsError,
   } = useExploreStatsQuery<ExploreStatsResponse>({
-    input: { chainId: isSupportedChain ? chainId.toString() : ALL_NETWORKS_ARG },
+    enabled: isSupportedChain,
   })
+
   const {
     data: protocolStatsData,
     isLoading: protocolStatsLoading,

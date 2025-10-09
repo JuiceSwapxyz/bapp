@@ -23,14 +23,12 @@ import {
 import { MAX_WIDTH_MEDIA_BREAKPOINT } from 'components/Tokens/constants'
 import { exploreSearchStringAtom } from 'components/Tokens/state'
 import { MouseoverTooltip, TooltipSize } from 'components/Tooltip'
-import { HARDCODED_CITREA_POOLS } from 'constants/hardcodedPools'
 import useSimplePagination from 'hooks/useSimplePagination'
 import { useAtom } from 'jotai'
 import { atomWithReset, useAtomValue, useResetAtom, useUpdateAtom } from 'jotai/utils'
 import { exploreProtocolVersionFilterAtom } from 'pages/Explore/ProtocolFilter'
 import { ReactElement, memo, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSelector } from 'react-redux'
 import { TABLE_PAGE_SIZE, giveExploreStatDefaultValue } from 'state/explore'
 import { useExploreContextTopPools } from 'state/explore/topPools'
 import { PoolStat } from 'state/explore/types'
@@ -44,12 +42,11 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
-import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { useCurrencyInfo } from 'uniswap/src/features/tokens/useCurrencyInfo'
 import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
 import { NumberType } from 'utilities/src/format/types'
-import { getChainUrlParam, useChainIdFromUrlParam } from 'utils/chainParams'
+import { getChainUrlParam } from 'utils/chainParams'
 
 const TableWrapper = styled(Flex, {
   m: '0 auto',
@@ -166,11 +163,9 @@ interface TopPoolTableProps {
   isError: boolean
 }
 export const ExploreTopPoolTable = memo(function ExploreTopPoolTable() {
-  const chainId = useChainIdFromUrlParam()
   const sortMethod = useAtomValue(sortMethodAtom)
   const sortAscending = useAtomValue(sortAscendingAtom)
   const selectedProtocol = useAtomValue(exploreProtocolVersionFilterAtom)
-  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
 
   const resetSortMethod = useResetAtom(sortMethodAtom)
   const resetSortAscending = useResetAtom(sortAscendingAtom)
@@ -187,30 +182,6 @@ export const ExploreTopPoolTable = memo(function ExploreTopPoolTable() {
     },
     selectedProtocol,
   )
-
-  // Show hardcoded pools for Citrea testnet or when Citrea Only toggle is enabled
-  if (chainId === UniverseChainId.CitreaTestnet || isCitreaOnlyEnabled) {
-    // Convert hardcoded pools to PoolStat format
-    const citreaPools = HARDCODED_CITREA_POOLS.map((pool) => ({
-      id: pool.id,
-      chain: Chain.UnknownChain,
-      token0: pool.token0 as any,
-      token1: pool.token1 as any,
-      feeTier: {
-        feeAmount: pool.feeTier,
-        tickSpacing: 60,
-        isDynamic: false,
-      } as FeeData,
-      totalLiquidity: { value: pool.tvlUSD },
-      volume1Day: { value: pool.volume24hUSD },
-      volume30Day: { value: pool.volume24hUSD * 30 }, // Estimated
-      apr: new Percent(Math.floor(pool.apr * 100), 10000),
-      volOverTvl: pool.volume24hUSD / pool.tvlUSD,
-      protocolVersion: 'v3',
-    })) as PoolStat[]
-
-    return <TopPoolTable topPoolData={{ topPools: citreaPools, isLoading: false, isError: false }} />
-  }
 
   return <TopPoolTable topPoolData={{ topPools, isLoading, isError }} />
 })

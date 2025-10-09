@@ -11,7 +11,6 @@ import { useTopPools } from 'state/explore/topPools'
 import { PoolStat } from 'state/explore/types'
 import { Flex, useMedia } from 'ui/src'
 import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
-import { ALL_NETWORKS_ARG } from 'uniswap/src/data/rest/base'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
@@ -28,7 +27,7 @@ export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
     isLoading: exploreStatsLoading,
     error: exploreStatsError,
   } = useExploreStatsQuery<ExploreStatsResponse>({
-    input: { chainId: chainId ? chainId.toString() : ALL_NETWORKS_ARG },
+    enabled: true,
   })
 
   const { topPools } = useTopPools({
