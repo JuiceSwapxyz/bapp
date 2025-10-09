@@ -442,8 +442,7 @@ export type Formatter = {
 export const tokenNonTxFormatter: Formatter = {
   rules: [
     { exact: 0, formatter: '0' },
-    { upperBound: 0.001, formatter: '<0.001' },
-    { upperBound: 1, formatter: ThreeDecimals },
+    { upperBound: 1, formatter: SixSigFigsNoCommas }, // Show actual value with up to 6 significant figures
     { upperBound: 1e6, formatter: TwoDecimals },
     { upperBound: 1e15, formatter: ShorthandTwoDecimals },
     { upperBound: Infinity, formatter: '>999T' },

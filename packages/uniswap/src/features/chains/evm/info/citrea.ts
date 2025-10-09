@@ -57,7 +57,7 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   assetRepoNetworkName: undefined,
   backendChain: {
     chain: 'CITREA_TESTNET' as GqlChainId,
-    backendSupported: true,
+    backendSupported: false, // Not supported by Uniswap Data API - uses JuiceSwap API instead
     nativeTokenBackendAddress: ZERO_ADDRESS,
   },
   blockPerMainnetEpochForChainId: 1,
