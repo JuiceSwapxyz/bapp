@@ -184,65 +184,67 @@ export function useIsFirstSqueezerCampaignAvailable(): boolean {
 }
 
 /**
- * Hook to handle social verification
+ * Hook to handle Discord verification
+ * Currently uses localStorage - TODO: implement Discord OAuth
  */
 export function useVerifySocial() {
   const account = useAccount()
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const verify = useCallback(
-    async (type: 'twitter' | 'discord') => {
-      if (!account.address) {
-        setError('Please connect your wallet first')
-        return false
-      }
+  const manualVerifyDiscord = useCallback(() => {
+    if (!account.address) {
+      return
+    }
 
-      setIsVerifying(true)
-      setError(null)
-
-      try {
-        const result = await firstSqueezerCampaignAPI.verifySocial({
-          walletAddress: account.address,
-          type,
-        })
-
-        if (result.success) {
-          // Dispatch event to trigger progress refresh
-          window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
-          return true
-        } else {
-          setError(result.error || 'Verification failed')
-          return false
-        }
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Verification failed'
-        setError(errorMsg)
-        return false
-      } finally {
-        setIsVerifying(false)
-      }
-    },
-    [account.address],
-  )
-
-  const manualVerify = useCallback(
-    (type: 'twitter' | 'discord') => {
-      if (!account.address) {
-        setError('Please connect your wallet first')
-        return
-      }
-
-      firstSqueezerCampaignAPI.manualVerify(type, account.address)
-      window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
-    },
-    [account.address],
-  )
+    firstSqueezerCampaignAPI.manualVerifyDiscord(account.address)
+    window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
+  }, [account.address])
 
   return {
-    verify,
-    manualVerify,
-    isVerifying,
+    manualVerifyDiscord,
+  }
+}
+
+/**
+ * Hook to handle Twitter OAuth verification
+ * Uses same-tab redirect (no popup)
+ */
+export function useTwitterOAuth() {
+  const account = useAccount()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const startOAuth = useCallback(async () => {
+    if (!account.address) {
+      setError('Please connect your wallet first')
+      return
+    }
+
+    setError(null)
+    setIsLoading(true)
+
+    // Clear any existing oauth_error param from URL
+    const currentUrl = new URL(window.location.href)
+    if (currentUrl.searchParams.has('oauth_error')) {
+      currentUrl.searchParams.delete('oauth_error')
+      window.history.replaceState({}, '', currentUrl.toString())
+    }
+
+    try {
+      // Get OAuth URL from backend
+      const { authUrl } = await firstSqueezerCampaignAPI.startTwitterOAuth(account.address)
+
+      // Navigate to Twitter OAuth in same tab (page will unload, no need to set isLoading false)
+      window.location.href = authUrl
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to start Twitter verification'
+      setError(errorMsg)
+      setIsLoading(false)
+    }
+  }, [account.address])
+
+  return {
+    startOAuth,
+    isLoading,
     error,
   }
 }

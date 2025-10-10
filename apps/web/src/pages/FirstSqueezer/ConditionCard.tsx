@@ -116,9 +116,10 @@ interface ConditionCardProps {
   condition: CampaignCondition
   onAction?: () => void
   isLoading?: boolean
+  error?: string | null
 }
 
-export function ConditionCard({ condition, onAction, isLoading }: ConditionCardProps) {
+export function ConditionCard({ condition, onAction, isLoading, error }: ConditionCardProps) {
   const navigate = useNavigate()
   const isCompleted = condition.status === ConditionStatus.COMPLETED
   const isInternal = condition.type === ConditionType.BAPPS_COMPLETED
@@ -179,12 +180,32 @@ export function ConditionCard({ condition, onAction, isLoading }: ConditionCardP
       </CardHeader>
 
       {!isCompleted && condition.ctaText && (
-        <ActionButton onPress={handleAction} disabled={isLoading} completed={isCompleted}>
-          <Text variant="buttonLabel4" color="$white">
-            {isLoading ? 'Loading...' : condition.ctaText}
-          </Text>
-          {!isInternal && <ExternalLink size="$icon.16" color="$white" />}
-        </ActionButton>
+        <>
+          <ActionButton onPress={handleAction} disabled={isLoading} completed={isCompleted}>
+            <Text variant="buttonLabel4" color="$white">
+              {isLoading ? 'Loading...' : condition.ctaText}
+            </Text>
+            {!isInternal && <ExternalLink size="$icon.16" color="$white" />}
+          </ActionButton>
+
+          {error && (
+            <Flex
+              row
+              gap="$spacing8"
+              alignItems="center"
+              paddingHorizontal="$spacing12"
+              paddingVertical="$spacing8"
+              backgroundColor="rgba(255, 59, 48, 0.1)"
+              borderRadius="$rounded8"
+              borderWidth={1}
+              borderColor="$statusCritical"
+            >
+              <Text variant="body4" color="$statusCritical">
+                {error}
+              </Text>
+            </Flex>
+          )}
+        </>
       )}
     </Card>
   )
