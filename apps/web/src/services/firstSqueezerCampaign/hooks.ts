@@ -184,27 +184,6 @@ export function useIsFirstSqueezerCampaignAvailable(): boolean {
 }
 
 /**
- * Hook to handle Discord verification
- * Currently uses localStorage - TODO: implement Discord OAuth
- */
-export function useVerifySocial() {
-  const account = useAccount()
-
-  const manualVerifyDiscord = useCallback(() => {
-    if (!account.address) {
-      return
-    }
-
-    firstSqueezerCampaignAPI.manualVerifyDiscord(account.address)
-    window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
-  }, [account.address])
-
-  return {
-    manualVerifyDiscord,
-  }
-}
-
-/**
  * Hook to handle Twitter OAuth verification
  * Uses same-tab redirect (no popup)
  */
@@ -237,6 +216,51 @@ export function useTwitterOAuth() {
       window.location.href = authUrl
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to start Twitter verification'
+      setError(errorMsg)
+      setIsLoading(false)
+    }
+  }, [account.address])
+
+  return {
+    startOAuth,
+    isLoading,
+    error,
+  }
+}
+
+/**
+ * Hook to handle Discord OAuth verification
+ * Uses same-tab redirect (no popup)
+ */
+export function useDiscordOAuth() {
+  const account = useAccount()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const startOAuth = useCallback(async () => {
+    if (!account.address) {
+      setError('Please connect your wallet first')
+      return
+    }
+
+    setError(null)
+    setIsLoading(true)
+
+    // Clear any existing oauth_error param from URL
+    const currentUrl = new URL(window.location.href)
+    if (currentUrl.searchParams.has('oauth_error')) {
+      currentUrl.searchParams.delete('oauth_error')
+      window.history.replaceState({}, '', currentUrl.toString())
+    }
+
+    try {
+      // Get OAuth URL from backend
+      const { authUrl } = await firstSqueezerCampaignAPI.startDiscordOAuth(account.address)
+
+      // Navigate to Discord OAuth in same tab (page will unload, no need to set isLoading false)
+      window.location.href = authUrl
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to start Discord verification'
       setError(errorMsg)
       setIsLoading(false)
     }

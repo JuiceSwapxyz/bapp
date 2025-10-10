@@ -29,7 +29,7 @@ class FirstSqueezerCampaignAPI {
 
   /**
    * Get campaign progress for a wallet address
-   * Fetches real Twitter status from backend, uses localStorage for Discord/NFT
+   * Fetches real Twitter and Discord status from backend, uses localStorage for NFT
    */
   async getProgress(walletAddress: string, chainId: UniverseChainId): Promise<FirstSqueezerProgress> {
     // Fetch Twitter verification status from backend
@@ -44,8 +44,17 @@ class FirstSqueezerCampaignAPI {
     const twitterUsername = twitterStatus?.username || null
     const twitterVerifiedAt = twitterStatus?.verifiedAt || undefined
 
-    // Discord still uses localStorage (TODO: implement Discord OAuth)
-    const discordVerified = this.getLocalVerification('discord')
+    // Fetch Discord verification status from backend
+    let discordStatus = null
+    try {
+      discordStatus = await this.getDiscordStatus(walletAddress)
+    } catch (error) {
+      console.warn('Failed to fetch Discord status:', error)
+    }
+
+    const discordVerified = discordStatus?.verified || false
+    const discordUsername = discordStatus?.username || null
+    const discordVerifiedAt = discordStatus?.verifiedAt || undefined
 
     // NFT claim status from localStorage
     const nftClaimed = this.getLocalNFTStatus()
@@ -76,12 +85,13 @@ class FirstSqueezerCampaignAPI {
       {
         id: 3,
         type: ConditionType.DISCORD_JOIN,
-        name: 'Join JuiceSwap Discord',
-        description: 'Join the JuiceSwap Discord community',
+        name: 'Verify Discord Account',
+        description: discordVerified && discordUsername
+          ? `Verified as ${discordUsername}`
+          : 'Sign in with Discord to verify your account',
         status: discordVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
-        completedAt: discordVerified ? new Date().toISOString() : undefined,
-        ctaText: 'Join Discord',
-        ctaUrl: 'https://discord.gg/juiceswap',
+        completedAt: discordVerifiedAt,
+        ctaText: discordVerified ? 'Verified' : 'Verify with Discord',
         icon: '💬',
       },
     ]
@@ -151,6 +161,52 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
+   * Start Discord OAuth flow
+   * Returns authorization URL to redirect to
+   */
+  async startDiscordOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/start?walletAddress=${encodeURIComponent(walletAddress)}`
+      )
+
+      if (!response.ok) {
+        throw new Error(`Failed to start Discord OAuth: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'Failed to start Discord OAuth')
+    }
+  }
+
+  /**
+   * Get Discord verification status
+   * Returns whether wallet has verified Discord and username
+   */
+  async getDiscordStatus(walletAddress: string): Promise<{
+    verified: boolean
+    username: string | null
+    verifiedAt: string | null
+  }> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/status?walletAddress=${encodeURIComponent(walletAddress)}`
+      )
+
+      if (!response.ok) {
+        throw new Error(`Failed to get Discord status: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'Failed to get Discord status')
+    }
+  }
+
+  /**
    * Claim NFT
    * Currently uses localStorage for mock claim
    * TODO: Replace with actual contract interaction when backend is ready
@@ -185,14 +241,6 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
-   * Manual verification for Discord
-   * Twitter now uses OAuth flow
-   */
-  manualVerifyDiscord(walletAddress: string): void {
-    this.storeLocalVerification('discord', walletAddress)
-  }
-
-  /**
    * Clear all local progress (for testing)
    */
   clearLocalProgress(walletAddress: string): void {
@@ -201,19 +249,7 @@ class FirstSqueezerCampaignAPI {
     localStorage.removeItem(`${STORAGE_KEYS.NFT_CLAIMED}_${walletAddress}`)
   }
 
-  // Private helper methods for localStorage
-  private getLocalVerification(type: 'twitter' | 'discord'): boolean {
-    const key = type === 'twitter' ? STORAGE_KEYS.TWITTER_VERIFIED : STORAGE_KEYS.DISCORD_VERIFIED
-    return localStorage.getItem(key) === 'true'
-  }
-
-  private storeLocalVerification(type: 'twitter' | 'discord', walletAddress: string): void {
-    const key = type === 'twitter' ? STORAGE_KEYS.TWITTER_VERIFIED : STORAGE_KEYS.DISCORD_VERIFIED
-    localStorage.setItem(key, 'true')
-    localStorage.setItem(`${key}_address`, walletAddress)
-    localStorage.setItem(`${key}_timestamp`, new Date().toISOString())
-  }
-
+  // Private helper methods for localStorage (NFT claim only)
   private getLocalNFTStatus(): boolean {
     return localStorage.getItem(STORAGE_KEYS.NFT_CLAIMED) === 'true'
   }
