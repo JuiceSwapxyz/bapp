@@ -1,7 +1,7 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ConditionCard } from 'pages/FirstSqueezer/ConditionCard'
 import { NFTClaimSection } from 'pages/FirstSqueezer/NFTClaimSection'
-import { useFirstSqueezerProgress, useVerifySocial } from 'services/firstSqueezerCampaign/hooks'
+import { useFirstSqueezerProgress, useVerifySocial, useTwitterOAuth } from 'services/firstSqueezerCampaign/hooks'
 import { ConditionType } from 'services/firstSqueezerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 
@@ -52,7 +52,15 @@ interface FirstSqueezerContentProps {
 export default function FirstSqueezerContent({ account }: FirstSqueezerContentProps) {
   const accountDrawer = useAccountDrawer()
   const { progress, loading, error } = useFirstSqueezerProgress()
-  const { manualVerify, isVerifying } = useVerifySocial()
+  const { manualVerifyDiscord } = useVerifySocial()
+  const { startOAuth, isLoading: isAuthenticating, error: oauthError } = useTwitterOAuth()
+
+  // Get OAuth callback error from URL (if redirected from OAuth callback with error)
+  const params = new URLSearchParams(window.location.search)
+  const oauthCallbackError = params.get('oauth_error')
+
+  // Merge errors: callback error takes precedence over start error
+  const twitterError = oauthCallbackError || oauthError
 
   const handleConnectWallet = () => {
     accountDrawer.open()
@@ -116,9 +124,9 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
 
   const handleConditionAction = (conditionType: ConditionType) => {
     if (conditionType === ConditionType.TWITTER_FOLLOW) {
-      manualVerify('twitter')
+      startOAuth()
     } else if (conditionType === ConditionType.DISCORD_JOIN) {
-      manualVerify('discord')
+      manualVerifyDiscord()
     }
   }
 
@@ -152,7 +160,8 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
                   ? () => handleConditionAction(condition.type)
                   : undefined
               }
-              isLoading={isVerifying}
+              isLoading={condition.type === ConditionType.TWITTER_FOLLOW ? isAuthenticating : false}
+              error={condition.type === ConditionType.TWITTER_FOLLOW ? twitterError : null}
             />
           ))}
         </Flex>

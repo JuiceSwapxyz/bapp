@@ -5,12 +5,13 @@ import {
   FirstSqueezerProgress,
   NFTClaimRequest,
   NFTClaimResponse,
-  SocialVerificationRequest,
-  SocialVerificationResponse,
 } from './types'
 
-// API base URL - will be configured later
-const API_BASE_URL = process.env.REACT_APP_JUICESWAP_API_URL || 'https://dev.api.juiceswap.com'
+// API base URL - same as routing/swap API
+const API_BASE_URL =
+  process.env.REACT_APP_TRADING_API_URL_OVERRIDE ||
+  process.env.REACT_APP_UNISWAP_GATEWAY_DNS ||
+  'https://api.juiceswap.xyz'
 
 // LocalStorage keys for temporary verification status
 const STORAGE_KEYS = {
@@ -28,14 +29,25 @@ class FirstSqueezerCampaignAPI {
 
   /**
    * Get campaign progress for a wallet address
-   * Currently uses localStorage + bApps progress check
-   * Will be replaced with actual API call later
+   * Fetches real Twitter status from backend, uses localStorage for Discord/NFT
    */
   async getProgress(walletAddress: string, chainId: UniverseChainId): Promise<FirstSqueezerProgress> {
-    // For now, return mock data with localStorage state
-    // TODO: Replace with actual API call when backend is ready
-    const twitterVerified = this.getLocalVerification('twitter')
+    // Fetch Twitter verification status from backend
+    let twitterStatus = null
+    try {
+      twitterStatus = await this.getTwitterStatus(walletAddress)
+    } catch (error) {
+      console.warn('Failed to fetch Twitter status:', error)
+    }
+
+    const twitterVerified = twitterStatus?.verified || false
+    const twitterUsername = twitterStatus?.username || null
+    const twitterVerifiedAt = twitterStatus?.verifiedAt || undefined
+
+    // Discord still uses localStorage (TODO: implement Discord OAuth)
     const discordVerified = this.getLocalVerification('discord')
+
+    // NFT claim status from localStorage
     const nftClaimed = this.getLocalNFTStatus()
 
     // We'll check bApps completion in the hook layer
@@ -52,12 +64,13 @@ class FirstSqueezerCampaignAPI {
       {
         id: 2,
         type: ConditionType.TWITTER_FOLLOW,
-        name: 'Follow JuiceSwap on X',
-        description: 'Follow @JuiceSwap on X (Twitter)',
+        name: 'Verify Twitter Account',
+        description: twitterVerified && twitterUsername
+          ? `Verified as @${twitterUsername}`
+          : 'Sign in with Twitter to verify your account',
         status: twitterVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
-        completedAt: twitterVerified ? new Date().toISOString() : undefined,
-        ctaText: 'Follow on X',
-        ctaUrl: 'https://x.com/JuiceSwap',
+        completedAt: twitterVerifiedAt,
+        ctaText: twitterVerified ? 'Verified' : 'Verify with Twitter',
         icon: '🐦',
       },
       {
@@ -92,33 +105,48 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
-   * Verify social media connection
-   * Currently uses localStorage for mock verification
-   * TODO: Replace with OAuth flow when backend is ready
+   * Start Twitter OAuth flow
+   * Returns authorization URL to open in popup
    */
-  async verifySocial(request: SocialVerificationRequest): Promise<SocialVerificationResponse> {
-    // Mock verification - just store in localStorage
-    // TODO: Replace with actual API call + OAuth
-    const { walletAddress, type } = request
-
+  async startTwitterOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
     try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const response = await fetch(
+        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`
+      )
 
-      // Store verification
-      this.storeLocalVerification(type, walletAddress)
-
-      return {
-        success: true,
-        verified: true,
-        username: type === 'twitter' ? '@JuiceSwapUser' : 'DiscordUser#1234',
+      if (!response.ok) {
+        throw new Error(`Failed to start Twitter OAuth: ${response.statusText}`)
       }
+
+      const data = await response.json()
+      return data
     } catch (error) {
-      return {
-        success: false,
-        verified: false,
-        error: error instanceof Error ? error.message : 'Verification failed',
+      throw new Error(error instanceof Error ? error.message : 'Failed to start Twitter OAuth')
+    }
+  }
+
+  /**
+   * Get Twitter verification status
+   * Returns whether wallet has verified Twitter and username
+   */
+  async getTwitterStatus(walletAddress: string): Promise<{
+    verified: boolean
+    username: string | null
+    verifiedAt: string | null
+  }> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/status?walletAddress=${encodeURIComponent(walletAddress)}`
+      )
+
+      if (!response.ok) {
+        throw new Error(`Failed to get Twitter status: ${response.statusText}`)
       }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'Failed to get Twitter status')
     }
   }
 
@@ -157,11 +185,11 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
-   * Manual verification (for now)
-   * User clicks "I've followed/joined" button
+   * Manual verification for Discord
+   * Twitter now uses OAuth flow
    */
-  manualVerify(type: 'twitter' | 'discord', walletAddress: string): void {
-    this.storeLocalVerification(type, walletAddress)
+  manualVerifyDiscord(walletAddress: string): void {
+    this.storeLocalVerification('discord', walletAddress)
   }
 
   /**
