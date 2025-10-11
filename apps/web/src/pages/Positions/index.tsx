@@ -209,7 +209,7 @@ export default function Pool() {
   // Get hardcoded positions for the current wallet
   const hardcodedPositions = useMemo(() => {
     return getHardcodedPositionsForWallet(account.address).filter((position) => {
-      const matchesChain = !chainFilter || position.chainId === chainFilter
+      const matchesChain = chainFilter ? position.chainId === chainFilter : true
       const matchesStatus = statusFilter.includes(position.status)
       const matchesVersion = position.version === ProtocolVersion.V3
       return matchesChain && matchesStatus && matchesVersion

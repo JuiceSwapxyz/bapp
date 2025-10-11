@@ -1,7 +1,7 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ConditionCard } from 'pages/FirstSqueezer/ConditionCard'
 import { NFTClaimSection } from 'pages/FirstSqueezer/NFTClaimSection'
-import { useFirstSqueezerProgress, useVerifySocial, useTwitterOAuth } from 'services/firstSqueezerCampaign/hooks'
+import { useFirstSqueezerProgress, useTwitterOAuth, useVerifySocial } from 'services/firstSqueezerCampaign/hooks'
 import { ConditionType } from 'services/firstSqueezerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 

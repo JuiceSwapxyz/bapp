@@ -130,6 +130,7 @@ class SimpleErrorBoundary extends Component<
   }
 
   render() {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (this.state.hasError && this.state.error) {
       const FallbackComponent = this.props.fallback ?? (({ error }) => <Fallback error={error} eventId={null} />)
       return <FallbackComponent error={this.state.error} resetError={this.resetError} />

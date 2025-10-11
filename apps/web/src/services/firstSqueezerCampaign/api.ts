@@ -1,11 +1,11 @@
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import {
   ConditionStatus,
   ConditionType,
   FirstSqueezerProgress,
   NFTClaimRequest,
   NFTClaimResponse,
-} from './types'
+} from 'services/firstSqueezerCampaign/types'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 // API base URL - same as routing/swap API
 const API_BASE_URL =
@@ -37,7 +37,8 @@ class FirstSqueezerCampaignAPI {
     try {
       twitterStatus = await this.getTwitterStatus(walletAddress)
     } catch (error) {
-      console.warn('Failed to fetch Twitter status:', error)
+      // Silently fail on Twitter status fetch errors
+      twitterStatus = null
     }
 
     const twitterVerified = twitterStatus?.verified || false
@@ -65,9 +66,10 @@ class FirstSqueezerCampaignAPI {
         id: 2,
         type: ConditionType.TWITTER_FOLLOW,
         name: 'Verify Twitter Account',
-        description: twitterVerified && twitterUsername
-          ? `Verified as @${twitterUsername}`
-          : 'Sign in with Twitter to verify your account',
+        description:
+          twitterVerified && twitterUsername
+            ? `Verified as @${twitterUsername}`
+            : 'Sign in with Twitter to verify your account',
         status: twitterVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
         completedAt: twitterVerifiedAt,
         ctaText: twitterVerified ? 'Verified' : 'Verify with Twitter',
@@ -111,7 +113,7 @@ class FirstSqueezerCampaignAPI {
   async startTwitterOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -136,7 +138,7 @@ class FirstSqueezerCampaignAPI {
   }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/status?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -226,6 +228,7 @@ class FirstSqueezerCampaignAPI {
     return localStorage.getItem(`${STORAGE_KEYS.NFT_CLAIMED}_txHash`) || undefined
   }
 
+  // eslint-disable-next-line max-params
   private storeLocalNFTClaim(walletAddress: string, txHash: string, tokenId: string): void {
     localStorage.setItem(STORAGE_KEYS.NFT_CLAIMED, 'true')
     localStorage.setItem(`${STORAGE_KEYS.NFT_CLAIMED}_address`, walletAddress)

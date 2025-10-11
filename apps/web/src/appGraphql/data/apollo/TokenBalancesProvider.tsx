@@ -33,14 +33,13 @@ function useHasAccountUpdate() {
 }
 
 function TokenBalancesProviderInternal({ children }: PropsWithChildren) {
-  const [lazyFetch, query] = usePortfolioBalancesLazyQuery({ errorPolicy: 'all' })
+  const [_lazyFetch, query] = usePortfolioBalancesLazyQuery({ errorPolicy: 'all' })
   const account = useAccount()
   const hasAccountUpdate = useHasAccountUpdate()
 
   const valueModifiers = usePortfolioValueModifiers(account.address)
   const prevValueModifiers = usePrevious(valueModifiers)
 
-  const { gqlChains } = useEnabledChains()
   const pendingTransactions = usePendingTransactions()
   const prevPendingTransactions = usePrevious(pendingTransactions)
   const pendingDiff = useMemo(
