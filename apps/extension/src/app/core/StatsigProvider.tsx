@@ -1,15 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { config } from 'uniswap/src/config'
 import { SharedQueryClient } from 'uniswap/src/data/apiClients/SharedQueryClient'
 import { StatsigProviderWrapper } from 'uniswap/src/features/gating/StatsigProviderWrapper'
 import { StatsigCustomAppValue } from 'uniswap/src/features/gating/constants'
-import { StatsigClient, StatsigUser } from 'uniswap/src/features/gating/sdk/statsig'
-import { statsigBaseConfig } from 'uniswap/src/features/gating/statsigBaseConfig'
+import { StatsigUser } from 'uniswap/src/features/gating/sdk/statsig'
 import { initializeDatadog } from 'uniswap/src/utils/datadog'
-import { getUniqueId } from 'utilities/src/device/uniqueId'
 import { uniqueIdQuery } from 'utilities/src/device/uniqueIdQuery'
-import { logger } from 'utilities/src/logger/logger'
 
 function makeStatsigUser(userID: string): StatsigUser {
   return {
