@@ -15,7 +15,6 @@ import { useTimeout } from 'utilities/src/time/timing'
 
 export function IntroScreen(): JSX.Element {
   const { t } = useTranslation()
-  const isPasskeyImportEnabled = false
 
   const isOnboarded = useSelector(isOnboardedSelector)
   // Detections for some unsupported browsers may not work until stylesheet is loaded
@@ -45,9 +44,7 @@ export function IntroScreen(): JSX.Element {
                 variant="branded"
                 onPress={(): void => navigate(`/${TopLevelRoutes.Onboarding}/${OnboardingRoutes.Create}`)}
               >
-                {isPasskeyImportEnabled
-                  ? t('onboarding.landing.button.createAccount')
-                  : t('onboarding.landing.button.create')}
+                {t('onboarding.landing.button.create')}
               </Button>
             </Flex>
             <Flex row>
@@ -55,30 +52,26 @@ export function IntroScreen(): JSX.Element {
                 emphasis="secondary"
                 onPress={(): void =>
                   navigate(
-                    `/${TopLevelRoutes.Onboarding}/${isPasskeyImportEnabled ? OnboardingRoutes.SelectImportMethod : OnboardingRoutes.Import}`,
+                    `/${TopLevelRoutes.Onboarding}/${OnboardingRoutes.Import}`,
                   )
                 }
               >
-                {isPasskeyImportEnabled
-                  ? t('onboarding.intro.button.logInOrImport')
-                  : t('onboarding.intro.button.alreadyHave')}
+                {t('onboarding.intro.button.alreadyHave')}
               </Button>
             </Flex>
           </Flex>
 
-          {isPasskeyImportEnabled ? null : (
-            <>
-              <Flex row alignItems="center" gap="$spacing16" py="$spacing4">
-                <Flex fill backgroundColor="$surface3" height={1} />
-                <Text color="$neutral3" variant="body3">
-                  {t('onboarding.intro.mobileScan.title')}
-                </Text>
-                <Flex fill backgroundColor="$surface3" height={1} />
-              </Flex>
+          <>
+            <Flex row alignItems="center" gap="$spacing16" py="$spacing4">
+              <Flex fill backgroundColor="$surface3" height={1} />
+              <Text color="$neutral3" variant="body3">
+                {t('onboarding.intro.mobileScan.title')}
+              </Text>
+              <Flex fill backgroundColor="$surface3" height={1} />
+            </Flex>
 
-              <SyncFromPhoneButton fill />
-            </>
-          )}
+            <SyncFromPhoneButton fill />
+          </>
         </MainIntroWrapper>
       </Flex>
     </Trace>
