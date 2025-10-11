@@ -108,7 +108,7 @@ function getPoolDataByProtocol(
     case ProtocolVersion.V4:
       return data?.stats?.poolStatsV4
     default:
-      return data?.stats?.poolStats
+      return data?.stats?.poolStatsV3
   }
 }
 
