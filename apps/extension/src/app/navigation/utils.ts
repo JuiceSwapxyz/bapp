@@ -231,7 +231,7 @@ async function calculatePopupWindowPosition({
 /**
  * Opens a popup window centered on the current window, making sure it's on the same monitor.
  */
-export async function openPopupWindow({
+async function _openPopupWindow({
   url,
   width,
   height,
@@ -254,7 +254,7 @@ export async function openPopupWindow({
   return popupWindow
 }
 
-export function closeWindow(window: chrome.windows.Window | undefined): void {
+function _closeWindow(window: chrome.windows.Window | undefined): void {
   if (!window?.id) {
     return
   }
@@ -269,7 +269,7 @@ export function closeWindow(window: chrome.windows.Window | undefined): void {
   })
 }
 
-export async function bringWindowToFront(windowId: number, options?: { centered?: boolean }): Promise<void> {
+async function _bringWindowToFront(windowId: number, options?: { centered?: boolean }): Promise<void> {
   if (options?.centered) {
     const window = await chrome.windows.get(windowId)
     const { left, top } = await calculatePopupWindowPosition({ width: window.width ?? 0, height: window.height ?? 0 })

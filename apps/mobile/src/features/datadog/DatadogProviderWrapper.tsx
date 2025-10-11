@@ -1,25 +1,8 @@
-import {
-  BatchSize,
-  DatadogProvider,
-  DatadogProviderConfiguration,
-  DdRum,
-  SdkVerbosity,
-  TrackingConsent,
-  UploadFrequency,
-} from '@datadog/mobile-react-native'
-import { ErrorEventMapper } from '@datadog/mobile-react-native/lib/typescript/rum/eventMappers/errorEventMapper'
+import { DatadogProvider, DdRum } from '@datadog/mobile-react-native'
 import { PropsWithChildren, default as React, useEffect, useState } from 'react'
 import { DatadogContext } from 'src/features/datadog/DatadogContext'
 import { config } from 'uniswap/src/config'
-import {
-  DatadogIgnoredErrorsConfigKey,
-  DatadogIgnoredErrorsValType,
-  DynamicConfigs,
-} from 'uniswap/src/features/gating/configs'
-import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
-import { datadogEnabledBuild, isJestRun, localDevDatadogEnabled } from 'utilities/src/environment/constants'
-import { setAttributesToDatadog } from 'utilities/src/logger/datadog/Datadog'
-import { getDatadogEnvironment } from 'utilities/src/logger/datadog/env'
+import { datadogEnabledBuild, isJestRun } from 'utilities/src/environment/constants'
 import { logger } from 'utilities/src/logger/logger'
 
 // In case Statsig is not available

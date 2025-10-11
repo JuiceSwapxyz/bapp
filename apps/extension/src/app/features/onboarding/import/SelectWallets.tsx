@@ -12,7 +12,6 @@ import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ExtensionOnboardingFlow, ExtensionOnboardingScreens } from 'uniswap/src/types/screens/extension'
-import { openUri } from 'uniswap/src/utils/linking'
 import { useEvent } from 'utilities/src/react/hooks'
 import { ReactQueryCacheKey } from 'utilities/src/reactQuery/cache'
 import { queryWithoutCache } from 'utilities/src/reactQuery/queryOptions'
@@ -119,8 +118,6 @@ export function SelectWallets({ flow }: { flow: ExtensionOnboardingFlow }): JSX.
     </Trace>
   )
 }
-
-const onPressLearnMore = (uri: string): Promise<void> => openUri({ uri })
 
 function SmartWalletTooltip(): JSX.Element | undefined {
   const { t } = useTranslation()

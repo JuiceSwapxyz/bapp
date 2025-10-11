@@ -130,9 +130,9 @@ class SimpleErrorBoundary extends Component<
   }
 
   render() {
-    if (this.state.hasError && this.state.error) {
+    if (this.state.hasError) {
       const FallbackComponent = this.props.fallback ?? (({ error }) => <Fallback error={error} eventId={null} />)
-      return <FallbackComponent error={this.state.error} resetError={this.resetError} />
+      return <FallbackComponent error={this.state.error!} resetError={this.resetError} />
     }
     return this.props.children
   }

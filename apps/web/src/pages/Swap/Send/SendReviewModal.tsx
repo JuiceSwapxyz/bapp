@@ -1,7 +1,6 @@
 import { PortfolioLogo } from 'components/AccountDrawer/MiniPortfolio/PortfolioLogo'
 import Identicon from 'components/Identicon'
 import { ChainLogo } from 'components/Logo/ChainLogo'
-import { useAccount } from 'hooks/useAccount'
 import { ReactNode } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -72,7 +71,6 @@ export type SendModalProps = SendModalInnerProps & {
 export function SendReviewModalInner({ onConfirm, isConfirming }: SendModalInnerProps) {
   const { t } = useTranslation()
   const { chainId } = useMultichainContext()
-  const account = useAccount()
 
   const {
     value: showMaxTransferModal,

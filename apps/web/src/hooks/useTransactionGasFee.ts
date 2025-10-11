@@ -115,10 +115,9 @@ async function tryClientSideFallback(tx: TransactionRequest): Promise<GasFeeResp
       return null
     }
 
-    const [gasLimit, gasPrice, feeData] = await Promise.all([
+    const [gasLimit, gasPrice] = await Promise.all([
       provider.estimateGas(tx).catch(() => null),
       provider.getGasPrice().catch(() => null),
-      provider.getFeeData().catch(() => null),
     ])
 
     if (!gasLimit || !gasPrice) {
@@ -149,7 +148,7 @@ async function tryClientSideFallback(tx: TransactionRequest): Promise<GasFeeResp
       },
     }
   } catch (error) {
-    console.warn('Client-side gas estimation failed:', error)
+    // Silently fail on client-side gas estimation errors
     return null
   }
 }

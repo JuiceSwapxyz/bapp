@@ -40,7 +40,7 @@ export type PortfolioDataResult = {
 
 async function fetchJuiceSwapPortfolio(
   address: string,
-  chainId: number
+  chainId: number,
 ): Promise<Record<CurrencyId, PortfolioBalance>> {
   const url = `${uniswapUrls.tradingApiUrl}/v1/portfolio/${address}?chainId=${chainId}`
 

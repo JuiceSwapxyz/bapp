@@ -10,6 +10,7 @@ module.exports = {
     ecmaFeatures: {
       jsx: true,
     },
+    EXPERIMENTAL_useProjectService: true,
   },
   rules: {
     // let prettier do things:
@@ -18,6 +19,8 @@ module.exports = {
     'comma-dangle': 0,
     'no-trailing-spaces': 0,
     'no-extra-semi': 0,
+    // Disable unused exports rule - too many false positives with dynamic imports, routing, and public APIs
+    'import/no-unused-modules': 0,
   },
 
   overrides: [
@@ -141,9 +144,10 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.ts', '**/*.tsx'],
-      excludedFiles: ['src/analytics/*'],
-      rules: {},
+      files: ['*.config.ts', 'playwright.config.ts', 'vitest.config.ts'],
+      rules: {
+        '@typescript-eslint/no-unnecessary-condition': 0,
+      },
     },
     {
       files: ['*.mts'],

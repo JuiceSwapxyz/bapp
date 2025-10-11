@@ -30,7 +30,7 @@ type MenuAction = {
 export function ProfileContextMenu({ address }: { address: Address }): JSX.Element {
   const { t } = useTranslation()
   const dispatch = useDispatch()
-  const { data: unitag } = useUnitagsAddressQuery({
+  useUnitagsAddressQuery({
     params: address ? { address } : undefined,
   })
   const { defaultChainId } = useEnabledChains()

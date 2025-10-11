@@ -4,8 +4,13 @@ import { useBAppsCampaignProgress } from 'services/bappsCampaign/hooks'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
-import { firstSqueezerCampaignAPI } from './api'
-import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest } from './types'
+import { firstSqueezerCampaignAPI } from 'services/firstSqueezerCampaign/api'
+import {
+  ConditionStatus,
+  ConditionType,
+  FirstSqueezerProgress,
+  NFTClaimRequest,
+} from 'services/firstSqueezerCampaign/types'
 
 /**
  * Hook to fetch and manage First Squeezer campaign progress
@@ -176,6 +181,7 @@ export function useIsFirstSqueezerCampaignVisible(): boolean {
 /**
  * Hook to check if campaign is available for user interaction (requires wallet)
  */
+// eslint-disable-next-line import/no-unused-modules
 export function useIsFirstSqueezerCampaignAvailable(): boolean {
   const account = useAccount()
   const isCampaignVisible = useIsFirstSqueezerCampaignVisible()
@@ -321,6 +327,7 @@ export function useClaimNFT() {
 /**
  * Hook to check eligibility for NFT claim
  */
+// eslint-disable-next-line import/no-unused-modules
 export function useIsEligibleForNFT(): boolean {
   const { progress } = useFirstSqueezerProgress()
 
@@ -335,6 +342,7 @@ export function useIsEligibleForNFT(): boolean {
 /**
  * Hook to check if NFT has been minted
  */
+// eslint-disable-next-line import/no-unused-modules
 export function useHasClaimedNFT(): boolean {
   const { progress } = useFirstSqueezerProgress()
 

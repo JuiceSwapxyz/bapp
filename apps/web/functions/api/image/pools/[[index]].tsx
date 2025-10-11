@@ -189,7 +189,7 @@ export const onRequest: PagesFunction = async ({ params, request, env }) => {
                         alignSelf: 'center',
                       }}
                     >
-                      {data.poolData?.protocolVersion}
+                      {data.poolData.protocolVersion}
                     </div>
                   )}
                 </div>
