@@ -1,7 +1,7 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ConditionCard } from 'pages/FirstSqueezer/ConditionCard'
 import { NFTClaimSection } from 'pages/FirstSqueezer/NFTClaimSection'
-import { useFirstSqueezerProgress, useVerifySocial, useTwitterOAuth } from 'services/firstSqueezerCampaign/hooks'
+import { useFirstSqueezerProgress, useTwitterOAuth, useDiscordOAuth } from 'services/firstSqueezerCampaign/hooks'
 import { ConditionType } from 'services/firstSqueezerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 
@@ -52,15 +52,16 @@ interface FirstSqueezerContentProps {
 export default function FirstSqueezerContent({ account }: FirstSqueezerContentProps) {
   const accountDrawer = useAccountDrawer()
   const { progress, loading, error } = useFirstSqueezerProgress()
-  const { manualVerifyDiscord } = useVerifySocial()
-  const { startOAuth, isLoading: isAuthenticating, error: oauthError } = useTwitterOAuth()
+  const { startOAuth: startTwitterOAuth, isLoading: isTwitterAuthenticating, error: twitterOauthError } = useTwitterOAuth()
+  const { startOAuth: startDiscordOAuth, isLoading: isDiscordAuthenticating, error: discordOauthError } = useDiscordOAuth()
 
   // Get OAuth callback error from URL (if redirected from OAuth callback with error)
   const params = new URLSearchParams(window.location.search)
   const oauthCallbackError = params.get('oauth_error')
 
   // Merge errors: callback error takes precedence over start error
-  const twitterError = oauthCallbackError || oauthError
+  const twitterError = oauthCallbackError || twitterOauthError
+  const discordError = oauthCallbackError || discordOauthError
 
   const handleConnectWallet = () => {
     accountDrawer.open()
@@ -124,9 +125,9 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
 
   const handleConditionAction = (conditionType: ConditionType) => {
     if (conditionType === ConditionType.TWITTER_FOLLOW) {
-      startOAuth()
+      startTwitterOAuth()
     } else if (conditionType === ConditionType.DISCORD_JOIN) {
-      manualVerifyDiscord()
+      startDiscordOAuth()
     }
   }
 
@@ -151,19 +152,24 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
         </Text>
 
         <Flex gap="$spacing16" width="100%">
-          {progress?.conditions.map((condition) => (
-            <ConditionCard
-              key={condition.id}
-              condition={condition}
-              onAction={
-                condition.type !== ConditionType.BAPPS_COMPLETED
-                  ? () => handleConditionAction(condition.type)
-                  : undefined
-              }
-              isLoading={condition.type === ConditionType.TWITTER_FOLLOW ? isAuthenticating : false}
-              error={condition.type === ConditionType.TWITTER_FOLLOW ? twitterError : null}
-            />
-          ))}
+          {progress?.conditions.map((condition) => {
+            const isTwitter = condition.type === ConditionType.TWITTER_FOLLOW
+            const isDiscord = condition.type === ConditionType.DISCORD_JOIN
+
+            return (
+              <ConditionCard
+                key={condition.id}
+                condition={condition}
+                onAction={
+                  condition.type !== ConditionType.BAPPS_COMPLETED
+                    ? () => handleConditionAction(condition.type)
+                    : undefined
+                }
+                isLoading={isTwitter ? isTwitterAuthenticating : isDiscord ? isDiscordAuthenticating : false}
+                error={isTwitter ? twitterError : isDiscord ? discordError : null}
+              />
+            )
+          })}
         </Flex>
       </Section>
 
