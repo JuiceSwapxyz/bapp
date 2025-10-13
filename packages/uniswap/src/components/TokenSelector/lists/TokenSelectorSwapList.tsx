@@ -9,7 +9,7 @@ import { useOnchainItemListSection } from 'uniswap/src/components/lists/utils'
 import { GqlResult } from 'uniswap/src/data/types'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { suggestedCitreaTokens } from 'uniswap/src/features/tokens/hardcodedTokens'
+import { btcBridgingTokens, suggestedCitreaTokens } from 'uniswap/src/features/tokens/hardcodedTokens'
 
 function useTokenSectionsForSwap({
   activeAccountAddress,
@@ -58,13 +58,49 @@ function useTokenSectionsForSwap({
     options: yourTokensSectionOptions,
   })
 
+  // Check if opposite token is cBTC (native or address check)
+  const isOppositeCBTC = useMemo(() => {
+    if (!oppositeSelectedToken) {
+      return false
+    }
+
+    // Check if it's on Citrea Testnet first
+    if (oppositeSelectedToken.chainId !== UniverseChainId.CitreaTestnet) {
+      return false
+    }
+
+    // Check if it's native cBTC (null, 0x0, or 0xeeee... address)
+    const addr = oppositeSelectedToken.address?.toLowerCase()
+    const isNative =
+      addr === null ||
+      addr === '0x0000000000000000000000000000000000000000' ||
+      addr === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+
+    return isNative
+  }, [oppositeSelectedToken])
+
+  // BTC bridging section - only show when opposite token is cBTC
+  const btcBridgingSectionOptions = useCurrencyInfosToTokenOptions({
+    currencyInfos: isOppositeCBTC ? btcBridgingTokens : [],
+    portfolioBalancesById: {},
+  })
+
+  const btcBridgingSection = useOnchainItemListSection({
+    sectionKey: OnchainItemSectionName.BridgingTokens,
+    options: btcBridgingSectionOptions,
+  })
+
   const sections = useMemo(() => {
     if (commonTokenOptionsLoading) {
       return undefined
     }
 
-    return [...(suggestedSection ?? []), ...(yourTokensSection ?? [])]
-  }, [commonTokenOptionsLoading, suggestedSection, yourTokensSection])
+    return [
+      ...(suggestedSection ?? []),
+      ...(isOppositeCBTC && btcBridgingSection ? btcBridgingSection : []),
+      ...(yourTokensSection ?? []),
+    ]
+  }, [commonTokenOptionsLoading, isOppositeCBTC, btcBridgingSection, suggestedSection, yourTokensSection])
 
   return useMemo(
     () => ({

@@ -137,9 +137,22 @@ export function useOnSelectCurrency({
 
       newState[field] = tradeableAsset
 
+      // For BTC bridging tokens, set a default amount if none exists
+      const isBtcBridging =
+        (currency.chainId === 5115 && // CitreaTestnet
+          (currencyAddress(currency).toLowerCase() === '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' ||
+            currencyAddress(currency).toLowerCase() === '0xcccccccccccccccccccccccccccccccccccccccc')) ||
+        (otherFieldTradeableAsset &&
+          otherFieldTradeableAsset.chainId === 5115 &&
+          (otherFieldTradeableAsset.address?.toLowerCase() === '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' ||
+            otherFieldTradeableAsset.address?.toLowerCase() === '0xcccccccccccccccccccccccccccccccccccccccc'))
+
       if (getShouldResetExactAmountToken({ input, output, exactCurrencyField }, newState)) {
-        newState.exactAmountToken = ''
-        newState.exactAmountFiat = ''
+        // Don't reset for BTC bridging - keep the amount
+        if (!isBtcBridging) {
+          newState.exactAmountToken = ''
+          newState.exactAmountFiat = ''
+        }
       }
 
       // TODO(WEB-6230): This value is not what we want here, as it breaks bridging in the interface's TDP.

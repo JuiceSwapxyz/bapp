@@ -1,6 +1,7 @@
 import { Currency } from '@juiceswapxyz/sdk-core'
+import { ProtectionResult } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
+import { CurrencyInfo, TokenList } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
 
 const citreaNativeCurrency = {
@@ -125,13 +126,68 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
 /**
  * Checks if a given currency is a hardcoded trusted token that should not show safety warnings
  */
+/**
+ * Hardcoded bridging tokens for cBTC cross-chain swaps
+ * Note: These use Citrea Testnet as chainId to prevent unwanted chain switching
+ * Using valid checksum addresses as placeholders
+ *
+ * IMPORTANT: These are placeholder tokens for UI demonstration purposes.
+ * They should be replaced with actual bridge contract addresses when available.
+ */
+export const btcBridgingTokens: CurrencyInfo[] = [
+  {
+    currency: buildCurrency({
+      chainId: UniverseChainId.CitreaTestnet,
+      address: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', // Placeholder for BTC OnChain bridge
+      decimals: 8,
+      symbol: 'BTC',
+      name: 'BTC (OnChain)',
+    }) as Currency,
+    currencyId: `${UniverseChainId.CitreaTestnet}-0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB`,
+    logoUrl: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+    isSpam: false,
+    safetyInfo: {
+      tokenList: TokenList.Default,
+      protectionResult: ProtectionResult.Benign,
+    },
+  },
+  {
+    currency: buildCurrency({
+      chainId: UniverseChainId.CitreaTestnet,
+      address: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC', // Placeholder for BTC Lightning bridge
+      decimals: 8,
+      symbol: 'BTC',
+      name: 'BTC (Lightning)',
+    }) as Currency,
+    currencyId: `${UniverseChainId.CitreaTestnet}-0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC`,
+    logoUrl: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+    isSpam: false,
+    safetyInfo: {
+      tokenList: TokenList.Default,
+      protectionResult: ProtectionResult.Benign,
+    },
+  },
+]
+
+/**
+ * Check if a given address is a BTC bridging token placeholder
+ */
+export function isBtcBridgingToken(chainId: number, address: string): boolean {
+  const normalizedAddress = address.toLowerCase()
+  return (
+    chainId === UniverseChainId.CitreaTestnet &&
+    (normalizedAddress === '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' ||
+      normalizedAddress === '0xcccccccccccccccccccccccccccccccccccccccc')
+  )
+}
+
 export function isHardcodedTrustedToken(currency: Currency): boolean {
   if (currency.isNative) {
     return true
   }
 
   // Check if the currency matches any of our hardcoded common base currencies
-  return hardcodedCommonBaseCurrencies.some(
+  const isCommonBaseCurrency = hardcodedCommonBaseCurrencies.some(
     (hardcodedCurrency) =>
       hardcodedCurrency.currency.chainId === currency.chainId &&
       !hardcodedCurrency.currency.isNative &&
@@ -139,4 +195,20 @@ export function isHardcodedTrustedToken(currency: Currency): boolean {
       'address' in currency &&
       hardcodedCurrency.currency.address.toLowerCase() === currency.address.toLowerCase(),
   )
+
+  if (isCommonBaseCurrency) {
+    return true
+  }
+
+  // Check if the currency matches any of our BTC bridging tokens
+  const isBridgingToken = btcBridgingTokens.some(
+    (bridgingToken) =>
+      bridgingToken.currency.chainId === currency.chainId &&
+      !bridgingToken.currency.isNative &&
+      'address' in bridgingToken.currency &&
+      'address' in currency &&
+      bridgingToken.currency.address.toLowerCase() === currency.address.toLowerCase(),
+  )
+
+  return isBridgingToken
 }
