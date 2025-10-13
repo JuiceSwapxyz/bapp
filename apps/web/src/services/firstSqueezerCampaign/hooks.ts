@@ -147,7 +147,7 @@ function useUrlFirstSqueezerOverride(): boolean {
 function useIsFirstSqueezerTimeActive(): boolean {
   const hasUrlOverride = useUrlFirstSqueezerOverride()
 
-  // Campaign start time: October 12, 2025 at 00:00 UTC
+  // Campaign start time: October 22, 2025 at 00:00 UTC
   return useMemo(() => {
     // URL Override has priority - if active, campaign is always on
     if (hasUrlOverride) {
@@ -155,7 +155,7 @@ function useIsFirstSqueezerTimeActive(): boolean {
     }
 
     // Normal time-based logic
-    const campaignStartTime = new Date('2025-10-12T00:00:00.000Z').getTime()
+    const campaignStartTime = new Date('2025-10-22T00:00:00.000Z').getTime()
     const now = Date.now()
     return now >= campaignStartTime
   }, [hasUrlOverride])
