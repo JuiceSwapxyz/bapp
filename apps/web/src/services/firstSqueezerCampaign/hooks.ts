@@ -1,10 +1,10 @@
 import { useAccount } from 'hooks/useAccount'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useBAppsCampaignProgress } from 'services/bappsCampaign/hooks'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 
-import { firstSqueezerCampaignAPI } from './api'
+import { FIRST_SQUEEZER_NFT_ABI, firstSqueezerCampaignAPI } from './api'
 import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest } from './types'
 
 /**
@@ -13,7 +13,6 @@ import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest 
 export function useFirstSqueezerProgress() {
   const account = useAccount()
   const { defaultChainId } = useEnabledChains()
-  const { progress: bAppsProgress } = useBAppsCampaignProgress()
 
   const [progress, setProgress] = useState<FirstSqueezerProgress | null>(null)
   const [loading, setLoading] = useState(false)
@@ -30,33 +29,19 @@ export function useFirstSqueezerProgress() {
     setError(null)
 
     try {
+      // API fetches everything - no need for manual merging
       const data = await firstSqueezerCampaignAPI.getProgress(account.address, defaultChainId)
-
-      // Update bApps condition based on actual progress
-      if (bAppsProgress) {
-        const bAppsCondition = data.conditions.find((c) => c.type === ConditionType.BAPPS_COMPLETED)
-        if (bAppsCondition) {
-          const isCompleted = bAppsProgress.completedTasks === 3
-          bAppsCondition.status = isCompleted ? ConditionStatus.COMPLETED : ConditionStatus.PENDING
-          if (isCompleted && bAppsProgress.tasks[2]?.completedAt) {
-            bAppsCondition.completedAt = bAppsProgress.tasks[2].completedAt
-          }
-        }
-
-        // Recalculate progress
-        const completedConditions = data.conditions.filter((c) => c.status === ConditionStatus.COMPLETED).length
-        data.completedConditions = completedConditions
-        data.progress = (completedConditions / data.totalConditions) * 100
-        data.isEligibleForNFT = completedConditions === data.totalConditions && !data.nftMinted
-      }
-
       setProgress(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch campaign progress')
+      const errorMessage = err instanceof Error
+        ? `Failed to fetch campaign progress: ${err.message}`
+        : 'Failed to fetch campaign progress'
+      setError(errorMessage)
+      console.error('Campaign progress fetch error:', err)
     } finally {
       setLoading(false)
     }
-  }, [account.address, defaultChainId, bAppsProgress])
+  }, [account.address, defaultChainId])
 
   // Fetch progress on mount and when dependencies change
   useEffect(() => {
@@ -279,9 +264,61 @@ export function useDiscordOAuth() {
 export function useClaimNFT() {
   const account = useAccount()
   const { defaultChainId } = useEnabledChains()
+  const { writeContractAsync } = useWriteContract()
   const [isClaiming, setIsClaiming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [claimResult, setClaimResult] = useState<{ txHash?: string; tokenId?: string } | null>(null)
+  const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>(undefined)
+
+  // Wait for transaction confirmation
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    isError: isTransactionError,
+    error: transactionError,
+  } = useWaitForTransactionReceipt({
+    hash: pendingTxHash,
+  })
+
+  // Handle successful confirmation
+  useEffect(() => {
+    if (isConfirmed && pendingTxHash) {
+      setClaimResult({
+        txHash: pendingTxHash,
+        tokenId: undefined, // Will be indexed by Ponder
+      })
+      setPendingTxHash(undefined)
+      setIsClaiming(false)
+
+      // Dispatch event to trigger progress refresh
+      window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
+    }
+  }, [isConfirmed, pendingTxHash])
+
+  // Handle transaction errors (reverted, rejected, etc.)
+  useEffect(() => {
+    if (isTransactionError && pendingTxHash) {
+      const errorMsg = transactionError?.message || 'Transaction failed'
+      setError(`NFT claim transaction failed: ${errorMsg}`)
+      setPendingTxHash(undefined)
+      setIsClaiming(false)
+      console.error('NFT claim transaction error:', transactionError)
+    }
+  }, [isTransactionError, transactionError, pendingTxHash])
+
+  // Handle transaction timeout (2 minutes)
+  useEffect(() => {
+    if (!pendingTxHash) return
+
+    const timeoutId = setTimeout(() => {
+      setError('Transaction is taking longer than expected. Please check your wallet or try again.')
+      setPendingTxHash(undefined)
+      setIsClaiming(false)
+      console.warn('NFT claim transaction timeout:', pendingTxHash)
+    }, 120000) // 2 minutes
+
+    return () => clearTimeout(timeoutId)
+  }, [pendingTxHash])
 
   const claim = useCallback(async () => {
     if (!account.address) {
@@ -297,6 +334,7 @@ export function useClaimNFT() {
     setIsClaiming(true)
     setError(null)
     setClaimResult(null)
+    setPendingTxHash(undefined)
 
     try {
       const request: NFTClaimRequest = {
@@ -304,39 +342,59 @@ export function useClaimNFT() {
         chainId: defaultChainId,
       }
 
-      const result = await firstSqueezerCampaignAPI.claimNFT(request)
+      // Call API with wagmi contract interaction callback
+      const result = await firstSqueezerCampaignAPI.claimNFT(
+        request,
+        async (signature, contractAddress) => {
+          // Validate address format (must be exactly 20 bytes = 40 hex chars)
+          if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
+            throw new Error('Invalid contract address received from API')
+          }
+          // Validate signature format (must be exactly 65 bytes = 130 hex chars)
+          if (!/^0x[a-fA-F0-9]{130}$/.test(signature)) {
+            throw new Error('Invalid signature received from API')
+          }
 
-      if (result.success) {
-        setClaimResult({
-          txHash: result.txHash,
-          tokenId: result.tokenId,
-        })
+          // Actual contract interaction via wagmi
+          const tx = await writeContractAsync({
+            address: contractAddress as `0x${string}`,
+            abi: FIRST_SQUEEZER_NFT_ABI,
+            functionName: 'claim',
+            args: [signature as `0x${string}`],
+          })
+          return tx
+        }
+      )
 
-        // Dispatch event to trigger progress refresh
-        window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
+      if (result.success && result.txHash) {
+        // Set pending tx hash to trigger confirmation waiting
+        setPendingTxHash(result.txHash as `0x${string}`)
+        // Note: isClaiming stays true until confirmation completes
         return true
       } else {
         setError(result.error || 'NFT claim failed')
+        setIsClaiming(false)
         return false
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'NFT claim failed'
+      const errorMsg = err instanceof Error ? err.message : 'NFT claim transaction failed'
       setError(errorMsg)
-      return false
-    } finally {
       setIsClaiming(false)
+      setPendingTxHash(undefined)
+      return false
     }
-  }, [account.address, defaultChainId])
+  }, [account.address, defaultChainId, writeContractAsync])
 
   const reset = useCallback(() => {
     setError(null)
     setClaimResult(null)
+    setPendingTxHash(undefined)
   }, [])
 
   return {
     claim,
     reset,
-    isClaiming,
+    isClaiming: isClaiming || isConfirming, // Claiming includes confirmation wait
     error,
     claimResult,
   }
