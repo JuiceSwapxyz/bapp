@@ -1,11 +1,5 @@
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import {
-  ConditionStatus,
-  ConditionType,
-  FirstSqueezerProgress,
-  NFTClaimRequest,
-  NFTClaimResponse,
-} from './types'
+import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest, NFTClaimResponse } from './types'
 
 // API base URL - same as routing/swap API
 const API_BASE_URL =
@@ -74,9 +68,10 @@ class FirstSqueezerCampaignAPI {
         id: 2,
         type: ConditionType.TWITTER_FOLLOW,
         name: 'Verify Twitter Account',
-        description: twitterVerified && twitterUsername
-          ? `Verified as @${twitterUsername}`
-          : 'Sign in with Twitter to verify your account',
+        description:
+          twitterVerified && twitterUsername
+            ? `Verified as @${twitterUsername}`
+            : 'Sign in with Twitter to verify your account',
         status: twitterVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
         completedAt: twitterVerifiedAt,
         ctaText: twitterVerified ? 'Verified' : 'Verify with Twitter',
@@ -86,9 +81,10 @@ class FirstSqueezerCampaignAPI {
         id: 3,
         type: ConditionType.DISCORD_JOIN,
         name: 'Verify Discord Account',
-        description: discordVerified && discordUsername
-          ? `Verified as ${discordUsername}`
-          : 'Sign in with Discord to verify your account',
+        description:
+          discordVerified && discordUsername
+            ? `Verified as ${discordUsername}`
+            : 'Sign in with Discord to verify your account',
         status: discordVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
         completedAt: discordVerifiedAt,
         ctaText: discordVerified ? 'Verified' : 'Verify with Discord',
@@ -121,7 +117,7 @@ class FirstSqueezerCampaignAPI {
   async startTwitterOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -146,7 +142,7 @@ class FirstSqueezerCampaignAPI {
   }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/status?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -167,7 +163,7 @@ class FirstSqueezerCampaignAPI {
   async startDiscordOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/start?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/start?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -192,7 +188,7 @@ class FirstSqueezerCampaignAPI {
   }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/status?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {

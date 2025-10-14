@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { Chart } from 'ui/src/components/icons/Chart'
 
@@ -201,7 +201,8 @@ export default function CampaignAnalytics() {
         setIsLoadingGrowth(true)
         setGrowthError(null)
         // Use proxy in development, direct URL in production
-        const isDevelopment = typeof window !== 'undefined' &&
+        const isDevelopment =
+          typeof window !== 'undefined' &&
           (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         const baseUrl = isDevelopment
           ? '/api/ponder'
@@ -229,7 +230,8 @@ export default function CampaignAnalytics() {
         setIsLoadingCompletion(true)
         setCompletionError(null)
         // Use proxy in development, direct URL in production
-        const isDevelopment = typeof window !== 'undefined' &&
+        const isDevelopment =
+          typeof window !== 'undefined' &&
           (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         const baseUrl = isDevelopment
           ? '/api/ponder'
