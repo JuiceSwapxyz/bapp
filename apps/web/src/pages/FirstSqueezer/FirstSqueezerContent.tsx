@@ -195,7 +195,12 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
 
       {/* NFT Claim Section */}
       {(progress?.isEligibleForNFT || progress?.nftMinted) && (
-        <NFTClaimSection isEligible={progress.isEligibleForNFT} walletAddress={account.address} />
+        <NFTClaimSection
+          isEligible={progress.isEligibleForNFT}
+          walletAddress={account.address}
+          nftMinted={progress.nftMinted}
+          nftTxHash={progress.nftTxHash}
+        />
       )}
 
       {/* How it Works */}

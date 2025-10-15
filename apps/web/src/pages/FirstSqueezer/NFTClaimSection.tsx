@@ -75,9 +75,11 @@ const TransactionLink = styled(Flex, {
 interface NFTClaimSectionProps {
   isEligible: boolean
   walletAddress?: string
+  nftMinted?: boolean
+  nftTxHash?: string
 }
 
-export function NFTClaimSection({ isEligible, walletAddress }: NFTClaimSectionProps) {
+export function NFTClaimSection({ isEligible, walletAddress, nftMinted, nftTxHash }: NFTClaimSectionProps) {
   const { claim, isClaiming, error, claimResult, isRabbyWallet } = useClaimNFT()
   const [showConfetti, setShowConfetti] = useState(false)
   const { width, height } = useWindowSize()
@@ -90,14 +92,18 @@ export function NFTClaimSection({ isEligible, walletAddress }: NFTClaimSectionPr
     }
   }
 
+  // Determine which transaction hash to display (prefer recent claim over API)
+  const displayTxHash = claimResult?.txHash || nftTxHash
+
   const handleViewTransaction = () => {
-    if (claimResult?.txHash) {
+    if (displayTxHash) {
       // Open Citrea testnet explorer
-      window.open(`https://explorer.testnet.citrea.xyz/tx/${claimResult.txHash}`, '_blank', 'noopener,noreferrer')
+      window.open(`https://explorer.testnet.citrea.xyz/tx/${displayTxHash}`, '_blank', 'noopener,noreferrer')
     }
   }
 
-  if (claimResult) {
+  // Show success message if NFT was claimed (either in current session or previously)
+  if (claimResult || nftMinted) {
     return (
       <>
         {showConfetti && (
@@ -120,14 +126,14 @@ export function NFTClaimSection({ isEligible, walletAddress }: NFTClaimSectionPr
               <Text variant="body2" color="$neutral2">
                 Congratulations! Your First Squeezer NFT has been minted and sent to your wallet.
               </Text>
-              {claimResult.tokenId && (
+              {claimResult?.tokenId && (
                 <Text variant="body3" color="$neutral2">
                   Token ID: #{claimResult.tokenId}
                 </Text>
               )}
             </Flex>
 
-            {claimResult.txHash && (
+            {displayTxHash && (
               <TransactionLink onPress={handleViewTransaction}>
                 <Text variant="buttonLabel4" color="$accent1">
                   View Transaction
