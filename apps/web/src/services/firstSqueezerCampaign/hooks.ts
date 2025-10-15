@@ -5,7 +5,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 
 import { FIRST_SQUEEZER_NFT_ABI, firstSqueezerCampaignAPI } from './api'
-import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest } from './types'
+import { FirstSqueezerProgress, NFTClaimRequest } from './types'
 
 /**
  * Hook to fetch and manage First Squeezer campaign progress
@@ -269,6 +269,7 @@ export function useClaimNFT() {
   const [error, setError] = useState<string | null>(null)
   const [claimResult, setClaimResult] = useState<{ txHash?: string; tokenId?: string } | null>(null)
   const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>(undefined)
+  const [contractAddress, setContractAddress] = useState<string | null>(null)
 
   // Wait for transaction confirmation
   const {
@@ -276,24 +277,62 @@ export function useClaimNFT() {
     isSuccess: isConfirmed,
     isError: isTransactionError,
     error: transactionError,
+    data: receipt,
   } = useWaitForTransactionReceipt({
     hash: pendingTxHash,
   })
 
   // Handle successful confirmation
   useEffect(() => {
-    if (isConfirmed && pendingTxHash) {
+    if (isConfirmed && pendingTxHash && receipt) {
+      // Extract token ID from Transfer event logs
+      let tokenId: string | undefined
+      try {
+        // ERC-721 Transfer event signature: Transfer(address,address,uint256)
+        const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+        const transferLog = receipt.logs.find((log) => log.topics[0] === transferTopic)
+        if (transferLog && transferLog.topics[3]) {
+          // Token ID is the 4th topic (index 3) in ERC-721 Transfer events
+          tokenId = BigInt(transferLog.topics[3]).toString()
+        }
+      } catch (err) {
+        console.error('Failed to extract token ID from receipt:', err)
+      }
+
       setClaimResult({
         txHash: pendingTxHash,
-        tokenId: undefined, // Will be indexed by Ponder
+        tokenId,
       })
       setPendingTxHash(undefined)
       setIsClaiming(false)
 
+      // Automatically add NFT to wallet
+      if (contractAddress && tokenId && window.ethereum) {
+        // Type assertion needed for wallet_watchAsset method
+        const provider = window.ethereum as any
+        provider
+          .request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC721',
+              options: {
+                address: contractAddress,
+                tokenId,
+              },
+            },
+          })
+          .then(() => {
+            console.log('NFT added to wallet successfully')
+          })
+          .catch((err: Error) => {
+            console.error('Failed to add NFT to wallet:', err)
+          })
+      }
+
       // Dispatch event to trigger progress refresh
       window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
     }
-  }, [isConfirmed, pendingTxHash])
+  }, [isConfirmed, pendingTxHash, receipt, contractAddress])
 
   // Handle transaction errors (reverted, rejected, etc.)
   useEffect(() => {
@@ -335,6 +374,7 @@ export function useClaimNFT() {
     setError(null)
     setClaimResult(null)
     setPendingTxHash(undefined)
+    setContractAddress(null)
 
     try {
       const request: NFTClaimRequest = {
@@ -345,9 +385,9 @@ export function useClaimNFT() {
       // Call API with wagmi contract interaction callback
       const result = await firstSqueezerCampaignAPI.claimNFT(
         request,
-        async (signature, contractAddress) => {
+        async (signature, contractAddr) => {
           // Validate address format (must be exactly 20 bytes = 40 hex chars)
-          if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
+          if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddr)) {
             throw new Error('Invalid contract address received from API')
           }
           // Validate signature format (must be exactly 65 bytes = 130 hex chars)
@@ -355,12 +395,16 @@ export function useClaimNFT() {
             throw new Error('Invalid signature received from API')
           }
 
+          // Store contract address for later use (NFT import)
+          setContractAddress(contractAddr)
+
           // Actual contract interaction via wagmi
           const tx = await writeContractAsync({
-            address: contractAddress as `0x${string}`,
+            address: contractAddr as `0x${string}`,
             abi: FIRST_SQUEEZER_NFT_ABI,
             functionName: 'claim',
             args: [signature as `0x${string}`],
+            chainId: UniverseChainId.CitreaTestnet,
           })
           return tx
         }
@@ -389,6 +433,7 @@ export function useClaimNFT() {
     setError(null)
     setClaimResult(null)
     setPendingTxHash(undefined)
+    setContractAddress(null)
   }, [])
 
   return {
