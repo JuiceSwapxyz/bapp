@@ -4,6 +4,7 @@ import { useTheme } from 'lib/styled-components'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
+import { useIsFirstSqueezerCampaignVisible } from 'services/firstSqueezerCampaign/hooks'
 import { Text } from 'ui/src'
 import { Compass } from 'ui/src/components/icons/Compass'
 import { Pools } from 'ui/src/components/icons/Pools'
@@ -26,6 +27,7 @@ export const useTabsContent = (): TabsSection[] => {
   const { pathname } = useLocation()
   const theme = useTheme()
   const showBAppsTab = useIsBAppsCampaignVisible()
+  const showFirstSqueezerTab = useIsFirstSqueezerCampaignVisible()
 
   const baseItems = [
     {
@@ -69,18 +71,28 @@ export const useTabsContent = (): TabsSection[] => {
     },
   ]
 
-  // Add bApps tab if on Citrea Testnet
+  // Collect conditional tabs
+  const conditionalTabs: TabsSection[] = []
+
+  // Add bApps tab if campaign is visible
   if (showBAppsTab) {
-    return [
-      ...baseItems,
-      {
-        title: '₿apps',
-        href: '/bapps',
-        isActive: pathname.startsWith('/bapps'),
-        icon: <Text fontSize={16}>₿</Text>,
-      },
-    ]
+    conditionalTabs.push({
+      title: '₿apps',
+      href: '/bapps',
+      isActive: pathname.startsWith('/bapps'),
+      icon: <Text fontSize={16}>₿</Text>,
+    })
   }
 
-  return baseItems
+  // Add First Squeezer tab if campaign is visible
+  if (showFirstSqueezerTab) {
+    conditionalTabs.push({
+      title: 'First Squeezer',
+      href: '/first-squeezer',
+      isActive: pathname.startsWith('/first-squeezer'),
+      icon: <Text fontSize={16}>🍋</Text>,
+    })
+  }
+
+  return [...baseItems, ...conditionalTabs]
 }

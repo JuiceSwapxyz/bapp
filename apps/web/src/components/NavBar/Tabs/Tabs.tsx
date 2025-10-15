@@ -54,13 +54,11 @@ const Tab = ({
   isActive,
   path,
   items,
-  isBApps = false,
 }: {
   label: string
   isActive?: boolean
   path: string
   items?: TabsItem[]
-  isBApps?: boolean
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const popoverRef = useRef<Popover>(null)
@@ -71,26 +69,7 @@ const Tab = ({
   }, [popoverRef])
   useEffect(() => closeMenu(), [location, closeMenu])
 
-  const Label = isBApps ? (
-    <NavLink to={path} style={{ textDecoration: 'none' }} target="_blank" rel="noopener noreferrer">
-      <Flex
-        backgroundColor="#FF9800"
-        borderRadius="$rounded8"
-        px="$spacing8"
-        py="$spacing2"
-        hoverStyle={{
-          backgroundColor: '#FFB84D',
-          transform: 'translateY(-1px)',
-        }}
-        animation="fast"
-        cursor="pointer"
-      >
-        <TabText variant="body2" color="white" fontWeight="$semibold" hoverStyle={{ color: 'white' }}>
-          {label}
-        </TabText>
-      </Flex>
-    </NavLink>
-  ) : (
+  const Label = (
     <NavLink to={path} style={{ textDecoration: 'none' }}>
       <TabText variant="subheading1" isActive={isActive || isOpen}>
         {label}
@@ -127,14 +106,7 @@ export function Tabs() {
   return (
     <>
       {tabsContent.map(({ title, isActive, href, items }, index) => (
-        <Tab
-          key={`${title}_${index}`}
-          label={title}
-          isActive={isActive}
-          path={href}
-          items={items}
-          isBApps={title === '₿apps'}
-        />
+        <Tab key={`${title}_${index}`} label={title} isActive={isActive} path={href} items={items} />
       ))}
     </>
   )
