@@ -1,11 +1,5 @@
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import {
-  ConditionStatus,
-  ConditionType,
-  FirstSqueezerProgress,
-  NFTClaimRequest,
-  NFTClaimResponse,
-} from './types'
+import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest, NFTClaimResponse } from './types'
 
 // API base URL - same as routing/swap API
 const API_BASE_URL =
@@ -99,9 +93,7 @@ class FirstSqueezerCampaignAPI {
         name: 'Complete ₿apps Campaign',
         description: 'Complete all 3 swap tasks in the Citrea ₿apps Campaign',
         status: bAppsCompleted ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
-        completedAt: bAppsCompleted && bAppsData?.tasks?.[2]?.completedAt
-          ? bAppsData.tasks[2].completedAt
-          : undefined,
+        completedAt: bAppsCompleted && bAppsData?.tasks?.[2]?.completedAt ? bAppsData.tasks[2].completedAt : undefined,
         ctaText: 'View Campaign',
         ctaUrl: '/bapps',
       },
@@ -109,9 +101,10 @@ class FirstSqueezerCampaignAPI {
         id: 2,
         type: ConditionType.TWITTER_FOLLOW,
         name: 'Verify Twitter Account',
-        description: twitterVerified && twitterUsername
-          ? `Verified as @${twitterUsername}`
-          : 'Sign in with Twitter to verify your account',
+        description:
+          twitterVerified && twitterUsername
+            ? `Verified as @${twitterUsername}`
+            : 'Sign in with Twitter to verify your account',
         status: twitterVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
         completedAt: twitterVerifiedAt,
         ctaText: twitterVerified ? 'Verified' : 'Verify with Twitter',
@@ -121,9 +114,10 @@ class FirstSqueezerCampaignAPI {
         id: 3,
         type: ConditionType.DISCORD_JOIN,
         name: 'Verify Discord Account',
-        description: discordVerified && discordUsername
-          ? `Verified as ${discordUsername}`
-          : 'Sign in with Discord to verify your account',
+        description:
+          discordVerified && discordUsername
+            ? `Verified as ${discordUsername}`
+            : 'Sign in with Discord to verify your account',
         status: discordVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
         completedAt: discordVerifiedAt,
         ctaText: discordVerified ? 'Verified' : 'Verify with Discord',
@@ -156,7 +150,7 @@ class FirstSqueezerCampaignAPI {
   async startTwitterOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -181,7 +175,7 @@ class FirstSqueezerCampaignAPI {
   }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/status?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -202,7 +196,7 @@ class FirstSqueezerCampaignAPI {
   async startDiscordOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/start?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/start?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -227,7 +221,7 @@ class FirstSqueezerCampaignAPI {
   }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/status?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -264,7 +258,7 @@ class FirstSqueezerCampaignAPI {
   }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -289,7 +283,7 @@ class FirstSqueezerCampaignAPI {
   }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/nft/signature?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/nft/signature?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -310,7 +304,7 @@ class FirstSqueezerCampaignAPI {
    */
   async claimNFT(
     request: NFTClaimRequest,
-    contractInteraction: (signature: string, contractAddress: string) => Promise<string>
+    contractInteraction: (signature: string, contractAddress: string) => Promise<string>,
   ): Promise<NFTClaimResponse> {
     const { walletAddress } = request
 
@@ -334,7 +328,6 @@ class FirstSqueezerCampaignAPI {
       }
     }
   }
-
 }
 
 // Export singleton instance

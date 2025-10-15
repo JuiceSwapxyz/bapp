@@ -53,7 +53,7 @@ class BAppsCampaignAPI {
     // Try backend API proxy (which queries Ponder with retry logic)
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {

@@ -2,10 +2,10 @@ import { useAccount } from 'hooks/useAccount'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
 import { FIRST_SQUEEZER_NFT_ABI, firstSqueezerCampaignAPI } from './api'
-import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest } from './types'
+import { FirstSqueezerProgress, NFTClaimRequest } from './types'
 
 /**
  * Hook to fetch and manage First Squeezer campaign progress
@@ -33,9 +33,8 @@ export function useFirstSqueezerProgress() {
       const data = await firstSqueezerCampaignAPI.getProgress(account.address, defaultChainId)
       setProgress(data)
     } catch (err) {
-      const errorMessage = err instanceof Error
-        ? `Failed to fetch campaign progress: ${err.message}`
-        : 'Failed to fetch campaign progress'
+      const errorMessage =
+        err instanceof Error ? `Failed to fetch campaign progress: ${err.message}` : 'Failed to fetch campaign progress'
       setError(errorMessage)
       console.error('Campaign progress fetch error:', err)
     } finally {
@@ -343,28 +342,26 @@ export function useClaimNFT() {
       }
 
       // Call API with wagmi contract interaction callback
-      const result = await firstSqueezerCampaignAPI.claimNFT(
-        request,
-        async (signature, contractAddress) => {
-          // Validate address format (must be exactly 20 bytes = 40 hex chars)
-          if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
-            throw new Error('Invalid contract address received from API')
-          }
-          // Validate signature format (must be exactly 65 bytes = 130 hex chars)
-          if (!/^0x[a-fA-F0-9]{130}$/.test(signature)) {
-            throw new Error('Invalid signature received from API')
-          }
-
-          // Actual contract interaction via wagmi
-          const tx = await writeContractAsync({
-            address: contractAddress as `0x${string}`,
-            abi: FIRST_SQUEEZER_NFT_ABI,
-            functionName: 'claim',
-            args: [signature as `0x${string}`],
-          })
-          return tx
+      const result = await firstSqueezerCampaignAPI.claimNFT(request, async (signature, contractAddress) => {
+        // Validate address format (must be exactly 20 bytes = 40 hex chars)
+        if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
+          throw new Error('Invalid contract address received from API')
         }
-      )
+        // Validate signature format (must be exactly 65 bytes = 130 hex chars)
+        if (!/^0x[a-fA-F0-9]{130}$/.test(signature)) {
+          throw new Error('Invalid signature received from API')
+        }
+
+        // Actual contract interaction via wagmi
+        const tx = await writeContractAsync({
+          address: contractAddress as `0x${string}`,
+          abi: FIRST_SQUEEZER_NFT_ABI,
+          functionName: 'claim',
+          args: [signature as `0x${string}`],
+          chainId: UniverseChainId.CitreaTestnet,
+        })
+        return tx
+      })
 
       if (result.success && result.txHash) {
         // Set pending tx hash to trigger confirmation waiting

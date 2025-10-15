@@ -1,7 +1,7 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ConditionCard } from 'pages/FirstSqueezer/ConditionCard'
 import { NFTClaimSection } from 'pages/FirstSqueezer/NFTClaimSection'
-import { useFirstSqueezerProgress, useTwitterOAuth, useDiscordOAuth } from 'services/firstSqueezerCampaign/hooks'
+import { useDiscordOAuth, useFirstSqueezerProgress, useTwitterOAuth } from 'services/firstSqueezerCampaign/hooks'
 import { ConditionType } from 'services/firstSqueezerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 
@@ -52,8 +52,16 @@ interface FirstSqueezerContentProps {
 export default function FirstSqueezerContent({ account }: FirstSqueezerContentProps) {
   const accountDrawer = useAccountDrawer()
   const { progress, loading, error } = useFirstSqueezerProgress()
-  const { startOAuth: startTwitterOAuth, isLoading: isTwitterAuthenticating, error: twitterOauthError } = useTwitterOAuth()
-  const { startOAuth: startDiscordOAuth, isLoading: isDiscordAuthenticating, error: discordOauthError } = useDiscordOAuth()
+  const {
+    startOAuth: startTwitterOAuth,
+    isLoading: isTwitterAuthenticating,
+    error: twitterOauthError,
+  } = useTwitterOAuth()
+  const {
+    startOAuth: startDiscordOAuth,
+    isLoading: isDiscordAuthenticating,
+    error: discordOauthError,
+  } = useDiscordOAuth()
 
   // Get OAuth callback error from URL (if redirected from OAuth callback with error)
   const params = new URLSearchParams(window.location.search)
