@@ -6,7 +6,6 @@ import { zIndexes } from 'ui/src/theme'
 import { STATUS_RATIO } from 'uniswap/src/components/CurrencyLogo/CurrencyLogo'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { SplitLogo } from 'uniswap/src/components/CurrencyLogo/SplitLogo'
-import { TokenLogo } from 'uniswap/src/components/CurrencyLogo/TokenLogo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useCurrencyInfo } from 'uniswap/src/features/tokens/useCurrencyInfo'
 import { buildCurrencyId, currencyAddress } from 'uniswap/src/utils/currencyId'
@@ -79,12 +78,7 @@ export const DoubleCurrencyLogo = memo(function DoubleCurrencyLogo({
   if (invalidCurrencyLogo0 && invalidCurrencyLogo1) {
     return <LogolessPlaceholder currency={currencies[0]} size={size} includeNetwork={Boolean(chainId)} />
   }
-  if (invalidCurrencyLogo0 && currencyInfos[1]?.logoUrl) {
-    return <TokenLogo url={currencyInfos[1].logoUrl} size={size} chainId={chainId} />
-  }
-  if (invalidCurrencyLogo1 && currencyInfos[0]?.logoUrl) {
-    return <TokenLogo url={currencyInfos[0]?.logoUrl} size={size} chainId={chainId} />
-  }
+
   return (
     <SplitLogo
       chainId={chainId}
