@@ -50,100 +50,6 @@ describe('multiplatform connectors', () => {
       expect(result).toEqual(expect.arrayContaining(walletConnectors))
     })
 
-    it('should not deduplicate solana connectors with exact same name on same platform', () => {
-      // Arrange
-      const walletConnectors: WalletConnectorMeta[] = [
-        {
-          name: 'Phantom',
-          icon: 'phantom.svg',
-          solana: { walletName: 'Phantom' as any },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-        {
-          name: 'Phantom',
-          icon: 'phantom-alt.svg',
-          solana: { walletName: 'Phantom' as any },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-      ]
-
-      // Act
-      const result = deduplicateWalletConnectorMeta(walletConnectors)
-
-      // Assert
-      expect(result).toEqual(expect.arrayContaining(walletConnectors))
-    })
-
-    it('should merge connectors with same name on different platforms', () => {
-      // Arrange
-      const walletConnectors: WalletConnectorMeta[] = [
-        {
-          name: 'MetaMask',
-          icon: 'metamask.svg',
-          wagmi: { id: 'metamask', type: 'injected' },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-        {
-          name: 'MetaMask',
-          icon: 'metamask-wallet.svg',
-          solana: { walletName: 'MetaMask' as any },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-      ]
-
-      // Act
-      const result = deduplicateWalletConnectorMeta(walletConnectors)
-
-      // Assert
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
-        name: 'MetaMask',
-        icon: 'metamask.svg',
-        wagmi: { id: 'metamask', type: 'injected' },
-        solana: { walletName: 'MetaMask' as any },
-        isInjected: true,
-        analyticsWalletType: 'Browser Extension',
-      })
-    })
-
-    it('should merge different-platform connectors whose whose names differ by inclusion of "Wallet" in one of the names', () => {
-      // Arrange
-      const walletConnectors: WalletConnectorMeta[] = [
-        {
-          name: 'Phantom',
-          icon: 'phantom.svg',
-          wagmi: { id: 'phantom', type: 'injected' },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-        {
-          name: 'Phantom Wallet',
-          icon: 'phantom-wallet.svg',
-          solana: { walletName: 'Phantom' as any },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-      ]
-
-      // Act
-      const result = deduplicateWalletConnectorMeta(walletConnectors)
-
-      // Assert
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
-        name: 'Phantom',
-        icon: 'phantom.svg',
-        wagmi: { id: 'phantom', type: 'injected' },
-        solana: { walletName: 'Phantom' as any },
-        isInjected: true,
-        analyticsWalletType: 'Browser Extension',
-      })
-    })
-
     it('should preserve different connectors with different names', () => {
       // Arrange
       const walletConnectors: WalletConnectorMeta[] = [
@@ -164,7 +70,7 @@ describe('multiplatform connectors', () => {
         {
           name: 'Phantom',
           icon: 'phantom.svg',
-          solana: { walletName: 'Phantom' as any },
+          wagmi: { id: 'phantom', type: 'injected' },
           isInjected: true,
           analyticsWalletType: 'Browser Extension',
         },
@@ -194,46 +100,12 @@ describe('multiplatform connectors', () => {
           {
             name: 'Phantom',
             icon: 'phantom.svg',
-            solana: { walletName: 'Phantom' as any },
+            wagmi: { id: 'phantom', type: 'injected' },
             isInjected: true,
             analyticsWalletType: 'Browser Extension',
           },
         ]),
       )
-    })
-
-    it('should merge wagmi and solana connectors with same name', () => {
-      // Arrange
-      const walletConnectors: WalletConnectorMeta[] = [
-        {
-          name: 'Phantom',
-          icon: 'phantom.svg',
-          wagmi: { id: 'phantom', type: 'injected' },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-        {
-          name: 'Phantom',
-          icon: 'phantom-solana.svg',
-          solana: { walletName: 'Phantom' as any },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-      ]
-
-      // Act
-      const result = deduplicateWalletConnectorMeta(walletConnectors)
-
-      // Assert
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
-        name: 'Phantom',
-        icon: 'phantom.svg',
-        wagmi: { id: 'phantom', type: 'injected' },
-        solana: { walletName: 'Phantom' as any },
-        isInjected: true,
-        analyticsWalletType: 'Browser Extension',
-      })
     })
 
     it('should not merge custom connectors with other connectors', () => {
@@ -249,8 +121,9 @@ describe('multiplatform connectors', () => {
         },
         {
           name: 'Custom Connector',
-          icon: 'sus.svg',
-          solana: { walletName: 'Malicious Extension' as any },
+          icon: 'another.svg',
+          wagmi: { id: 'anotherConnectorId', type: 'injected' },
+          customConnectorId: 'anotherCustomId',
           isInjected: true,
           analyticsWalletType: 'Browser Extension',
         },
@@ -276,14 +149,14 @@ describe('multiplatform connectors', () => {
         {
           name: 'METAMASK WALLET',
           icon: 'metamask-caps.svg',
-          solana: { walletName: 'METAMASK WALLET' as any },
+          wagmi: { id: 'metamask-caps', type: 'injected' },
           isInjected: true,
           analyticsWalletType: 'Browser Extension',
         },
         {
           name: 'MetaMask',
-          icon: 'metamask-sus.svg',
-          solana: { walletName: 'sus metamask' as any },
+          icon: 'metamask-alt.svg',
+          wagmi: { id: 'metamask-alt', type: 'injected' },
           isInjected: true,
           analyticsWalletType: 'Browser Extension',
         },
@@ -296,41 +169,7 @@ describe('multiplatform connectors', () => {
       expect(result).toEqual(walletConnectors)
     })
 
-    it('should preserve order of first occurrence when merging', () => {
-      // Arrange
-      const walletConnectors: WalletConnectorMeta[] = [
-        {
-          name: 'MetaMask Wallet',
-          icon: 'metamask-wallet.svg',
-          wagmi: { id: 'metamask-wallet', type: 'injected' },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-        {
-          name: 'MetaMask',
-          icon: 'metamask.svg',
-          solana: { walletName: 'MetaMask' as any },
-          isInjected: true,
-          analyticsWalletType: 'Browser Extension',
-        },
-      ]
-
-      // Act
-      const result = deduplicateWalletConnectorMeta(walletConnectors)
-
-      // Assert
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
-        name: 'MetaMask Wallet',
-        icon: 'metamask-wallet.svg',
-        wagmi: { id: 'metamask-wallet', type: 'injected' },
-        solana: { walletName: 'MetaMask' as any },
-        isInjected: true,
-        analyticsWalletType: 'Browser Extension',
-      })
-    })
-
-    it('should handle connectors with undefined properties on different platforms', () => {
+    it('should handle connectors with undefined icon properties', () => {
       // Arrange
       const walletConnectors: WalletConnectorMeta[] = [
         {
@@ -341,10 +180,10 @@ describe('multiplatform connectors', () => {
           analyticsWalletType: 'Browser Extension',
         },
         {
-          name: 'MetaMask Wallet',
-          icon: 'metamask.svg',
-          solana: { walletName: 'MetaMask' as any },
-          isInjected: true,
+          name: 'Coinbase Wallet',
+          icon: 'coinbase.svg',
+          wagmi: { id: 'coinbase', type: 'coinbaseWallet' },
+          isInjected: false,
           analyticsWalletType: 'Browser Extension',
         },
       ]
@@ -353,18 +192,11 @@ describe('multiplatform connectors', () => {
       const result = deduplicateWalletConnectorMeta(walletConnectors)
 
       // Assert
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
-        name: 'MetaMask',
-        icon: 'metamask.svg',
-        wagmi: { id: 'metamask', type: 'injected' },
-        solana: { walletName: 'MetaMask' as any },
-        isInjected: true,
-        analyticsWalletType: 'Browser Extension',
-      })
+      expect(result).toHaveLength(2)
+      expect(result).toEqual(walletConnectors)
     })
 
-    it('should handle special characters in wallet names on different platforms', () => {
+    it('should handle special characters in wallet names', () => {
       // Arrange
       const walletConnectors: WalletConnectorMeta[] = [
         {
@@ -377,7 +209,7 @@ describe('multiplatform connectors', () => {
         {
           name: 'Wallet & Co. Wallet',
           icon: 'wallet-co-wallet.svg',
-          solana: { walletName: 'Wallet & Co. Wallet' as any },
+          wagmi: { id: 'wallet-co-wallet', type: 'injected' },
           isInjected: true,
           analyticsWalletType: 'Browser Extension',
         },
@@ -386,16 +218,8 @@ describe('multiplatform connectors', () => {
       // Act
       const result = deduplicateWalletConnectorMeta(walletConnectors)
 
-      // Assert
-      expect(result).toHaveLength(1)
-      expect(result[0]).toEqual({
-        name: 'Wallet & Co.',
-        icon: 'wallet-co.svg',
-        wagmi: { id: 'wallet-co', type: 'injected' },
-        solana: { walletName: 'Wallet & Co. Wallet' as any },
-        isInjected: true,
-        analyticsWalletType: 'Browser Extension',
-      })
+      // Assert - both connectors should be preserved since they're on the same platform
+      expect(result).toHaveLength(2)
     })
   })
 })

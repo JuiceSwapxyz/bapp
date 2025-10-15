@@ -4,7 +4,7 @@ import { logger } from 'utilities/src/logger/logger'
 const NORMALIZATION_RULES = [
   // Convert to lowercase
   (name: string) => name.toLowerCase(),
-  // Remove "Wallet" from the end of the `name`, for cases like "Phantom" being used as an eip6963/wagmi name while Solana utils use the `name` "Phantom Wallet"
+  // Remove "Wallet" from the end of the `name`
   (name: string) => name.replace(/ wallet$/, ''),
 ]
 
@@ -15,13 +15,7 @@ function normalizeWalletName(name: string) {
 /**
  * Merges wallet connectors into a single wallet connector, preferring the values from the first wallet connector.
  * @param walletConnectors - The wallet connectors to merge.
- * @returns A new wallet connector that represents the same wallet on multiple platforms.
- *
- * @example
- * const walletConnectorMeta1 = { name: 'Phantom', wagmi: { id: 'phantom', type: 'injected' }, isInjected: true  }
- * const walletConnectorMeta2 = { name: 'Phantom Wallet', solana: { walletName: 'Phantom Wallet' }, icon: 'https://icon.com', isInjected: true  }
- * const mergedWalletConnectorMeta = mergeWalletConnectorMeta(walletConnectorMeta1, walletConnectorMeta2)
- * // mergedWalletConnectorMeta = { name: 'Phantom', wagmi: { id: 'phantom', type: 'injected' }, solana: { walletName: 'Phantom Wallet' }, icon: 'https://icon.com', isInjected: true  }
+ * @returns A new wallet connector that represents the same wallet.
  */
 function mergeWalletConnectorMeta(
   ...walletConnectors: [WalletConnectorMeta, WalletConnectorMeta, ...WalletConnectorMeta[]]
@@ -47,12 +41,9 @@ function mergeWalletConnectorMeta(
   return mergedWalletConnector
 }
 
-/** Checks if two wallet connector meta objects can be merged, based on whether one has a solana wallet name and the other has a wagmi connector id. */
+/** Checks if two wallet connector meta objects can be merged. */
 function areConnectorsOnDifferentPlatforms(connector1: WalletConnectorMeta, connector2: WalletConnectorMeta): boolean {
-  return (
-    Boolean(connector1.solana?.walletName) !== Boolean(connector2.solana?.walletName) &&
-    Boolean(connector1.wagmi?.id) !== Boolean(connector2.wagmi?.id)
-  )
+  return Boolean(connector1.wagmi?.id) !== Boolean(connector2.wagmi?.id)
 }
 
 function shouldMergeConnectors(
@@ -80,13 +71,13 @@ function getMergedConnectors(connectors: WalletConnectorMeta[]): WalletConnector
 /**
  * Merges wallet connectors with the same name into a single wallet connector.
  * @param walletConnectors - The wallet connectors to merge.
- * @returns A new wallet connector that represents the same wallet on multiple platforms.
+ * @returns A new wallet connector that represents the same wallet.
  */
 export function deduplicateWalletConnectorMeta(walletConnectorMeta: WalletConnectorMeta[]): WalletConnectorMeta[] {
   const keyToConnectorsMap = new Map<string, WalletConnectorMeta[]>()
 
   for (const connector of walletConnectorMeta) {
-    // Use name as key, as solana wallet names do not have ids or rdns
+    // Use name as key
     const key = normalizeWalletName(connector.name)
     const existing = keyToConnectorsMap.get(key) ?? []
     keyToConnectorsMap.set(key, [...existing, connector])

@@ -1,10 +1,23 @@
+import { PonderClient } from 'services/PonderClient'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 // API endpoints for bApps campaign - uses backend proxy for Ponder data
-const BAPPS_API_BASE_URL =
+const BAPPS_API_PRIMARY_URL =
   process.env.REACT_APP_TRADING_API_URL_OVERRIDE ||
   process.env.REACT_APP_UNISWAP_GATEWAY_DNS ||
   'https://api.juiceswap.xyz'
+
+const BAPPS_API_FALLBACK_URL = process.env.REACT_APP_BAPPS_API_FALLBACK_URL
+
+// Initialize PonderClient with fallback support
+const ponderClient = new PonderClient({
+  primaryUrl: BAPPS_API_PRIMARY_URL,
+  fallbackUrl: BAPPS_API_FALLBACK_URL,
+  timeout: 10000, // 10 seconds
+  maxRetries: 2,
+  retryDelay: 1000, // 1 second
+  fallbackCooldownMs: 10 * 60 * 1000, // 10 minutes
+})
 
 // eslint-disable-next-line import/no-unused-modules
 export interface CampaignTask {
@@ -36,36 +49,25 @@ export interface SwapTaskCompletion {
 }
 
 class BAppsCampaignAPI {
-  private baseUrl: string
-
-  constructor() {
-    this.baseUrl = BAPPS_API_BASE_URL
-  }
-
   /**
    * Fetch campaign progress for a wallet address
-   * Uses backend proxy which fetches from Ponder with retry logic
+   * Uses backend proxy which fetches from Ponder with retry logic and automatic failover
    */
   async getCampaignProgress(walletAddress: string, chainId: UniverseChainId): Promise<CampaignProgress> {
     // Get local progress as fallback
     const localProgress = this.getDefaultProgress(walletAddress, chainId)
 
-    // Try backend API proxy (which queries Ponder with retry logic)
+    // Try backend API proxy (which queries Ponder with automatic failover)
     try {
-      const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`,
+      const apiProgress = await ponderClient.get(
+        `/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch campaign progress: ${response.status}`)
-      }
-
-      const apiProgress = await response.json()
 
       // API data is authoritative since it comes from indexed blockchain data
       // Merge with local structure to preserve offline completions
       return this.mergeProgress(localProgress, apiProgress)
     } catch (error) {
+      // Silently fall back to local progress on error
       // API error - use localStorage as fallback for offline functionality
       return localProgress
     }
@@ -76,18 +78,7 @@ class BAppsCampaignAPI {
    */
   async submitTaskCompletion(completion: SwapTaskCompletion): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/campaign/complete-task`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(completion),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to submit task completion: ${response.status}`)
-      }
-
+      await ponderClient.post('/campaign/complete-task', { body: completion })
       return true
     } catch (error) {
       // Error is handled by fallback to localStorage
@@ -127,36 +118,25 @@ class BAppsCampaignAPI {
       }
     }
 
-    // If API is available and we don't have local token info, try API
-    if (this.baseUrl && this.baseUrl !== 'offline') {
-      try {
-        const response = await fetch(`${this.baseUrl}/campaign/check-swap`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            txHash,
-            walletAddress,
-            chainId,
-          }),
-        })
+    // Try API with automatic failover
+    try {
+      const data = await ponderClient.post('/campaign/check-swap', {
+        body: {
+          txHash,
+          walletAddress,
+          chainId,
+        },
+      })
 
-        if (!response.ok) {
-          throw new Error(`Failed to check swap task: ${response.status}`)
-        }
-
-        const data = await response.json()
-
-        return {
-          taskId: data.taskId || null,
-          status: data.status || 'error',
-          message: data.message,
-          confirmations: data.confirmations,
-        }
-      } catch (error) {
-        // API error, continue with local check
+      return {
+        taskId: data.taskId || null,
+        status: data.status || 'error',
+        message: data.message,
+        confirmations: data.confirmations,
       }
+    } catch (error) {
+      // Silently fall back to local check on error
+      // API error, continue with local check
     }
 
     return {
