@@ -205,7 +205,7 @@ export default function BappsContent({ account, campaignProgress, isLoading }: B
             onPress={handleConnectWallet}
             backgroundColor="$accent1"
             paddingHorizontal="$spacing16"
-            paddingVertical="$spacing12"
+            paddingVertical="$spacing16"
             borderRadius="$rounded12"
           >
             <Text variant="buttonLabel3" color="$white">
