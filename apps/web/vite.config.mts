@@ -231,6 +231,13 @@ export default defineConfig(({ mode }) => {
 
     server: {
       port: 3001,
+      proxy: {
+        '/api/ponder': {
+          target: env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/ponder/, ''),
+        },
+      },
     },
 
     build: {
