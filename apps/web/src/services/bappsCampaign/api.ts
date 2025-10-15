@@ -1,7 +1,10 @@
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
-// API endpoints for bApps campaign
-const BAPPS_API_BASE_URL = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
+// API endpoints for bApps campaign - uses backend proxy for Ponder data
+const BAPPS_API_BASE_URL =
+  process.env.REACT_APP_TRADING_API_URL_OVERRIDE ||
+  process.env.REACT_APP_UNISWAP_GATEWAY_DNS ||
+  'https://api.juiceswap.xyz'
 
 // eslint-disable-next-line import/no-unused-modules
 export interface CampaignTask {
@@ -41,44 +44,32 @@ class BAppsCampaignAPI {
 
   /**
    * Fetch campaign progress for a wallet address
-   * Prioritizes API data since Ponder automatically indexes blockchain data
+   * Uses backend proxy which fetches from Ponder with retry logic
    */
   async getCampaignProgress(walletAddress: string, chainId: UniverseChainId): Promise<CampaignProgress> {
     // Get local progress as fallback
     const localProgress = this.getDefaultProgress(walletAddress, chainId)
 
-    // Try API first since it has the most up-to-date blockchain data
-    if (this.baseUrl && this.baseUrl !== 'offline') {
-      try {
-        const response = await fetch(`${this.baseUrl}/campaign/progress`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            walletAddress,
-            chainId,
-          }),
-        })
+    // Try backend API proxy (which queries Ponder with retry logic)
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`,
+      )
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch campaign progress: ${response.status}`)
-        }
-
-        const apiProgress = await response.json()
-
-        // API data is authoritative since it's directly from blockchain
-        // But merge with local structure to ensure consistency
-        return this.mergeProgress(localProgress, apiProgress)
-      } catch (error) {
-        // API error, use local progress
-        // Campaign API unavailable, using local progress as fallback
-        return localProgress
+      if (!response.ok) {
+        throw new Error(`Failed to fetch campaign progress: ${response.status}`)
       }
-    }
 
-    // Offline mode - use local progress only
-    return localProgress
+      const apiProgress = await response.json()
+
+      // API data is authoritative since it comes from indexed blockchain data
+      // Merge with local structure to preserve offline completions
+      return this.mergeProgress(localProgress, apiProgress)
+    } catch (error) {
+      // API error - use localStorage as fallback for offline functionality
+      console.warn('BApps campaign API unavailable, using local progress:', error)
+      return localProgress
+    }
   }
 
   /**

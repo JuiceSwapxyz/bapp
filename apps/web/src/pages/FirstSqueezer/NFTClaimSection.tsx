@@ -78,7 +78,7 @@ interface NFTClaimSectionProps {
 }
 
 export function NFTClaimSection({ isEligible, walletAddress }: NFTClaimSectionProps) {
-  const { claim, isClaiming, error, claimResult } = useClaimNFT()
+  const { claim, isClaiming, error, claimResult, isRabbyWallet } = useClaimNFT()
   const [showConfetti, setShowConfetti] = useState(false)
   const { width, height } = useWindowSize()
 
@@ -178,6 +178,7 @@ export function NFTClaimSection({ isEligible, walletAddress }: NFTClaimSectionPr
       {walletAddress && (
         <Text variant="body4" color="$neutral3" textAlign="center">
           NFT will be minted to: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+          {isRabbyWallet && ' (use MetaMask for auto-import)'}
         </Text>
       )}
     </ClaimContainer>

@@ -81,6 +81,7 @@ function useSectionsForNoQuerySearch({
 
   // Load trending pools by 24H volume
   const numberOfTrendingPools = activeTab === SearchTab.All ? NUMBER_OF_RESULTS_SHORT : NUMBER_OF_RESULTS_LONG
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const poolQueryVariables = useMemo(
     () => ({
       input: { chainId: chainFilter ? chainFilter.toString() : ALL_NETWORKS_ARG },
@@ -97,7 +98,9 @@ function useSectionsForNoQuerySearch({
     isLoading: topPoolsLoading,
     error: topPoolsError,
     refetch: refetchPools,
-  } = useExploreStatsQuery<PoolStats[] | undefined>(poolQueryVariables)
+  } = useExploreStatsQuery<PoolStats[] | undefined>({
+    enabled: isWeb && (activeTab === SearchTab.All || activeTab === SearchTab.Pools),
+  })
 
   // Always call the hook but may not use its result
   const poolOptionsFromApi = usePoolStatsToPoolOptions(topPools)
