@@ -103,7 +103,7 @@ export function TwitterFollowModal({ isOpen, onDismiss, onConfirm }: TwitterFoll
         ) : (
           <>
             <Text variant="body2" color="$neutral2">
-              Great! Once you've followed @JuiceSwap_com, verify your account below.
+              Great! Once you&apos;ve followed @JuiceSwap_com, verify your account below.
             </Text>
 
             <ActionButton onPress={handleVerifyAfterFollow}>
