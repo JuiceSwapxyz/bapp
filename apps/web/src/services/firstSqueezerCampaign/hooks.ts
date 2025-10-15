@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
 import { useAccount } from 'hooks/useAccount'
+import useSelectChain from 'hooks/useSelectChain'
 import { FIRST_SQUEEZER_NFT_ABI, firstSqueezerCampaignAPI } from 'services/firstSqueezerCampaign/api'
 import { FirstSqueezerProgress, NFTClaimRequest } from 'services/firstSqueezerCampaign/types'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -265,6 +266,7 @@ export function useClaimNFT() {
   const account = useAccount()
   const { defaultChainId } = useEnabledChains()
   const { writeContractAsync } = useWriteContract()
+  const selectChain = useSelectChain()
   const [isClaiming, setIsClaiming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [claimResult, setClaimResult] = useState<{ txHash?: string; tokenId?: string } | null>(null)
@@ -373,16 +375,21 @@ export function useClaimNFT() {
       return false
     }
 
-    if (defaultChainId !== UniverseChainId.CitreaTestnet) {
-      setError('Please switch to Citrea Testnet')
-      return false
-    }
-
     setIsClaiming(true)
     setError(null)
     setClaimResult(null)
     setPendingTxHash(undefined)
     setContractAddress(null)
+
+    // Switch to Citrea Testnet if needed
+    if (account.chainId !== UniverseChainId.CitreaTestnet) {
+      const correctChain = await selectChain(UniverseChainId.CitreaTestnet)
+      if (!correctChain) {
+        setError('Please switch to Citrea Testnet to claim your NFT')
+        setIsClaiming(false)
+        return false
+      }
+    }
 
     try {
       const request: NFTClaimRequest = {
@@ -435,7 +442,7 @@ export function useClaimNFT() {
       setPendingTxHash(undefined)
       return false
     }
-  }, [account.address, defaultChainId, writeContractAsync])
+  }, [account.address, account.chainId, selectChain, defaultChainId, writeContractAsync])
 
   const reset = useCallback(() => {
     setError(null)
