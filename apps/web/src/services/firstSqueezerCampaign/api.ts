@@ -100,11 +100,11 @@ class FirstSqueezerCampaignAPI {
       {
         id: 2,
         type: ConditionType.TWITTER_FOLLOW,
-        name: 'Verify Twitter Account',
+        name: 'Follow @JuiceSwap_com on X',
         description:
           twitterVerified && twitterUsername
             ? `Verified as @${twitterUsername}`
-            : 'Sign in with Twitter to verify your account',
+            : 'Sign in with Twitter and follow @JuiceSwap_com',
         status: twitterVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
         completedAt: twitterVerifiedAt,
         ctaText: twitterVerified ? 'Verified' : 'Verify with Twitter',
