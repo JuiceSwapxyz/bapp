@@ -19,12 +19,12 @@ import { GqlResult, SpamCode } from 'uniswap/src/data/types'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
+import { useJuiceSwapPortfolioData } from 'uniswap/src/features/dataApi/balances/balancesJuiceSwap'
 import {
   useRESTPortfolioData,
   useRESTPortfolioTotalValue,
   useRestPortfolioCacheUpdater,
 } from 'uniswap/src/features/dataApi/balances/balancesRest'
-import { useJuiceSwapPortfolioData } from 'uniswap/src/features/dataApi/balances/balancesJuiceSwap'
 import { sortBalancesByName } from 'uniswap/src/features/dataApi/balances/utils'
 import { PortfolioBalance } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
