@@ -93,9 +93,7 @@ class FirstSqueezerCampaignAPI {
         name: 'Complete ₿apps Campaign',
         description: 'Complete all 3 swap tasks in the Citrea ₿apps Campaign',
         status: bAppsCompleted ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
-        completedAt: bAppsCompleted && bAppsData?.tasks?.[2]?.completedAt
-          ? bAppsData.tasks[2].completedAt
-          : undefined,
+        completedAt: bAppsCompleted && bAppsData?.tasks?.[2]?.completedAt ? bAppsData.tasks[2].completedAt : undefined,
         ctaText: 'View Campaign',
         ctaUrl: '/bapps',
       },
@@ -260,7 +258,7 @@ class FirstSqueezerCampaignAPI {
   }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -285,7 +283,7 @@ class FirstSqueezerCampaignAPI {
   }> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/nft/signature?walletAddress=${encodeURIComponent(walletAddress)}`
+        `${this.baseUrl}/v1/campaigns/first-squeezer/nft/signature?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
 
       if (!response.ok) {
@@ -306,7 +304,7 @@ class FirstSqueezerCampaignAPI {
    */
   async claimNFT(
     request: NFTClaimRequest,
-    contractInteraction: (signature: string, contractAddress: string) => Promise<string>
+    contractInteraction: (signature: string, contractAddress: string) => Promise<string>,
   ): Promise<NFTClaimResponse> {
     const { walletAddress } = request
 
@@ -330,7 +328,6 @@ class FirstSqueezerCampaignAPI {
       }
     }
   }
-
 }
 
 // Export singleton instance
