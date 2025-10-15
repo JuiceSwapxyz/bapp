@@ -4,13 +4,13 @@ import Identicon from 'components/Identicon'
 import CurrencyLogo from 'components/Logo/CurrencyLogo'
 import { DoubleCurrencyLogo } from 'components/Logo/DoubleLogo'
 import React, { memo } from 'react'
+import { TokenStat } from 'state/explore/types'
 import { Flex, useSporeColors } from 'ui/src'
 import { UseSporeColorsReturn } from 'ui/src/hooks/useSporeColors'
 import { SplitLogo } from 'uniswap/src/components/CurrencyLogo/SplitLogo'
 import { TokenLogo } from 'uniswap/src/components/CurrencyLogo/TokenLogo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { isTestnetChain } from 'uniswap/src/features/chains/utils'
-
 interface PortfolioLogoProps {
   chainId: UniverseChainId
   accountAddress?: string
@@ -19,6 +19,7 @@ interface PortfolioLogoProps {
   size?: number
   style?: React.CSSProperties
   customIcon?: React.ReactNode
+  token?: TokenStat
 }
 
 const LOGO_DEFAULT_SIZE = 40
@@ -26,8 +27,8 @@ const LOGO_DEFAULT_SIZE = 40
 export const PortfolioLogo = memo(function PortfolioLogo(props: PortfolioLogoProps) {
   const colors = useSporeColors()
 
-  if (isTestnetChain(props.chainId)) {
-    return <CurrencyLogo currency={props.currencies?.[0]} size={props.size} />
+  if (isTestnetChain(props.chainId) && props.currencies?.length === 1) {
+    return <CurrencyLogo currency={props.currencies[0]} size={props.size} />
   }
 
   return (
@@ -38,7 +39,7 @@ export const PortfolioLogo = memo(function PortfolioLogo(props: PortfolioLogoPro
 })
 
 function getLogo(
-  { accountAddress, currencies, images, chainId, customIcon, size = LOGO_DEFAULT_SIZE }: PortfolioLogoProps,
+  { accountAddress, currencies, images, chainId, customIcon, size = LOGO_DEFAULT_SIZE, token }: PortfolioLogoProps,
   colors: UseSporeColorsReturn,
 ) {
   if (accountAddress) {
@@ -60,7 +61,9 @@ function getLogo(
     )
   }
   if (images && images.length === 1) {
-    return <TokenLogo url={images[0]} size={size} chainId={chainId} />
+    const symbol = token?.symbol
+    return <TokenLogo url={images[0]} size={size} chainId={chainId} symbol={symbol} />
   }
+
   return <UnknownStatus width={size} height={size} color={colors.neutral2.val} />
 }
