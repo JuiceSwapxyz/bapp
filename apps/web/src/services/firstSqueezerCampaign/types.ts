@@ -57,18 +57,5 @@ export interface NFTClaimResponse {
   error?: string
 }
 
-// Social verification request
-export interface SocialVerificationRequest {
-  walletAddress: string
-  type: 'twitter' | 'discord'
-  code?: string // OAuth code
-  state?: string // OAuth state
-}
-
-// Social verification response
-export interface SocialVerificationResponse {
-  success: boolean
-  verified: boolean
-  username?: string
-  error?: string
-}
+// Note: SocialVerificationRequest and SocialVerificationResponse types removed
+// as they were unused. Twitter uses OAuth redirect flow, Discord uses manual verification.

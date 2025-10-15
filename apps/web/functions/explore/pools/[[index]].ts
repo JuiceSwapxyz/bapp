@@ -5,8 +5,8 @@ export const onRequest: PagesFunction = async ({ params, request, next }) => {
   const response = next()
   try {
     const { index } = params
-    const networkName = index[0]?.toString()
-    const poolAddress = index[1]?.toString()
+    const networkName = index[0].toString()
+    const poolAddress = index[1].toString()
     if (!poolAddress) {
       return response
     }

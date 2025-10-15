@@ -206,13 +206,12 @@ export default function Pool() {
 
   const savedPositions = useRequestPositionsForSavedPairs()
 
-  // Get hardcoded positions for the current wallet
+  // Get hardcoded positions for the current wallet (all hardcoded positions are V3)
   const hardcodedPositions = useMemo(() => {
     return getHardcodedPositionsForWallet(account.address).filter((position) => {
       const matchesChain = !chainFilter || position.chainId === chainFilter
       const matchesStatus = statusFilter.includes(position.status)
-      const matchesVersion = position.version === ProtocolVersion.V3
-      return matchesChain && matchesStatus && matchesVersion
+      return matchesChain && matchesStatus
     })
   }, [account.address, chainFilter, statusFilter])
 

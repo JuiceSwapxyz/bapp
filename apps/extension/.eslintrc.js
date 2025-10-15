@@ -7,6 +7,7 @@ module.exports = {
   extends: ['@uniswap/eslint-config/extension'],
   plugins: ['rulesdir'],
   ignorePatterns: [
+    'src',
     'node_modules',
     'dist',
     '.turbo',

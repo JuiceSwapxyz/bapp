@@ -1,9 +1,8 @@
 import { useAccount } from 'hooks/useAccount'
+import FirstSqueezerContent from 'pages/FirstSqueezer/FirstSqueezerContent'
 import { Flex, Text, styled } from 'ui/src'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
-
-import FirstSqueezerContent from './FirstSqueezerContent'
 
 const PageContainer = styled(Flex, {
   width: '100%',

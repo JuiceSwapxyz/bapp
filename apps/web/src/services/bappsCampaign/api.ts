@@ -67,7 +67,6 @@ class BAppsCampaignAPI {
       return this.mergeProgress(localProgress, apiProgress)
     } catch (error) {
       // API error - use localStorage as fallback for offline functionality
-      console.warn('BApps campaign API unavailable, using local progress:', error)
       return localProgress
     }
   }

@@ -1,14 +1,17 @@
+import {
+  ConditionStatus,
+  ConditionType,
+  FirstSqueezerProgress,
+  NFTClaimRequest,
+  NFTClaimResponse,
+} from 'services/firstSqueezerCampaign/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest, NFTClaimResponse } from './types'
 
 // API base URL - same as routing/swap API
 const API_BASE_URL =
   process.env.REACT_APP_TRADING_API_URL_OVERRIDE ||
   process.env.REACT_APP_UNISWAP_GATEWAY_DNS ||
   'https://api.juiceswap.xyz'
-
-// Citrea Testnet Chain ID
-const CITREA_TESTNET_CHAIN_ID = 5115
 
 // First Squeezer NFT Contract ABI (minimal - only claim function)
 const FIRST_SQUEEZER_NFT_ABI = [
@@ -74,17 +77,6 @@ class FirstSqueezerCampaignAPI {
     const nftClaimed = bAppsData?.nftClaimed || false
     const nftTxHash = bAppsData?.claimTxHash || undefined
 
-    // Log any errors
-    if (twitterStatus.status === 'rejected') {
-      console.warn('Failed to fetch Twitter status:', twitterStatus.reason)
-    }
-    if (discordStatus.status === 'rejected') {
-      console.warn('Failed to fetch Discord status:', discordStatus.reason)
-    }
-    if (bAppsStatus.status === 'rejected') {
-      console.warn('Failed to fetch bApps status:', bAppsStatus.reason)
-    }
-
     // Build conditions
     const conditions = [
       {
@@ -93,7 +85,7 @@ class FirstSqueezerCampaignAPI {
         name: 'Complete ₿apps Campaign',
         description: 'Complete all 3 swap tasks in the Citrea ₿apps Campaign',
         status: bAppsCompleted ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
-        completedAt: bAppsCompleted && bAppsData?.tasks?.[2]?.completedAt ? bAppsData.tasks[2].completedAt : undefined,
+        completedAt: bAppsCompleted && bAppsData.tasks[2]?.completedAt ? bAppsData.tasks[2].completedAt : undefined,
         ctaText: 'View Campaign',
         ctaUrl: '/bapps',
       },

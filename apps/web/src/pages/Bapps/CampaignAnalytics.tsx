@@ -218,7 +218,6 @@ export default function CampaignAnalytics() {
         const data = await response.json()
         setDailyGrowth(data)
       } catch (error: unknown) {
-        console.error('Failed to fetch daily growth:', error)
         setGrowthError('Unable to load daily growth data')
       } finally {
         setIsLoadingGrowth(false)
@@ -247,7 +246,6 @@ export default function CampaignAnalytics() {
         const data = await response.json()
         setHourlyCompletion(data)
       } catch (error: unknown) {
-        console.error('Failed to fetch hourly completion:', error)
         setCompletionError('Unable to load completion stats')
       } finally {
         setIsLoadingCompletion(false)

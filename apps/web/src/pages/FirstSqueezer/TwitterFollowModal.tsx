@@ -71,13 +71,7 @@ export function TwitterFollowModal({ isOpen, onDismiss, onConfirm }: TwitterFoll
   }
 
   return (
-    <Modal
-      name={ModalName.AccountEdit}
-      maxWidth={420}
-      isModalOpen={isOpen}
-      onClose={handleClose}
-      padding={0}
-    >
+    <Modal name={ModalName.AccountEdit} maxWidth={420} isModalOpen={isOpen} onClose={handleClose} padding={0}>
       <ContentWrapper>
         <Header>
           <Text variant="heading3" color="$neutral1">
@@ -109,7 +103,7 @@ export function TwitterFollowModal({ isOpen, onDismiss, onConfirm }: TwitterFoll
         ) : (
           <>
             <Text variant="body2" color="$neutral2">
-              Great! Once you've followed @JuiceSwap_com, verify your account below.
+              Great! Once you&apos;ve followed @JuiceSwap_com, verify your account below.
             </Text>
 
             <ActionButton onPress={handleVerifyAfterFollow}>

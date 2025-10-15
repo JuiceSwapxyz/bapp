@@ -127,7 +127,7 @@ export function useAllTransactions(
         },
       })
     },
-    [dataV2?.v2Transactions, dataV3?.v3Transactions, dataV4?.v4Transactions, fetchMoreV2, fetchMoreV4],
+    [dataV2?.v2Transactions, dataV4?.v4Transactions, fetchMoreV2, fetchMoreV4],
   )
 
   const filterTransaction = useCallback(
