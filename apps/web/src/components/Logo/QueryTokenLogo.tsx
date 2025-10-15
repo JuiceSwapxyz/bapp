@@ -32,7 +32,7 @@ export default function QueryTokenLogo(
     }
 
     const urlFromAddress = props.token?.address
-      ? getLocalTokenLogoUrlByAddress(props.token?.address?.toLowerCase())
+      ? getLocalTokenLogoUrlByAddress(props.token.address.toLowerCase())
       : undefined
     if (urlFromAddress) {
       return urlFromAddress
