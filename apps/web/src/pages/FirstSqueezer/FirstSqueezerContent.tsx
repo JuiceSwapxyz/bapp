@@ -1,6 +1,8 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ConditionCard } from 'pages/FirstSqueezer/ConditionCard'
 import { NFTClaimSection } from 'pages/FirstSqueezer/NFTClaimSection'
+import { TwitterFollowModal } from 'pages/FirstSqueezer/TwitterFollowModal'
+import { useState } from 'react'
 import { useDiscordOAuth, useFirstSqueezerProgress, useTwitterOAuth } from 'services/firstSqueezerCampaign/hooks'
 import { ConditionType } from 'services/firstSqueezerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
@@ -63,6 +65,9 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
     error: discordOauthError,
   } = useDiscordOAuth()
 
+  // Twitter follow modal state
+  const [isTwitterModalOpen, setIsTwitterModalOpen] = useState(false)
+
   // Get OAuth callback error from URL (if redirected from OAuth callback with error)
   const params = new URLSearchParams(window.location.search)
   const oauthCallbackError = params.get('oauth_error')
@@ -87,7 +92,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
             onPress={handleConnectWallet}
             backgroundColor="$accent1"
             paddingHorizontal="$spacing16"
-            paddingVertical="$spacing12"
+            paddingVertical="$spacing16"
             borderRadius="$rounded12"
           >
             <Text variant="buttonLabel3" color="$white">
@@ -133,7 +138,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
 
   const handleConditionAction = (conditionType: ConditionType) => {
     if (conditionType === ConditionType.TWITTER_FOLLOW) {
-      startTwitterOAuth()
+      setIsTwitterModalOpen(true)
     } else if (conditionType === ConditionType.DISCORD_JOIN) {
       startDiscordOAuth()
     }
@@ -141,6 +146,13 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
 
   return (
     <ContentContainer>
+      {/* Twitter Follow Modal */}
+      <TwitterFollowModal
+        isOpen={isTwitterModalOpen}
+        onDismiss={() => setIsTwitterModalOpen(false)}
+        onConfirm={startTwitterOAuth}
+      />
+
       {/* Progress Overview */}
       <Section>
         <SectionTitle>Your Progress</SectionTitle>
@@ -194,7 +206,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
             1. Complete all 3 swap tasks in the Citrea ₿apps Campaign
           </Text>
           <Text variant="body2" color="$neutral2">
-            2. Follow @JuiceSwap on X (Twitter)
+            2. Follow @JuiceSwap_com on X (Twitter)
           </Text>
           <Text variant="body2" color="$neutral2">
             3. Join the JuiceSwap Discord community
