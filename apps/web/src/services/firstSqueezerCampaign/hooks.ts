@@ -2,10 +2,10 @@ import { useAccount } from 'hooks/useAccount'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
 import { FIRST_SQUEEZER_NFT_ABI, firstSqueezerCampaignAPI } from './api'
-import { ConditionStatus, ConditionType, FirstSqueezerProgress, NFTClaimRequest } from './types'
+import { FirstSqueezerProgress, NFTClaimRequest } from './types'
 
 /**
  * Hook to fetch and manage First Squeezer campaign progress
@@ -33,9 +33,8 @@ export function useFirstSqueezerProgress() {
       const data = await firstSqueezerCampaignAPI.getProgress(account.address, defaultChainId)
       setProgress(data)
     } catch (err) {
-      const errorMessage = err instanceof Error
-        ? `Failed to fetch campaign progress: ${err.message}`
-        : 'Failed to fetch campaign progress'
+      const errorMessage =
+        err instanceof Error ? `Failed to fetch campaign progress: ${err.message}` : 'Failed to fetch campaign progress'
       setError(errorMessage)
       console.error('Campaign progress fetch error:', err)
     } finally {
@@ -269,6 +268,14 @@ export function useClaimNFT() {
   const [error, setError] = useState<string | null>(null)
   const [claimResult, setClaimResult] = useState<{ txHash?: string; tokenId?: string } | null>(null)
   const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>(undefined)
+  const [contractAddress, setContractAddress] = useState<string | null>(null)
+  const [isRabbyWallet, setIsRabbyWallet] = useState(false)
+
+  useEffect(() => {
+    if (window.ethereum?.isRabby === true) {
+      setIsRabbyWallet(true)
+    }
+  }, [])
 
   // Wait for transaction confirmation
   const {
@@ -276,24 +283,61 @@ export function useClaimNFT() {
     isSuccess: isConfirmed,
     isError: isTransactionError,
     error: transactionError,
+    data: receipt,
   } = useWaitForTransactionReceipt({
     hash: pendingTxHash,
   })
 
   // Handle successful confirmation
   useEffect(() => {
-    if (isConfirmed && pendingTxHash) {
+    if (isConfirmed && pendingTxHash && receipt) {
+      // Extract token ID from Transfer event logs
+      let tokenId: string | undefined
+      try {
+        // ERC-721 Transfer event signature: Transfer(address,address,uint256)
+        const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+        const transferLog = receipt.logs.find((log) => log.topics[0] === transferTopic)
+        if (transferLog && transferLog.topics[3]) {
+          // Token ID is the 4th topic (index 3) in ERC-721 Transfer events
+          tokenId = BigInt(transferLog.topics[3]).toString()
+        }
+      } catch (err) {
+        console.error('Failed to extract token ID from receipt:', err)
+      }
+
       setClaimResult({
         txHash: pendingTxHash,
-        tokenId: undefined, // Will be indexed by Ponder
+        tokenId,
       })
       setPendingTxHash(undefined)
       setIsClaiming(false)
 
+      // Automatically add NFT to wallet (skip Rabby Wallet)
+      if (contractAddress && tokenId && window.ethereum && !isRabbyWallet) {
+        const provider = window.ethereum as any
+        provider
+          .request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC721',
+              options: {
+                address: contractAddress,
+                tokenId,
+              },
+            },
+          })
+          .then(() => {
+            console.log('NFT added to wallet successfully')
+          })
+          .catch((err: Error) => {
+            console.error('Failed to add NFT to wallet:', err)
+          })
+      }
+
       // Dispatch event to trigger progress refresh
       window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
     }
-  }, [isConfirmed, pendingTxHash])
+  }, [isConfirmed, pendingTxHash, receipt, contractAddress, isRabbyWallet])
 
   // Handle transaction errors (reverted, rejected, etc.)
   useEffect(() => {
@@ -335,6 +379,7 @@ export function useClaimNFT() {
     setError(null)
     setClaimResult(null)
     setPendingTxHash(undefined)
+    setContractAddress(null)
 
     try {
       const request: NFTClaimRequest = {
@@ -343,28 +388,29 @@ export function useClaimNFT() {
       }
 
       // Call API with wagmi contract interaction callback
-      const result = await firstSqueezerCampaignAPI.claimNFT(
-        request,
-        async (signature, contractAddress) => {
-          // Validate address format (must be exactly 20 bytes = 40 hex chars)
-          if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
-            throw new Error('Invalid contract address received from API')
-          }
-          // Validate signature format (must be exactly 65 bytes = 130 hex chars)
-          if (!/^0x[a-fA-F0-9]{130}$/.test(signature)) {
-            throw new Error('Invalid signature received from API')
-          }
-
-          // Actual contract interaction via wagmi
-          const tx = await writeContractAsync({
-            address: contractAddress as `0x${string}`,
-            abi: FIRST_SQUEEZER_NFT_ABI,
-            functionName: 'claim',
-            args: [signature as `0x${string}`],
-          })
-          return tx
+      const result = await firstSqueezerCampaignAPI.claimNFT(request, async (signature, contractAddr) => {
+        // Validate address format (must be exactly 20 bytes = 40 hex chars)
+        if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddr)) {
+          throw new Error('Invalid contract address received from API')
         }
-      )
+        // Validate signature format (must be exactly 65 bytes = 130 hex chars)
+        if (!/^0x[a-fA-F0-9]{130}$/.test(signature)) {
+          throw new Error('Invalid signature received from API')
+        }
+
+        // Store contract address for later use (NFT import)
+        setContractAddress(contractAddr)
+
+        // Actual contract interaction via wagmi
+        const tx = await writeContractAsync({
+          address: contractAddr as `0x${string}`,
+          abi: FIRST_SQUEEZER_NFT_ABI,
+          functionName: 'claim',
+          args: [signature as `0x${string}`],
+          chainId: UniverseChainId.CitreaTestnet,
+        })
+        return tx
+      })
 
       if (result.success && result.txHash) {
         // Set pending tx hash to trigger confirmation waiting
@@ -389,6 +435,8 @@ export function useClaimNFT() {
     setError(null)
     setClaimResult(null)
     setPendingTxHash(undefined)
+    setContractAddress(null)
+    setIsRabbyWallet(false)
   }, [])
 
   return {
@@ -397,6 +445,7 @@ export function useClaimNFT() {
     isClaiming: isClaiming || isConfirming, // Claiming includes confirmation wait
     error,
     claimResult,
+    isRabbyWallet,
   }
 }
 
