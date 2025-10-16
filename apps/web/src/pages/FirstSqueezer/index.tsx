@@ -49,7 +49,9 @@ const MainTitle = styled(Text, {
 const Subtitle = styled(Text, {
   variant: 'body2',
   color: '$neutral2',
-  maxWidth: 600,
+  $md: {
+    maxWidth: '100%',
+  },
 })
 
 export default function FirstSqueezer() {
@@ -63,7 +65,7 @@ export default function FirstSqueezer() {
             <TitleSection>
               <Flex row gap="$spacing16" alignItems="center">
                 <NFTIcon>🍋</NFTIcon>
-                <Flex gap="$spacing8">
+                <Flex gap="$spacing8" flex={1} minWidth={0}>
                   <MainTitle>First Squeezer NFT</MainTitle>
                   <Subtitle>
                     Complete 3 simple tasks to earn your exclusive First Squeezer NFT on Citrea Testnet
