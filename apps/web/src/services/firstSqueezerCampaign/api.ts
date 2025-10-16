@@ -5,13 +5,26 @@ import {
   NFTClaimRequest,
   NFTClaimResponse,
 } from 'services/firstSqueezerCampaign/types'
+import { PonderClient } from 'services/PonderClient'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 // API base URL - same as routing/swap API
-const API_BASE_URL =
+const API_PRIMARY_URL =
   process.env.REACT_APP_TRADING_API_URL_OVERRIDE ||
   process.env.REACT_APP_UNISWAP_GATEWAY_DNS ||
   'https://api.juiceswap.xyz'
+
+const API_FALLBACK_URL = process.env.REACT_APP_FIRST_SQUEEZER_API_FALLBACK_URL
+
+// Initialize PonderClient with fallback support
+const ponderClient = new PonderClient({
+  primaryUrl: API_PRIMARY_URL,
+  fallbackUrl: API_FALLBACK_URL,
+  timeout: 10000, // 10 seconds
+  maxRetries: 2,
+  retryDelay: 1000, // 1 second
+  fallbackCooldownMs: 10 * 60 * 1000, // 10 minutes
+})
 
 // First Squeezer NFT Contract ABI (minimal - only claim function)
 const FIRST_SQUEEZER_NFT_ABI = [
@@ -41,15 +54,9 @@ const FIRST_SQUEEZER_NFT_ABI = [
 ] as const
 
 class FirstSqueezerCampaignAPI {
-  private baseUrl: string
-
-  constructor() {
-    this.baseUrl = API_BASE_URL
-  }
-
   /**
    * Get campaign progress for a wallet address
-   * Fetches all verification statuses from API endpoints only
+   * Fetches all verification statuses from API endpoints with automatic failover
    */
   async getProgress(walletAddress: string, chainId: UniverseChainId): Promise<FirstSqueezerProgress> {
     // Fetch all statuses in parallel from API
@@ -141,15 +148,9 @@ class FirstSqueezerCampaignAPI {
    */
   async startTwitterOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`,
+      const data = await ponderClient.get(
+        `/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
-
-      if (!response.ok) {
-        throw new Error(`Failed to start Twitter OAuth: ${response.statusText}`)
-      }
-
-      const data = await response.json()
       return data
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to start Twitter OAuth')
@@ -166,15 +167,9 @@ class FirstSqueezerCampaignAPI {
     verifiedAt: string | null
   }> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/status?walletAddress=${encodeURIComponent(walletAddress)}`,
+      const data = await ponderClient.get(
+        `/v1/campaigns/first-squeezer/twitter/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
-
-      if (!response.ok) {
-        throw new Error(`Failed to get Twitter status: ${response.statusText}`)
-      }
-
-      const data = await response.json()
       return data
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to get Twitter status')
@@ -187,15 +182,9 @@ class FirstSqueezerCampaignAPI {
    */
   async startDiscordOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/start?walletAddress=${encodeURIComponent(walletAddress)}`,
+      const data = await ponderClient.get(
+        `/v1/campaigns/first-squeezer/discord/start?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
-
-      if (!response.ok) {
-        throw new Error(`Failed to start Discord OAuth: ${response.statusText}`)
-      }
-
-      const data = await response.json()
       return data
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to start Discord OAuth')
@@ -212,15 +201,9 @@ class FirstSqueezerCampaignAPI {
     verifiedAt: string | null
   }> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/discord/status?walletAddress=${encodeURIComponent(walletAddress)}`,
+      const data = await ponderClient.get(
+        `/v1/campaigns/first-squeezer/discord/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
-
-      if (!response.ok) {
-        throw new Error(`Failed to get Discord status: ${response.statusText}`)
-      }
-
-      const data = await response.json()
       return data
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to get Discord status')
@@ -229,7 +212,7 @@ class FirstSqueezerCampaignAPI {
 
   /**
    * Get bApps campaign completion status
-   * Returns swap progress and NFT claim status from Ponder (via API proxy)
+   * Returns swap progress and NFT claim status from Ponder (via API proxy with failover)
    */
   async getBAppsStatus(walletAddress: string): Promise<{
     walletAddress: string
@@ -249,15 +232,9 @@ class FirstSqueezerCampaignAPI {
     claimTxHash: string | null
   }> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`,
+      const data = await ponderClient.get(
+        `/v1/campaigns/first-squeezer/bapps/status?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
-
-      if (!response.ok) {
-        throw new Error(`Failed to get bApps status: ${response.statusText}`)
-      }
-
-      const data = await response.json()
       return data
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to get bApps status')
@@ -274,16 +251,9 @@ class FirstSqueezerCampaignAPI {
     contractAddress: string
   }> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/nft/signature?walletAddress=${encodeURIComponent(walletAddress)}`,
+      const data = await ponderClient.get(
+        `/v1/campaigns/first-squeezer/nft/signature?walletAddress=${encodeURIComponent(walletAddress)}`,
       )
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Failed to get NFT signature: ${response.statusText}`)
-      }
-
-      const data = await response.json()
       return data
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to get NFT signature')

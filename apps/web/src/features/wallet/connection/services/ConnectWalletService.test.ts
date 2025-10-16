@@ -5,7 +5,6 @@ import {
 } from 'features/wallet/connection/services/ConnectWalletService'
 import type {
   CustomWalletConnectorMeta,
-  SolanaWalletConnectorMeta,
   WagmiWalletConnectorMeta,
 } from 'features/wallet/connection/types/WalletConnectorMeta'
 import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
@@ -29,30 +28,18 @@ const createMockWagmiWalletConnectorMeta = (overrides = {}): WagmiWalletConnecto
   ...overrides,
 })
 
-const createMockSolanaWalletConnectorMeta = (overrides = {}): SolanaWalletConnectorMeta => ({
-  name: 'Solana Wallet',
-  icon: 'solana-icon.svg',
-  solana: { walletName: 'Phantom' as any },
-  isInjected: true,
-  analyticsWalletType: 'Browser Extension',
-  ...overrides,
-})
-
 describe('ConnectWalletService', () => {
-  let mockConnectSolanaWallet: Mock
   let mockConnectWagmiWallet: Mock
   let mockConnectCustomWalletsMap: Record<CustomConnectorId, Mock>
   let connectWalletService: ConnectWalletService
 
   beforeEach(() => {
-    mockConnectSolanaWallet = vi.fn().mockResolvedValue(undefined)
     mockConnectWagmiWallet = vi.fn().mockResolvedValue(undefined)
     mockConnectCustomWalletsMap = {
       [CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID]: vi.fn().mockResolvedValue(undefined),
     }
 
     connectWalletService = createConnectWalletService({
-      connectSolanaWallet: mockConnectSolanaWallet,
       connectWagmiWallet: mockConnectWagmiWallet,
       connectCustomWalletsMap: mockConnectCustomWalletsMap,
     })
@@ -75,7 +62,6 @@ describe('ConnectWalletService', () => {
         mockConnectCustomWalletsMap[CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID],
       ).toHaveBeenCalledWith(expectedCustomConnector)
       expect(mockConnectWagmiWallet).not.toHaveBeenCalled()
-      expect(mockConnectSolanaWallet).not.toHaveBeenCalled()
     })
 
     it('should connect wagmi wallet when wagmiConnectorId is provided', async () => {
@@ -94,26 +80,6 @@ describe('ConnectWalletService', () => {
       expect(
         mockConnectCustomWalletsMap[CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID],
       ).not.toHaveBeenCalled()
-      expect(mockConnectSolanaWallet).not.toHaveBeenCalled()
-    })
-
-    it('should connect solana wallet when solanaWalletName is provided', async () => {
-      // Arrange
-      const solanaWalletConnector = createMockSolanaWalletConnectorMeta()
-      const expectedSolanaConnector = {
-        ...solanaWalletConnector,
-        solana: { walletName: 'Phantom' },
-      }
-
-      // Act
-      await connectWalletService.connect({ walletConnector: solanaWalletConnector })
-
-      // Assert
-      expect(mockConnectSolanaWallet).toHaveBeenCalledWith(expectedSolanaConnector)
-      expect(
-        mockConnectCustomWalletsMap[CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID],
-      ).not.toHaveBeenCalled()
-      expect(mockConnectWagmiWallet).not.toHaveBeenCalled()
     })
 
     it('should handle custom wallet connection errors gracefully', async () => {
@@ -137,18 +103,6 @@ describe('ConnectWalletService', () => {
       // Act & Assert
       await expect(connectWalletService.connect({ walletConnector: wagmiWalletConnector })).rejects.toThrow(
         'Wagmi wallet connection failed',
-      )
-    })
-
-    it('should handle solana wallet connection errors gracefully', async () => {
-      // Arrange
-      const error = new Error('Solana wallet connection failed')
-      mockConnectSolanaWallet.mockRejectedValue(error)
-      const solanaWalletConnector = createMockSolanaWalletConnectorMeta()
-
-      // Act & Assert
-      await expect(connectWalletService.connect({ walletConnector: solanaWalletConnector })).rejects.toThrow(
-        'Solana wallet connection failed',
       )
     })
 
@@ -190,7 +144,6 @@ describe('ConnectWalletService', () => {
     it('should create service with provided context', () => {
       // Arrange
       const context = {
-        connectSolanaWallet: mockConnectSolanaWallet,
         connectWagmiWallet: mockConnectWagmiWallet,
         connectCustomWalletsMap: mockConnectCustomWalletsMap,
       }

@@ -1,7 +1,6 @@
 import type { CustomConnectorId } from 'features/wallet/connection/connectors/custom'
 import type {
   CustomWalletConnectorMeta,
-  SolanaWalletConnectorMeta,
   WagmiWalletConnectorMeta,
   WalletConnectorMeta,
 } from 'features/wallet/connection/types/WalletConnectorMeta'
@@ -11,17 +10,16 @@ export interface ConnectWalletService {
 }
 
 interface CreateConnectWalletServiceContext {
-  connectSolanaWallet?: (connector: SolanaWalletConnectorMeta) => Promise<void>
   connectWagmiWallet: (connector: WagmiWalletConnectorMeta) => Promise<void>
   connectCustomWalletsMap: Record<CustomConnectorId, (connector: CustomWalletConnectorMeta) => Promise<void>>
 }
 
 export function createConnectWalletService(ctx: CreateConnectWalletServiceContext): ConnectWalletService {
-  const { connectSolanaWallet, connectWagmiWallet, connectCustomWalletsMap } = ctx
+  const { connectWagmiWallet, connectCustomWalletsMap } = ctx
 
   return {
     connect: async (params: { walletConnector: WalletConnectorMeta }) => {
-      const { customConnectorId, wagmi, solana } = params.walletConnector
+      const { customConnectorId, wagmi } = params.walletConnector
       if (customConnectorId) {
         const connectCustomWallet = connectCustomWalletsMap[customConnectorId]
         await connectCustomWallet({ ...params.walletConnector, customConnectorId })
@@ -29,10 +27,6 @@ export function createConnectWalletService(ctx: CreateConnectWalletServiceContex
 
       if (wagmi?.id) {
         await connectWagmiWallet({ ...params.walletConnector, wagmi })
-      }
-
-      if (solana?.walletName && connectSolanaWallet) {
-        await connectSolanaWallet({ ...params.walletConnector, solana })
       }
     },
   }
