@@ -5,8 +5,8 @@ export const onRequest: PagesFunction = async ({ params, request, next }) => {
   const response = next()
   try {
     const { index } = params
-    const networkName = index[0]?.toString()
-    const tokenAddress = index[1]?.toString()
+    const networkName = index[0].toString()
+    const tokenAddress = index[1].toString()
     if (!tokenAddress) {
       return response
     }

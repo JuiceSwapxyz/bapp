@@ -4,6 +4,7 @@ import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { useMemo } from 'react'
 import { TokenStat } from 'state/explore/types'
+import { getLocalTokenLogoUrlByAddress } from 'uniswap/src/components/CurrencyLogo/localTokenLogoMap'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getChainIdFromChainUrlParam } from 'utils/chainParams'
 
@@ -29,8 +30,16 @@ export default function QueryTokenLogo(
     if (props.token?.project?.logo?.url) {
       return props.token.project.logo.url
     }
+
+    const urlFromAddress = props.token?.address
+      ? getLocalTokenLogoUrlByAddress(props.token.address.toLowerCase())
+      : undefined
+    if (urlFromAddress) {
+      return urlFromAddress
+    }
+
     return undefined
-  }, [props.token?.logo, props.token?.project?.logo?.url])
+  }, [props.token?.logo, props.token?.project?.logo?.url, props.token?.address])
 
   return <PortfolioLogo currencies={currencies} chainId={chainId} images={[logoUrl]} {...props} />
 }

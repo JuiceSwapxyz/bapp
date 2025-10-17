@@ -1,6 +1,6 @@
 import { CurrencyAmount } from '@uniswap/sdk-core'
 import { CITREA_LOGO } from 'ui/src/assets'
-import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
+import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { DEFAULT_NATIVE_ADDRESS_LEGACY } from 'uniswap/src/features/chains/evm/rpc'
 import { buildChainTokens } from 'uniswap/src/features/chains/evm/tokens'
 import {
@@ -33,10 +33,10 @@ const citreaTestnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.testnet.citrea.xyz'],
+      http: ['https://rpc.testnet.juiceswap.com'],
     },
     public: {
-      http: ['https://rpc.testnet.citrea.xyz'],
+      http: ['https://rpc.testnet.juiceswap.com'],
     },
   },
   blockExplorers: {
@@ -56,9 +56,9 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   platform: Platform.EVM,
   assetRepoNetworkName: undefined,
   backendChain: {
-    chain: BackendChainId.UnknownChain as GqlChainId,
-    backendSupported: true,
-    nativeTokenBackendAddress: undefined,
+    chain: 'CITREA_TESTNET' as GqlChainId,
+    backendSupported: false, // Not supported by Uniswap Data API - uses JuiceSwap API instead
+    nativeTokenBackendAddress: ZERO_ADDRESS,
   },
   blockPerMainnetEpochForChainId: 1,
   blockWaitMsBeforeWarning: undefined,
@@ -85,16 +85,16 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   pendingTransactionsRetryOptions: undefined,
   rpcUrls: {
     [RPCType.Public]: {
-      http: ['https://rpc.testnet.citrea.xyz'],
+      http: ['https://rpc.testnet.juiceswap.com'],
     },
     [RPCType.Default]: {
-      http: ['https://rpc.testnet.citrea.xyz'],
+      http: ['https://rpc.testnet.juiceswap.com'],
     },
     [RPCType.Fallback]: {
-      http: ['https://rpc.testnet.citrea.xyz'],
+      http: ['https://rpc.testnet.juiceswap.com'],
     },
     [RPCType.Interface]: {
-      http: ['https://rpc.testnet.citrea.xyz'],
+      http: ['https://rpc.testnet.juiceswap.com'],
     },
   },
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(testnetTokens.USDC, 100e6),

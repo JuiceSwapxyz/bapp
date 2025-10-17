@@ -1,69 +1,32 @@
 import { useShowMoonpayText } from 'components/AccountDrawer/MiniPortfolio/hooks'
-import { miniPortfolioMenuStateAtom } from 'components/AccountDrawer/constants'
-import { Page, downloadAppModalPageAtom } from 'components/NavBar/DownloadApp/Modal'
 import ConnectionErrorView from 'components/WalletModal/ConnectionErrorView'
-import { DownloadWalletRow } from 'components/WalletModal/DownloadWalletRow'
 import PrivacyPolicyNotice from 'components/WalletModal/PrivacyPolicyNotice'
 import { WalletConnectorOption } from 'components/WalletModal/WalletConnectorOption'
-import { useRecentConnectorId } from 'components/Web3Provider/constants'
 import { useOrderedWalletConnectors } from 'features/wallet/connection/hooks/useOrderedWalletConnectors'
-import { useModalState } from 'hooks/useModalState'
-import { useAtom } from 'jotai'
 import { Fragment, useReducer } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { transitions } from 'theme/styles'
 import { Flex, Separator, Text } from 'ui/src'
-import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
-import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { isMobileWeb } from 'utilities/src/platform'
-import { useEvent } from 'utilities/src/react/hooks'
 
 export default function WalletModal() {
   const { t } = useTranslation()
   const showMoonpayText = useShowMoonpayText()
   const [expandMoreWallets, _toggleExpandMoreWallets] = useReducer((s) => !s, true)
-  const [, setMenu] = useAtom(miniPortfolioMenuStateAtom)
 
   const connectors = useOrderedWalletConnectors({ showSecondaryConnectors: isMobileWeb })
-  const recentConnectorId = useRecentConnectorId()
-
-  const showDownloadHeader =
-    !connectors.some((c) => c.wagmi?.id === CONNECTION_PROVIDER_IDS.UNISWAP_EXTENSION_RDNS) &&
-    recentConnectorId !== CONNECTION_PROVIDER_IDS.UNISWAP_WALLET_CONNECT_CONNECTOR_ID &&
-    false
-  const { openModal: openGetTheAppModal } = useModalState(ModalName.GetTheApp)
-  const [, setPage] = useAtom(downloadAppModalPageAtom)
-  const handleOpenGetTheAppModal = useEvent(() => {
-    openGetTheAppModal()
-    setPage(Page.GetApp)
-  })
-  const px = 12
 
   return (
     <Flex
       backgroundColor="$surface1"
       pt="$spacing16"
-      px={px}
+      px="$spacing12"
       pb="$spacing20"
       flex={1}
       gap="$gap16"
       data-testid="wallet-modal"
     >
       <ConnectionErrorView />
-      {showDownloadHeader && (
-        <Flex display="flex" $md={{ display: 'none' }}>
-          <DownloadWalletRow
-            onPress={handleOpenGetTheAppModal}
-            mx={-8}
-            mt={-12}
-            width={`calc(100% + ${px * 2 - 8}px)`}
-            borderTopLeftRadius="$rounded16"
-            borderTopRightRadius="$rounded16"
-            iconSize={16}
-            titleTextVariant="buttonLabel4"
-          />
-        </Flex>
-      )}
       <Flex row justifyContent="space-between" width="100%">
         <Text variant="subheading2">{t('common.connectAWallet.button')}</Text>
       </Flex>
@@ -130,20 +93,6 @@ export default function WalletModal() {
           )}
         </Flex>
       </Flex>
-      {showDownloadHeader && (
-        <Flex display="none" $md={{ display: 'flex' }}>
-          <DownloadWalletRow
-            onPress={handleOpenGetTheAppModal}
-            mx={-8}
-            mt={-12}
-            width={`calc(100% + ${px * 2 - 8}px)`}
-            borderTopLeftRadius="$rounded16"
-            borderTopRightRadius="$rounded16"
-            iconSize={20}
-            titleTextVariant="buttonLabel4"
-          />
-        </Flex>
-      )}
     </Flex>
   )
 }

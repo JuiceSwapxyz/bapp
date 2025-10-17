@@ -153,30 +153,6 @@ export default function BappsContent({ account, campaignProgress, isLoading }: B
     accountDrawer.open()
   }
 
-  if (!account.isConnected) {
-    return (
-      <ContentContainer>
-        <Section>
-          <SectionTitle>Connect Your Wallet</SectionTitle>
-          <Text variant="body2" color="$neutral2">
-            Connect your wallet to view your campaign progress and complete swap tasks.
-          </Text>
-          <Button
-            onPress={handleConnectWallet}
-            backgroundColor="$accent1"
-            paddingHorizontal="$spacing16"
-            paddingVertical="$spacing12"
-            borderRadius="$rounded12"
-          >
-            <Text variant="buttonLabel3" color="$white">
-              Connect Wallet
-            </Text>
-          </Button>
-        </Section>
-      </ContentContainer>
-    )
-  }
-
   const handleTaskAction = (taskId: number, completed: boolean) => {
     if (completed) {
       return // Already completed
@@ -219,88 +195,110 @@ export default function BappsContent({ account, campaignProgress, isLoading }: B
       {/* Campaign Analytics */}
       <CampaignAnalytics />
 
-      {/* Progress Overview */}
-      <Section>
-        <SectionTitle>Your Campaign Progress</SectionTitle>
-        <ProgressBar>
-          <ProgressFill style={{ width: `${progress}%` }} />
-        </ProgressBar>
-        <ProgressText>
-          {completedTasks} of {totalTasks} tasks completed ({progress.toFixed(1)}%)
-        </ProgressText>
-        {isLoading && (
-          <Text variant="body3" color="$neutral2">
-            Loading campaign progress...
+      {!account.isConnected ? (
+        <Section>
+          <SectionTitle>Connect Your Wallet</SectionTitle>
+          <Text variant="body2" color="$neutral2">
+            Connect your wallet to view your campaign progress and complete swap tasks.
           </Text>
-        )}
-      </Section>
-
-      {/* Campaign Tasks */}
-      <Section>
-        <SectionTitle>Campaign Tasks</SectionTitle>
-        <Text variant="body2" color="$neutral2">
-          Complete all three swap tasks on Citrea Testnet to qualify for campaign rewards.
-        </Text>
-
-        {tasks.map((task) => (
-          <TaskCard key={task.id}>
-            <TaskHeader>
-              <TaskInfo>
-                <TaskTitle>{task.name}</TaskTitle>
-                <TaskDescription>{task.description}</TaskDescription>
-                {task.completedAt && (
-                  <Text variant="body4" color="$statusSuccess">
-                    Completed on {new Date(task.completedAt).toLocaleDateString()}
-                  </Text>
-                )}
-              </TaskInfo>
-
-              <StatusBadge>
-                {task.completed ? (
-                  <>
-                    <Check size="$icon.12" color="$statusSuccess" />
-                    <StatusText color="$statusSuccess">Completed</StatusText>
-                  </>
-                ) : (
-                  <>
-                    <Clock size="$icon.12" color="$neutral2" />
-                    <StatusText color="$neutral2">Pending</StatusText>
-                  </>
-                )}
-              </StatusBadge>
-            </TaskHeader>
-
-            <ActionButton
-              display={task.completed ? 'none' : 'flex'}
-              onPress={() => handleTaskAction(task.id, task.completed)}
-            >
-              <Text variant="buttonLabel4" color="$white">
-                Complete Task
+          <Button
+            onPress={handleConnectWallet}
+            backgroundColor="$accent1"
+            paddingHorizontal="$spacing16"
+            paddingVertical="$spacing16"
+            borderRadius="$rounded12"
+          >
+            <Text variant="buttonLabel3" color="$white">
+              Connect Wallet
+            </Text>
+          </Button>
+        </Section>
+      ) : (
+        <>
+          {/* Progress Overview */}
+          <Section>
+            <SectionTitle>Your Campaign Progress</SectionTitle>
+            <ProgressBar>
+              <ProgressFill style={{ width: `${progress}%` }} />
+            </ProgressBar>
+            <ProgressText>
+              {completedTasks} of {totalTasks} tasks completed ({progress.toFixed(1)}%)
+            </ProgressText>
+            {isLoading && (
+              <Text variant="body3" color="$neutral2">
+                Loading campaign progress...
               </Text>
-              <ExternalLink size="$icon.16" color="$white" />
-            </ActionButton>
-          </TaskCard>
-        ))}
-      </Section>
+            )}
+          </Section>
 
-      {/* Instructions */}
-      <Section>
-        <SectionTitle>How to Participate</SectionTitle>
-        <Flex gap="$spacing12">
-          <Text variant="body2" color="$neutral2">
-            1. Ensure you&apos;re connected to Citrea Testnet
-          </Text>
-          <Text variant="body2" color="$neutral2">
-            2. Have enough cBTC for gas fees
-          </Text>
-          <Text variant="body2" color="$neutral2">
-            3. Complete all three swap tasks using the links above
-          </Text>
-          <Text variant="body2" color="$neutral2">
-            4. Visit ₿apps.citrea.xyz to check your overall campaign progress
-          </Text>
-        </Flex>
-      </Section>
+          {/* Campaign Tasks */}
+          <Section>
+            <SectionTitle>Campaign Tasks</SectionTitle>
+            <Text variant="body2" color="$neutral2">
+              Complete all three swap tasks on Citrea Testnet to qualify for campaign rewards.
+            </Text>
+
+            {tasks.map((task) => (
+              <TaskCard key={task.id}>
+                <TaskHeader>
+                  <TaskInfo>
+                    <TaskTitle>{task.name}</TaskTitle>
+                    <TaskDescription>{task.description}</TaskDescription>
+                    {task.completedAt && (
+                      <Text variant="body4" color="$statusSuccess">
+                        Completed on {new Date(task.completedAt).toLocaleDateString()}
+                      </Text>
+                    )}
+                  </TaskInfo>
+
+                  <StatusBadge>
+                    {task.completed ? (
+                      <>
+                        <Check size="$icon.12" color="$statusSuccess" />
+                        <StatusText color="$statusSuccess">Completed</StatusText>
+                      </>
+                    ) : (
+                      <>
+                        <Clock size="$icon.12" color="$neutral2" />
+                        <StatusText color="$neutral2">Pending</StatusText>
+                      </>
+                    )}
+                  </StatusBadge>
+                </TaskHeader>
+
+                <ActionButton
+                  display={task.completed ? 'none' : 'flex'}
+                  onPress={() => handleTaskAction(task.id, task.completed)}
+                >
+                  <Text variant="buttonLabel4" color="$white">
+                    Complete Task
+                  </Text>
+                  <ExternalLink size="$icon.16" color="$white" />
+                </ActionButton>
+              </TaskCard>
+            ))}
+          </Section>
+
+          {/* Instructions */}
+          <Section>
+            <SectionTitle>How to Participate</SectionTitle>
+            <Flex gap="$spacing12">
+              <Text variant="body2" color="$neutral2">
+                1. Ensure you&apos;re connected to Citrea Testnet
+              </Text>
+              <Text variant="body2" color="$neutral2">
+                2. Have enough cBTC for gas fees
+              </Text>
+              <Text variant="body2" color="$neutral2">
+                3. Complete all three swap tasks using the links above
+              </Text>
+              <Text variant="body2" color="$neutral2">
+                4. Visit ₿apps.citrea.xyz to check your overall campaign progress
+              </Text>
+            </Flex>
+          </Section>
+        </>
+      )}
     </ContentContainer>
   )
 }

@@ -26,12 +26,10 @@ import {
   useSetSortMethod,
 } from 'components/Tokens/state'
 import { MouseoverTooltip, TooltipSize } from 'components/Tooltip'
-import { HARDCODED_CITREA_TOKENS } from 'constants/hardcodedTokens'
 import useSimplePagination from 'hooks/useSimplePagination'
 import { useAtomValue } from 'jotai/utils'
 import { ReactElement, ReactNode, memo, useMemo } from 'react'
 import { Trans } from 'react-i18next'
-import { useSelector } from 'react-redux'
 import { TABLE_PAGE_SIZE, giveExploreStatDefaultValue } from 'state/explore'
 import { useTopTokens as useRestTopTokens } from 'state/explore/topTokens'
 import { TokenStat } from 'state/explore/types'
@@ -40,12 +38,11 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fromGraphQLChain, toGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
-import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
 import { NumberType } from 'utilities/src/format/types'
-import { getChainIdFromChainUrlParam, useChainIdFromUrlParam } from 'utils/chainParams'
+import { getChainIdFromChainUrlParam } from 'utils/chainParams'
 
 const TableWrapper = styled(Flex, {
   m: '0 auto',
@@ -81,43 +78,9 @@ function TokenDescription({ token }: { token: TokenStat }) {
 }
 
 export const TopTokensTable = memo(function TopTokensTable() {
-  const chainId = useChainIdFromUrlParam()
-  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
   const { topTokens, tokenSortRank, isLoading, sparklines, isError } = useRestTopTokens()
 
   const { page, loadMore } = useSimplePagination()
-
-  // Show hardcoded tokens for Citrea testnet or when Citrea Only toggle is enabled
-  if (chainId === UniverseChainId.CitreaTestnet || isCitreaOnlyEnabled) {
-    // Convert hardcoded tokens to TokenStat format
-    const citreaTokens = HARDCODED_CITREA_TOKENS.map((token, _index) => ({
-      ...token,
-      chain: toGraphQLChain(UniverseChainId.CitreaTestnet),
-      market: {
-        id: token.id,
-        price: { value: token.price },
-        pricePercentChange1Hour: { value: token.pricePercentChange1Hour },
-        pricePercentChange1Day: { value: token.pricePercentChange1Day },
-        volume1Day: token.volume1Day,
-        marketCap: token.marketCap,
-      },
-    })) as any[]
-
-    const tokenRanks = Object.fromEntries(citreaTokens.map((token, index) => [token.id, index + 1]))
-
-    return (
-      <TableWrapper data-testid="top-tokens-explore-table">
-        <TokenTable
-          tokens={citreaTokens.slice(0, page * TABLE_PAGE_SIZE)}
-          tokenSortRank={tokenRanks}
-          sparklines={{}}
-          loading={false}
-          loadMore={citreaTokens.length > page * TABLE_PAGE_SIZE ? loadMore : undefined}
-          error={false}
-        />
-      </TableWrapper>
-    )
-  }
 
   return (
     <TableWrapper data-testid="top-tokens-explore-table">

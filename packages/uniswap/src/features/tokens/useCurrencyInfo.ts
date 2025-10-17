@@ -1,12 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { getCommonBase } from 'uniswap/src/constants/routing'
-import { useTokenQuery, useTokensQuery } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
+import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
+import { useTokenQuery } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { fetchTokenDataDirectly } from 'uniswap/src/data/rest/searchTokensAndPools'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
-import { currencyIdToContractInput } from 'uniswap/src/features/dataApi/utils/currencyIdToContractInput'
+import {
+  currencyIdToApiContract,
+  currencyIdToContractInput,
+} from 'uniswap/src/features/dataApi/utils/currencyIdToContractInput'
 import { gqlTokenToCurrencyInfo } from 'uniswap/src/features/dataApi/utils/gqlTokenToCurrencyInfo'
 import {
   buildNativeCurrencyId,
@@ -14,6 +18,10 @@ import {
   currencyIdToAddress,
   currencyIdToChain,
 } from 'uniswap/src/utils/currencyId'
+
+const PonderApiClient = createApiClient({
+  baseUrl: process.env.REACT_APP_PONDER_JUICESWAP_URL || '',
+})
 
 function useCurrencyInfoQuery(
   _currencyId?: string,
@@ -123,20 +131,24 @@ export function useCurrencyInfoWithLoading(
   return useCurrencyInfoQuery(_currencyId, options)
 }
 
+const fetchTokens = (contracts: { chainId: UniverseChainId; address: Address }[]): Promise<{ tokens: unknown[] }> => {
+  return PonderApiClient.post<{ tokens: unknown[] }>('/tokens/byAddresses', {
+    body: JSON.stringify({ contracts }),
+  })
+}
+
 export function useCurrencyInfos(
   _currencyIds: string[],
   options?: { refetch?: boolean; skip?: boolean },
 ): Maybe<CurrencyInfo>[] {
-  const { data } = useTokensQuery({
-    variables: {
-      contracts: _currencyIds.map(currencyIdToContractInput),
-    },
-    skip: true, // TODO: re-enable
-    fetchPolicy: options?.refetch ? 'cache-and-network' : 'cache-first',
+  const { data } = useQuery({
+    queryKey: ['tokens', _currencyIds],
+    queryFn: () => fetchTokens(_currencyIds.map(currencyIdToApiContract)),
+    enabled: !options?.skip,
   })
 
   return useMemo(() => {
-    return data?.tokens?.map((token) => token && gqlTokenToCurrencyInfo(token)) ?? []
+    return data?.tokens.map((token) => (token ? gqlTokenToCurrencyInfo(token as never) : null)) ?? []
   }, [data])
 }
 

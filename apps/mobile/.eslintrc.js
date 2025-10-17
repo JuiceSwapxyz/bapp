@@ -5,7 +5,7 @@ module.exports = {
   root: true,
   extends: ['@uniswap/eslint-config/mobile'],
   plugins: ['rulesdir'],
-  ignorePatterns: ['.storybook/storybook.requires.ts'],
+  ignorePatterns: ['.storybook/storybook.requires.ts', 'src'],
   parserOptions: {
     project: 'tsconfig.eslint.json',
     tsconfigRootDir: __dirname,

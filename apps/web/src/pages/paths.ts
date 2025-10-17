@@ -54,4 +54,5 @@ export const paths = [
   '/manage/passkey/:walletAddress',
   '/extension/uninstall',
   '/bapps',
+  '/first-squeezer',
 ]

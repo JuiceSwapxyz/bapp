@@ -50,12 +50,12 @@ function buildSecondaryConnectorsList({
   isMobileWeb,
   walletConnectConnector,
   coinbaseSdkConnector,
-  recentConnectorId,
+  _recentConnectorId,
 }: {
   isMobileWeb: boolean
   walletConnectConnector: WalletConnectorMeta
   coinbaseSdkConnector: WalletConnectorMeta
-  recentConnectorId: string | undefined
+  _recentConnectorId: string | undefined
 }): WalletConnectorMeta[] {
   const orderedConnectors: WalletConnectorMeta[] = []
 
@@ -68,7 +68,7 @@ function buildSecondaryConnectorsList({
     )
     // Recent connector should have already been shown on the primary page
     orderedConnectors.push(
-      ...secondaryConnectors.filter((c) => !recentConnectorId || !isEqualWalletConnectorMetaId(c, recentConnectorId)),
+      ...secondaryConnectors.filter((c) => !_recentConnectorId || !isEqualWalletConnectorMetaId(c, _recentConnectorId)),
     )
   }
 
@@ -79,12 +79,12 @@ function buildPrimaryConnectorsList({
   injectedConnectors,
   walletConnectConnector,
   coinbaseSdkConnector,
-  recentConnectorId,
+  _recentConnectorId,
 }: {
   injectedConnectors: WalletConnectorMeta[]
   walletConnectConnector: WalletConnectorMeta
   coinbaseSdkConnector: WalletConnectorMeta
-  recentConnectorId: string | undefined
+  _recentConnectorId: string | undefined
 }): WalletConnectorMeta[] {
   const orderedConnectors: WalletConnectorMeta[] = []
 
@@ -148,14 +148,14 @@ export function useOrderedWalletConnectors({
         isMobileWeb,
         walletConnectConnector,
         coinbaseSdkConnector,
-        recentConnectorId,
+        _recentConnectorId: recentConnectorId,
       })
     } else {
       orderedConnectors = buildPrimaryConnectorsList({
         injectedConnectors,
         walletConnectConnector,
         coinbaseSdkConnector,
-        recentConnectorId,
+        _recentConnectorId: recentConnectorId,
       })
     }
 

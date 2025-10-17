@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { Chart } from 'ui/src/components/icons/Chart'
 
@@ -171,18 +171,18 @@ enum Timeframe {
   ALL = 'All',
 }
 
-const getStartTimestampByTimeframe = (timeframe: Timeframe) => {
+const getHoursByTimeframe = (timeframe: Timeframe): number => {
   switch (timeframe) {
-    case Timeframe.ALL:
-      return 0
     case Timeframe.WEEK:
-      return Date.now() - 7 * 24 * 60 * 60 * 1000
+      return 168 // 7 days
     case Timeframe.MONTH:
-      return Date.now() - 30 * 24 * 60 * 60 * 1000
+      return 720 // 30 days
     case Timeframe.QUARTER:
-      return Date.now() - 90 * 24 * 60 * 60 * 1000
+      return 2160 // 90 days
+    case Timeframe.ALL:
+      return 8760 // 365 days (max)
     default:
-      return 0
+      return 720
   }
 }
 
@@ -200,8 +200,16 @@ export default function CampaignAnalytics() {
       try {
         setIsLoadingGrowth(true)
         setGrowthError(null)
-        const baseUrl = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
-        const response = await fetch(`${baseUrl}/campaign/daily-growth?days=90&chainId=5115`)
+        // Use proxy in development, direct URL in production
+        const isDevelopment =
+          typeof window !== 'undefined' &&
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        const baseUrl = isDevelopment
+          ? '/api/ponder'
+          : process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
+
+        const days = Math.ceil(getHoursByTimeframe(timeframe) / 24)
+        const response = await fetch(`${baseUrl}/campaign/daily-growth?days=${days}&chainId=5115`)
 
         if (!response.ok) {
           throw new Error('Failed to fetch daily growth data')
@@ -209,7 +217,7 @@ export default function CampaignAnalytics() {
 
         const data = await response.json()
         setDailyGrowth(data)
-      } catch (error) {
+      } catch (error: unknown) {
         setGrowthError('Unable to load daily growth data')
       } finally {
         setIsLoadingGrowth(false)
@@ -220,8 +228,16 @@ export default function CampaignAnalytics() {
       try {
         setIsLoadingCompletion(true)
         setCompletionError(null)
-        const baseUrl = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
-        const response = await fetch(`${baseUrl}/campaign/hourly-completion-stats?chainId=5115&hours=168`)
+        // Use proxy in development, direct URL in production
+        const isDevelopment =
+          typeof window !== 'undefined' &&
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        const baseUrl = isDevelopment
+          ? '/api/ponder'
+          : process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
+
+        const hours = getHoursByTimeframe(timeframe)
+        const response = await fetch(`${baseUrl}/campaign/hourly-completion-stats?chainId=5115&hours=${hours}`)
 
         if (!response.ok) {
           throw new Error('Failed to fetch hourly completion stats')
@@ -229,7 +245,7 @@ export default function CampaignAnalytics() {
 
         const data = await response.json()
         setHourlyCompletion(data)
-      } catch (error) {
+      } catch (error: unknown) {
         setCompletionError('Unable to load completion stats')
       } finally {
         setIsLoadingCompletion(false)
@@ -238,17 +254,9 @@ export default function CampaignAnalytics() {
 
     fetchDailyGrowth()
     fetchHourlyCompletion()
-  }, [])
+  }, [timeframe])
 
-  const startTrades = getStartTimestampByTimeframe(timeframe)
-
-  const filteredCompletionData = useMemo(
-    () =>
-      hourlyCompletion?.data.filter((hour) => {
-        return new Date(hour.hour).getTime() > startTrades
-      }) || [],
-    [hourlyCompletion?.data, startTrades],
-  )
+  const completionData = hourlyCompletion?.data || []
 
   const isLoading = isLoadingGrowth || isLoadingCompletion
   const hasError = growthError || completionError
@@ -379,13 +387,13 @@ export default function CampaignAnalytics() {
                     series={[
                       {
                         name: 'Total Participants',
-                        data: filteredCompletionData.map((hour) => {
+                        data: completionData.map((hour) => {
                           return [new Date(hour.hour).getTime(), hour.totalParticipants]
                         }),
                       },
                       {
                         name: 'Completed Participants',
-                        data: filteredCompletionData.map((hour) => {
+                        data: completionData.map((hour) => {
                           return [new Date(hour.hour).getTime(), hour.completedAllTasks]
                         }),
                       },

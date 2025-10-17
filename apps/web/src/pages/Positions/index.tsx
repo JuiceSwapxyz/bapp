@@ -108,7 +108,6 @@ function EmptyPositionsView() {
 }
 
 const chainFilterAtom = atom<UniverseChainId | null>(null)
-const versionFilterAtom = atom<ProtocolVersion[]>([ProtocolVersion.V4, ProtocolVersion.V3, ProtocolVersion.V2])
 const statusFilterAtom = atom<PositionStatus[]>([PositionStatus.IN_RANGE, PositionStatus.OUT_OF_RANGE])
 
 function VirtualizedPositionsList({
@@ -181,7 +180,6 @@ export default function Pool() {
 
   const [chainFilter, setChainFilter] = useAtom(chainFilterAtom)
   const { chains: currentModeChains } = useEnabledChains()
-  const [versionFilter, setVersionFilter] = useAtom(versionFilterAtom)
   const [statusFilter, setStatusFilter] = useAtom(statusFilterAtom)
   const [closedCTADismissed, setClosedCTADismissed] = useState(false)
 
@@ -194,7 +192,7 @@ export default function Pool() {
         address,
         chainIds: chainFilter ? [chainFilter] : currentModeChains,
         positionStatuses: statusFilter,
-        protocolVersions: versionFilter,
+        protocolVersions: [ProtocolVersion.V3],
         pageSize: PAGE_SIZE,
         pageToken: '',
         includeHidden: true,
@@ -208,15 +206,14 @@ export default function Pool() {
 
   const savedPositions = useRequestPositionsForSavedPairs()
 
-  // Get hardcoded positions for the current wallet
+  // Get hardcoded positions for the current wallet (all hardcoded positions are V3)
   const hardcodedPositions = useMemo(() => {
     return getHardcodedPositionsForWallet(account.address).filter((position) => {
       const matchesChain = !chainFilter || position.chainId === chainFilter
       const matchesStatus = statusFilter.includes(position.status)
-      const matchesVersion = versionFilter.includes(position.version)
-      return matchesChain && matchesStatus && matchesVersion
+      return matchesChain && matchesStatus
     })
-  }, [account.address, chainFilter, statusFilter, versionFilter])
+  }, [account.address, chainFilter, statusFilter])
 
   const isLoadingPositions = !!account.address && (isLoading || !data)
   const combinedPositions = useMemo(() => {
@@ -228,7 +225,7 @@ export default function Pool() {
           const matchesChain = !chainFilter || position.data?.position?.chainId === chainFilter
           const matchesStatus = position.data?.position?.status && statusFilter.includes(position.data.position.status)
           const matchesVersion =
-            position.data?.position?.protocolVersion && versionFilter.includes(position.data.position.protocolVersion)
+            position.data?.position?.protocolVersion && position.data.position.protocolVersion === ProtocolVersion.V3
           return matchesChain && matchesStatus && matchesVersion
         })
         .map((p) => p.data?.position),
@@ -248,7 +245,7 @@ export default function Pool() {
       }
       return unique
     }, [])
-  }, [hardcodedPositions, loadedPositions, savedPositions, chainFilter, statusFilter, versionFilter])
+  }, [hardcodedPositions, loadedPositions, savedPositions, chainFilter, statusFilter])
 
   const { visiblePositions, hiddenPositions } = useMemo(() => {
     const visiblePositions: PositionInfo[] = []
@@ -297,19 +294,9 @@ export default function Pool() {
             <PositionsHeader
               showFilters={account.isConnected}
               selectedChain={chainFilter}
-              selectedVersions={versionFilter}
               selectedStatus={statusFilter}
               onChainChange={(selectedChain) => {
                 setChainFilter(selectedChain ?? null)
-              }}
-              onVersionChange={(toggledVersion) => {
-                setVersionFilter((prevVersionFilter) => {
-                  if (prevVersionFilter.includes(toggledVersion)) {
-                    return prevVersionFilter.filter((v) => v !== toggledVersion)
-                  } else {
-                    return [...prevVersionFilter, toggledVersion]
-                  }
-                })
               }}
               onStatusChange={(toggledStatus) => {
                 setStatusFilter((prevStatusFilter) => {
