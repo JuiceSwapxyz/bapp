@@ -1,14 +1,30 @@
-import { useNftBalance } from 'appGraphql/data/nft/NftBalance'
 import { NFT } from 'components/AccountDrawer/MiniPortfolio/NFTs/NFTItem'
-import { DEFAULT_NFT_QUERY_AMOUNT } from 'components/AccountDrawer/MiniPortfolio/constants'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { LoadingAssets } from 'nft/components/collection/CollectionAssetLoading'
 import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletContent'
+import { WalletAsset } from 'nft/types/sell'
 import { useState } from 'react'
-import InfiniteScroll from 'react-infinite-scroll-component'
 import { View } from 'ui/src'
-import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
-import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
+import { NFTItem } from 'uniswap/src/features/nfts/types'
+import { useJuiceSwapNFTData } from 'uniswap/src/features/dataApi/nfts/nftsJuiceSwap'
+import { assume0xAddress } from 'utils/wagmi'
+
+// Transform NFTItem to WalletAsset format for display
+function nftItemToWalletAsset(nft: NFTItem): WalletAsset {
+  return {
+    id: `${nft.contractAddress}-${nft.tokenId}`,
+    imageUrl: nft.imageUrl,
+    smallImageUrl: nft.imageUrl, // Use same image for thumbnail
+    notForSale: true, // JuiceSwap NFTs are not for sale
+    name: nft.name,
+    tokenId: nft.tokenId,
+    asset_contract: {
+      address: nft.contractAddress,
+      name: nft.collectionName,
+    },
+    collectionIsVerified: nft.isVerifiedCollection,
+  }
+}
 
 const AssetsContainer = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -27,13 +43,11 @@ const AssetsContainer = ({ children }: { children: React.ReactNode }) => {
 
 export default function NFTs({ account }: { account: string }) {
   const accountDrawer = useAccountDrawer()
-  const { gqlChains, isTestnetModeEnabled } = useEnabledChains()
 
-  const { walletAssets, loading, hasNext, loadMore } = useNftBalance({
-    ownerAddress: account,
-    first: DEFAULT_NFT_QUERY_AMOUNT,
+  // Fetch NFTs from JuiceSwap API
+  const { data: walletAssets, loading } = useJuiceSwapNFTData({
+    address: assume0xAddress(account),
     skip: !accountDrawer.isOpen,
-    chains: isTestnetModeEnabled ? gqlChains : [Chain.Ethereum, Chain.Zora],
   })
 
   const [currentTokenPlayingMedia, setCurrentTokenPlayingMedia] = useState<string | undefined>()
@@ -51,36 +65,18 @@ export default function NFTs({ account }: { account: string }) {
   }
 
   return (
-    <>
-      <InfiniteScroll
-        next={loadMore}
-        hasMore={hasNext ?? false}
-        loader={
-          Boolean(hasNext && walletAssets.length) && (
-            <AssetsContainer>
-              <LoadingAssets count={2} />
-            </AssetsContainer>
-          )
-        }
-        dataLength={walletAssets.length}
-        style={{ overflow: 'unset' }}
-        scrollableTarget="wallet-dropdown-scroll-wrapper"
-      >
-        <AssetsContainer>
-          {walletAssets.length
-            ? walletAssets.map((asset, index) => {
-                return (
-                  <NFT
-                    setCurrentTokenPlayingMedia={setCurrentTokenPlayingMedia}
-                    mediaShouldBePlaying={currentTokenPlayingMedia === asset.tokenId}
-                    key={index}
-                    asset={asset}
-                  />
-                )
-              })
-            : null}
-        </AssetsContainer>
-      </InfiniteScroll>
-    </>
+    <AssetsContainer>
+      {walletAssets.map((nft) => {
+        const asset = nftItemToWalletAsset(nft)
+        return (
+          <NFT
+            setCurrentTokenPlayingMedia={setCurrentTokenPlayingMedia}
+            mediaShouldBePlaying={currentTokenPlayingMedia === asset.tokenId}
+            key={`${nft.contractAddress}-${nft.tokenId}`}
+            asset={asset}
+          />
+        )
+      })}
+    </AssetsContainer>
   )
 }
