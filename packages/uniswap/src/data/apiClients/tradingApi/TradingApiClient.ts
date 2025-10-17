@@ -320,16 +320,16 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
   }
 
   const gasStrategy = (params as ApprovalRequest & { gasStrategies?: unknown[] }).gasStrategies?.[0] || {
-    limitInflationFactor: 1.15,
-    displayLimitInflationFactor: 1.15,
-    priceInflationFactor: 1.5,
-    percentileThresholdFor1559Fee: 75,
-    thresholdToInflateLastBlockBaseFee: 0.75,
+    limitInflationFactor: 1.2,
+    displayLimitInflationFactor: 1.2,
+    priceInflationFactor: 1.1,
+    percentileThresholdFor1559Fee: 50,
+    thresholdToInflateLastBlockBaseFee: 0.5,
     baseFeeMultiplier: 1,
     baseFeeHistoryWindow: 20,
-    minPriorityFeeRatioOfBaseFee: 0.2,
-    minPriorityFeeGwei: 2,
-    maxPriorityFeeGwei: 9,
+    minPriorityFeeRatioOfBaseFee: 0.1,
+    minPriorityFeeGwei: 0.5,
+    maxPriorityFeeGwei: 3,
   }
 
   const fetchGasFee = createFetchGasFee({ gasStrategy })
@@ -337,14 +337,14 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
   try {
     const gasResult = await fetchGasFee({
       tx: baseTransaction,
-      fallbackGasLimit: 65008,
+      fallbackGasLimit: 55000,
     })
 
     // Handle case where gasResult.params might be undefined (client-side fallback)
     const gasParams = gasResult.params || {
-      maxFeePerGas: '387366539',
-      maxPriorityFeePerGas: '387335562',
-      gasLimit: '65008',
+      maxFeePerGas: '2000000',
+      maxPriorityFeePerGas: '200000',
+      gasLimit: '9000',
     }
 
     const approvalTransaction = {
@@ -368,7 +368,7 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
       approval: approvalTransaction,
       cancel: approvalTransaction,
       gasFee: gasResult.value,
-      cancelGasFee: gasResult.value, // Same gas fee for cancel transaction
+      cancelGasFee: gasResult.value,
       gasEstimates: [gasEstimate],
     }
 
@@ -376,26 +376,26 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
   } catch (error) {
     const approvalTransaction = {
       ...baseTransaction,
-      maxFeePerGas: '387366539',
-      maxPriorityFeePerGas: '387335562',
-      gasLimit: '65008',
+      maxFeePerGas: '2000000',
+      maxPriorityFeePerGas: '200000',
+      gasLimit: '9000',
     }
 
     const gasEstimate = {
       type: FeeType.EIP1559 as const,
       strategy: gasStrategy,
-      gasLimit: '65008',
-      gasFee: '25181923967312',
-      maxFeePerGas: '387366539',
-      maxPriorityFeePerGas: '387335562',
+      gasLimit: '9000',
+      gasFee: '110000000',
+      maxFeePerGas: '2000000',
+      maxPriorityFeePerGas: '200000',
     }
 
     const response: ApprovalResponse = {
       requestId,
       approval: approvalTransaction,
       cancel: approvalTransaction,
-      gasFee: '25181923967312',
-      cancelGasFee: '25181923967312', // Same gas fee for cancel transaction
+      gasFee: '110000000',
+      cancelGasFee: '110000000',
       gasEstimates: [gasEstimate],
     }
 

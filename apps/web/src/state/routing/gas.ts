@@ -11,7 +11,7 @@ import { WRAP_FALLBACK_GAS_LIMIT_IN_GWEI } from 'uniswap/src/features/transactio
 import { getContract } from 'utilities/src/contracts/getContract'
 
 // TODO(UniswapX): add fallback gas limits per chain? l2s have higher costs
-const APPROVE_FALLBACK_GAS_LIMIT_IN_GWEI = 65_000
+const APPROVE_FALLBACK_GAS_LIMIT_IN_GWEI = 55_000
 
 export async function getApproveInfo({
   account,
