@@ -344,7 +344,7 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
     const gasParams = gasResult.params || {
       maxFeePerGas: '2000000',
       maxPriorityFeePerGas: '200000',
-      gasLimit: '9000',
+      gasLimit: '11000',
     }
 
     const approvalTransaction = {
@@ -378,13 +378,13 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
       ...baseTransaction,
       maxFeePerGas: '2000000',
       maxPriorityFeePerGas: '200000',
-      gasLimit: '9000',
+      gasLimit: '11000',
     }
 
     const gasEstimate = {
       type: FeeType.EIP1559 as const,
       strategy: gasStrategy,
-      gasLimit: '9000',
+      gasLimit: '11000',
       gasFee: '110000000',
       maxFeePerGas: '2000000',
       maxPriorityFeePerGas: '200000',
