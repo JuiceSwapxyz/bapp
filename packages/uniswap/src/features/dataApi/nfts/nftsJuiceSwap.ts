@@ -5,11 +5,11 @@
 import { NetworkStatus } from '@apollo/client'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
-import type { Address } from 'viem'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { NFTItem } from 'uniswap/src/features/nfts/types'
+import type { Address } from 'viem'
 
 interface JuiceSwapNFTItem {
   contractAddress: string
@@ -23,7 +23,7 @@ interface JuiceSwapNFTItem {
 
 interface JuiceSwapPortfolioResponse {
   portfolio: {
-    tokens: any[]
+    tokens: unknown[]
     nfts?: JuiceSwapNFTItem[]
   }
 }
