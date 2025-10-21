@@ -132,7 +132,9 @@ function useUrlFirstSqueezerOverride(): boolean {
 function useIsFirstSqueezerTimeActive(): boolean {
   const hasUrlOverride = useUrlFirstSqueezerOverride()
 
-  // Campaign start time: October 22, 2025 at 00:00 UTC
+  // Campaign times match smart contract:
+  // Start: October 22, 2025 13:30:00 UTC (timestamp: 1761139800)
+  // End: October 26, 2025 23:59:59 UTC (timestamp: 1761523199)
   return useMemo(() => {
     // URL Override has priority - if active, campaign is always on
     if (hasUrlOverride) {
@@ -140,9 +142,10 @@ function useIsFirstSqueezerTimeActive(): boolean {
     }
 
     // Normal time-based logic
-    const campaignStartTime = new Date('2025-10-22T00:00:00.000Z').getTime()
+    const campaignStartTime = new Date('2025-10-22T13:30:00.000Z').getTime()
+    const campaignEndTime = new Date('2025-10-26T23:59:59.000Z').getTime()
     const now = Date.now()
-    return now >= campaignStartTime
+    return now >= campaignStartTime && now <= campaignEndTime
   }, [hasUrlOverride])
 }
 
