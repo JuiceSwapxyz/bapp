@@ -10,8 +10,7 @@ import { atomWithStorage, createJSONStorage } from 'jotai/utils'
 const storage = createJSONStorage(() => sessionStorage)
 const persistStorage = createJSONStorage(() => localStorage)
 
-// NFTs are now permanently disabled
-export const shouldDisableNFTRoutesAtom = atom(true)
+export const shouldDisableNFTRoutesAtom = atom(false)
 export const hideMobileAppPromoBannerAtom = atomWithStorage('hideMobileAppPromoBanner', false, storage)
 export const persistHideMobileAppPromoBannerAtom = atomWithStorage(
   'persistHideMobileAppPromoBanner',

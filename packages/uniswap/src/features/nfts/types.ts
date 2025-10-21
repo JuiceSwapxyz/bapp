@@ -19,4 +19,5 @@ export type NFTItem = {
   listPrice?: IAmount
   isSpam?: boolean
   chain?: Chain
+  chainId?: number
 }
