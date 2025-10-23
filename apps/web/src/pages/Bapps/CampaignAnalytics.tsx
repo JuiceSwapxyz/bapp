@@ -1,6 +1,7 @@
-import { Suspense, lazy, useEffect, useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { Chart } from 'ui/src/components/icons/Chart'
+import { useDailyGrowthQuery, useHourlyCompletionStatsQuery } from 'uniswap/src/data/apiClients/ponderApi/PonderApi'
 
 const ApexChart = lazy(() => import('react-apexcharts'))
 
@@ -127,43 +128,6 @@ const ErrorText = styled(Text, {
   paddingVertical: '$spacing16',
 })
 
-interface DailyGrowthData {
-  date: string
-  newUsers: number
-  cumulative: number
-  uniqueActiveUsers: number
-}
-
-interface DailyGrowthResponse {
-  chainId: number
-  period: string
-  data: DailyGrowthData[]
-  summary: {
-    totalDays: number
-    totalNewUsers: number
-    averageDaily: number
-  }
-}
-
-interface HourlyCompletionData {
-  hour: string
-  totalParticipants: number
-  completedAllTasks: number
-  completionRate: number
-}
-
-interface HourlyCompletionStatsResponse {
-  chainId: number
-  period: string
-  data: HourlyCompletionData[]
-  summary: {
-    totalHours: number
-    currentParticipants: number
-    currentCompleted: number
-    currentCompletionRate: number
-  }
-}
-
 enum Timeframe {
   WEEK = '1W',
   MONTH = '1M',
@@ -187,77 +151,19 @@ const getHoursByTimeframe = (timeframe: Timeframe): number => {
 }
 
 export default function CampaignAnalytics() {
-  const [dailyGrowth, setDailyGrowth] = useState<DailyGrowthResponse | null>(null)
-  const [hourlyCompletion, setHourlyCompletion] = useState<HourlyCompletionStatsResponse | null>(null)
-  const [isLoadingGrowth, setIsLoadingGrowth] = useState(true)
-  const [isLoadingCompletion, setIsLoadingCompletion] = useState(true)
-  const [growthError, setGrowthError] = useState<string | null>(null)
-  const [completionError, setCompletionError] = useState<string | null>(null)
   const [timeframe, setTimeframe] = useState<Timeframe>(Timeframe.ALL)
+  const {
+    data: dailyGrowth,
+    isLoading: isLoadingGrowth,
+    error: growthError,
+  } = useDailyGrowthQuery(Math.ceil(getHoursByTimeframe(timeframe) / 24))
+  const {
+    data: hourlyCompletion,
+    isLoading: isLoadingCompletion,
+    error: completionError,
+  } = useHourlyCompletionStatsQuery(getHoursByTimeframe(timeframe))
 
-  useEffect(() => {
-    const fetchDailyGrowth = async () => {
-      try {
-        setIsLoadingGrowth(true)
-        setGrowthError(null)
-        // Use proxy in development, direct URL in production
-        const isDevelopment =
-          typeof window !== 'undefined' &&
-          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        const baseUrl = isDevelopment
-          ? '/api/ponder'
-          : process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
-
-        const days = Math.ceil(getHoursByTimeframe(timeframe) / 24)
-        const response = await fetch(`${baseUrl}/campaign/daily-growth?days=${days}&chainId=5115`)
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch daily growth data')
-        }
-
-        const data = await response.json()
-        setDailyGrowth(data)
-      } catch (error: unknown) {
-        setGrowthError('Unable to load daily growth data')
-      } finally {
-        setIsLoadingGrowth(false)
-      }
-    }
-
-    const fetchHourlyCompletion = async () => {
-      try {
-        setIsLoadingCompletion(true)
-        setCompletionError(null)
-        // Use proxy in development, direct URL in production
-        const isDevelopment =
-          typeof window !== 'undefined' &&
-          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        const baseUrl = isDevelopment
-          ? '/api/ponder'
-          : process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
-
-        const hours = getHoursByTimeframe(timeframe)
-        const response = await fetch(`${baseUrl}/campaign/hourly-completion-stats?chainId=5115&hours=${hours}`)
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch hourly completion stats')
-        }
-
-        const data = await response.json()
-        setHourlyCompletion(data)
-      } catch (error: unknown) {
-        setCompletionError('Unable to load completion stats')
-      } finally {
-        setIsLoadingCompletion(false)
-      }
-    }
-
-    fetchDailyGrowth()
-    fetchHourlyCompletion()
-  }, [timeframe])
-
-  const completionData = hourlyCompletion?.data || []
-
+  const completionData = hourlyCompletion?.data ?? []
   const isLoading = isLoadingGrowth || isLoadingCompletion
   const hasError = growthError || completionError
 
@@ -271,7 +177,7 @@ export default function CampaignAnalytics() {
         </SectionHeader>
 
         {isLoading && <LoadingText>Loading participant comparison data...</LoadingText>}
-        {hasError && <ErrorText>{completionError}</ErrorText>}
+        {hasError && <ErrorText>Unable to load data</ErrorText>}
 
         {!isLoading && !hasError && hourlyCompletion && (
           <>

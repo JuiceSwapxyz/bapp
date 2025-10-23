@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { getCommonBase } from 'uniswap/src/constants/routing'
-import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
+import { createPonderApiClient } from 'uniswap/src/data/apiClients/ponderApi/PonderApi'
 import { useTokenQuery } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { fetchTokenDataDirectly } from 'uniswap/src/data/rest/searchTokensAndPools'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -19,9 +19,7 @@ import {
   currencyIdToChain,
 } from 'uniswap/src/utils/currencyId'
 
-const PonderApiClient = createApiClient({
-  baseUrl: process.env.REACT_APP_PONDER_JUICESWAP_URL || '',
-})
+const PonderApiClient = createPonderApiClient()
 
 function useCurrencyInfoQuery(
   _currencyId?: string,

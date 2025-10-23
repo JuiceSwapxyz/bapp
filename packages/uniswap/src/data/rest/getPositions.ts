@@ -19,14 +19,12 @@ import {
 } from '@uniswap/client-pools/dist/pools/v1/api_pb'
 import { ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
 import { useMemo } from 'react'
-import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
+import { createPonderApiClient } from 'uniswap/src/data/apiClients/ponderApi/PonderApi'
 import { uniswapPostTransport } from 'uniswap/src/data/rest/base'
 import { SerializedToken } from 'uniswap/src/features/tokens/slice/types'
 import { deserializeToken } from 'uniswap/src/utils/currency'
 
-const ponderApiClient = createApiClient({
-  baseUrl: process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com',
-})
+const ponderApiClient = createPonderApiClient()
 
 async function fetchPositionsFromCustomServer(
   input?: PartialMessage<ListPositionsRequest>,
