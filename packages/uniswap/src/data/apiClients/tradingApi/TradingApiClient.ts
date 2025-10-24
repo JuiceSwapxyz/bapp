@@ -100,6 +100,17 @@ export type WrapQuoteResponse<T extends Routing.WRAP | Routing.UNWRAP> = QuoteRe
   routing: T
 }
 
+type TokenApprovalResponse = {
+  to: string
+  value: string
+  from: string
+  data: string
+  gasLimit: string
+  chainId: ChainId
+  maxFeePerGas: string
+  maxPriorityFeePerGas: string
+}
+
 const TradingApiClient = createApiClient({
   baseUrl: uniswapUrls.tradingApiUrl,
   additionalHeaders: {
@@ -270,8 +281,6 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
     } as unknown as ApprovalResponse
   }
 
-  const { constructUnlimitedERC20ApproveCalldata } = require('uniswap/src/utils/approvalCalldata')
-  const { createFetchGasFee } = require('uniswap/src/data/apiClients/uniswapApi/UniswapApiClient')
   const { Contract } = require('ethers')
   const ERC20_ABI = require('uniswap/src/abis/erc20.json')
   const { createEthersProvider } = require('uniswap/src/features/providers/createEthersProvider')
@@ -284,6 +293,7 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
     if (!universeChainId) {
       throw new Error('Unsupported chain ID')
     }
+
     const provider = createEthersProvider({ chainId: universeChainId })
     if (!provider) {
       throw new Error('Failed to create provider')
@@ -305,19 +315,21 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
     }
   } catch (error) {}
 
-  // Construct the approval calldata
-  const calldata = constructUnlimitedERC20ApproveCalldata(spenderAddress)
-
-  // Generate a request ID
-  const requestId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-
-  const baseTransaction = {
-    to: params.token, // Token contract address
-    value: '0x00', // No ETH value for ERC20 approvals
-    from: params.walletAddress, // User's wallet address
-    data: calldata, // Constructed approve calldata
-    chainId: params.chainId,
-  }
+  const result = await CustomQuoteApiClient.post<{
+    gasFee: string
+    tokenApproval: TokenApprovalResponse
+    requestId: string
+  }>('/v1/swap/approve', {
+    body: JSON.stringify({
+      tokenIn: params.token,
+      walletAddress: params.walletAddress,
+      chainId: params.chainId,
+      spenderAddress,
+    }),
+    headers: {
+      ...getFeatureFlaggedHeaders(),
+    },
+  })
 
   const gasStrategy = (params as ApprovalRequest & { gasStrategies?: unknown[] }).gasStrategies?.[0] || {
     limitInflationFactor: 1.2,
@@ -332,75 +344,25 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
     maxPriorityFeeGwei: 3,
   }
 
-  const fetchGasFee = createFetchGasFee({ gasStrategy })
-
-  try {
-    const gasResult = await fetchGasFee({
-      tx: baseTransaction,
-      fallbackGasLimit: 55000,
-    })
-
-    // Handle case where gasResult.params might be undefined (client-side fallback)
-    const gasParams = gasResult.params || {
-      maxFeePerGas: '2000000',
-      maxPriorityFeePerGas: '200000',
-      gasLimit: '11000',
-    }
-
-    const approvalTransaction = {
-      ...baseTransaction,
-      maxFeePerGas: gasParams.maxFeePerGas,
-      maxPriorityFeePerGas: gasParams.maxPriorityFeePerGas,
-      gasLimit: gasParams.gasLimit,
-    }
-
-    const gasEstimate = {
-      type: FeeType.EIP1559 as const,
-      strategy: gasStrategy,
-      gasLimit: gasParams.gasLimit,
-      gasFee: gasResult.value,
-      maxFeePerGas: gasParams.maxFeePerGas,
-      maxPriorityFeePerGas: gasParams.maxPriorityFeePerGas,
-    }
-
-    const response: ApprovalResponse = {
-      requestId,
-      approval: approvalTransaction,
-      cancel: approvalTransaction,
-      gasFee: gasResult.value,
-      cancelGasFee: gasResult.value,
-      gasEstimates: [gasEstimate],
-    }
-
-    return response
-  } catch (error) {
-    const approvalTransaction = {
-      ...baseTransaction,
-      maxFeePerGas: '2000000',
-      maxPriorityFeePerGas: '200000',
-      gasLimit: '11000',
-    }
-
-    const gasEstimate = {
-      type: FeeType.EIP1559 as const,
-      strategy: gasStrategy,
-      gasLimit: '11000',
-      gasFee: '110000000',
-      maxFeePerGas: '2000000',
-      maxPriorityFeePerGas: '200000',
-    }
-
-    const response: ApprovalResponse = {
-      requestId,
-      approval: approvalTransaction,
-      cancel: approvalTransaction,
-      gasFee: '110000000',
-      cancelGasFee: '110000000',
-      gasEstimates: [gasEstimate],
-    }
-
-    return response
+  const gasEstimate = {
+    type: FeeType.EIP1559 as const,
+    strategy: gasStrategy,
+    gasLimit: result.tokenApproval.gasLimit,
+    gasFee: result.gasFee,
+    maxFeePerGas: result.tokenApproval.maxFeePerGas,
+    maxPriorityFeePerGas: result.tokenApproval.maxPriorityFeePerGas,
   }
+
+  const response: ApprovalResponse = {
+    requestId: result.requestId,
+    approval: result.tokenApproval,
+    cancel: result.tokenApproval,
+    gasFee: result.gasFee,
+    cancelGasFee: '0',
+    gasEstimates: [gasEstimate],
+  }
+
+  return response
 }
 
 export async function fetchCheckApproval(params: ApprovalRequest): Promise<ApprovalResponse> {
