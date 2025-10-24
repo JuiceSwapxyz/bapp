@@ -1,5 +1,5 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
+import { createPonderApiClient } from 'uniswap/src/data/apiClients/ponderApi/PonderApi'
 
 type ExploreStatsResponse = {
   stats: {
@@ -7,9 +7,7 @@ type ExploreStatsResponse = {
   }
 }
 
-const PonderApiClient = createApiClient({
-  baseUrl: process.env.REACT_APP_PONDER_JUICESWAP_URL || '',
-})
+const PonderApiClient = createPonderApiClient()
 
 const fetchExploreStats = (): Promise<ExploreStatsResponse> => {
   return PonderApiClient.get<ExploreStatsResponse>(`/exploreStats`)

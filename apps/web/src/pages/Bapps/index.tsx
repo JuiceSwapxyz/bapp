@@ -1,8 +1,9 @@
 import { useAccount } from 'hooks/useAccount'
 import BappsContent from 'pages/Bapps/BappsContent'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
+import { useCampaignProgressQuery } from 'uniswap/src/data/apiClients/ponderApi/PonderApi'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 
@@ -70,48 +71,11 @@ const ExternalLinkButton = styled(Flex, {
 
 export default function Bapps() {
   const account = useAccount()
-  const [campaignProgress, setCampaignProgress] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const { data: campaignProgress, isLoading } = useCampaignProgressQuery(account.address ?? '')
 
   const handleVisitBapps = useCallback(() => {
-    window.open('https://bapps.citrea.xyz', '_blank', 'noopener,noreferrer')
+    window.open('https://bapps.citrea.com', '_blank', 'noopener,noreferrer')
   }, [])
-
-  const fetchCampaignProgress = useCallback(async () => {
-    if (!account.address) {
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const baseUrl = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
-      const response = await fetch(`${baseUrl}/campaign/progress`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress: account.address,
-          chainId: 5115, // Citrea Testnet
-        }),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setCampaignProgress(data)
-      }
-    } catch (error) {
-      // Silent error handling - campaign progress is optional
-    } finally {
-      setIsLoading(false)
-    }
-  }, [account.address])
-
-  useEffect(() => {
-    if (account.address) {
-      fetchCampaignProgress()
-    }
-  }, [account.address, fetchCampaignProgress])
 
   return (
     <Trace logImpression page={InterfacePageName.LandingPage}>

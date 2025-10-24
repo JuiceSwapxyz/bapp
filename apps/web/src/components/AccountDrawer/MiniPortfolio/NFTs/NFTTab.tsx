@@ -5,8 +5,8 @@ import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletConten
 import { WalletAsset } from 'nft/types/sell'
 import { useState } from 'react'
 import { View } from 'ui/src'
-import { NFTItem } from 'uniswap/src/features/nfts/types'
 import { useJuiceSwapNFTData } from 'uniswap/src/features/dataApi/nfts/nftsJuiceSwap'
+import { NFTItem } from 'uniswap/src/features/nfts/types'
 import { assume0xAddress } from 'utils/wagmi'
 
 // Transform NFTItem to WalletAsset format for display
