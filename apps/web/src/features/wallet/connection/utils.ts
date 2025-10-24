@@ -5,7 +5,7 @@ import { WalletConnectorMeta } from 'features/wallet/connection/types/WalletConn
  * Returns true if the meta object has any of its connector IDs matching the compareTo string.
  */
 export const isEqualWalletConnectorMetaId = (meta: WalletConnectorMeta, compareTo: string) => {
-  return meta.wagmi?.id === compareTo || meta.customConnectorId === compareTo || meta.solana?.walletName === compareTo
+  return meta.wagmi?.id === compareTo || meta.customConnectorId === compareTo
 }
 
 export function getConnectorWithId({
@@ -15,7 +15,7 @@ export function getConnectorWithId({
   connectors: WalletConnectorMeta[]
   id: string
 }): WalletConnectorMeta | undefined {
-  return connectors.find((c) => c.wagmi?.id === id || c.customConnectorId === id || c.solana?.walletName === id)
+  return connectors.find((c) => c.wagmi?.id === id || c.customConnectorId === id)
 }
 
 export function getConnectorWithIdWithThrow({
