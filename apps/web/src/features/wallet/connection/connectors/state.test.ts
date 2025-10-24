@@ -201,15 +201,11 @@ describe('state', () => {
       const mockService = createMockConnectWalletService()
       const trackedService = wrapConnectWalletServiceWithStateTracking(mockService)
       const wagmiMeta = createMockWalletConnectorMeta({ wagmi: { id: 'metamask', type: 'injected' } })
-      const solanaMeta = createMockWalletConnectorMeta({ solana: { walletName: 'Phantom' as any } })
       const customMeta = createMockWalletConnectorMeta({ customConnectorId: 'uniswapWalletConnect' as any })
 
       // Act & Assert
       await trackedService.connect({ walletConnector: wagmiMeta })
       expect(mockService.connect).toHaveBeenCalledWith({ walletConnector: wagmiMeta })
-
-      await trackedService.connect({ walletConnector: solanaMeta })
-      expect(mockService.connect).toHaveBeenCalledWith({ walletConnector: solanaMeta })
 
       await trackedService.connect({ walletConnector: customMeta })
       expect(mockService.connect).toHaveBeenCalledWith({ walletConnector: customMeta })

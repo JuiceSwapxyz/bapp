@@ -61,6 +61,7 @@ function useGetMinAmount(chainId?: UniverseChainId, txType?: TransactionType): J
   const MIN_AVALANCHE_FOR_GAS = useMinAvalancheForGas(txType)
   const MIN_CELO_FOR_GAS = useMinCeloForGas(txType)
   const MIN_L2_FOR_GAS = useMinGenericL2ForGas(txType)
+  const MIN_CITREA_TESTNET_FOR_GAS = useMinCitreaTestnetForGas(txType)
 
   if (!chainId) {
     return undefined
@@ -87,8 +88,9 @@ function useGetMinAmount(chainId?: UniverseChainId, txType?: TransactionType): J
     case UniverseChainId.Zksync:
     case UniverseChainId.Unichain:
     case UniverseChainId.Soneium:
-    case UniverseChainId.CitreaTestnet:
       return MIN_L2_FOR_GAS
+    case UniverseChainId.CitreaTestnet:
+      return MIN_CITREA_TESTNET_FOR_GAS
     default:
       logger.error(new Error('unhandled chain when getting min gas amount'), {
         tags: {
@@ -133,6 +135,21 @@ export function useMinGenericL2ForGas(txType?: TransactionType): JSBI {
     isSend(txType) ? SwapConfigKey.GenericL2SendMinGasAmount : SwapConfigKey.GenericL2SwapMinGasAmount,
     isSend(txType) ? 1 : 8, // .0001 and .0008 ETH
   )
+}
+
+export function useMinCitreaTestnetForGas(txType?: TransactionType): JSBI {
+  let defaultAmount
+  switch (txType) {
+    case TransactionType.CreatePosition:
+      defaultAmount = 400
+      break
+
+    default:
+      defaultAmount = 1
+      break
+  }
+
+  return JSBI.multiply(JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(12)), JSBI.BigInt(defaultAmount))
 }
 
 export function useLowBalanceWarningGasPercentage(): number {

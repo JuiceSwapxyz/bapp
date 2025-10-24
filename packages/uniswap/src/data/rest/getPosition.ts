@@ -2,11 +2,9 @@ import { PartialMessage } from '@bufbuild/protobuf'
 import { ConnectError } from '@connectrpc/connect'
 import { UseQueryResult, keepPreviousData, useQuery as useTanstackQuery } from '@tanstack/react-query'
 import { GetPositionRequest, GetPositionResponse } from '@uniswap/client-pools/dist/pools/v1/api_pb'
-import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
+import { createPonderApiClient } from 'uniswap/src/data/apiClients/ponderApi/PonderApi'
 
-const ponderApiClient = createApiClient({
-  baseUrl: process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com',
-})
+const ponderApiClient = createPonderApiClient()
 
 async function fetchPositionFromCustomServer(input?: PartialMessage<GetPositionRequest>): Promise<GetPositionResponse> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

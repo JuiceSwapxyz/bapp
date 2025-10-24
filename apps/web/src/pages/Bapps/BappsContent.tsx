@@ -136,7 +136,7 @@ interface CampaignProgress {
 
 interface BappsContentProps {
   account: { address?: string; isConnected: boolean }
-  campaignProgress: CampaignProgress | null
+  campaignProgress: CampaignProgress | null | undefined
   isLoading: boolean
 }
 
