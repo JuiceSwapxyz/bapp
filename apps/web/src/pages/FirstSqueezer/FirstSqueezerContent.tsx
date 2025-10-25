@@ -71,10 +71,11 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
   // Get OAuth callback error from URL (if redirected from OAuth callback with error)
   const params = new URLSearchParams(window.location.search)
   const oauthCallbackError = params.get('oauth_error')
+  const oauthService = params.get('oauth_service') // 'twitter' or 'discord'
 
-  // Merge errors: callback error takes precedence over start error
-  const twitterError = oauthCallbackError || twitterOauthError
-  const discordError = oauthCallbackError || discordOauthError
+  // Merge errors: callback error takes precedence over start error, but only for the relevant service
+  const twitterError = (oauthService === 'twitter' ? oauthCallbackError : null) || twitterOauthError
+  const discordError = (oauthService === 'discord' ? oauthCallbackError : null) || discordOauthError
 
   const handleConnectWallet = () => {
     accountDrawer.open()
