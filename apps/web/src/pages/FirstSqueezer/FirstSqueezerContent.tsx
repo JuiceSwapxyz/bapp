@@ -68,13 +68,14 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
   // Twitter follow modal state
   const [isTwitterModalOpen, setIsTwitterModalOpen] = useState(false)
 
-  // Get OAuth callback error from URL (if redirected from OAuth callback with error)
+  // Get OAuth callback errors from URL (if redirected from OAuth callback with error)
   const params = new URLSearchParams(window.location.search)
-  const oauthCallbackError = params.get('oauth_error')
+  const twitterCallbackError = params.get('twitter_error')
+  const discordCallbackError = params.get('discord_error')
 
   // Merge errors: callback error takes precedence over start error
-  const twitterError = oauthCallbackError || twitterOauthError
-  const discordError = oauthCallbackError || discordOauthError
+  const twitterError = twitterCallbackError || twitterOauthError
+  const discordError = discordCallbackError || discordOauthError
 
   const handleConnectWallet = () => {
     accountDrawer.open()

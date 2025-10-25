@@ -8,9 +8,9 @@ import { useNavigate } from 'react-router'
  *
  * Query params expected:
  * - twitter=success&username=X  (success case - redirect to /first-squeezer)
- * - twitter=error&message=...   (error case - redirect to /first-squeezer?oauth_error=...)
+ * - twitter=error&message=...   (error case - redirect to /first-squeezer?twitter_error=...)
  * - discord=success&username=X  (success case - redirect to /first-squeezer)
- * - discord=error&message=...   (error case - redirect to /first-squeezer?oauth_error=...)
+ * - discord=error&message=...   (error case - redirect to /first-squeezer?discord_error=...)
  */
 export default function OAuthCallback() {
   const navigate = useNavigate()
@@ -24,14 +24,14 @@ export default function OAuthCallback() {
     // Handle Twitter error case
     if (twitterParam === 'error') {
       const errorMessage = message || 'Twitter verification failed'
-      navigate(`/first-squeezer?oauth_error=${encodeURIComponent(errorMessage)}`)
+      navigate(`/first-squeezer?twitter_error=${encodeURIComponent(errorMessage)}`)
       return
     }
 
     // Handle Discord error case
     if (discordParam === 'error') {
       const errorMessage = message || 'Discord verification failed'
-      navigate(`/first-squeezer?oauth_error=${encodeURIComponent(errorMessage)}`)
+      navigate(`/first-squeezer?discord_error=${encodeURIComponent(errorMessage)}`)
       return
     }
 
