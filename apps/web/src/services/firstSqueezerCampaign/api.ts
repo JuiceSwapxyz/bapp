@@ -136,10 +136,10 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
-   * Start Twitter OAuth flow
+   * Start Twitter OAuth flow (OAuth 1.0a)
    * Returns authorization URL to open in popup
    */
-  async startTwitterOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
+  async startTwitterOAuth(walletAddress: string): Promise<{ authUrl: string; requestToken: string }> {
     try {
       const response = await fetch(
         `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`,
