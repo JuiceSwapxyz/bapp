@@ -56,7 +56,7 @@ export function TwitterFollowModal({ isOpen, onDismiss, onConfirm }: TwitterFoll
   }
 
   const handleNotYet = () => {
-    window.open('https://x.com/JuiceSwap_com', '_blank', 'noopener,noreferrer')
+    window.open('https://x.com/intent/follow?screen_name=JuiceSwap_com', '_blank', 'noopener,noreferrer')
     setHasOpenedFollow(true)
   }
 
