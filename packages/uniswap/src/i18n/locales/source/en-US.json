@@ -917,7 +917,7 @@
   "landing.protocolStats": "JuiceSwap Protocol stats",
   "landing.provideLiquidity.body": "Provide liquidity and collect fees using the JuiceSwap Interface.",
   "landing.provideLiquidity.subtitle": "Power onchain markets.",
-  "landing.socials": "Follow JuiceSwap Labs on <LinkX>X</LinkX> and <LinkTelegram>Telegram</LinkTelegram>",
+  "landing.socials": "Follow JuiceSwap Labs on <LinkX>X</LinkX>, <LinkTelegram>Telegram</LinkTelegram>, and <LinkDiscord>Discord</LinkDiscord>",
   "landing.swapBody": "Access deep liquidity, explore tokens, set limit orders, and provide liquidity for all tokens on Citrea.",
   "landing.swapSubtitle": "Permissionless swapping.",
   "landing.tradingApi": "Trading API",
