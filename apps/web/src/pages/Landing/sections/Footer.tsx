@@ -1,5 +1,5 @@
 import { Wiggle } from 'components/animations/Wiggle'
-import { Github, Telegram, Twitter } from 'pages/Landing/components/Icons'
+import { Discord, Github, Telegram, Twitter } from 'pages/Landing/components/Icons'
 import { useTranslation } from 'react-i18next'
 import { Anchor, Flex, Separator, Text, styled } from 'ui/src'
 import { iconSizes } from 'ui/src/theme'
@@ -36,6 +36,11 @@ export function Socials({ iconSize }: { iconSize?: string }) {
       <SocialIcon iconColor="#F7911A">
         <Anchor href={uniswapUrls.social.telegram} target="_blank">
           <Telegram size={iconSize} fill="inherit" />
+        </Anchor>
+      </SocialIcon>
+      <SocialIcon iconColor="#F7911A">
+        <Anchor href={uniswapUrls.social.discord} target="_blank">
+          <Discord size={iconSize} fill="inherit" />
         </Anchor>
       </SocialIcon>
     </Flex>

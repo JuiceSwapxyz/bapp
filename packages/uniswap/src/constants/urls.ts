@@ -39,6 +39,7 @@ export const uniswapUrls = {
     x: 'https://x.com/JuiceSwap_com',
     telegram: 'https://t.me/JuiceSwap',
     github: 'https://github.com/JuiceSwapxyz',
+    discord: 'https://discord.gg/juiceswap',
   },
   termsOfServiceUrl: 'https://juiceswap.com/terms-of-service',
   privacyPolicyUrl: 'https://juiceswap.com/privacy-policy',
