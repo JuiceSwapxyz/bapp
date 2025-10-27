@@ -2,6 +2,7 @@ import { Wiggle } from 'components/animations/Wiggle'
 import { Discord, Github, Telegram, Twitter } from 'pages/Landing/components/Icons'
 import { useTranslation } from 'react-i18next'
 import { Anchor, Flex, Separator, Text, styled } from 'ui/src'
+import { BookOpen } from 'ui/src/components/icons/BookOpen'
 import { iconSizes } from 'ui/src/theme'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 
@@ -23,6 +24,11 @@ const PolicyLink = styled(Text, {
 export function Socials({ iconSize }: { iconSize?: string }) {
   return (
     <Flex row gap="$spacing24" maxHeight={iconSize} alignItems="flex-start">
+      <SocialIcon iconColor="#F7911A">
+        <Anchor href={uniswapUrls.docsUrl} target="_blank">
+          <BookOpen size="$icon.36" fill="inherit" />
+        </Anchor>
+      </SocialIcon>
       <SocialIcon iconColor="#F7911A">
         <Anchor href={uniswapUrls.social.github} target="_blank">
           <Github size={iconSize} fill="inherit" />
