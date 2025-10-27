@@ -2,6 +2,7 @@ import styled from 'lib/styled-components'
 import { Body } from 'pages/App/Body'
 import { Header } from 'pages/App/Header'
 import { GRID_AREAS } from 'pages/App/utils/shared'
+import { Footer } from 'pages/Landing/sections/Footer'
 import { breakpoints } from 'ui/src/theme'
 
 const AppContainer = styled.div`
@@ -11,8 +12,8 @@ const AppContainer = styled.div`
   // grid container settings
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto auto 1fr;
-  grid-template-areas: '${GRID_AREAS.HEADER}' '${GRID_AREAS.MAIN}' '${GRID_AREAS.MOBILE_BOTTOM_BAR}';
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: '${GRID_AREAS.HEADER}' '${GRID_AREAS.MAIN}' 'footer';
 `
 const AppBody = styled.div`
   grid-area: ${GRID_AREAS.MAIN};
@@ -33,6 +34,14 @@ const AppBody = styled.div`
   }
 `
 
+const FooterContainer = styled.div`
+  grid-area: footer;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background: ${({ theme }) => theme.surface1};
+`
+
 export function AppLayout() {
   return (
     <AppContainer>
@@ -40,6 +49,9 @@ export function AppLayout() {
       <AppBody>
         <Body />
       </AppBody>
+      <FooterContainer>
+        <Footer />
+      </FooterContainer>
     </AppContainer>
   )
 }
