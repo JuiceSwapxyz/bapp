@@ -244,6 +244,7 @@ export function NewsletterEtc() {
               components={{
                 LinkX: <SocialLink href={uniswapUrls.social.x} />,
                 LinkTelegram: <SocialLink href={uniswapUrls.social.telegram} />,
+                LinkDiscord: <SocialLink href={uniswapUrls.social.discord} />,
               }}
             />
           }
