@@ -150,7 +150,19 @@ function useIsFirstSqueezerTimeActive(): boolean {
 }
 
 /**
- * Hook to check if campaign is currently visible
+ * Hook to check if campaign has ended
+ * Note: This always returns true after end date, even with URL override
+ */
+export function useIsFirstSqueezerCampaignEnded(): boolean {
+  return useMemo(() => {
+    const campaignEndTime = new Date('2025-10-26T23:59:59.000Z').getTime()
+    const now = Date.now()
+    return now > campaignEndTime
+  }, [])
+}
+
+/**
+ * Hook to check if campaign is currently visible (banner and navigation)
  */
 export function useIsFirstSqueezerCampaignVisible(): boolean {
   const { defaultChainId } = useEnabledChains()
