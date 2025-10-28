@@ -3,7 +3,12 @@ import { ConditionCard } from 'pages/FirstSqueezer/ConditionCard'
 import { NFTClaimSection } from 'pages/FirstSqueezer/NFTClaimSection'
 import { TwitterFollowModal } from 'pages/FirstSqueezer/TwitterFollowModal'
 import { useState } from 'react'
-import { useDiscordOAuth, useFirstSqueezerProgress, useTwitterOAuth } from 'services/firstSqueezerCampaign/hooks'
+import {
+  useDiscordOAuth,
+  useFirstSqueezerProgress,
+  useIsFirstSqueezerCampaignEnded,
+  useTwitterOAuth,
+} from 'services/firstSqueezerCampaign/hooks'
 import { ConditionType } from 'services/firstSqueezerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 
@@ -47,6 +52,21 @@ const ProgressText = styled(Text, {
   fontWeight: '500',
 })
 
+const EndedBanner = styled(Flex, {
+  padding: '$spacing24',
+  backgroundColor: '$surface2',
+  borderRadius: '$rounded16',
+  borderWidth: 2,
+  borderColor: '$neutral3',
+  gap: '$spacing16',
+  alignItems: 'center',
+})
+
+const EndedIcon = styled(Text, {
+  fontSize: 64,
+  lineHeight: 64,
+})
+
 interface FirstSqueezerContentProps {
   account: { address?: string; isConnected: boolean }
 }
@@ -54,6 +74,7 @@ interface FirstSqueezerContentProps {
 export default function FirstSqueezerContent({ account }: FirstSqueezerContentProps) {
   const accountDrawer = useAccountDrawer()
   const { progress, loading, error } = useFirstSqueezerProgress()
+  const isCampaignEnded = useIsFirstSqueezerCampaignEnded()
   const {
     startOAuth: startTwitterOAuth,
     isLoading: isTwitterAuthenticating,
@@ -79,6 +100,53 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
 
   const handleConnectWallet = () => {
     accountDrawer.open()
+  }
+
+  // Show campaign ended message
+  if (isCampaignEnded) {
+    return (
+      <ContentContainer>
+        <EndedBanner>
+          <Flex centered gap="$spacing24" width="100%">
+            <EndedIcon>⏰</EndedIcon>
+            <Flex gap="$spacing12" centered>
+              <SectionTitle textAlign="center">Campaign Beendet</SectionTitle>
+              <Text variant="body1" color="$neutral2" textAlign="center">
+                Die First Squeezer NFT Campaign ist am 26. Oktober 2025 um 23:59:59 UTC beendet.
+              </Text>
+              <Text variant="body2" color="$neutral2" textAlign="center">
+                Das Minten von neuen First Squeezer NFTs ist nicht mehr möglich.
+              </Text>
+            </Flex>
+          </Flex>
+        </EndedBanner>
+
+        {/* Show How it Works section for reference */}
+        <Section>
+          <SectionTitle>Campaign Details</SectionTitle>
+          <Flex gap="$spacing12">
+            <Text variant="body2" color="$neutral2">
+              Die Campaign lief vom 22. Oktober 2025 bis zum 26. Oktober 2025.
+            </Text>
+            <Text variant="body2" color="$neutral2" fontWeight="$semibold" mt="$spacing8">
+              Bedingungen:
+            </Text>
+            <Text variant="body2" color="$neutral2">
+              1. Alle 3 Swap-Aufgaben in der Citrea ₿Apps Campaign abschließen
+            </Text>
+            <Text variant="body2" color="$neutral2">
+              2. @JuiceSwap_com auf X (Twitter) folgen
+            </Text>
+            <Text variant="body2" color="$neutral2">
+              3. Der JuiceSwap Discord-Community beitreten
+            </Text>
+            <Text variant="body2" color="$neutral2">
+              4. Das exklusive First Squeezer NFT claimen (limitierte Auflage!)
+            </Text>
+          </Flex>
+        </Section>
+      </ContentContainer>
+    )
   }
 
   if (!account.isConnected) {
