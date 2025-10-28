@@ -2,7 +2,10 @@ import { useAtom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { X } from 'react-feather'
 import { useNavigate } from 'react-router'
-import { useIsFirstSqueezerCampaignVisible } from 'services/firstSqueezerCampaign/hooks'
+import {
+  useIsFirstSqueezerCampaignEnded,
+  useIsFirstSqueezerCampaignVisible,
+} from 'services/firstSqueezerCampaign/hooks'
 import { Anchor, Flex, Text, styled, useMedia } from 'ui/src'
 
 const hideFirstSqueezerBannerAtom = atomWithStorage<boolean>('hideFirstSqueezerBanner', false)
@@ -105,8 +108,10 @@ const GlowAnimation = styled(Flex, {
 export function useFirstSqueezerBannerEligible(): boolean {
   const [hideBanner] = useAtom(hideFirstSqueezerBannerAtom)
   const isCampaignVisible = useIsFirstSqueezerCampaignVisible()
+  const isCampaignEnded = useIsFirstSqueezerCampaignEnded()
 
-  return isCampaignVisible && !hideBanner
+  // Banner should never show after campaign ends, even with URL override
+  return isCampaignVisible && !hideBanner && !isCampaignEnded
 }
 
 export function FirstSqueezerBanner() {
