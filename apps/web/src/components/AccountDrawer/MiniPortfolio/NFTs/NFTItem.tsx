@@ -21,7 +21,7 @@ export function NFT({
   const onPress = () => {
     if (asset.asset_contract.address && asset.tokenId) {
       window.open(
-        `https://explorer.testnet.citrea.xyz/token/${asset.asset_contract.address}/instance/${asset.tokenId}`,
+        `https://testnet.citreascan.com/token/${asset.asset_contract.address}/instance/${asset.tokenId}`,
         '_blank',
         'noopener,noreferrer',
       )

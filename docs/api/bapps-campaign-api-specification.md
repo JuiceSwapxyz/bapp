@@ -207,7 +207,7 @@ You'll need to connect to Citrea Testnet to verify transactions:
 
 - **RPC Endpoint**: `https://rpc.testnet.juiceswap.com`
 - **Chain ID**: 5115
-- **Explorer API**: `https://explorer.testnet.citrea.xyz/api`
+- **Explorer API**: `https://testnet.citreascan.com/api`
 
 ### Swap Detection
 

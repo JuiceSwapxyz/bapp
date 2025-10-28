@@ -98,7 +98,7 @@ export function NFTClaimSection({ isEligible, walletAddress, nftMinted, nftTxHas
   const handleViewTransaction = () => {
     if (displayTxHash) {
       // Open Citrea testnet explorer
-      window.open(`https://explorer.testnet.citrea.xyz/tx/${displayTxHash}`, '_blank', 'noopener,noreferrer')
+      window.open(`https://testnet.citreascan.com/tx/${displayTxHash}`, '_blank', 'noopener,noreferrer')
     }
   }
 
