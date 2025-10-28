@@ -150,7 +150,19 @@ function useIsFirstSqueezerTimeActive(): boolean {
 }
 
 /**
- * Hook to check if campaign is currently visible
+ * Hook to check if campaign has ended
+ * Note: This always returns true after end date, even with URL override
+ */
+export function useIsFirstSqueezerCampaignEnded(): boolean {
+  return useMemo(() => {
+    const campaignEndTime = new Date('2025-10-26T23:59:59.000Z').getTime()
+    const now = Date.now()
+    return now > campaignEndTime
+  }, [])
+}
+
+/**
+ * Hook to check if campaign is currently visible (banner and navigation)
  */
 export function useIsFirstSqueezerCampaignVisible(): boolean {
   const { defaultChainId } = useEnabledChains()
@@ -190,10 +202,10 @@ export function useTwitterOAuth() {
     setError(null)
     setIsLoading(true)
 
-    // Clear any existing oauth_error param from URL
+    // Clear any existing twitter_error param from URL
     const currentUrl = new URL(window.location.href)
-    if (currentUrl.searchParams.has('oauth_error')) {
-      currentUrl.searchParams.delete('oauth_error')
+    if (currentUrl.searchParams.has('twitter_error')) {
+      currentUrl.searchParams.delete('twitter_error')
       window.history.replaceState({}, '', currentUrl.toString())
     }
 
@@ -235,10 +247,10 @@ export function useDiscordOAuth() {
     setError(null)
     setIsLoading(true)
 
-    // Clear any existing oauth_error param from URL
+    // Clear any existing discord_error param from URL
     const currentUrl = new URL(window.location.href)
-    if (currentUrl.searchParams.has('oauth_error')) {
-      currentUrl.searchParams.delete('oauth_error')
+    if (currentUrl.searchParams.has('discord_error')) {
+      currentUrl.searchParams.delete('discord_error')
       window.history.replaceState({}, '', currentUrl.toString())
     }
 

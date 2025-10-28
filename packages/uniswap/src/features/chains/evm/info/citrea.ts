@@ -42,8 +42,8 @@ const citreaTestnet = defineChain({
   blockExplorers: {
     default: {
       name: 'Citrea Testnet Explorer',
-      url: 'https://explorer.testnet.citrea.xyz',
-      apiUrl: 'https://explorer.testnet.citrea.xyz/api',
+      url: 'https://testnet.citreascan.com',
+      apiUrl: 'https://testnet.citreascan.com/api',
     },
   },
   contracts: {},
@@ -67,8 +67,8 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   elementName: ElementName.ChainCitreaTestnet,
   explorer: {
     name: 'Citrea Testnet Explorer',
-    url: 'https://explorer.testnet.citrea.xyz/',
-    apiURL: 'https://explorer.testnet.citrea.xyz/api',
+    url: 'https://testnet.citreascan.com/',
+    apiURL: 'https://testnet.citreascan.com/api',
   },
   interfaceName: 'citrea_testnet',
   label: 'Citrea Testnet',
@@ -78,7 +78,7 @@ export const CITREA_TESTNET_CHAIN_INFO = {
     symbol: 'cBTC',
     decimals: 18,
     address: DEFAULT_NATIVE_ADDRESS_LEGACY,
-    explorerLink: 'https://explorer.testnet.citrea.xyz/',
+    explorerLink: 'https://testnet.citreascan.com/',
     logo: CITREA_LOGO,
   },
   networkLayer: NetworkLayer.L2, // Citrea is a Bitcoin rollup (L2)
