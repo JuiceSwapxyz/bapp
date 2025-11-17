@@ -120,7 +120,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             fontSize={48}
             lineHeight={56}
             textAlign="center"
-            fontWeight="400"
+            fontWeight="$book"
             $md={{ fontSize: 40 }}
             $sm={{ variant: 'heading2', fontSize: 32 }}
             $short={{ variant: 'heading2', fontSize: 32 }}
