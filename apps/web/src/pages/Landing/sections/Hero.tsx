@@ -74,7 +74,9 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
         } else {
           return (
             <Fragment key={`${index}-${word}`}>
-              <RiseInText delay={index * 0.1}>{word}</RiseInText>{' '}
+              <RiseInText delay={index * 0.1} style={{
+                fontFamily: '"Pacifico", sans-serif',
+              }}>{word}</RiseInText>{' '}
             </Fragment>
           )
         }
@@ -113,7 +115,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             fontSize={48}
             lineHeight={56}
             textAlign="center"
-            fontWeight="$book"
+            fontWeight="400"
             $md={{ fontSize: 40 }}
             $sm={{ variant: 'heading2', fontSize: 32 }}
             $short={{ variant: 'heading2', fontSize: 32 }}
@@ -121,7 +123,6 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             {renderRiseInText}
           </Text>
         </Flex>
-
         <RiseIn delay={0.4}>
           <Flex
             pointerEvents="auto"
@@ -147,7 +148,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
 
         <RiseIn delay={0.3}>
           <Text variant="body1" textAlign="center" maxWidth={430} color="$neutral2" $short={{ variant: 'body2' }}>
-            <Trans i18nKey="hero.subtitle" />
+            <Trans i18nKey="hero.subtitl" />
           </Text>
         </RiseIn>
       </Flex>
