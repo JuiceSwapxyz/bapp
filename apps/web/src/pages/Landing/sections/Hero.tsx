@@ -183,7 +183,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
 
         <RiseIn delay={0.3}>
           <Text variant="body1" textAlign="center" maxWidth={430} color="$neutral2" $short={{ variant: 'body2' }}>
-            <Trans i18nKey="hero.subtitl" />
+            <Trans i18nKey="hero.subtitle" />
           </Text>
         </RiseIn>
       </Flex>
