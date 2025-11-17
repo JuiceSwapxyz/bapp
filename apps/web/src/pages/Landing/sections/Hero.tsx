@@ -15,6 +15,9 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SwapRedirectFn } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
 
+const HERO_BG_SRC = '/images/landing_page/JuiceWave-bg.svg'
+const CITREA_LOGO_SRC = '/images/logos/Citrea_Full_Logo.svg'
+
 const HERO_TITLE_GRADIENT = 'linear-gradient(90deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)'
 
 interface HeroProps {
@@ -114,6 +117,22 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       pointerEvents="none"
     >
       <Flex
+        position="absolute"
+        top={472}
+        left={0}
+        right={0}
+        height={529}
+        zIndex={-1}
+        pointerEvents="none"
+        style={{
+          backgroundImage: `url(${HERO_BG_SRC})`,
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover', // scales the SVG to fill this hero area
+          backgroundPosition: 'top center',
+          height: 'min(529px, 80vh)',
+        }}
+      />
+      <Flex
         alignSelf="center"
         maxWidth="85vw"
         pointerEvents="none"
@@ -180,11 +199,20 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             />
           </Flex>
         </RiseIn>
-
         <RiseIn delay={0.3}>
-          <Text variant="body1" textAlign="center" maxWidth={430} color="$neutral2" $short={{ variant: 'body2' }}>
-            <Trans i18nKey="hero.subtitle" />
-          </Text>
+          <Flex
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            pointerEvents="none"
+            gap="$gap4"
+            mt={4}
+          >
+            <Text variant="body2" color="$neutral2">
+              <Trans i18nKey="hero.subtitle" />
+            </Text>
+            <img src={CITREA_LOGO_SRC} alt="Citrea" style={{ width: 200, height: 'auto' }} />
+          </Flex>
         </RiseIn>
       </Flex>
 
