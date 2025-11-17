@@ -1,37 +1,49 @@
 import { render } from '@testing-library/react'
 import Bapps from 'pages/Bapps'
 import { MemoryRouter } from 'react-router'
+import { vi } from 'vitest'
 
 // Mock hooks
-jest.mock('hooks/useAccount', () => ({
+vi.mock('hooks/useAccount', () => ({
   useAccount: () => ({
     address: undefined,
     isConnected: false,
   }),
 }))
 
-jest.mock('@web3-react/core', () => ({
+vi.mock('@web3-react/core', () => ({
   useWeb3React: () => ({
     connector: {
-      deactivate: jest.fn(),
-      resetState: jest.fn(),
+      deactivate: vi.fn(),
+      resetState: vi.fn(),
     },
   }),
 }))
 
-jest.mock('components/AccountDrawer/MiniPortfolio/hooks', () => ({
+vi.mock('components/AccountDrawer/MiniPortfolio/hooks', () => ({
   useAccountDrawer: () => ({
-    open: jest.fn(),
+    open: vi.fn(),
     isOpen: false,
   }),
 }))
 
 // Mock telemetry
-jest.mock('uniswap/src/features/telemetry/Trace', () => {
-  return function MockTrace({ children }: { children: React.ReactNode }) {
-    return <div data-testid="trace">{children}</div>
+vi.mock('uniswap/src/features/telemetry/Trace', () => {
+  return {
+    default: function MockTrace({ children }: { children: React.ReactNode }) {
+      return <div data-testid="trace">{children}</div>
+    },
   }
 })
+
+// Mock campaign progress query
+vi.mock('uniswap/src/data/apiClients/ponderApi/PonderApi', () => ({
+  useCampaignProgressQuery: () => ({
+    data: null,
+    isLoading: false,
+    error: null,
+  }),
+}))
 
 describe('Bapps Page', () => {
   it('renders the page title and description', () => {
