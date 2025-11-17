@@ -74,9 +74,14 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
         } else {
           return (
             <Fragment key={`${index}-${word}`}>
-              <RiseInText delay={index * 0.1} style={{
-                fontFamily: '"Pacifico", sans-serif',
-              }}>{word}</RiseInText>{' '}
+              <RiseInText
+                delay={index * 0.1}
+                style={{
+                  fontFamily: '"Pacifico", sans-serif',
+                }}
+              >
+                {word}
+              </RiseInText>{' '}
             </Fragment>
           )
         }
