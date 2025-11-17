@@ -15,6 +15,8 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SwapRedirectFn } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
 
+const HERO_TITLE_GRADIENT = 'linear-gradient(90deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)'
+
 interface HeroProps {
   scrollToRef: () => void
   transition?: boolean
@@ -65,27 +67,38 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
   )
 
   const renderRiseInText = useMemo(() => {
-    return t('hero.swap.title')
-      .split(/(<br\/>)|\s+/)
-      .filter(Boolean) // splits the string by spaces but also captures "<br/>" as a separate element in the array
-      .map((word, index) => {
-        if (word === '<br/>') {
-          return <br key={`${index}-${word}-br`} />
-        } else {
-          return (
-            <Fragment key={`${index}-${word}`}>
-              <RiseInText
-                delay={index * 0.1}
-                style={{
-                  fontFamily: '"Pacifico", sans-serif',
-                }}
-              >
-                {word}
-              </RiseInText>{' '}
-            </Fragment>
-          )
-        }
-      })
+    const text = t('hero.swap.title')
+
+    // Split on spaces only
+    const words = text.split(/\s+/).filter(Boolean)
+    const totalWords = words.length || 1
+
+    return words.map((word, i) => {
+      const backgroundSize = `${totalWords * 100}% 100%`
+      const backgroundPosition = totalWords === 1 ? '0 0' : `${(i / (totalWords - 1)) * 100}% 0`
+
+      return (
+        <Fragment key={`${i}-${word}`}>
+          <RiseInText
+            delay={i * 0.1}
+            style={{
+              fontFamily: '"Pacifico", sans-serif',
+              backgroundImage: HERO_TITLE_GRADIENT,
+              backgroundSize,
+              backgroundPosition,
+              backgroundRepeat: 'no-repeat',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+              WebkitTextFillColor: 'transparent',
+              display: 'inline-block',
+            }}
+          >
+            {word}
+          </RiseInText>{' '}
+        </Fragment>
+      )
+    })
   }, [t])
 
   return (
@@ -118,16 +131,33 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
           <Text
             variant="heading1"
             fontSize={48}
-            lineHeight={56}
+            lineHeight={85}
             textAlign="center"
             fontWeight="$book"
             $md={{ fontSize: 40 }}
             $sm={{ variant: 'heading2', fontSize: 32 }}
             $short={{ variant: 'heading2', fontSize: 32 }}
+            overflow="visible"
           >
             {renderRiseInText}
           </Text>
         </Flex>
+        <RiseIn delay={0.2}>
+          <Flex maxWidth={920} alignItems="center" pointerEvents="none">
+            <Text
+              variant="heading2"
+              fontSize={16}
+              lineHeight={22}
+              textAlign="center"
+              fontWeight="$book"
+              $md={{ fontSize: 40 }}
+              $sm={{ variant: 'heading2', fontSize: 32 }}
+              $short={{ variant: 'heading2', fontSize: 32 }}
+            >
+              <Trans i18nKey="hero.swap.subtitle" />
+            </Text>
+          </Flex>
+        </RiseIn>
         <RiseIn delay={0.4}>
           <Flex
             pointerEvents="auto"
