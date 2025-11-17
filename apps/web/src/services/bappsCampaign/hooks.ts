@@ -222,7 +222,7 @@ function useUrlCampaignOverride(): boolean {
 function useIsCampaignTimeActive(): boolean {
   const hasUrlOverride = useUrlCampaignOverride()
 
-  // Campaign start time: September 25, 2025 at 00:00 UTC
+  // Campaign time window: September 26, 2025 12:00 UTC to September 30, 2025 23:59:59 UTC
   return useMemo(() => {
     // URL Override has priority - if active, campaign is always on
     if (hasUrlOverride) {
@@ -231,8 +231,9 @@ function useIsCampaignTimeActive(): boolean {
 
     // Normal time-based logic
     const campaignStartTime = new Date('2025-09-26T12:00:00.000Z').getTime()
+    const campaignEndTime = new Date('2025-09-30T23:59:59.999Z').getTime()
     const now = Date.now()
-    return now >= campaignStartTime
+    return now >= campaignStartTime && now <= campaignEndTime
   }, [hasUrlOverride])
 }
 
