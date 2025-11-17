@@ -172,7 +172,7 @@ export function StatCard(props: StatCardProps) {
   )
 }
 
-function StringInterpolationWithMotion({ value, delay, inView, live, valueColor }: Omit<StatCardProps, 'title'>) {
+function StringInterpolationWithMotion({ value, delay, inView, valueColor }: Omit<StatCardProps, 'title'>) {
   const chars = value.split('')
   const theme = useTheme()
   const locale = useCurrentLocale()

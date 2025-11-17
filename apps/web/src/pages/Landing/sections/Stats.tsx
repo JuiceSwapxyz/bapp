@@ -1,10 +1,9 @@
 import { LiveIcon, StatCard } from 'pages/Landing/components/StatCard'
 import { useInView } from 'pages/Landing/sections/useInView'
-import { parseToRgb } from 'polished'
 import { useTranslation } from 'react-i18next'
 import { use24hProtocolVolume, useDailyTVLWithChange } from 'state/explore/protocolStats'
 import { ExternalLink } from 'theme/components/Links'
-import { Flex, Text, styled, useSporeColors } from 'ui/src'
+import { Flex, Text, styled } from 'ui/src'
 import { RightArrow } from 'ui/src/components/icons/RightArrow'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -81,8 +80,7 @@ function GetStarted() {
 export function Stats() {
   const { t } = useTranslation()
   const { ref, inView } = useInView()
-  const colors = useSporeColors()
-  const { red, green, blue } = parseToRgb(colors.neutral2.val)
+  // const colors = useSporeColors()
 
   return (
     <Container>
