@@ -108,7 +108,7 @@ export function Stats() {
               gap="$spacing8"
               alignItems="center"
               row
-              backgroundImage={`radial-gradient(rgba(${red}, ${green}, ${blue}, 0.25) 0.5px, transparent 0)`}
+              // backgroundImage={`radial-gradient(rgba(${red}, ${green}, ${blue}, 0.25) 0.5px, transparent 0)`}
               backgroundSize="12px 12px"
               backgroundPosition="-8.5px -8.5px"
             >
@@ -180,11 +180,13 @@ function Cards({ inView }: { inView: boolean }) {
   // Show bApps campaign card for Citrea Testnet
   const showBAppsCard = defaultChainId === UniverseChainId.CitreaTestnet
 
+  const SWAP_VOLUME_HIGHLIGHT = '#FF9800'
+
   return (
     <GridArea>
       <LeftTop>
         {showBAppsCard ? (
-          <StatCard title="₿apps Campaign" value="LIVE" live delay={0} inView={inView} />
+          <StatCard title="₿apps Campaign" value="LIVE" live delay={0} inView={inView} gradient="default" />
         ) : (
           <StatCard
             title={t('stats.allTimeVolume')}
@@ -220,6 +222,9 @@ function Cards({ inView }: { inView: boolean }) {
           live
           delay={0.6}
           inView={inView}
+          titleColor={SWAP_VOLUME_HIGHLIGHT}
+          valueColor={SWAP_VOLUME_HIGHLIGHT}
+          gradient="swap"
         />
       </RightBottom>
     </GridArea>
