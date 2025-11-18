@@ -54,6 +54,25 @@ const HeroGradientTitle = styled(
   } as any,
 ) as any
 
+const HeroBackground = styled(Flex, {
+  name: 'HeroBackground',
+  position: 'absolute',
+  top: 472,
+  left: 0,
+  right: 0,
+  height: 529,
+  zIndex: -1,
+  pointerEvents: 'none',
+
+  '$platform-web': {
+    backgroundImage: `url(/images/landing_page/LandingHero-bg.svg)`,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    backgroundPosition: 'top center',
+    height: 'min(529px, 80vh)',
+  },
+} as const)
+
 export function Hero({ scrollToRef, transition }: HeroProps) {
   const media = useMedia()
   const { height: scrollPosition } = useScroll({ enabled: !media.sm })
@@ -140,6 +159,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       pt={INTERFACE_NAV_HEIGHT}
       pointerEvents="none"
     >
+      <HeroBackground />
       <Flex
         alignSelf="center"
         maxWidth="85vw"
@@ -205,9 +225,19 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
 
         {/* Secondary subtitle */}
         <RiseIn delay={0.3}>
-          <Text variant="body1" textAlign="center" maxWidth={430} color="$neutral2" $short={{ variant: 'body2' }}>
-            <Trans i18nKey="hero.subtitle" />
-          </Text>
+          <Flex
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            pointerEvents="none"
+            gap="$gap4"
+            mt={4}
+          >
+            <Text variant="body2" color="$neutral2">
+              <Trans i18nKey="hero.subtitle" />
+            </Text>
+            <img src="/images/logos/Citrea_Full_Logo.svg" alt="Citrea Logo" width={200} height="auto" />
+          </Flex>
         </RiseIn>
       </Flex>
 
