@@ -9,14 +9,11 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { serializeSwapStateToURLParameters } from 'state/swap/hooks'
-import { Flex, Text, useMedia } from 'ui/src'
+import { Flex, Text, styled, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SwapRedirectFn } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
-
-const HERO_BG_SRC = '/images/landing_page/JuiceWave-bg.svg'
-const CITREA_LOGO_SRC = '/images/logos/Citrea_Full_Logo.svg'
 
 const HERO_TITLE_GRADIENT = 'linear-gradient(90deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)'
 
@@ -24,6 +21,25 @@ interface HeroProps {
   scrollToRef: () => void
   transition?: boolean
 }
+
+const HeroBackground = styled(Flex, {
+  name: 'HeroBackground',
+  position: 'absolute',
+  top: 472,
+  left: 0,
+  right: 0,
+  height: 529,
+  zIndex: -1,
+  pointerEvents: 'none',
+
+  '$platform-web': {
+    backgroundImage: `url(/images/landing_page/JuiceWave-bg.svg)`,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    backgroundPosition: 'top center',
+    height: 'min(529px, 80vh)',
+  },
+} as const)
 
 export function Hero({ scrollToRef, transition }: HeroProps) {
   const media = useMedia()
@@ -116,22 +132,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       pt={INTERFACE_NAV_HEIGHT}
       pointerEvents="none"
     >
-      <Flex
-        position="absolute"
-        top={472}
-        left={0}
-        right={0}
-        height={529}
-        zIndex={-1}
-        pointerEvents="none"
-        style={{
-          backgroundImage: `url(${HERO_BG_SRC})`,
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'cover', // scales the SVG to fill this hero area
-          backgroundPosition: 'top center',
-          height: 'min(529px, 80vh)',
-        }}
-      />
+      <HeroBackground />
       <Flex
         alignSelf="center"
         maxWidth="85vw"
@@ -211,7 +212,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             <Text variant="body2" color="$neutral2">
               <Trans i18nKey="hero.subtitle" />
             </Text>
-            <img src={CITREA_LOGO_SRC} alt="Citrea" style={{ width: 200, height: 'auto' }} />
+            <img src="/images/logos/Citrea_Full_Logo.svg" alt="Citrea Logo" width={200} height="auto" />
           </Flex>
         </RiseIn>
       </Flex>

@@ -21,7 +21,7 @@ const Mask = motion(styled.div`
 
 const Char = motion(styled.div<{ color: string }>`
   font-variant-numeric: lining-nums tabular-nums;
-  font-family: Basel;
+  font-family: Inter;
   font-size: 52px;
   font-style: normal;
   font-weight: 500;
@@ -114,7 +114,7 @@ export const LiveIcon = styled.div<{ display: string }>`
 const Title = styled.h3<{ color: string }>`
   padding: 0;
   margin: 0;
-  font-family: Basel;
+  font-family: Inter;
   font-size: 24px;
   font-style: normal;
   font-weight: 535;

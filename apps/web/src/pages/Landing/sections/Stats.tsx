@@ -178,8 +178,6 @@ function Cards({ inView }: { inView: boolean }) {
   // Show bApps campaign card for Citrea Testnet
   const showBAppsCard = defaultChainId === UniverseChainId.CitreaTestnet
 
-  const SWAP_VOLUME_HIGHLIGHT = '#FF9800'
-
   return (
     <GridArea>
       <LeftTop>
@@ -220,8 +218,8 @@ function Cards({ inView }: { inView: boolean }) {
           live
           delay={0.6}
           inView={inView}
-          titleColor={SWAP_VOLUME_HIGHLIGHT}
-          valueColor={SWAP_VOLUME_HIGHLIGHT}
+          titleColor="#FF9800"
+          valueColor="#FF9800"
           gradient="swap"
         />
       </RightBottom>
