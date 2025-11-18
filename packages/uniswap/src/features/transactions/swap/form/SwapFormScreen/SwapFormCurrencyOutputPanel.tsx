@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Flex } from 'ui/src'
 import { CurrencyInputPanel } from 'uniswap/src/components/CurrencyInputPanel/CurrencyInputPanel'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { SectionName } from 'uniswap/src/features/telemetry/constants'
 import { WalletRestoreButton } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/WalletRestoreButton'
@@ -71,9 +72,30 @@ export function SwapFormCurrencyOutputPanel(): JSX.Element {
 
   const focusedStyles = useCurrencyInputFocusedStyle(focusOnCurrencyField === CurrencyField.OUTPUT)
 
+  const outputCurrencyInfo = currencies[CurrencyField.OUTPUT]
+  const outputCurrency = outputCurrencyInfo?.currency
+
+  const isCitreaCbtcOutput =
+    outputCurrency?.symbol === 'cBTC' && outputCurrency.chainId === UniverseChainId.CitreaTestnet
+
   return (
     <Trace section={SectionName.CurrencyOutputPanel}>
-      <Flex borderRadius="$rounded20" borderWidth="$spacing1" {...focusedStyles}>
+      <Flex
+        borderRadius="$rounded20"
+        borderWidth="$spacing1"
+        overflow="hidden"
+        {...focusedStyles}
+        // normal background when not cBTC on Citrea
+        backgroundColor={isCitreaCbtcOutput ? undefined : '$surface1'}
+        // gradient background for the field itself when cBTC on Citrea
+        $platform-web={
+          isCitreaCbtcOutput
+            ? {
+                backgroundImage: 'linear-gradient(180deg, #FFB347 0%, #FF7C3A 100%)',
+              }
+            : undefined
+        }
+      >
         <CurrencyInputPanel
           ref={outputRef}
           headerLabel={isWeb ? t('common.button.buy') : undefined}

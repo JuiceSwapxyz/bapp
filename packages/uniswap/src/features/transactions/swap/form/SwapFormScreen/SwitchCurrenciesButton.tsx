@@ -50,7 +50,7 @@ export function SwitchCurrenciesButton(): JSX.Element {
             eventOnTrigger={SwapEventName.SwapTokensReversed}
           >
             <SwapArrowButton
-              backgroundColor="$surface2"
+              backgroundColor="#F57F00"
               iconSize={SWAP_DIRECTION_BUTTON_SIZE.size[smallOrRegular]}
               testID={TestID.SwitchCurrenciesButton}
               onPress={onSwitchCurrencies}
