@@ -9,18 +9,50 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { serializeSwapStateToURLParameters } from 'state/swap/hooks'
-import { Flex, Text, useMedia } from 'ui/src'
+import { Flex, Text, styled, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SwapRedirectFn } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
 
-const HERO_TITLE_GRADIENT = 'linear-gradient(90deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)'
-
 interface HeroProps {
   scrollToRef: () => void
   transition?: boolean
 }
+
+// Gradient + font live here; backgroundSize/backgroundPosition come from props.
+const HeroGradientTitle = styled(
+  Text as any,
+  {
+    name: 'HeroGradientTitle',
+
+    // heading sizing
+    fontSize: 48,
+    lineHeight: 85,
+
+    $md: {
+      fontSize: 40,
+    },
+    $sm: {
+      fontSize: 32,
+    },
+    $short: {
+      fontSize: 32,
+    },
+
+    // web-only visual styles
+    '$platform-web': {
+      fontFamily: '"Pacifico", sans-serif',
+      color: 'transparent',
+      backgroundImage: 'linear-gradient(90deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)',
+      backgroundRepeat: 'no-repeat',
+      backgroundClip: 'text',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      display: 'inline-block',
+    },
+  } as any,
+) as any
 
 export function Hero({ scrollToRef, transition }: HeroProps) {
   const media = useMedia()
@@ -28,11 +60,13 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
   const { defaultChainId } = useEnabledChains()
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const showBAppsContent = useIsBAppsCampaignVisible()
+
   // Use native token (cBTC on Citrea) as default input currency
   const initialInputCurrency = useCurrency({
     address: 'ETH', // This will get the native token for any chain
     chainId: defaultChainId,
   })
+
   // Use cUSD as default output currency for Citrea and Sepolia
   const initialOutputCurrency = useCurrency({
     address:
@@ -41,8 +75,10 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
         : undefined,
     chainId: defaultChainId,
   })
+
   const navigate = useNavigate()
   const { t } = useTranslation()
+
   const { translateY, opacityY } = useMemo(
     () => ({
       translateY: !media.sm ? -scrollPosition / 7 : 0,
@@ -77,25 +113,16 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       const backgroundSize = `${totalWords * 100}% 100%`
       const backgroundPosition = totalWords === 1 ? '0 0' : `${(i / (totalWords - 1)) * 100}% 0`
 
+      const trailingSpace = i < totalWords - 1 ? '\u00A0' : ''
+
       return (
         <Fragment key={`${i}-${word}`}>
-          <RiseInText
-            delay={i * 0.1}
-            style={{
-              fontFamily: '"Pacifico", sans-serif',
-              backgroundImage: HERO_TITLE_GRADIENT,
-              backgroundSize,
-              backgroundPosition,
-              backgroundRepeat: 'no-repeat',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              color: 'transparent',
-              WebkitTextFillColor: 'transparent',
-              display: 'inline-block',
-            }}
-          >
-            {word}
-          </RiseInText>{' '}
+          <RiseInText as="span" delay={i * 0.1}>
+            <HeroGradientTitle as="span" backgroundSize={backgroundSize} backgroundPosition={backgroundPosition}>
+              {word}
+              {trailingSpace}
+            </HeroGradientTitle>
+          </RiseInText>
         </Fragment>
       )
     })
@@ -127,21 +154,14 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
           transition: transition ? 'shrinkAndFade 1s ease-in-out forwards' : undefined,
         }}
       >
+        {/* Title */}
         <Flex maxWidth={920} alignItems="center" pointerEvents="none">
-          <Text
-            variant="heading1"
-            fontSize={48}
-            lineHeight={85}
-            textAlign="center"
-            fontWeight="$book"
-            $md={{ fontSize: 40 }}
-            $sm={{ variant: 'heading2', fontSize: 32 }}
-            $short={{ variant: 'heading2', fontSize: 32 }}
-            overflow="visible"
-          >
+          <Text textAlign="center" overflow="visible">
             {renderRiseInText}
           </Text>
         </Flex>
+
+        {/* Subtitle */}
         <RiseIn delay={0.2}>
           <Flex maxWidth={920} alignItems="center" pointerEvents="none">
             <Text
@@ -150,14 +170,16 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
               lineHeight={22}
               textAlign="center"
               fontWeight="$book"
-              $md={{ fontSize: 40 }}
-              $sm={{ variant: 'heading2', fontSize: 32 }}
-              $short={{ variant: 'heading2', fontSize: 32 }}
+              $md={{ fontSize: 14 }}
+              $sm={{ variant: 'heading2', fontSize: 12 }}
+              $short={{ variant: 'heading2', fontSize: 12 }}
             >
               <Trans i18nKey="hero.swap.subtitle" />
             </Text>
           </Flex>
         </RiseIn>
+
+        {/* Swap card */}
         <RiseIn delay={0.4}>
           <Flex
             pointerEvents="auto"
@@ -181,6 +203,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
           </Flex>
         </RiseIn>
 
+        {/* Secondary subtitle */}
         <RiseIn delay={0.3}>
           <Text variant="body1" textAlign="center" maxWidth={430} color="$neutral2" $short={{ variant: 'body2' }}>
             <Trans i18nKey="hero.subtitle" />
@@ -197,7 +220,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
           centered
           pointerEvents="none"
           bottom={48}
-          style={{ transform: `translate(0px, ${translateY}px)`, opacity: opacityY }}
+          style={{ transform: `translate(0px, ${translateY}px), opacity: ${opacityY}` }}
           $lgHeight={{ display: 'none' }}
         >
           <RiseIn delay={0.3}>
