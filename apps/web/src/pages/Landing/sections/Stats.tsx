@@ -1,10 +1,9 @@
 import { LiveIcon, StatCard } from 'pages/Landing/components/StatCard'
 import { useInView } from 'pages/Landing/sections/useInView'
-import { parseToRgb } from 'polished'
 import { useTranslation } from 'react-i18next'
 import { use24hProtocolVolume, useDailyTVLWithChange } from 'state/explore/protocolStats'
 import { ExternalLink } from 'theme/components/Links'
-import { Flex, Text, styled, useSporeColors } from 'ui/src'
+import { Flex, Text, styled } from 'ui/src'
 import { RightArrow } from 'ui/src/components/icons/RightArrow'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -81,8 +80,6 @@ function GetStarted() {
 export function Stats() {
   const { t } = useTranslation()
   const { ref, inView } = useInView()
-  const colors = useSporeColors()
-  const { red, green, blue } = parseToRgb(colors.neutral2.val)
 
   return (
     <Container>
@@ -108,7 +105,6 @@ export function Stats() {
               gap="$spacing8"
               alignItems="center"
               row
-              backgroundImage={`radial-gradient(rgba(${red}, ${green}, ${blue}, 0.25) 0.5px, transparent 0)`}
               backgroundSize="12px 12px"
               backgroundPosition="-8.5px -8.5px"
             >
@@ -184,7 +180,7 @@ function Cards({ inView }: { inView: boolean }) {
     <GridArea>
       <LeftTop>
         {showBAppsCard ? (
-          <StatCard title="₿apps Campaign" value="LIVE" live delay={0} inView={inView} />
+          <StatCard title="₿apps Campaign" value="LIVE" live delay={0} inView={inView} gradient="default" />
         ) : (
           <StatCard
             title={t('stats.allTimeVolume')}
@@ -220,6 +216,9 @@ function Cards({ inView }: { inView: boolean }) {
           live
           delay={0.6}
           inView={inView}
+          titleColor="#FF9800"
+          valueColor="#FF9800"
+          gradient="swap"
         />
       </RightBottom>
     </GridArea>
