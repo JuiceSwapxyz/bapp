@@ -53,6 +53,7 @@ vi.mock('ui/src/assets', () => ({
   BLAST_LOGO: 'blast-logo.png',
   AVALANCHE_LOGO: 'avalanche-logo.png',
   CELO_LOGO: 'celo-logo.png',
+  CITREA_LOGO: 'citrea-logo.png',
   WORLD_CHAIN_LOGO: 'world-chain-logo.png',
   ZORA_LOGO: 'zora-logo.png',
   ZKSYNC_LOGO: 'zksync-logo.png',

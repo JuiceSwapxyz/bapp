@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import styled, { keyframes, useTheme } from 'lib/styled-components'
-import { parseToRgb } from 'polished'
 import { Flex, Text } from 'ui/src'
 import { opacify } from 'ui/src/theme'
 import { useCurrentLocale } from 'uniswap/src/features/language/hooks'
@@ -22,7 +21,7 @@ const Mask = motion(styled.div`
 
 const Char = motion(styled.div<{ color: string }>`
   font-variant-numeric: lining-nums tabular-nums;
-  font-family: Basel;
+  font-family: Inter;
   font-size: 52px;
   font-style: normal;
   font-weight: 500;
@@ -45,7 +44,7 @@ const Char = motion(styled.div<{ color: string }>`
     line-height: 22px;
   }
 `)
-const Container = styled.div<{ live?: boolean }>`
+const Container = styled.div<{ live?: boolean; gradient?: 'default' | 'swap' }>`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -58,7 +57,20 @@ const Container = styled.div<{ live?: boolean }>`
 
   padding: 32px;
 
-  background-color: ${({ theme, live }) => (live ? '#2FBA610A' : theme.surface2)};
+  background-color: ${({ theme }) => theme.surface2};
+
+  background-image: ${({ gradient }) =>
+    gradient === 'default'
+      ? `linear-gradient(
+          135deg,
+          rgba(255, 107, 53, 0.10) 0%,
+          rgba(76, 175, 80, 0.10) 50%,
+          rgba(255, 152, 0, 0.10) 100%
+        )`
+      : gradient === 'swap'
+        ? 'linear-gradient(145deg, rgba(247, 145, 26, 0.18) 0%, rgba(222, 118, 25, 0.12) 45%, rgba(139, 67, 20, 0.08) 100%)'
+        : 'none'};
+
   overflow: hidden;
 
   @media (max-width: 1024px) {
@@ -66,12 +78,6 @@ const Container = styled.div<{ live?: boolean }>`
   }
   @media (max-width: 768px) {
   }
-  background-image: radial-gradient(rgba(${({ theme }) => {
-    const { red, green, blue } = parseToRgb(theme.neutral2)
-    return `${red}, ${green}, ${blue}`
-  }}, 0.25) 0.5px, transparent 0)};
-  background-size: 12px 12px;
-  background-position: -8.5px -8.5px;
 `
 const SpriteContainer = motion(styled.div`
   pointer-events: none;
@@ -105,7 +111,7 @@ export const LiveIcon = styled.div<{ display: string }>`
 const Title = styled.h3<{ color: string }>`
   padding: 0;
   margin: 0;
-  font-family: Basel;
+  font-family: Inter;
   font-size: 24px;
   font-style: normal;
   font-weight: 535;
@@ -123,11 +129,14 @@ const Title = styled.h3<{ color: string }>`
 type StatCardProps = {
   title: string
   value: string
+  gradient?: 'default' | 'swap'
   live?: boolean
   prefix?: string
   suffix?: string
   delay?: number
   inView?: boolean
+  titleColor?: string
+  valueColor?: string
 }
 
 function rotateArray<T>(arr: T[], n: number) {
@@ -143,9 +152,9 @@ export function StatCard(props: StatCardProps) {
   const theme = useTheme()
 
   return (
-    <Container live={props.live}>
+    <Container live={props.live} gradient={props.gradient}>
       <Flex row alignItems="center" gap="$gap4">
-        <Title color={props.live ? theme.success : theme.neutral2}>{props.title}</Title>
+        <Title color={props.titleColor ?? theme.neutral2}>{props.title}</Title>
       </Flex>
       <StringInterpolationWithMotion
         prefix={props.prefix}
@@ -154,22 +163,25 @@ export function StatCard(props: StatCardProps) {
         live={props.live}
         delay={props.delay}
         inView={props.inView}
+        valueColor={props.valueColor}
       />
     </Container>
   )
 }
 
-function StringInterpolationWithMotion({ value, delay, inView, live }: Omit<StatCardProps, 'title'>) {
+function StringInterpolationWithMotion({ value, delay, inView, valueColor }: Omit<StatCardProps, 'title'>) {
   const chars = value.split('')
   const theme = useTheme()
   const locale = useCurrentLocale()
+
+  const effectiveColor = valueColor ?? theme.neutral1
 
   // For Arabic locales, use simple Text component instead of animated sprites
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const isArabic = locale?.startsWith('ar') ?? false
   if (isArabic) {
     return (
-      <Text variant="heading2" color={live ? theme.success : theme.neutral1} allowFontScaling={false}>
+      <Text variant="heading2" color={effectiveColor} allowFontScaling={false}>
         {value}
       </Text>
     )
@@ -191,7 +203,7 @@ function StringInterpolationWithMotion({ value, delay, inView, live }: Omit<Stat
               ? currency
               : suffixes
 
-        return <NumberSprite char={char} key={index} charset={charset} color={live ? theme.success : theme.neutral1} />
+        return <NumberSprite char={char} key={index} charset={charset} color={effectiveColor} />
       })}
     </Mask>
   )
