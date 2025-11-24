@@ -1,15 +1,15 @@
 import { Routing, CreateSwapRequest } from "uniswap/src/data/tradingApi/__generated__/index"
 import { GasEstimate } from "uniswap/src/data/tradingApi/types"
 import { GasFeeResult, ValidatedGasFeeResult, validateGasFeeResult } from "uniswap/src/features/gas/types"
-import { BridgeTrade, BitcoinBridgeTrade, ClassicTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
-import { isBridge, isBitcoinBridge, isClassic, isUniswapX, isWrap } from "uniswap/src/features/transactions/swap/utils/routing"
+import { BridgeTrade, BitcoinBridgeTrade, LightningBridgeTrade, ClassicTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
+import { isBridge, isBitcoinBridge, isLightningBridge, isClassic, isUniswapX, isWrap } from "uniswap/src/features/transactions/swap/utils/routing"
 import { isInterface } from "utilities/src/platform"
 import { Prettify } from "viem"
 import { ValidatedPermit } from "uniswap/src/features/transactions/swap/utils/trade"
 import { PopulatedTransactionRequestArray, ValidatedTransactionRequest } from "uniswap/src/features/transactions/types/transactionRequests"
 
-export type SwapTxAndGasInfo = ClassicSwapTxAndGasInfo | UniswapXSwapTxAndGasInfo | BridgeSwapTxAndGasInfo | BitcoinBridgeSwapTxAndGasInfo | WrapSwapTxAndGasInfo
-export type ValidatedSwapTxContext = ValidatedClassicSwapTxAndGasInfo | ValidatedUniswapXSwapTxAndGasInfo | ValidatedBridgeSwapTxAndGasInfo | ValidatedBitcoinBridgeSwapTxAndGasInfo | ValidatedWrapSwapTxAndGasInfo
+export type SwapTxAndGasInfo = ClassicSwapTxAndGasInfo | UniswapXSwapTxAndGasInfo | BridgeSwapTxAndGasInfo | BitcoinBridgeSwapTxAndGasInfo | LightningBridgeSwapTxAndGasInfo | WrapSwapTxAndGasInfo
+export type ValidatedSwapTxContext = ValidatedClassicSwapTxAndGasInfo | ValidatedUniswapXSwapTxAndGasInfo | ValidatedBridgeSwapTxAndGasInfo | ValidatedBitcoinBridgeSwapTxAndGasInfo | ValidatedLightningBridgeSwapTxAndGasInfo | ValidatedWrapSwapTxAndGasInfo
 
 export function isValidSwapTxContext(swapTxContext: SwapTxAndGasInfo): swapTxContext is ValidatedSwapTxContext {
   // Validation fn prevents/future-proofs typeguard against illicit casts
@@ -30,7 +30,7 @@ export type UniswapXGasBreakdown = {
 
 export interface BaseSwapTxAndGasInfo {
   routing: Routing
-  trade?: ClassicTrade | UniswapXTrade | BridgeTrade | BitcoinBridgeTrade | WrapTrade | UnwrapTrade
+  trade?: ClassicTrade | UniswapXTrade | BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade | WrapTrade | UnwrapTrade
   approveTxRequest: ValidatedTransactionRequest | undefined
   revocationTxRequest: ValidatedTransactionRequest | undefined
   gasFee: GasFeeResult
@@ -92,6 +92,13 @@ export interface BitcoinBridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
   destinationAddress?: string
 }
 
+export interface LightningBridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
+  routing: Routing.LN_BRIDGE
+  trade: LightningBridgeTrade
+  txRequests: PopulatedTransactionRequestArray | undefined
+  destinationAddress?: string
+}
+
 interface BaseRequiredSwapTxContextFields {
   gasFee: ValidatedGasFeeResult
 }
@@ -118,6 +125,11 @@ export type ValidatedBitcoinBridgeSwapTxAndGasInfo = Prettify<Required<Omit<Bitc
   txRequests: PopulatedTransactionRequestArray | undefined
   destinationAddress: string | undefined
 }) & Pick<BitcoinBridgeSwapTxAndGasInfo, 'includesDelegation'>>
+
+export type ValidatedLightningBridgeSwapTxAndGasInfo = Prettify<Required<Omit<LightningBridgeSwapTxAndGasInfo, 'includesDelegation' | 'txRequests' | 'destinationAddress'>> & BaseRequiredSwapTxContextFields & ({
+  txRequests: PopulatedTransactionRequestArray | undefined
+  destinationAddress: string | undefined
+}) & Pick<LightningBridgeSwapTxAndGasInfo, 'includesDelegation'>>
 
 export type ValidatedUniswapXSwapTxAndGasInfo =  Prettify<Required<Omit<UniswapXSwapTxAndGasInfo, 'includesDelegation'>> & BaseRequiredSwapTxContextFields & {
   // Permit should always be defined for UniswapX orders
@@ -152,6 +164,12 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
       }
 
     } else if (isBitcoinBridge(swapTxContext)) {
+      const { trade, txRequests, includesDelegation, destinationAddress } = swapTxContext
+      if (destinationAddress) {
+        return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }
+      }
+      return undefined
+    } else if (isLightningBridge(swapTxContext)) {
       const { trade, txRequests, includesDelegation, destinationAddress } = swapTxContext
       if (destinationAddress) {
         return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }

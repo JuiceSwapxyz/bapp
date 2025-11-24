@@ -12,7 +12,11 @@ import { useLocalizationContext } from 'uniswap/src/features/language/Localizati
 import { useSlippageSettings } from 'uniswap/src/features/transactions/components/settings/settingsConfigurations/slippage/useSlippageSettings'
 import { useSwapFormStoreDerivedSwapInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 import type { TradeWithSlippage } from 'uniswap/src/features/transactions/swap/types/trade'
-import { BitcoinBridgeTrade, BridgeTrade } from 'uniswap/src/features/transactions/swap/types/trade'
+import {
+  BitcoinBridgeTrade,
+  BridgeTrade,
+  LightningBridgeTrade,
+} from 'uniswap/src/features/transactions/swap/types/trade'
 import { getSlippageWarningColor } from 'uniswap/src/features/transactions/swap/utils/styleHelpers'
 import { getSymbolDisplayText } from 'uniswap/src/utils/currency'
 import { NumberType } from 'utilities/src/format/types'
@@ -92,7 +96,8 @@ export function SlippageScreenNative(): JSX.Element {
   const colors = useSporeColors()
   const trade = useSwapFormStoreDerivedSwapInfo((s) => s.trade).trade
 
-  const isBridgeTrade = trade instanceof BridgeTrade || trade instanceof BitcoinBridgeTrade
+  const isBridgeTrade =
+    trade instanceof BridgeTrade || trade instanceof BitcoinBridgeTrade || trade instanceof LightningBridgeTrade
 
   const {
     isEditingSlippage,

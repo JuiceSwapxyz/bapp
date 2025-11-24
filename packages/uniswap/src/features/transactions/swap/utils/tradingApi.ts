@@ -40,6 +40,7 @@ import {
   BitcoinBridgeTrade,
   BridgeTrade,
   ClassicTrade,
+  LightningBridgeTrade,
   PriorityOrderTrade,
   UniswapXV2Trade,
   UniswapXV3Trade,
@@ -119,12 +120,14 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
         return new UniswapXV3Trade({ quote: data, currencyIn, currencyOut, tradeType })
       }
     }
-    case Routing.BRIDGE:
-    case Routing.LN_BRIDGE: {
+    case Routing.BRIDGE: {
       return new BridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
     }
     case Routing.BITCOIN_BRIDGE: {
       return new BitcoinBridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
+    }
+    case Routing.LN_BRIDGE: {
+      return new LightningBridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
     }
     case Routing.WRAP: {
       return new WrapTrade({ quote: data, currencyIn, currencyOut, tradeType })

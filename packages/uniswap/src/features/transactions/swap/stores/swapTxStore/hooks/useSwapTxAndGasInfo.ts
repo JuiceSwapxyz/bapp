@@ -7,6 +7,7 @@ import {
   getBridgeSwapTxAndGasInfo,
   getClassicSwapTxAndGasInfo,
   getFallbackSwapTxAndGasInfo,
+  getLightningBridgeSwapTxAndGasInfo,
   getWrapTxAndGasInfo,
   usePermitTxInfo,
 } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/utils'
@@ -58,6 +59,13 @@ export function useSwapTxAndGasInfo({
         return getUniswapXSwapTxAndGasInfo({ trade, swapTxInfo, approvalTxInfo })
       case Routing.BITCOIN_BRIDGE:
         return getBitcoinBridgeSwapTxAndGasInfo({
+          trade,
+          swapTxInfo,
+          approvalTxInfo,
+          destinationAddress: bitcoinDestinationAddress,
+        })
+      case Routing.LN_BRIDGE:
+        return getLightningBridgeSwapTxAndGasInfo({
           trade,
           swapTxInfo,
           approvalTxInfo,

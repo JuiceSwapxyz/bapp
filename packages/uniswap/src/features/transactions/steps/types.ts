@@ -7,6 +7,7 @@ import type { SignTypedDataStepFields } from 'uniswap/src/features/transactions/
 import { WrapTransactionStep } from 'uniswap/src/features/transactions/steps/wrap'
 import type { BitcoinBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import type { ClassicSwapSteps } from 'uniswap/src/features/transactions/swap/steps/classicSteps'
+import type { LightningBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import type { UniswapXSwapSteps } from 'uniswap/src/features/transactions/swap/steps/uniswapxSteps'
 import type { ValidatedTransactionRequest } from 'uniswap/src/features/transactions/types/transactionRequests'
 
@@ -28,6 +29,7 @@ export enum TransactionStepType {
   CollectFeesTransactionStep = 'CollectFeesTransaction',
   CollectLpIncentiveRewardsTransactionStep = 'CollectLpIncentiveRewardsTransactionStep',
   BitcoinBridgeLockTransactionStep = 'BitcoinBridgeLockTransactionStep',
+  LightningBridgeLockTransactionStep = 'LightningBridgeLockTransactionStep',
 }
 
 // TODO: add v4 lp flow
@@ -41,6 +43,7 @@ export type TransactionStep =
   | CollectLpIncentiveRewardsSteps
   | WrapTransactionStep
   | BitcoinBridgeLockTransactionStep
+  | LightningBridgeLockTransactionStep
 export type OnChainTransactionStep = TransactionStep & OnChainTransactionFields
 export type OnChainTransactionStepBatched = TransactionStep & OnChainTransactionFieldsBatched
 export type SignatureTransactionStep = TransactionStep & SignTypedDataStepFields

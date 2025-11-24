@@ -19,6 +19,7 @@ import { FALLBACK_SWAP_REQUEST_POLL_INTERVAL_MS } from 'uniswap/src/features/tra
 import { createEVMSwapInstructionsService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/evmSwapInstructionsService'
 import { usePresignPermit } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/hooks'
 import { createDecorateSwapTxInfoServiceWithEVMLogging } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/logging'
+import { createLightningBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/lightning/lightningBridgeSwapTxAndGasInfoService'
 import type {
   RoutingServicesMap,
   SwapTxAndGasInfoParameters,
@@ -124,6 +125,10 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     return createBitcoinBridgeSwapTxAndGasInfoService({ gasStrategy: swapConfig.gasStrategy })
   }, [swapConfig.gasStrategy])
 
+  const lightningBridgeSwapTxInfoService = useMemo(() => {
+    return createLightningBridgeSwapTxAndGasInfoService({ gasStrategy: swapConfig.gasStrategy })
+  }, [swapConfig.gasStrategy])
+
   const services = useMemo(() => {
     return {
       [Routing.CLASSIC]: classicSwapTxInfoService,
@@ -137,7 +142,7 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [Routing.DUTCH_LIMIT]: createNoopService(),
       [Routing.JUPITER]: createNoopService(),
       [Routing.BITCOIN_BRIDGE]: bitcoinBridgeSwapTxInfoService,
-      [Routing.LN_BRIDGE]: createNoopService(),
+      [Routing.LN_BRIDGE]: lightningBridgeSwapTxInfoService,
     } satisfies RoutingServicesMap
   }, [
     classicSwapTxInfoService,
@@ -145,6 +150,7 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     uniswapXSwapTxInfoService,
     wrapTxInfoService,
     bitcoinBridgeSwapTxInfoService,
+    lightningBridgeSwapTxInfoService,
   ])
 
   return useMemo(() => {
@@ -277,6 +283,7 @@ function useSwapTxAndGasInfoQuery(input: {
   trade: Trade | undefined
   approvalTxInfo: ApprovalTxInfo
   derivedSwapInfo: DerivedSwapInfo
+  bitcoinDestinationAddress?: string
 }): UseQueryResult<SwapTxAndGasInfo | null, Error> {
   const swapTxAndGasInfoService = useSwapTxAndGasInfoService()
 
