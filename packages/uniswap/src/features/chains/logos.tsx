@@ -38,6 +38,7 @@ const BLOCK_EXPLORER_LOGOS_LIGHT: Record<UniverseChainId, GeneratedIcon> = {
   [UniverseChainId.Zksync]: BlockExplorer,
   [UniverseChainId.Zora]: BlockExplorer,
   [UniverseChainId.Bitcoin]: BlockExplorer,
+  [UniverseChainId.LightningNetwork]: BlockExplorer,
 }
 
 const BLOCK_EXPLORER_LOGOS_DARK: Record<UniverseChainId, GeneratedIcon> = {

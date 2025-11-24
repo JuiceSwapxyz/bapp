@@ -398,9 +398,9 @@ export type Trade<
   TInput extends Currency = Currency,
   TOutput extends Currency = Currency,
   TTradeType extends TradeType = TradeType,
-> = ClassicTrade<TInput, TOutput, TTradeType> | UniswapXTrade | BridgeTrade | BitcoinBridgeTrade | WrapTrade | UnwrapTrade
+> = ClassicTrade<TInput, TOutput, TTradeType> | UniswapXTrade | BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade | WrapTrade | UnwrapTrade
 
-export type TradeWithSlippage = Exclude<Trade, BridgeTrade | BitcoinBridgeTrade>
+export type TradeWithSlippage = Exclude<Trade, BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade>
 
 // TODO(WALL-4573) - Cleanup usage of optionality/null/undefined
 export interface TradeWithStatus<T extends Trade = Trade> {
@@ -693,6 +693,65 @@ export class BitcoinBridgeTrade {
     const outputAmount = getCurrencyAmount({ value: quoteOutputAmount, valueType: ValueType.Raw, currency: currencyOut })
     if (!inputAmount || !outputAmount) {
       throw new Error('Error parsing Bitcoin bridge quote currency amounts')
+    }
+
+    this.inputAmount = inputAmount
+    this.outputAmount = outputAmount
+    this.executionPrice = new Price(currencyIn, currencyOut, quoteInputAmount, quoteOutputAmount)
+    this.tradeType = tradeType
+
+    this.maxAmountIn = this.inputAmount
+    this.minAmountOut = this.outputAmount
+  }
+
+  public get quoteOutputAmount(): CurrencyAmount<Currency> {
+    return this.outputAmount
+  }
+
+  public get quoteOutputAmountUserWillReceive(): CurrencyAmount<Currency> {
+    const swapFeeAmount = this.swapFee ? getCurrencyAmount({ value: this.swapFee.amount, valueType: ValueType.Raw, currency: this.outputAmount.currency }) : undefined
+
+    if (swapFeeAmount) {
+      return this.outputAmount.add(swapFeeAmount)
+    }
+
+    return this.outputAmount
+  }
+}
+
+export class LightningBridgeTrade {
+  readonly quote: BridgeQuoteResponse
+  readonly inputAmount: CurrencyAmount<Currency>
+  readonly outputAmount: CurrencyAmount<Currency>
+  readonly maxAmountIn: CurrencyAmount<Currency>
+  readonly minAmountOut: CurrencyAmount<Currency>
+  readonly executionPrice: Price<Currency, Currency>
+
+  readonly tradeType: TradeType
+  readonly routing = Routing.LN_BRIDGE
+  readonly indicative = false
+  readonly swapFee?: SwapFee
+  readonly inputTax: Percent = ZERO_PERCENT
+  readonly outputTax: Percent = ZERO_PERCENT
+
+  readonly slippageTolerance: undefined
+  readonly priceImpact: undefined
+  readonly deadline: undefined
+
+  constructor({ quote, currencyIn, currencyOut, tradeType }: { quote: BridgeQuoteResponse, currencyIn: Currency, currencyOut: Currency, tradeType: TradeType }) {
+    this.quote = quote
+    this.swapFee = getSwapFee(quote)
+
+    const quoteInputAmount = quote.quote.input?.amount
+    const quoteOutputAmount = quote.quote.output?.amount
+    if (!quoteInputAmount || !quoteOutputAmount) {
+      throw new Error('Error parsing Lightning bridge quote currency amounts')
+    }
+
+    const inputAmount = getCurrencyAmount({ value: quoteInputAmount, valueType: ValueType.Raw, currency: currencyIn })
+    const outputAmount = getCurrencyAmount({ value: quoteOutputAmount, valueType: ValueType.Raw, currency: currencyOut })
+    if (!inputAmount || !outputAmount) {
+      throw new Error('Error parsing Lightning bridge quote currency amounts')
     }
 
     this.inputAmount = inputAmount

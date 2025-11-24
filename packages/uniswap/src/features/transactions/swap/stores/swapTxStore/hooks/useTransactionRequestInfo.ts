@@ -94,8 +94,10 @@ function useSwapTransactionRequestInfo({
 
   const permitsDontNeedSignature = !!canBatchTransactions
   const isBitcoinBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.BITCOIN_BRIDGE
+  const isLightningBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.LN_BRIDGE
   const shouldSkipSwapRequest =
     isBitcoinBridgeSwap ||
+    isLightningBridgeSwap ||
     getShouldSkipSwapRequest({
       derivedSwapInfo,
       tokenApprovalInfo,
@@ -131,8 +133,8 @@ function useSwapTransactionRequestInfo({
   const processSwapResponse = useMemo(() => createProcessSwapResponse({ gasStrategy }), [gasStrategy])
 
   const result = useMemo(() => {
-    // Bitcoin bridge doesn't use Trading API swap endpoint, return mock gas fee
-    if (isBitcoinBridgeSwap) {
+    // Bitcoin and Lightning bridges don't use Trading API swap endpoint, return mock gas fee
+    if (isBitcoinBridgeSwap || isLightningBridgeSwap) {
       return {
         gasFeeResult: {
           value: '0',
@@ -162,6 +164,7 @@ function useSwapTransactionRequestInfo({
     })
   }, [
     isBitcoinBridgeSwap,
+    isLightningBridgeSwap,
     data,
     error,
     isSwapLoading,

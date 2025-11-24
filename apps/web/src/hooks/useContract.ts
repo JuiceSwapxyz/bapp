@@ -157,7 +157,7 @@ export function useV4NFTPositionManagerContract(
 
   const contract = useContract<Erc721>({
     address:
-      chainIdToUse && chainIdToUse !== UniverseChainId.Bitcoin
+      chainIdToUse && chainIdToUse !== UniverseChainId.Bitcoin && chainIdToUse !== UniverseChainId.LightningNetwork
         ? CHAIN_TO_ADDRESSES_MAP[chainIdToUse].v4PositionManagerAddress
         : undefined,
     ABI: NFTPositionManagerABI,

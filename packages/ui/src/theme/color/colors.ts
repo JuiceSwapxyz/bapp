@@ -170,6 +170,10 @@ export const networkColors = {
     light: '#F7931A',
     dark: '#F7931A',
   },
+  lightning: {
+    light: '#F7931A',
+    dark: '#F7931A',
+  },
 }
 
 const sporeLight = {
@@ -346,7 +350,7 @@ export const colorsLight = {
   chain_1868: networkColors.soneium.light,
   chain_501000101: networkColors.solana.light,
   chain_21000000: networkColors.bitcoin.light,
-
+  chain_21000001: networkColors.lightning.light,
   // Testnets
   chain_11155111: networkColors.ethereum.light,
   chain_1301: networkColors.unichain.light,
@@ -437,7 +441,7 @@ export const colorsDark = {
   chain_1868: networkColors.soneium.dark,
   chain_501000101: networkColors.solana.dark,
   chain_21000000: networkColors.bitcoin.dark,
-
+  chain_21000001: networkColors.lightning.dark,
   // Testnets
   chain_11155111: networkColors.ethereum.dark,
   chain_1301: networkColors.unichain.dark,

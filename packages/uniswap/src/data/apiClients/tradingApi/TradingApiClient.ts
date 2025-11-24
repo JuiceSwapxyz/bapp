@@ -162,10 +162,13 @@ const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<Discrimi
     estimatedFillTimeMs: 300000,
   }
 
+  const isOneSideLightning =
+    params.tokenOutChainId === ChainId._21_000_001 || params.tokenInChainId === ChainId._21_000_001
+
   const response: BridgeQuoteResponse = {
     requestId: `bitcoin-bridge-${Date.now()}`,
     quote: bridgeQuote,
-    routing: Routing.BITCOIN_BRIDGE,
+    routing: isOneSideLightning ? Routing.LN_BRIDGE : Routing.BITCOIN_BRIDGE,
     permitData: null,
   }
 
@@ -179,7 +182,10 @@ export async function fetchQuote({
   ...params
 }: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
   const isOneSideBitcoin =
-    params.tokenOutChainId === ChainId._21_000_000 || params.tokenInChainId === ChainId._21_000_000
+    params.tokenOutChainId === ChainId._21_000_000 ||
+    params.tokenInChainId === ChainId._21_000_000 ||
+    params.tokenOutChainId === ChainId._21_000_001 ||
+    params.tokenInChainId === ChainId._21_000_001
   const isOneSideCitrea = params.tokenOutChainId === ChainId._5115 || params.tokenInChainId === ChainId._5115
   if (isOneSideBitcoin && isOneSideCitrea) {
     return await getBitcoinCrossChainQuote(params)

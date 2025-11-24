@@ -32,6 +32,7 @@ import {
   BitcoinBridgeSwapTxAndGasInfo,
   BridgeSwapTxAndGasInfo,
   ClassicSwapTxAndGasInfo,
+  LightningBridgeSwapTxAndGasInfo,
   PermitMethod,
   SwapGasFeeEstimation,
   WrapSwapTxAndGasInfo,
@@ -40,6 +41,7 @@ import type {
   BitcoinBridgeTrade,
   BridgeTrade,
   ClassicTrade,
+  LightningBridgeTrade,
   TokenApprovalInfo,
   UnwrapTrade,
   WrapTrade,
@@ -470,6 +472,30 @@ export function getBitcoinBridgeSwapTxAndGasInfo({
   approvalTxInfo: ApprovalTxInfo
   destinationAddress?: string
 }): BitcoinBridgeSwapTxAndGasInfo {
+  const txRequests = validateTransactionRequests(swapTxInfo.txRequests)
+
+  return {
+    routing: trade.routing,
+    trade,
+    ...createGasFields({ swapTxInfo, approvalTxInfo }),
+    ...createApprovalFields({ approvalTxInfo }),
+    txRequests,
+    includesDelegation: swapTxInfo.includesDelegation,
+    destinationAddress,
+  }
+}
+
+export function getLightningBridgeSwapTxAndGasInfo({
+  trade,
+  swapTxInfo,
+  approvalTxInfo,
+  destinationAddress,
+}: {
+  trade: LightningBridgeTrade
+  swapTxInfo: TransactionRequestInfo
+  approvalTxInfo: ApprovalTxInfo
+  destinationAddress?: string
+}): LightningBridgeSwapTxAndGasInfo {
   const txRequests = validateTransactionRequests(swapTxInfo.txRequests)
 
   return {

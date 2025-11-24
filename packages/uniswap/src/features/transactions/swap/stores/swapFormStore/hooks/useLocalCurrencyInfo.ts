@@ -18,6 +18,20 @@ const localCurrencyInfo: CurrencyInfo[] = [
     currencyId: buildCurrencyId(UniverseChainId.Bitcoin, getChainInfo(UniverseChainId.Bitcoin).nativeCurrency.address),
     logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
   },
+  {
+    currency: buildCurrency({
+      chainId: UniverseChainId.LightningNetwork,
+      address: getChainInfo(UniverseChainId.LightningNetwork).nativeCurrency.address,
+      decimals: getChainInfo(UniverseChainId.LightningNetwork).nativeCurrency.decimals,
+      symbol: getChainInfo(UniverseChainId.LightningNetwork).nativeCurrency.symbol,
+      name: getChainInfo(UniverseChainId.LightningNetwork).nativeCurrency.name,
+    }) as Currency,
+    currencyId: buildCurrencyId(
+      UniverseChainId.LightningNetwork,
+      getChainInfo(UniverseChainId.LightningNetwork).nativeCurrency.address,
+    ),
+    logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
+  },
 ]
 
 export function useLocalCurrencyInfo(currencyId?: CurrencyId): CurrencyInfo | undefined {
