@@ -13,6 +13,7 @@ import { UNICHAIN_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/unicha
 import { WORLD_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/worldchain'
 import { ZKSYNC_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/zksync'
 import { ZORA_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/zora'
+import { BITCOIN_CHAIN_INFO } from 'uniswap/src/features/chains/nonEvm/bitcoin'
 import { UniverseChainId, UniverseChainInfo } from 'uniswap/src/features/chains/types'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { getNonEmptyArrayOrThrow } from 'utilities/src/primitives/array'
@@ -38,6 +39,7 @@ export const ORDERED_CHAINS = [
   ZKSYNC_CHAIN_INFO,
   SEPOLIA_CHAIN_INFO,
   CITREA_TESTNET_CHAIN_INFO,
+  BITCOIN_CHAIN_INFO,
 ] as const satisfies UniverseChainInfo[]
 
 type ConstChainInfo<P extends Platform = Platform> = Extract<(typeof ORDERED_CHAINS)[number], { platform: P }>
@@ -82,6 +84,7 @@ export const UNIVERSE_CHAIN_INFO = {
   // TESTNET
   [UniverseChainId.CitreaTestnet]: CITREA_TESTNET_CHAIN_INFO,
   [UniverseChainId.Sepolia]: SEPOLIA_CHAIN_INFO,
+  [UniverseChainId.Bitcoin]: BITCOIN_CHAIN_INFO,
 } as const satisfies AllChainsMap
 
 export const GQL_MAINNET_CHAINS = ORDERED_EVM_CHAINS.filter((chain) => !chain.testnet).map(

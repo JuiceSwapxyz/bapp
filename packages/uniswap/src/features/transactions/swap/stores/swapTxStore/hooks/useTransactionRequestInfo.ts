@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useUniswapContextSelector } from 'uniswap/src/contexts/UniswapContext'
 import { useTradingApiSwapQuery } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwapQuery'
-import type { NullablePermit } from 'uniswap/src/data/tradingApi/__generated__'
+import { Routing, type NullablePermit } from 'uniswap/src/data/tradingApi/__generated__'
 import { useActiveGasStrategy } from 'uniswap/src/features/gas/hooks'
 import { DynamicConfigs, SwapConfigKey } from 'uniswap/src/features/gating/configs'
 import { useDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
@@ -20,7 +20,13 @@ import { usePermit2SignatureWithData } from 'uniswap/src/features/transactions/s
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import type { ClassicTrade, TokenApprovalInfo } from 'uniswap/src/features/transactions/swap/types/trade'
 import { ApprovalAction } from 'uniswap/src/features/transactions/swap/types/trade'
-import { isBridge, isClassic, isUniswapX, isWrap } from 'uniswap/src/features/transactions/swap/utils/routing'
+import {
+  isBitcoinBridge,
+  isBridge,
+  isClassic,
+  isUniswapX,
+  isWrap,
+} from 'uniswap/src/features/transactions/swap/utils/routing'
 import { isInterface } from 'utilities/src/platform'
 import { useTrace } from 'utilities/src/telemetry/trace/TraceContext'
 import { ONE_SECOND_MS } from 'utilities/src/time/time'
@@ -42,7 +48,7 @@ function useSwapTransactionRequestInfo({
 
   const swapQuoteResponse = useMemo(() => {
     const quote = derivedSwapInfo.trade.trade?.quote
-    if (quote && (isClassic(quote) || isBridge(quote) || isWrap(quote))) {
+    if (quote && (isClassic(quote) || isBridge(quote) || isBitcoinBridge(quote) || isWrap(quote))) {
       return quote
     }
     return undefined
@@ -87,12 +93,15 @@ function useSwapTransactionRequestInfo({
   )
 
   const permitsDontNeedSignature = !!canBatchTransactions
-  const shouldSkipSwapRequest = getShouldSkipSwapRequest({
-    derivedSwapInfo,
-    tokenApprovalInfo,
-    signature: signature ?? undefined,
-    permitsDontNeedSignature,
-  })
+  const isBitcoinBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.BITCOIN_BRIDGE
+  const shouldSkipSwapRequest =
+    isBitcoinBridgeSwap ||
+    getShouldSkipSwapRequest({
+      derivedSwapInfo,
+      tokenApprovalInfo,
+      signature: signature ?? undefined,
+      permitsDontNeedSignature,
+    })
 
   const tradingApiSwapRequestMs = useDynamicConfigValue({
     config: DynamicConfigs.Swap,
@@ -121,30 +130,48 @@ function useSwapTransactionRequestInfo({
 
   const processSwapResponse = useMemo(() => createProcessSwapResponse({ gasStrategy }), [gasStrategy])
 
-  const result = useMemo(
-    () =>
-      processSwapResponse({
-        response: data,
-        error,
-        swapQuote,
-        isSwapLoading,
-        permitData,
-        swapRequestParams,
-        isRevokeNeeded: tokenApprovalInfo?.action === ApprovalAction.RevokeAndPermit2Approve,
-        permitsDontNeedSignature,
-      }),
-    [
-      data,
+  const result = useMemo(() => {
+    // Bitcoin bridge doesn't use Trading API swap endpoint, return mock gas fee
+    if (isBitcoinBridgeSwap) {
+      return {
+        gasFeeResult: {
+          value: '0',
+          displayValue: '0',
+          isLoading: false,
+          error: null,
+        },
+        txRequests: undefined,
+        permitData: null,
+        gasEstimate: {
+          swapEstimate: undefined,
+        },
+        includesDelegation: undefined,
+        swapRequestArgs: undefined,
+      }
+    }
+
+    return processSwapResponse({
+      response: data,
       error,
+      swapQuote,
       isSwapLoading,
       permitData,
-      swapQuote,
       swapRequestParams,
-      processSwapResponse,
-      tokenApprovalInfo?.action,
+      isRevokeNeeded: tokenApprovalInfo?.action === ApprovalAction.RevokeAndPermit2Approve,
       permitsDontNeedSignature,
-    ],
-  )
+    })
+  }, [
+    isBitcoinBridgeSwap,
+    data,
+    error,
+    isSwapLoading,
+    permitData,
+    swapQuote,
+    swapRequestParams,
+    processSwapResponse,
+    tokenApprovalInfo?.action,
+    permitsDontNeedSignature,
+  ])
 
   // Only log analytics events once per request
   const previousRequestIdRef = useRef(swapQuoteResponse?.requestId)

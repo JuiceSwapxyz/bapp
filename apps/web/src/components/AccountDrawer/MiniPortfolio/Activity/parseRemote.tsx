@@ -139,6 +139,7 @@ function callsV4PositionManagerContract(assetActivity: TransactionActivity) {
 
   return (
     isEVMChain(supportedChain) &&
+    supportedChain !== UniverseChainId.Bitcoin &&
     isSameAddress(assetActivity.details.to, CHAIN_TO_ADDRESSES_MAP[supportedChain].v4PositionManagerAddress)
   )
 }
