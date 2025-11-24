@@ -8,6 +8,7 @@ import type { FeeAmount } from '@juiceswapxyz/v3-sdk'
 import { Pool as V3Pool, Route as V3Route } from '@juiceswapxyz/v3-sdk'
 import { Pool as V4Pool, Route as V4Route } from '@juiceswapxyz/v4-sdk'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
+import type { BridgeQuoteResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import {
   ClassicQuoteResponse,
   DiscriminatedQuoteResponse,
@@ -36,6 +37,7 @@ import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
 import type { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import {
+  BitcoinBridgeTrade,
   BridgeTrade,
   ClassicTrade,
   PriorityOrderTrade,
@@ -117,8 +119,12 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
         return new UniswapXV3Trade({ quote: data, currencyIn, currencyOut, tradeType })
       }
     }
-    case Routing.BRIDGE: {
-      return new BridgeTrade({ quote: data, currencyIn, currencyOut, tradeType })
+    case Routing.BRIDGE:
+    case Routing.LN_BRIDGE: {
+      return new BridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
+    }
+    case Routing.BITCOIN_BRIDGE: {
+      return new BitcoinBridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
     }
     case Routing.WRAP: {
       return new WrapTrade({ quote: data, currencyIn, currencyOut, tradeType })

@@ -7,6 +7,7 @@ import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/com
 import { TokenSelectorOption } from 'uniswap/src/components/lists/items/types'
 import { useOnchainItemListSection } from 'uniswap/src/components/lists/utils'
 import { GqlResult } from 'uniswap/src/data/types'
+import { useBridgingTokensOptions } from 'uniswap/src/features/bridging/hooks/tokens'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { suggestedCitreaTokens } from 'uniswap/src/features/tokens/hardcodedTokens'
@@ -28,12 +29,20 @@ function useTokenSectionsForSwap({
     chainFilter ?? oppositeSelectedToken?.chainId ?? defaultChainId,
   )
 
-  const loading = !commonTokenOptions && commonTokenOptionsLoading
+  const {
+    data: bridgingTokenOptions,
+    refetch: refetchBridgingTokenOptions,
+    loading: bridgingTokenOptionsLoading,
+    shouldNest: shouldNestBridgingTokens,
+  } = useBridgingTokensOptions({ oppositeSelectedToken, walletAddress: activeAccountAddress, chainFilter })
+
+  const loading = !commonTokenOptions && commonTokenOptionsLoading && bridgingTokenOptionsLoading
 
   const refetchAllRef = useRef<() => void>(() => {})
 
   refetchAllRef.current = (): void => {
     refetchCommonTokenOptions?.()
+    refetchBridgingTokenOptions?.()
   }
 
   const refetch = useCallback(() => {
@@ -58,13 +67,23 @@ function useTokenSectionsForSwap({
     options: yourTokensSectionOptions,
   })
 
+  const bridgingSectionTokenOptions: TokenSelectorOption[] = useMemo(
+    () => (shouldNestBridgingTokens ? [bridgingTokenOptions ?? []] : bridgingTokenOptions ?? []),
+    [bridgingTokenOptions, shouldNestBridgingTokens],
+  )
+
+  const bridgingSection = useOnchainItemListSection({
+    sectionKey: OnchainItemSectionName.BridgingTokens,
+    options: bridgingSectionTokenOptions,
+  })
+
   const sections = useMemo(() => {
     if (commonTokenOptionsLoading) {
       return undefined
     }
 
-    return [...(suggestedSection ?? []), ...(yourTokensSection ?? [])]
-  }, [commonTokenOptionsLoading, suggestedSection, yourTokensSection])
+    return [...(suggestedSection ?? []), ...(bridgingSection ?? []), ...(yourTokensSection ?? [])]
+  }, [commonTokenOptionsLoading, suggestedSection, yourTokensSection, bridgingSection])
 
   return useMemo(
     () => ({

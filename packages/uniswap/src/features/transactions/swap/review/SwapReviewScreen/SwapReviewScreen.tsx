@@ -7,10 +7,10 @@ import { useTransactionModalContext } from 'uniswap/src/features/transactions/co
 import { FLASHBLOCKS_UI_SKIP_ROUTES } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/constants'
 import { useClearFlashblocksSwapNotifications } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/hooks/useClearFlashblocksSwapNotifications'
 import { useIsUnichainFlashblocksEnabled } from 'uniswap/src/features/transactions/swap/hooks/useIsUnichainFlashblocksEnabled'
+import { SwapEnterBitcoinLikeAddress } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapEnterBitcoinLikeAddress'
 import { SwapErrorScreen } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapErrorScreen'
 import { SwapReviewFooter } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/SwapReviewFooter'
 import { SwapReviewLoadingView } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewLoadingView'
-import { SwapReviewSwapDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewSwapDetails'
 import { SwapReviewWarningModal } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewWarningModal'
 import { SwapReviewWrapTransactionDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewWrapTransactionDetails'
 import { TransactionAmountsReview } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/TransactionAmountsReview'
@@ -160,9 +160,8 @@ function SwapReviewContent(): JSX.Element | null {
             <ProgressIndicator currentStep={currentStep} steps={steps} />
           ) : isWrap ? (
             <SwapReviewWrapTransactionDetails />
-          ) : (
-            <SwapReviewSwapDetails />
-          )}
+          ) : null}
+          <SwapEnterBitcoinLikeAddress />
         </Flex>
       </SwapReviewContentWrapper>
       <SwapReviewFooter />

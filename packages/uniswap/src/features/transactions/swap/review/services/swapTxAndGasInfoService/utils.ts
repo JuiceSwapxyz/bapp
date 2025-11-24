@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { providers } from 'ethers/lib/ethers'
 import { useMemo } from 'react'
 import type {
@@ -28,6 +29,7 @@ import type { SwapData } from 'uniswap/src/features/transactions/swap/review/ser
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import {
   BaseSwapTxAndGasInfo,
+  BitcoinBridgeSwapTxAndGasInfo,
   BridgeSwapTxAndGasInfo,
   ClassicSwapTxAndGasInfo,
   PermitMethod,
@@ -35,6 +37,7 @@ import {
   WrapSwapTxAndGasInfo,
 } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import type {
+  BitcoinBridgeTrade,
   BridgeTrade,
   ClassicTrade,
   TokenApprovalInfo,
@@ -453,6 +456,30 @@ export function getBridgeSwapTxAndGasInfo({
     ...createApprovalFields({ approvalTxInfo }),
     txRequests,
     includesDelegation: swapTxInfo.includesDelegation,
+  }
+}
+
+export function getBitcoinBridgeSwapTxAndGasInfo({
+  trade,
+  swapTxInfo,
+  approvalTxInfo,
+  destinationAddress,
+}: {
+  trade: BitcoinBridgeTrade
+  swapTxInfo: TransactionRequestInfo
+  approvalTxInfo: ApprovalTxInfo
+  destinationAddress?: string
+}): BitcoinBridgeSwapTxAndGasInfo {
+  const txRequests = validateTransactionRequests(swapTxInfo.txRequests)
+
+  return {
+    routing: trade.routing,
+    trade,
+    ...createGasFields({ swapTxInfo, approvalTxInfo }),
+    ...createApprovalFields({ approvalTxInfo }),
+    txRequests,
+    includesDelegation: swapTxInfo.includesDelegation,
+    destinationAddress,
   }
 }
 

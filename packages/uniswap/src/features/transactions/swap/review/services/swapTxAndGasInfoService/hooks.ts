@@ -12,6 +12,7 @@ import type { SwapDelegationInfo } from 'uniswap/src/features/smartWallet/delega
 import { useAllTransactionSettings } from 'uniswap/src/features/transactions/components/settings/stores/transactionSettingsStore/useTransactionSettingsStore'
 import type { ApprovalTxInfo } from 'uniswap/src/features/transactions/swap/review/hooks/useTokenApprovalInfo'
 import { useTokenApprovalInfo } from 'uniswap/src/features/transactions/swap/review/hooks/useTokenApprovalInfo'
+import { createBitcoinBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/bitcoin/bitcoinBridgeSwapTxAndGasInfoService'
 import { createBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/bridge/bridgeSwapTxAndGasInfoService'
 import { createClassicSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/classic/classicSwapTxAndGasInfoService'
 import { FALLBACK_SWAP_REQUEST_POLL_INTERVAL_MS } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/constants'
@@ -119,6 +120,10 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     return decorateWithEVMLogging(wrapService)
   }, [swapConfig, transactionSettings, instructionService, decorateWithEVMLogging])
 
+  const bitcoinBridgeSwapTxInfoService = useMemo(() => {
+    return createBitcoinBridgeSwapTxAndGasInfoService({ gasStrategy: swapConfig.gasStrategy })
+  }, [swapConfig.gasStrategy])
+
   const services = useMemo(() => {
     return {
       [Routing.CLASSIC]: classicSwapTxInfoService,
@@ -131,8 +136,16 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [Routing.LIMIT_ORDER]: createNoopService(),
       [Routing.DUTCH_LIMIT]: createNoopService(),
       [Routing.JUPITER]: createNoopService(),
+      [Routing.BITCOIN_BRIDGE]: bitcoinBridgeSwapTxInfoService,
+      [Routing.LN_BRIDGE]: createNoopService(),
     } satisfies RoutingServicesMap
-  }, [classicSwapTxInfoService, bridgeSwapTxInfoService, uniswapXSwapTxInfoService, wrapTxInfoService])
+  }, [
+    classicSwapTxInfoService,
+    bridgeSwapTxInfoService,
+    uniswapXSwapTxInfoService,
+    wrapTxInfoService,
+    bitcoinBridgeSwapTxInfoService,
+  ])
 
   return useMemo(() => {
     return createSwapTxAndGasInfoService({ services })
@@ -229,8 +242,10 @@ function useSwapParams(): {
   approvalTxInfo: ApprovalTxInfo
   derivedSwapInfo: DerivedSwapInfo
   trade: Trade | undefined
+  bitcoinDestinationAddress?: string
 } {
   const derivedSwapInfo = useSwapFormStore((s) => s.derivedSwapInfo)
+  const bitcoinDestinationAddress = useSwapFormStore((s) => s.bitcoinDestinationAddress)
 
   const account = useWallet().evmAccount
 
@@ -254,6 +269,7 @@ function useSwapParams(): {
     approvalTxInfo,
     derivedSwapInfo,
     trade: trade ?? undefined,
+    bitcoinDestinationAddress,
   }
 }
 

@@ -62,6 +62,8 @@ import {
 import { createSaga } from 'uniswap/src/utils/saga'
 import { logger } from 'utilities/src/logger/logger'
 import { useTrace } from 'utilities/src/telemetry/trace/TraceContext'
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
+import { handleBitcoinBridgeLockTransactionStep } from './bitcoinBridge'
 
 interface HandleSwapStepParams extends Omit<HandleOnChainStepParams, 'step' | 'info'> {
   step: SwapTransactionStep | SwapTransactionStepAsync
@@ -296,6 +298,18 @@ function* swap(params: SwapParams) {
         case TransactionStepType.UniswapXSignature: {
           requireRouting(trade, UNISWAPX_ROUTING_VARIANTS)
           yield* call(handleUniswapXSignatureStep, { account, step, setCurrentStep, trade, analytics })
+          break
+        }
+        case TransactionStepType.BitcoinBridgeLockTransactionStep: {
+          requireRouting(swapTxContext, [Routing.BITCOIN_BRIDGE])
+          yield* call(handleBitcoinBridgeLockTransactionStep, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+          })
           break
         }
         default: {

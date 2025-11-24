@@ -119,7 +119,10 @@ responseFiles.forEach((file) => {
 
 // Add new enum members
 addEnumMember(routingFile, 'Routing', { name: 'JUPITER', value: 'JUPITER' })
+addEnumMember(routingFile, 'Routing', { name: 'BITCOIN_BRIDGE', value: 'BITCOIN_BRIDGE' })
+addEnumMember(routingFile, 'Routing', { name: 'LN_BRIDGE', value: 'LN_BRIDGE' })
 addEnumMember(chainIdFile, 'ChainId', { name: '_5115', value: 5115 })
+addEnumMember(chainIdFile, 'ChainId', { name: '_21_000_000', value: 21000000 })
 
 // Save the changes
 requestFiles.forEach((file) => {

@@ -23,6 +23,12 @@ export function isBridge<T extends { routing: Routing }>(obj: T): obj is T & { r
   return obj.routing === Routing.BRIDGE
 }
 
+export function isBitcoinBridge<T extends { routing: Routing }>(
+  obj: T,
+): obj is T & { routing: Routing.BITCOIN_BRIDGE } {
+  return obj.routing === Routing.BITCOIN_BRIDGE
+}
+
 export function isWrap<T extends { routing: Routing }>(obj: T): obj is T & { routing: Routing.WRAP | Routing.UNWRAP } {
   return obj.routing === Routing.WRAP || obj.routing === Routing.UNWRAP
 }
