@@ -4,6 +4,7 @@ import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/
 
 export const SwapEnterBitcoinLikeAddress = (): JSX.Element => {
   const updateSwapForm = useSwapFormStore((s) => s.updateSwapForm)
+  // TODO: Add validation for the destination address depending on the bridge type
   const bitcoinDestinationAddress = useSwapFormStore((s) => s.bitcoinDestinationAddress)
 
   return (

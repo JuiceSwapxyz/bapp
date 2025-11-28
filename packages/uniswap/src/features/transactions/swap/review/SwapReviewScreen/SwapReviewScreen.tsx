@@ -161,6 +161,7 @@ function SwapReviewContent(): JSX.Element | null {
           ) : isWrap ? (
             <SwapReviewWrapTransactionDetails />
           ) : null}
+          {/* TODO: This component is displayed always, but it should only be displayed if the bridge type is Bitcoin or Lightning */}
           <SwapEnterBitcoinLikeAddress />
         </Flex>
       </SwapReviewContentWrapper>

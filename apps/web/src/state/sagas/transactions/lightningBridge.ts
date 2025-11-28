@@ -7,6 +7,7 @@ import { LightningBridgeLockTransactionStep } from 'uniswap/src/features/transac
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
+import { fetchLnurl } from '../utils/lightningUtils'
 
 interface HandleLightningBridgeLockTransactionStepParams {
   step: LightningBridgeLockTransactionStep
@@ -36,6 +37,10 @@ export function* handleLightningBridgeLockTransactionStep(params: HandleLightnin
     account: account.address,
     destinationAddress,
     trade,
+  })
+
+  fetchLnurl('35644c@lightning.space', 2600).then((invoice) => {
+    console.log('Invoice:', invoice)
   })
 
   // Placeholder implementation
