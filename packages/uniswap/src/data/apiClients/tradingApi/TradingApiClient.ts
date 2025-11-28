@@ -6,6 +6,10 @@ import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
+import {
+  isBitcoinBridgeQuote,
+  isLnBitcoinBridgeQuote,
+} from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
 import {
   ApprovalRequest,
@@ -142,6 +146,7 @@ export const getFeatureFlaggedHeaders = (): Record<string, string> => {
 }
 
 const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
+  // TODO: It is one to one in this hardcoded mapping, but we need to request the actual quote from boltz
   const inputAmount = params.amount
 
   const bridgeQuote: BridgeQuote = {
@@ -162,36 +167,20 @@ const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<Discrimi
     estimatedFillTimeMs: 300000,
   }
 
-  const isOneSideLightning =
-    params.tokenOutChainId === ChainId._21_000_001 || params.tokenInChainId === ChainId._21_000_001
+  const routing = isLnBitcoinBridgeQuote(params) ? Routing.LN_BRIDGE : Routing.BITCOIN_BRIDGE
 
   const response: BridgeQuoteResponse = {
     requestId: `bitcoin-bridge-${Date.now()}`,
     quote: bridgeQuote,
-    routing: isOneSideLightning ? Routing.LN_BRIDGE : Routing.BITCOIN_BRIDGE,
+    routing,
     permitData: null,
   }
 
   return response
 }
 
-export type FetchQuote = (params: QuoteRequest & { isUSDQuote?: boolean }) => Promise<DiscriminatedQuoteResponse>
-
-export async function fetchQuote({
-  isUSDQuote: _isUSDQuote,
-  ...params
-}: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  const isOneSideBitcoin =
-    params.tokenOutChainId === ChainId._21_000_000 ||
-    params.tokenInChainId === ChainId._21_000_000 ||
-    params.tokenOutChainId === ChainId._21_000_001 ||
-    params.tokenInChainId === ChainId._21_000_001
-  const isOneSideCitrea = params.tokenOutChainId === ChainId._5115 || params.tokenInChainId === ChainId._5115
-  if (isOneSideBitcoin && isOneSideCitrea) {
-    return await getBitcoinCrossChainQuote(params)
-  }
-
-  return await CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
+export const swapQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
+  return CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
     body: JSON.stringify({
       ...params,
       type: 'EXACT_INPUT', // TODO: Remove this once the backend is updated
@@ -202,6 +191,24 @@ export async function fetchQuote({
       ...getFeatureFlaggedHeaders(),
     },
   })
+}
+
+export type FetchQuote = (params: QuoteRequest & { isUSDQuote?: boolean }) => Promise<DiscriminatedQuoteResponse>
+
+export async function fetchQuote({
+  isUSDQuote: _isUSDQuote,
+  ...params
+}: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
+  if (isBitcoinBridgeQuote(params)) {
+    return await getBitcoinCrossChainQuote(params)
+  }
+
+  if (isLnBitcoinBridgeQuote(params)) {
+    // TODO: Implement Lightning Network Bitcoin Bridge Quote
+    return await getBitcoinCrossChainQuote(params)
+  }
+
+  return await swapQuote(params)
 }
 
 // min parameters needed for indicative quotes
