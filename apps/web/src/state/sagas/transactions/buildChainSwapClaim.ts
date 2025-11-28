@@ -4,28 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable no-console */
 /**
- * Standalone Chain Swap Claim Implementation
- *
- * This file contains all the code needed to claim a chain swap (e.g., cBTC -> BTC OnChain)
- * after the server has locked BTC on-chain.
- *
- * REQUIRED DEPENDENCIES:
- *
- * npm install \
- *   boltz-core@^3.0.0 \
- *   bitcoinjs-lib@^6.1.7 \
- *   @vulpemventures/secp256k1-zkp@^3.2.1 \
- *   @bitcoinerlab/secp256k1@^1.2.0 \
- *   ecpair@^3.0.0 \
- *   buffer@^6.0.3 \
- *   @scure/bip32@^1.7.0 \
- *   @scure/bip39@^1.6.0 \
- *   crypto
- *
- * Browser Configuration:
- * - vite-plugin-node-polyfills (for Buffer and crypto)
- * - vite-plugin-wasm (for @vulpemventures/secp256k1-zkp WASM)
- *
  * IMPORTANT NOTES:
  *
  * 1. **Transaction Broadcasting**: This function returns the signed transaction hex.
@@ -131,11 +109,11 @@ export const broadcastClaimTransaction = async (
   transactionHex: string,
   apiBaseUrl?: string,
 ): Promise<{ id: string }> => {
-  if (!apiBaseUrl) {
-    throw new Error('apiBaseUrl required for broadcasting')
-  }
-
-  return fetcher<{ id: string }>(`/v2/chain/BTC/transaction`, { hex: transactionHex }, apiBaseUrl)
+  return BoltzApi.broadcastTransaction({
+    currency: 'BTC',
+    request: { hex: transactionHex },
+    baseUrl: apiBaseUrl,
+  })
 }
 
 // Helper: Derive private key from mnemonic
@@ -230,61 +208,8 @@ const createAdjustedClaim = async (
   )
 }
 
-// API helpers
-const fetcher = async <T>(endpoint: string, body?: any, baseUrl?: string): Promise<T> => {
-  const url = baseUrl ? `${baseUrl.replace(/\/$/, '')}${endpoint}` : endpoint
-
-  const options: RequestInit = {
-    method: body ? 'POST' : 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }
-
-  if (body) {
-    options.body = JSON.stringify(body)
-  }
-
-  const response = await fetch(url, options)
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`API error: ${error}`)
-  }
-
-  return response.json()
-}
-
-// Get server's claim details for cooperative signing
-const getChainSwapClaimDetails = async (swapId: string, apiBaseUrl?: string) => {
-  return fetcher<{
-    pubNonce: string
-    publicKey: string
-    transactionHash: string
-  }>(`/v2/swap/chain/${swapId}/claim`, undefined, apiBaseUrl)
-}
-
-// Post chain swap details for cooperative signing
-const postChainSwapDetails = async (
-  swapId: string,
-  preimage: string,
-  signature: { pubNonce: string; partialSignature: string },
-  toSign: { pubNonce: string; transaction: string; index: number },
-  apiBaseUrl?: string,
-) => {
-  return fetcher<{
-    pubNonce: string
-    partialSignature: string
-  }>(
-    `/v2/swap/chain/${swapId}/claim`,
-    {
-      preimage,
-      signature,
-      toSign,
-    },
-    apiBaseUrl,
-  )
-}
+// Import Boltz API
+import { BoltzApi } from 'state/sagas/utils/boltzFetcher'
 
 /**
  * Builds and signs a claim transaction for a chain swap.
@@ -390,7 +315,7 @@ export const buildChainSwapClaim = async (params: ChainSwapClaimParams): Promise
   if (cooperative && apiBaseUrl) {
     try {
       // Get server's claim details
-      const serverClaimDetails = await getChainSwapClaimDetails(swapId, apiBaseUrl)
+      const serverClaimDetails = await BoltzApi.getClaimDetails(swapId, apiBaseUrl)
 
       // Get our public nonce (before aggregating)
       const ourPubNonce = Buffer.from(musig.getPublicNonce()).toString('hex')
@@ -411,17 +336,19 @@ export const buildChainSwapClaim = async (params: ChainSwapClaimParams): Promise
       }
 
       // Post our signature and get server's partial signature
-      const theirPartial = await postChainSwapDetails(
+      const theirPartial = await BoltzApi.postClaimDetails({
         swapId,
-        preimage,
-        ourPartial,
-        {
-          index: 0,
-          transaction: claimTx.toHex(),
-          pubNonce: ourPubNonce,
+        request: {
+          preimage,
+          signature: ourPartial,
+          toSign: {
+            index: 0,
+            transaction: claimTx.toHex(),
+            pubNonce: ourPubNonce,
+          },
         },
-        apiBaseUrl,
-      )
+        baseUrl: apiBaseUrl,
+      })
 
       // Re-aggregate nonces with server's nonce from response
       musig.aggregateNonces([[serverPublicKey, Buffer.from(theirPartial.pubNonce, 'hex')]])
