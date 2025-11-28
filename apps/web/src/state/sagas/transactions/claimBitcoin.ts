@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable no-relative-import-paths/no-relative-import-paths */
+import { BoltzApi } from '../utils/boltzFetcher'
 import { broadcastClaimTransaction, buildChainSwapClaim } from './buildChainSwapClaim'
 
 interface ClaimBitcoinParams {
@@ -25,8 +26,10 @@ interface ClaimBitcoinParams {
  * Fetches the server's lockup transaction from the API
  */
 async function getServerLockTransaction(swapId: string, apiBaseUrl: string): Promise<{ transaction: { hex: string } }> {
-  const response = await fetch(`${apiBaseUrl}/v1/swap/v2/swap/chain/${swapId}/transactions`)
-  const data = await response.json()
+  const data = await BoltzApi.getSwapTransactions(swapId, apiBaseUrl)
+  if (!data.serverLock) {
+    throw new Error('Server lock transaction not found')
+  }
   return data.serverLock
 }
 

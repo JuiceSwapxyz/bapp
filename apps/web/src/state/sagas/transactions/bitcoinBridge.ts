@@ -7,6 +7,7 @@ import { BitcoinBridgeLockTransactionStep } from 'uniswap/src/features/transacti
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
+import { BoltzApi, GetSwapStatusResponse } from '../utils/boltzFetcher'
 import { buildEvmLockupTx } from './buildEvmLockupTx'
 import { generateChainSwapKeys } from './chainSwapKeys'
 import { claimBitcoin } from './claimBitcoin'
@@ -85,11 +86,11 @@ const fetchSwapChain = async (
   claimAddress: string = 'bc1qs2tanqekdj9ew7vklfremkjmunlh7usxyvrw9n',
   userLockAmount: number = 2500,
 ): Promise<FetchSwapChainResult> => {
-  const chainInfo = await fetch(`https://dev.lightning.space/v1/swap/v2/swap/chain`).then((res) => res.json())
+  const chainInfo = await BoltzApi.getChainSwapInfo()
 
   const { preimageHash, claimPublicKey, mnemonic, keyIndex } = generateChainSwapKeys()
 
-  const swapChainData = {
+  const payDetails = await BoltzApi.createChainSwap({
     from: 'cBTC',
     to: 'BTC',
     preimageHash,
@@ -98,15 +99,7 @@ const fetchSwapChain = async (
     pairHash: chainInfo.cBTC.BTC.hash,
     referralId: 'boltz_webapp_desktop',
     userLockAmount,
-  }
-
-  const payDetails = await fetch(`https://dev.lightning.space/v1/swap/v2/swap/chain`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(swapChainData),
-  }).then((res) => res.json())
+  })
 
   return {
     payDetails,
@@ -117,8 +110,8 @@ const fetchSwapChain = async (
   }
 }
 
-const fetchSwapStatus = async (swapId: string): Promise<{ status: SwapStatus }> => {
-  return await fetch(`https://dev.lightning.space/v1/swap/v2/swap/${swapId}`).then((res) => res.json())
+const fetchSwapStatus = async (swapId: string): Promise<GetSwapStatusResponse> => {
+  return await BoltzApi.getSwapStatus(swapId)
 }
 
 /**
@@ -129,15 +122,13 @@ const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout
 export function* handleBitcoinBridgeLockTransactionStep(params: HandleBitcoinBridgeLockTransactionStepParams) {
   const { step, setCurrentStep, trade, account, destinationAddress, onTransactionHash } = params
 
-  // Step 1: Fetch swap chain details and generate keys
   const { payDetails, preimageHash, mnemonic, keyIndex } = yield* call(fetchSwapChain, destinationAddress)
 
-  // TODO: Store these values securely for the claim step
   // We'll need: mnemonic, keyIndex, preimageHash, payDetails.id, payDetails.claimDetails
   console.log('Swap created - ID:', payDetails.id)
   console.log('Save this data for claiming:', {
     swapId: payDetails.id,
-    mnemonic, // CRITICAL: Save securely!
+    mnemonic, // CRITICAL: This can't be discarted until we are sure the swap is complete
     keyIndex,
     preimageHash,
     serverPublicKey: payDetails.claimDetails.serverPublicKey,
