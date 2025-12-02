@@ -18,16 +18,16 @@ import { getCurrencySafetyInfo } from 'uniswap/src/features/dataApi/utils/getCur
 import { currencyId } from 'uniswap/src/utils/currencyId'
 
 /**
- * Wrapper around Tanstack useQuery for the Uniswap REST BE service TokenRankings
- * This includes the top tokens pre-sorted by various filters
- * @param input { chainId: string } - string representation of the chain to query or `ALL_NETWORKS` for aggregated data
- * @returns UseQueryResult<TokenRankingsResponse, ConnectError>
+ * JuiceSwap: Token Rankings API is disabled
+ * The Uniswap REST BE service TokenRankings endpoint is not available on JuiceSwap backend.
+ * This hook returns empty data to disable the Explore rankings feature.
  */
 export function useTokenRankingsQuery(
   input?: PartialMessage<TokenRankingsRequest>,
-  enabled = true,
+  _enabled = true,
 ): UseQueryResult<TokenRankingsResponse, ConnectError> {
-  return useQuery(tokenRankings, input, { transport: uniswapGetTransport, enabled })
+  // Disabled: JuiceSwap does not have a token rankings endpoint
+  return useQuery(tokenRankings, input, { transport: uniswapGetTransport, enabled: false })
 }
 
 export function tokenRankingsStatToCurrencyInfo(tokenRankingsStat: TokenRankingsStat): CurrencyInfo | null {
