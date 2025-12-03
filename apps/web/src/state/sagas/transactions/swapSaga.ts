@@ -10,6 +10,8 @@ import { useSetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap
 import { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
+import { handleBitcoinBridgeLockTransactionStep } from 'state/sagas/transactions/bitcoinBridge'
+import { handleLightningBridgeLockTransactionStep } from 'state/sagas/transactions/lightningBridge'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
 import { handleUniswapXSignatureStep } from 'state/sagas/transactions/uniswapx'
 import {
@@ -296,6 +298,30 @@ function* swap(params: SwapParams) {
         case TransactionStepType.UniswapXSignature: {
           requireRouting(trade, UNISWAPX_ROUTING_VARIANTS)
           yield* call(handleUniswapXSignatureStep, { account, step, setCurrentStep, trade, analytics })
+          break
+        }
+        case TransactionStepType.BitcoinBridgeLockTransactionStep: {
+          requireRouting(swapTxContext, [Routing.BITCOIN_BRIDGE])
+          yield* call(handleBitcoinBridgeLockTransactionStep, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+          })
+          break
+        }
+        case TransactionStepType.LightningBridgeLockTransactionStep: {
+          requireRouting(swapTxContext, [Routing.LN_BRIDGE])
+          yield* call(handleLightningBridgeLockTransactionStep, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+          })
           break
         }
         default: {

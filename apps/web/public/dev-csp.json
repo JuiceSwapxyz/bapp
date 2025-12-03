@@ -14,6 +14,8 @@
     "https://bapp.juiceswap.com/api",
     "https://ponder.juiceswap.com",
     "https://dev.ponder.juiceswap.com",
-    "https://rpc.testnet.juiceswap.com"
+    "https://rpc.testnet.juiceswap.com",
+    "https://dev.lightning.space",
+    "https://*.lightning.space"
   ]
 }

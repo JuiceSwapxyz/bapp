@@ -7,6 +7,11 @@ import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
+  isBitcoinBridgeQuote,
+  isLnBitcoinBridgeQuote,
+} from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
+import { swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
+import {
   ApprovalRequest,
   ApprovalResponse,
   BridgeQuote,
@@ -92,7 +97,7 @@ export type ClassicQuoteResponse = QuoteResponse & {
 
 export type BridgeQuoteResponse = QuoteResponse & {
   quote: BridgeQuote
-  routing: Routing.BRIDGE
+  routing: Routing.BRIDGE | Routing.BITCOIN_BRIDGE | Routing.LN_BRIDGE
 }
 
 export type WrapQuoteResponse<T extends Routing.WRAP | Routing.UNWRAP> = QuoteResponse & {
@@ -140,13 +145,42 @@ export const getFeatureFlaggedHeaders = (): Record<string, string> => {
   }
 }
 
-export type FetchQuote = (params: QuoteRequest & { isUSDQuote?: boolean }) => Promise<DiscriminatedQuoteResponse>
+const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
+  // TODO: It is one to one in this hardcoded mapping, but we need to request the actual quote from boltz
+  const inputAmount = params.amount
 
-export async function fetchQuote({
-  isUSDQuote: _isUSDQuote,
-  ...params
-}: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  return await CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
+  const bridgeQuote: BridgeQuote = {
+    quoteId: `bitcoin-bridge-${Date.now()}`,
+    chainId: params.tokenInChainId,
+    destinationChainId: params.tokenOutChainId,
+    swapper: params.swapper,
+    input: {
+      amount: inputAmount,
+      token: params.tokenIn,
+    },
+    output: {
+      amount: inputAmount,
+      token: params.tokenOut,
+    },
+    tradeType: params.type,
+    gasUseEstimate: '21000',
+    estimatedFillTimeMs: 300000,
+  }
+
+  const routing = isLnBitcoinBridgeQuote(params) ? Routing.LN_BRIDGE : Routing.BITCOIN_BRIDGE
+
+  const response: BridgeQuoteResponse = {
+    requestId: `bitcoin-bridge-${Date.now()}`,
+    quote: bridgeQuote,
+    routing,
+    permitData: null,
+  }
+
+  return response
+}
+
+export const swapQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
+  return CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
     body: JSON.stringify({
       ...params,
       type: 'EXACT_INPUT', // TODO: Remove this once the backend is updated
@@ -157,6 +191,24 @@ export async function fetchQuote({
       ...getFeatureFlaggedHeaders(),
     },
   })
+}
+
+export type FetchQuote = (params: QuoteRequest & { isUSDQuote?: boolean }) => Promise<DiscriminatedQuoteResponse>
+
+export async function fetchQuote({
+  isUSDQuote: _isUSDQuote,
+  ...params
+}: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
+  if (isBitcoinBridgeQuote(params)) {
+    return await getBitcoinCrossChainQuote(params)
+  }
+
+  if (isLnBitcoinBridgeQuote(params)) {
+    // TODO: Implement Lightning Network Bitcoin Bridge Quote
+    return await getBitcoinCrossChainQuote(params)
+  }
+
+  return await swapQuote(params)
 }
 
 // min parameters needed for indicative quotes
@@ -408,22 +460,14 @@ export async function fetchOrdersWithoutIds({
   })
 }
 
-export async function fetchSwappableTokens(_params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
-  // DISABLED: Endpoint /v1/swappable_tokens does not exist in backend API
-  return {
-    requestId: '',
-    tokens: [],
-  }
+export async function fetchSwappableTokens(params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
+  const { tokenIn, tokenInChainId } = params
+  const tokens = swappableTokensMappping[tokenInChainId]?.[tokenIn] ?? []
 
-  // return await TradingApiClient.get<GetSwappableTokensResponse>(uniswapUrls.tradingApiPaths.swappableTokens, {
-  //   params: {
-  //     tokenIn: _params.tokenIn,
-  //     tokenInChainId: _params.tokenInChainId,
-  //   },
-  //   headers: {
-  //     ...getFeatureFlaggedHeaders(),
-  //   },
-  // })
+  return {
+    requestId: Math.random().toString(36).substring(2, 15),
+    tokens,
+  }
 }
 
 export async function createLpPosition(params: CreateLPPositionRequest): Promise<CreateLPPositionResponse> {
