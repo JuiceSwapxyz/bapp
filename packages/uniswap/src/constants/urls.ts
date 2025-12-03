@@ -50,11 +50,11 @@ export const uniswapUrls = {
   appStoreDownloadUrl: 'https://apps.apple.com/us/app/uniswap-crypto-nft-wallet/id6443944476',
   playStoreDownloadUrl: 'https://play.google.com/store/apps/details?id=com.uniswap.mobile&pcampaignid=web_share',
 
-  // Core API Urls
-  apiOrigin: 'https://api.uniswap.org',
-  apiBaseUrl: config.apiBaseUrlOverride || getCloudflareApiBaseUrl(),
-  apiBaseUrlV2: config.apiBaseUrlV2Override || `${getCloudflareApiBaseUrl()}/v2`,
-  graphQLUrl: config.graphqlUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.GraphQL)}/v1/graphql`,
+  // Core API Urls (JuiceSwap)
+  apiOrigin: 'https://api.juiceswap.com',
+  apiBaseUrl: config.apiBaseUrlOverride || getJuiceSwapApiBaseUrl(),
+  apiBaseUrlV2: config.apiBaseUrlV2Override || `${getJuiceSwapApiBaseUrl()}/v2`,
+  graphQLUrl: config.graphqlUrlOverride || `${getJuiceSwapApiBaseUrl()}/v1/graphql`,
 
   // Trading API (JuiceSwap)
   tradingApiUrl: config.tradingApiUrlOverride || 'https://dev.api.juiceswap.com',
@@ -113,8 +113,18 @@ export const uniswapUrls = {
     'https://docs.google.com/forms/d/e/1FAIpQLSepzL5aMuSfRhSgw0zDw_gVmc2aeVevfrb1UbOwn6WGJ--46w/viewform',
 }
 
-function getCloudflarePrefix(flow?: TrafficFlows): string {
-  if (flow && isDevOrBeta && FLOWS_USING_BETA.includes(flow)) {
+/**
+ * JuiceSwap API Base URL
+ * Uses a single API endpoint instead of Cloudflare workers with dynamic prefixes
+ */
+function getJuiceSwapApiBaseUrl(): string {
+  return 'https://dev.api.juiceswap.com'
+}
+
+// Legacy functions kept for reference (no longer used)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _getCloudflarePrefix(_flow?: TrafficFlows): string {
+  if (_flow && isDevOrBeta && FLOWS_USING_BETA.includes(_flow)) {
     return `beta`
   }
 
@@ -137,14 +147,16 @@ function getCloudflarePrefix(flow?: TrafficFlows): string {
   throw new Error('Could not determine app to generate Cloudflare prefix')
 }
 
-function getServicePrefix(flow?: TrafficFlows): string {
-  if (flow && (isPlaywrightEnv() || !(isDevOrBeta && FLOWS_USING_BETA.includes(flow)))) {
-    return flow + '.'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _getServicePrefix(_flow?: TrafficFlows): string {
+  if (_flow && (isPlaywrightEnv() || !(_flow && isDevOrBeta && FLOWS_USING_BETA.includes(_flow)))) {
+    return _flow + '.'
   } else {
     return ''
   }
 }
 
-function getCloudflareApiBaseUrl(flow?: TrafficFlows): string {
-  return `https://${getServicePrefix(flow)}${getCloudflarePrefix(flow)}.gateway.uniswap.org`
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _getCloudflareApiBaseUrl(_flow?: TrafficFlows): string {
+  return `https://${_getServicePrefix(_flow)}${_getCloudflarePrefix(_flow)}.gateway.uniswap.org`
 }
