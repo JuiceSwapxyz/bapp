@@ -16,13 +16,6 @@ export const UNISWAP_GAS_API_SUPPORTED_CHAINS = [] as const
 export type UniswapGasApiSupportedChain = never
 
 /**
- * Always returns false - JuiceSwap uses client-side gas estimation for all chains.
- *
- * When this returns false, the gas estimation falls back to provider.estimateGas()
- * which is implemented in:
- * - apps/web/src/hooks/useTransactionGasFee.ts (tryClientSideFallback)
- * - packages/uniswap/src/data/apiClients/uniswapApi/UniswapApiClient.ts
- *
  * @param _chainId - The chain ID (unused)
  * @returns false - always uses client-side estimation
  */
