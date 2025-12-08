@@ -12,12 +12,19 @@
     "binding": "ASSETS"
   },
 
+  "vars": {
+    "GRAPHQL_ENDPOINT": "https://api.juiceswap.com/v1/graphql"
+  },
+
   "env": {
     "staging": {
       "name": "app-staging",
       "observability": {
         "enabled": true,
         "head_sampling_rate": 1
+      },
+      "vars": {
+        "GRAPHQL_ENDPOINT": "https://dev.api.juiceswap.com/v1/graphql"
       }
     },
     "production": {
@@ -26,6 +33,9 @@
         "enabled": true,
         "head_sampling_rate": 1,
         "invocation_logs": false
+      },
+      "vars": {
+        "GRAPHQL_ENDPOINT": "https://api.juiceswap.com/v1/graphql"
       }
     }
   }

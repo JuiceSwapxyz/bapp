@@ -36,8 +36,8 @@ const chains = [
   'CITREA_TESTNET',
 ]
 
-const JUICESWAP_APP_URL = 'https://bapp.juiceswap.com'
-const JUICESWAP_API_URL = 'https://dev.api.juiceswap.com'
+const JUICESWAP_APP_URL = process.env.JUICESWAP_APP_URL
+const JUICESWAP_API_URL = process.env.JUICESWAP_API_URL
 
 fs.readFile('./public/tokens-sitemap.xml', 'utf8', async (_err, data) => {
   const tokenURLs = {}
@@ -53,8 +53,6 @@ fs.readFile('./public/tokens-sitemap.xml', 'utf8', async (_err, data) => {
       })
     }
 
-    // JuiceSwap token list - using Ponder API
-    // Note: Update this when JuiceSwap has a token rankings endpoint
     const tokensResponse = await fetch(`${JUICESWAP_API_URL}/v1/graphql`, {
       method: 'POST',
       headers: {

@@ -113,50 +113,6 @@ export const uniswapUrls = {
     'https://docs.google.com/forms/d/e/1FAIpQLSepzL5aMuSfRhSgw0zDw_gVmc2aeVevfrb1UbOwn6WGJ--46w/viewform',
 }
 
-/**
- * JuiceSwap API Base URL
- * Uses a single API endpoint instead of Cloudflare workers with dynamic prefixes
- */
 function getJuiceSwapApiBaseUrl(): string {
-  return 'https://dev.api.juiceswap.com'
-}
-
-// Legacy functions kept for reference (no longer used)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _getCloudflarePrefix(_flow?: TrafficFlows): string {
-  if (_flow && isDevOrBeta && FLOWS_USING_BETA.includes(_flow)) {
-    return `beta`
-  }
-
-  if (isMobileApp) {
-    return `${isAndroid ? 'android' : 'ios'}.wallet`
-  }
-
-  if (isExtension) {
-    return 'extension'
-  }
-
-  if (isPlaywrightEnv() || isInterface) {
-    return 'interface'
-  }
-
-  if (isTestEnv()) {
-    return 'wallet'
-  }
-
-  throw new Error('Could not determine app to generate Cloudflare prefix')
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _getServicePrefix(_flow?: TrafficFlows): string {
-  if (_flow && (isPlaywrightEnv() || !(_flow && isDevOrBeta && FLOWS_USING_BETA.includes(_flow)))) {
-    return _flow + '.'
-  } else {
-    return ''
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _getCloudflareApiBaseUrl(_flow?: TrafficFlows): string {
-  return `https://${_getServicePrefix(_flow)}${_getCloudflarePrefix(_flow)}.gateway.uniswap.org`
+  return process.env.JUICESWAP_API_URL as string
 }

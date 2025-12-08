@@ -11,7 +11,7 @@ import Apollo
 public class Network {
   public static let shared = Network()
   
-  private let JUICESWAP_API_URL = "https://dev.api.juiceswap.com/v1/graphql"
+  private let JUICESWAP_API_URL = "https://\(Env.JUICESWAP_API_ENDPOINT)/v1/graphql"
   
   public lazy var apollo: ApolloClient = {
     let cache = InMemoryNormalizedCache()

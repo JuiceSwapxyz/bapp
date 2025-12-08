@@ -1,6 +1,6 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client'
 // JuiceSwap GraphQL endpoint for SSR/Cloudflare Functions
-const GRAPHQL_ENDPOINT = 'https://dev.api.juiceswap.com/v1/graphql'
+const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT
 
 //TODO: Figure out how to make ApolloClient global variable
 export default new ApolloClient({
