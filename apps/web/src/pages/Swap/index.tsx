@@ -7,6 +7,7 @@ import { PageWrapper } from 'components/swap/styled'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { PageType, useIsPage } from 'hooks/useIsPage'
 import { useModalState } from 'hooks/useModalState'
+import { RiseIn } from 'pages/Landing/components/animations'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { useResetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap'
 import { useWebSwapSettings } from 'pages/Swap/settings/useWebSwapSettings'
@@ -20,7 +21,8 @@ import { useWrapCallback } from 'state/sagas/transactions/wrapSaga'
 import { SwapAndLimitContextProvider } from 'state/swap/SwapContext'
 import { useInitialCurrencyState } from 'state/swap/hooks'
 import type { CurrencyState } from 'state/swap/types'
-import { Flex, Text, Tooltip, styled } from 'ui/src'
+import styled from 'lib/styled-components'
+import { Flex, Text, Tooltip, styled as TamaguiStyled } from 'ui/src'
 import { zIndexes } from 'ui/src/theme'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { useIsModeMismatch } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -73,17 +75,20 @@ export default function SwapPage() {
 
   return (
     <Trace logImpression page={InterfacePageName.SwapPage}>
-      <PageWrapper>
-        <Swap
-          chainId={initialChainId}
-          initialInputCurrency={initialInputCurrency}
-          initialOutputCurrency={initialOutputCurrency}
-          initialTypedValue={initialTypedValue}
-          initialIndependentField={initialField}
-          syncTabToUrl={true}
-          usePersistedFilteredChainIds
-        />
-      </PageWrapper>
+      <SwapBackground />
+      <RiseIn delay={0.2}>
+        <PageWrapper zIndex={1}>
+          <Swap
+            chainId={initialChainId}
+            initialInputCurrency={initialInputCurrency}
+            initialOutputCurrency={initialOutputCurrency}
+            initialTypedValue={initialTypedValue}
+            initialIndependentField={initialField}
+            syncTabToUrl={true}
+            usePersistedFilteredChainIds
+          />
+        </PageWrapper>
+      </RiseIn>
     </Trace>
   )
 }
@@ -184,6 +189,20 @@ const PATHNAME_TO_TAB: { [key: string]: SwapTab } = {
   '/buy': SwapTab.Swap, // Redirect to swap
   '/sell': SwapTab.Swap, // Redirect to swap
 }
+
+const SwapBackground = styled.div`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  height: 350px;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url(/images/landing_page/LandingHero-bg.svg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: top center;
+`
 
 function UniversalSwapFlow({
   hideHeader = false,
@@ -303,7 +322,7 @@ function UniversalSwapFlow({
   )
 }
 
-const DisabledOverlay = styled(Flex, {
+const DisabledOverlay = TamaguiStyled(Flex, {
   position: 'absolute',
   width: '100%',
   height: '100%',
