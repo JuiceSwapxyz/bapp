@@ -8,7 +8,7 @@ import { uniswapGetTransport } from 'uniswap/src/data/rest/base'
 
 export function useGetPoolsRewards(
   input?: PartialMessage<GetRewardsRequest>,
-  enabled = true,
+  _enabled = true,
 ): UseQueryResult<GetRewardsResponse, ConnectError> {
-  return useQuery(getRewards, input, { transport: uniswapGetTransport, enabled })
+  return useQuery(getRewards, input, { transport: uniswapGetTransport, enabled: false })
 }
