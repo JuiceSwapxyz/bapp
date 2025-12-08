@@ -17,16 +17,10 @@ import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/u
 import { getCurrencySafetyInfo } from 'uniswap/src/features/dataApi/utils/getCurrencySafetyInfo'
 import { currencyId } from 'uniswap/src/utils/currencyId'
 
-/**
- * JuiceSwap: Token Rankings API is disabled
- * The Uniswap REST BE service TokenRankings endpoint is not available on JuiceSwap backend.
- * This hook returns empty data to disable the Explore rankings feature.
- */
 export function useTokenRankingsQuery(
   input?: PartialMessage<TokenRankingsRequest>,
   _enabled = true,
 ): UseQueryResult<TokenRankingsResponse, ConnectError> {
-  // Disabled: JuiceSwap does not have a token rankings endpoint
   return useQuery(tokenRankings, input, { transport: uniswapGetTransport, enabled: false })
 }
 

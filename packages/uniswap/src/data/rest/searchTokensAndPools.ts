@@ -23,11 +23,6 @@ import { createEthersProvider } from 'uniswap/src/features/providers/createEther
 import { PoolSearchResult, SearchResultType } from 'uniswap/src/features/search/SearchResult'
 import { buildCurrencyId, currencyId, isNativeCurrencyAddress } from 'uniswap/src/utils/currencyId'
 
-/**
- * JuiceSwap: Search Tokens API is disabled
- * The Uniswap REST BE service SearchTokens endpoint is not available on JuiceSwap backend.
- * Use fetchTokenDataDirectly() for direct blockchain token lookups as a fallback.
- */
 export function useSearchTokensAndPoolsQuery<TSelectType>({
   input,
   enabled: _enabled = true,
@@ -37,8 +32,6 @@ export function useSearchTokensAndPoolsQuery<TSelectType>({
   enabled?: boolean
   select?: ((data: SearchTokensResponse) => TSelectType) | undefined
 }): UseQueryResult<TSelectType, ConnectError> {
-  // Disabled: JuiceSwap does not have a search tokens endpoint
-  // Use fetchTokenDataDirectly() for direct blockchain lookups instead
   return useQuery(searchTokens, input, {
     transport: uniswapPostTransport,
     enabled: false,
