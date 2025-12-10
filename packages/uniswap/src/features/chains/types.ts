@@ -25,6 +25,8 @@ export enum UniverseChainId {
   WorldChain = UniswapSDKChainId.WORLDCHAIN,
   Zksync = UniswapSDKChainId.ZKSYNC,
   Zora = UniswapSDKChainId.ZORA,
+  Bitcoin = 21000000,
+  LightningNetwork = 21000001,
 }
 
 export type UniverseChainIdByPlatform<T extends Platform> = ((typeof UNIVERSE_CHAIN_INFO)[UniverseChainId] & {

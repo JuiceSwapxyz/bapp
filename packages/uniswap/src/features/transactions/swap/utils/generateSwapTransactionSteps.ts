@@ -3,7 +3,9 @@ import { createPermit2SignatureStep } from 'uniswap/src/features/transactions/st
 import { createPermit2TransactionStep } from 'uniswap/src/features/transactions/steps/permit2Transaction'
 import { createRevocationTransactionStep } from 'uniswap/src/features/transactions/steps/revoke'
 import { TransactionStep } from 'uniswap/src/features/transactions/steps/types'
+import { createBitcoinBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { orderClassicSwapSteps } from 'uniswap/src/features/transactions/swap/steps/classicSteps'
+import { createLightningBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { createSignUniswapXOrderStep } from 'uniswap/src/features/transactions/swap/steps/signOrder'
 import {
   createSwapTransactionAsyncStep,
@@ -12,7 +14,13 @@ import {
 } from 'uniswap/src/features/transactions/swap/steps/swap'
 import { orderUniswapXSteps } from 'uniswap/src/features/transactions/swap/steps/uniswapxSteps'
 import { SwapTxAndGasInfo, isValidSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
-import { isBridge, isClassic, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import {
+  isBitcoinBridge,
+  isBridge,
+  isClassic,
+  isLightningBridge,
+  isUniswapX,
+} from 'uniswap/src/features/transactions/swap/utils/routing'
 
 export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo): TransactionStep[] {
   const isValidSwap = isValidSwapTxContext(txContext)
@@ -60,6 +68,10 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo): Trans
         approval,
         signOrder: createSignUniswapXOrderStep(txContext.permit.typedData, txContext.trade.quote.quote),
       })
+    } else if (isBitcoinBridge(txContext)) {
+      return [createBitcoinBridgeLockTransactionStep()]
+    } else if (isLightningBridge(txContext)) {
+      return [createLightningBridgeLockTransactionStep()]
     } else if (isBridge(txContext)) {
       if (txContext.txRequests.length > 1) {
         return orderClassicSwapSteps({

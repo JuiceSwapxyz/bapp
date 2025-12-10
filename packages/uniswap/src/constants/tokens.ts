@@ -317,6 +317,20 @@ export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } =
     'WETH',
     'Wrapped Ether',
   ),
+  [UniverseChainId.Bitcoin]: new Token(
+    UniverseChainId.Bitcoin,
+    '0x0000000000000000000000000000000000000000',
+    18,
+    'BTC',
+    'Bitcoin',
+  ),
+  [UniverseChainId.LightningNetwork]: new Token(
+    UniverseChainId.LightningNetwork,
+    '0x0000000000000000000000000000000000000000',
+    18,
+    'lnBTC',
+    'Lightning BTC',
+  ),
 }
 
 class NativeCurrencyImpl extends NativeCurrency {
