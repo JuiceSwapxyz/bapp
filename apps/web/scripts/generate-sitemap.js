@@ -36,8 +36,8 @@ const chains = [
   'CITREA_TESTNET',
 ]
 
-const JUICESWAP_APP_URL = process.env.JUICESWAP_APP_URL
-const JUICESWAP_API_URL = process.env.JUICESWAP_API_URL
+const JUICESWAP_APP_URL = 'https://bapp.juiceswap.com'
+const JUICESWAP_API_URL = 'https://api.juiceswap.com'
 
 fs.readFile('./public/tokens-sitemap.xml', 'utf8', async (_err, data) => {
   const tokenURLs = {}

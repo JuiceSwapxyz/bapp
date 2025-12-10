@@ -114,5 +114,5 @@ export const uniswapUrls = {
 }
 
 function getJuiceSwapApiBaseUrl(): string {
-  return process.env.JUICESWAP_API_URL as string
+  return process.env.REACT_APP_JUICESWAP_API_URL as string
 }
