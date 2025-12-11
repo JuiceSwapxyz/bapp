@@ -50,11 +50,11 @@ export const uniswapUrls = {
   appStoreDownloadUrl: 'https://apps.apple.com/us/app/uniswap-crypto-nft-wallet/id6443944476',
   playStoreDownloadUrl: 'https://play.google.com/store/apps/details?id=com.uniswap.mobile&pcampaignid=web_share',
 
-  // Core API Urls
-  apiOrigin: 'https://api.uniswap.org',
-  apiBaseUrl: config.apiBaseUrlOverride || getCloudflareApiBaseUrl(),
-  apiBaseUrlV2: config.apiBaseUrlV2Override || `${getCloudflareApiBaseUrl()}/v2`,
-  graphQLUrl: config.graphqlUrlOverride || `${getCloudflareApiBaseUrl(TrafficFlows.GraphQL)}/v1/graphql`,
+  // Core API Urls (JuiceSwap)
+  apiOrigin: 'https://api.juiceswap.com',
+  apiBaseUrl: config.apiBaseUrlOverride || getJuiceSwapApiBaseUrl(),
+  apiBaseUrlV2: config.apiBaseUrlV2Override || `${getJuiceSwapApiBaseUrl()}/v2`,
+  graphQLUrl: config.graphqlUrlOverride || `${getJuiceSwapApiBaseUrl()}/v1/graphql`,
 
   // Trading API (JuiceSwap)
   tradingApiUrl: config.tradingApiUrlOverride || 'https://dev.api.juiceswap.com',
@@ -113,38 +113,6 @@ export const uniswapUrls = {
     'https://docs.google.com/forms/d/e/1FAIpQLSepzL5aMuSfRhSgw0zDw_gVmc2aeVevfrb1UbOwn6WGJ--46w/viewform',
 }
 
-function getCloudflarePrefix(flow?: TrafficFlows): string {
-  if (flow && isDevOrBeta && FLOWS_USING_BETA.includes(flow)) {
-    return `beta`
-  }
-
-  if (isMobileApp) {
-    return `${isAndroid ? 'android' : 'ios'}.wallet`
-  }
-
-  if (isExtension) {
-    return 'extension'
-  }
-
-  if (isPlaywrightEnv() || isInterface) {
-    return 'interface'
-  }
-
-  if (isTestEnv()) {
-    return 'wallet'
-  }
-
-  throw new Error('Could not determine app to generate Cloudflare prefix')
-}
-
-function getServicePrefix(flow?: TrafficFlows): string {
-  if (flow && (isPlaywrightEnv() || !(isDevOrBeta && FLOWS_USING_BETA.includes(flow)))) {
-    return flow + '.'
-  } else {
-    return ''
-  }
-}
-
-function getCloudflareApiBaseUrl(flow?: TrafficFlows): string {
-  return `https://${getServicePrefix(flow)}${getCloudflarePrefix(flow)}.gateway.uniswap.org`
+function getJuiceSwapApiBaseUrl(): string {
+  return process.env.REACT_APP_JUICESWAP_API_URL as string
 }
