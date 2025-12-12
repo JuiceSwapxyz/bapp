@@ -16,6 +16,7 @@ const approvalResponseFile = project.addSourceFileAtPath(`${path}/ApprovalRespon
 const createSwapResponseFile = project.addSourceFileAtPath(`${path}/CreateSwapResponse.ts`)
 const createSendResponseFile = project.addSourceFileAtPath(`${path}/CreateSendResponse.ts`)
 const classicQuoteFile = project.addSourceFileAtPath(`${path}/ClassicQuote.ts`)
+const bridgeQuoteFile = project.addSourceFileAtPath(`${path}/BridgeQuote.ts`)
 const responseFiles = [approvalResponseFile, createSwapResponseFile, createSendResponseFile, classicQuoteFile]
 
 // Enums
@@ -117,6 +118,9 @@ responseFiles.forEach((file) => {
   ])
 })
 
+addImport(bridgeQuoteFile, 'LightningBridgeDirection')
+modifyType(bridgeQuoteFile, 'BridgeQuote', [{ name: 'direction', type: 'LightningBridgeDirection', isOptional: true }])
+
 // Add new enum members
 addEnumMember(routingFile, 'Routing', { name: 'JUPITER', value: 'JUPITER' })
 addEnumMember(routingFile, 'Routing', { name: 'BITCOIN_BRIDGE', value: 'BITCOIN_BRIDGE' })
@@ -132,6 +136,7 @@ requestFiles.forEach((file) => {
 responseFiles.forEach((file) => {
   file.saveSync()
 })
+bridgeQuoteFile.saveSync()
 routingFile.saveSync()
 chainIdFile.saveSync()
 

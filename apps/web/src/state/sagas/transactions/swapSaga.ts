@@ -11,7 +11,7 @@ import { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
 import { handleBitcoinBridgeLockTransactionStep } from 'state/sagas/transactions/bitcoinBridge'
-import { handleLightningBridgeLockTransactionStep } from 'state/sagas/transactions/lightningBridge'
+import { handleLightningBridge } from 'state/sagas/transactions/lightningBridge'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
 import { handleUniswapXSignatureStep } from 'state/sagas/transactions/uniswapx'
 import {
@@ -54,7 +54,11 @@ import { PermitMethod, ValidatedSwapTxContext } from 'uniswap/src/features/trans
 import { BridgeTrade, ClassicTrade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { slippageToleranceToPercent } from 'uniswap/src/features/transactions/swap/utils/format'
 import { generateSwapTransactionSteps } from 'uniswap/src/features/transactions/swap/utils/generateSwapTransactionSteps'
-import { UNISWAPX_ROUTING_VARIANTS, isClassic } from 'uniswap/src/features/transactions/swap/utils/routing'
+import {
+  UNISWAPX_ROUTING_VARIANTS,
+  isClassic,
+  isLightningBridge,
+} from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import {
@@ -241,10 +245,14 @@ function* swap(params: SwapParams) {
   } = params
   const { trade } = swapTxContext
 
-  const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
-  if (chainSwitchFailed) {
-    onFailure()
-    return
+  const isLightningBridgeSwap = isLightningBridge(swapTxContext)
+  const changeChain = !isLightningBridgeSwap
+  if (changeChain) {
+    const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
+    if (chainSwitchFailed) {
+      onFailure()
+      return
+    }
   }
 
   const steps = yield* call(generateSwapTransactionSteps, swapTxContext, v4Enabled)
@@ -312,9 +320,9 @@ function* swap(params: SwapParams) {
           })
           break
         }
-        case TransactionStepType.LightningBridgeLockTransactionStep: {
+        case TransactionStepType.LightningBridgeTransactionStep: {
           requireRouting(swapTxContext, [Routing.LN_BRIDGE])
-          yield* call(handleLightningBridgeLockTransactionStep, {
+          yield* call(handleLightningBridge, {
             step,
             setCurrentStep,
             trade,

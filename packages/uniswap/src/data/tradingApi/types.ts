@@ -51,3 +51,21 @@ export type CustomSwapDataForRequest = {
   type?: string
   slippageTolerance?: string
 }
+
+export enum LightningBridgeDirection {
+  Submarine = 'submarine',
+  Reverse = 'reverse',
+}
+
+export interface LightningInvoice {
+  requestId: string
+  invoice: {
+    paymentRequest: string
+    paymentHash: string
+    satoshi: number
+    timestamp: number
+    expiry: number
+    createdDate: string
+    expiryDate: string
+  }
+}

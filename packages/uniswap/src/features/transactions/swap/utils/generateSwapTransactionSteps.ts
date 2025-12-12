@@ -5,7 +5,7 @@ import { createRevocationTransactionStep } from 'uniswap/src/features/transactio
 import { TransactionStep } from 'uniswap/src/features/transactions/steps/types'
 import { createBitcoinBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { orderClassicSwapSteps } from 'uniswap/src/features/transactions/swap/steps/classicSteps'
-import { createLightningBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
+import { createLightningBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { createSignUniswapXOrderStep } from 'uniswap/src/features/transactions/swap/steps/signOrder'
 import {
   createSwapTransactionAsyncStep,
@@ -71,7 +71,7 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo): Trans
     } else if (isBitcoinBridge(txContext)) {
       return [createBitcoinBridgeLockTransactionStep()]
     } else if (isLightningBridge(txContext)) {
-      return [createLightningBridgeLockTransactionStep()]
+      return [createLightningBridgeTransactionStep()]
     } else if (isBridge(txContext)) {
       if (txContext.txRequests.length > 1) {
         return orderClassicSwapSteps({

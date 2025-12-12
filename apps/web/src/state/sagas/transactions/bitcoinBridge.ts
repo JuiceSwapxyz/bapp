@@ -66,22 +66,6 @@ enum SwapStatus {
   Created = 'swap.created',
 }
 
-// TODO: Replace with actual EtherSwap contract ABI
-// This ABI should match the contract at lockupDetails.lockupAddress
-const ETHER_SWAP_ABI = [
-  {
-    inputs: [
-      { name: 'preimageHash', type: 'bytes32' },
-      { name: 'claimAddress', type: 'address' },
-      { name: 'timeoutBlockHeight', type: 'uint256' },
-    ],
-    name: 'lock',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-] as const
-
 const fetchSwapChain = async (
   claimAddress: string = 'bc1qs2tanqekdj9ew7vklfremkjmunlh7usxyvrw9n',
   userLockAmount: number = 2500,
@@ -146,7 +130,6 @@ export function* handleBitcoinBridgeLockTransactionStep(params: HandleBitcoinBri
     const evmTxResult = yield* call(buildEvmLockupTx, {
       signer,
       contractAddress: payDetails.lockupDetails.lockupAddress,
-      contractAbi: ETHER_SWAP_ABI,
       preimageHash,
       claimAddress: payDetails.lockupDetails.claimAddress,
       timeoutBlockHeight: payDetails.lockupDetails.timeoutBlockHeight,

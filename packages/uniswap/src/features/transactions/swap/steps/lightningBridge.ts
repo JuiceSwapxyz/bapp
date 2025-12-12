@@ -1,12 +1,12 @@
 import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 
-export interface LightningBridgeLockTransactionStep {
-  type: TransactionStepType.LightningBridgeLockTransactionStep
+export interface LightningBridgeTransactionStep {
+  type: TransactionStepType.LightningBridgeTransactionStep
 }
 
-export const createLightningBridgeLockTransactionStep = (): LightningBridgeLockTransactionStep => {
+export const createLightningBridgeTransactionStep = (): LightningBridgeTransactionStep => {
   // Here we can collect stuff for my saga to run
   return {
-    type: TransactionStepType.LightningBridgeLockTransactionStep,
+    type: TransactionStepType.LightningBridgeTransactionStep,
   }
 }

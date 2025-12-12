@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react'
 import { Flex, IconButton, useIsShortMobileDevice } from 'ui/src'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import type { Warning } from 'uniswap/src/components/modals/WarningModal/types'
+import { useValidateLightningAddress } from 'uniswap/src/data/apiClients/tradingApi/useValidateLightningAddress'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { UnichainPoweredMessage } from 'uniswap/src/features/transactions/TransactionDetails/UnichainPoweredMessage'
 import { getShouldDisplayTokenWarningCard } from 'uniswap/src/features/transactions/TransactionDetails/utils/getShouldDisplayTokenWarningCard'
@@ -14,6 +15,7 @@ import { useSwapReviewTransactionStore } from 'uniswap/src/features/transactions
 import { useSwapReviewWarningStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewWarningStore/useSwapReviewWarningStore'
 import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 import { isValidSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
+import { isLightningBridge } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { isWeb } from 'utilities/src/platform'
 
 export const SwapReviewFooter = memo(function SwapReviewFooter(): JSX.Element | null {
@@ -72,26 +74,41 @@ function useSwapSubmitButton(): {
   }))
 
   const tokenWarningChecked = useSwapReviewWarningStore((s) => s.tokenWarningChecked)
-  const { isSubmitting, showPendingUI } = useSwapFormStore((s) => ({
+
+  const { isSubmitting, showPendingUI, bitcoinDestinationAddress } = useSwapFormStore((s) => ({
     isSubmitting: s.isSubmitting,
     showPendingUI: s.showPendingUI,
+    bitcoinDestinationAddress: s.bitcoinDestinationAddress,
   }))
+
   const onSwapButtonClick = useSwapReviewCallbacksStore((s) => s.onSwapButtonClick)
+
   const { shouldDisplayTokenWarningCard } = getShouldDisplayTokenWarningCard({
     tokenWarningProps,
     feeOnTransferProps,
   })
 
+  const isLNBridge = isLightningBridge(swapTxContext)
+
+  const {
+    data: lightningValidation,
+    isLoading: isValidatingLightning,
+    error: lightningValidationError,
+  } = useValidateLightningAddress({ lnLikeAddress: isLNBridge ? bitcoinDestinationAddress ?? '' : '' })
+
   const submitButtonDisabled = useMemo(() => {
     const validSwap = isValidSwapTxContext(swapTxContext)
     const isTokenWarningBlocking = shouldDisplayTokenWarningCard && !tokenWarningChecked
+    const isLightningAddressInvalid =
+      isLNBridge && (!lightningValidation?.validated || !!lightningValidationError || isValidatingLightning)
 
     return (
       (!validSwap && !isWrap) ||
       !!blockingWarning ||
       newTradeRequiresAcceptance ||
       isSubmitting ||
-      isTokenWarningBlocking
+      isTokenWarningBlocking ||
+      isLightningAddressInvalid
     )
   }, [
     swapTxContext,
@@ -101,6 +118,10 @@ function useSwapSubmitButton(): {
     isSubmitting,
     tokenWarningChecked,
     shouldDisplayTokenWarningCard,
+    isLNBridge,
+    lightningValidation?.validated,
+    lightningValidationError,
+    isValidatingLightning,
   ])
 
   return {

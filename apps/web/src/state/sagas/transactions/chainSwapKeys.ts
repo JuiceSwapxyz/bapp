@@ -20,64 +20,47 @@ export type ChainSwapKeys = {
 
 const DERIVATION_PATH = 'm/44/0/0/0'
 
+const getLastMnemonic = () => {
+  const mnemonic = localStorage.getItem('mnemonic')
+  return mnemonic
+}
+
+const saveMnemonic = (mnemonic: string) => {
+  localStorage.setItem('mnemonic', mnemonic)
+}
+
+const getLastKeyIndex = () => {
+  const keyIndex = localStorage.getItem('keyIndex')
+  return keyIndex ? parseInt(keyIndex) : 0
+}
+
+const saveKeyIndex = (keyIndex: number) => {
+  localStorage.setItem('keyIndex', keyIndex.toString())
+}
+
 /**
  * Generates preimageHash and claimPublicKey for a chain swap (e.g., cBTC -> BTC OnChain).
  * Creates a random mnemonic if none is provided.
- *
- * Required dependencies:
- * - @scure/bip32
- * - @scure/bip39
- * - @bitcoinerlab/secp256k1
- * - bitcoinjs-lib
- * - buffer
- * - ecpair
- *
- * Browser Configuration:
- * This code requires additional configuration to run in the browser:
- *
- * 1. For Vite projects, add these plugins to vite.config:
- *    - vite-plugin-node-polyfills (for Buffer polyfill)
- *    - vite-plugin-wasm (for @bitcoinerlab/secp256k1 WASM support)
- *
- *    Example vite.config:
- *    ```js
- *    import { nodePolyfills } from "vite-plugin-node-polyfills";
- *    import wasm from "vite-plugin-wasm";
- *
- *    export default defineConfig({
- *      plugins: [nodePolyfills(), wasm()],
- *    });
- *    ```
- *
- * 2. For other bundlers (Webpack, Rollup, etc.):
- *    - Configure Buffer polyfill (the 'buffer' package)
- *    - Configure WASM support for @bitcoinerlab/secp256k1
- *
- * @example
- * // Generate with random mnemonic
- * const keys = generateChainSwapKeys();
- * console.log(keys.preimageHash, keys.claimPublicKey);
- *
- * // Use existing mnemonic
- * const keys = generateChainSwapKeys("your mnemonic phrase here");
- *
- * // Use specific key index
- * const keys = generateChainSwapKeys(undefined, 5);
- *
  * @param mnemonic - Optional mnemonic phrase. If not provided, a random one will be generated.
  * @param keyIndex - Optional key index to use. If not provided, defaults to 0.
  * @returns Object containing preimageHash, claimPublicKey, mnemonic, and keyIndex
  */
-export const generateChainSwapKeys = (mnemonic?: string, keyIndex: number = 0): ChainSwapKeys => {
+export const generateChainSwapKeys = (mnemonic?: string): ChainSwapKeys => {
   // Generate or use provided mnemonic
-  const finalMnemonic = mnemonic || generateMnemonic(wordlist)
+  const finalMnemonic = mnemonic || getLastMnemonic() || generateMnemonic(wordlist)
+
+  saveMnemonic(finalMnemonic)
+
+  const lastKeyIndex = getLastKeyIndex()
+  const finalKeyIndex = lastKeyIndex + 1
+  saveKeyIndex(finalKeyIndex)
 
   // Convert mnemonic to HDKey
   const seed = mnemonicToSeedSync(finalMnemonic)
   const hdKey = HDKey.fromMasterSeed(seed)
 
   // Derive key at the specified index
-  const derivationPath = `${DERIVATION_PATH}/${keyIndex}`
+  const derivationPath = `${DERIVATION_PATH}/${finalKeyIndex}`
   const derivedKey = hdKey.derive(derivationPath)
 
   if (!derivedKey.privateKey) {
@@ -100,6 +83,6 @@ export const generateChainSwapKeys = (mnemonic?: string, keyIndex: number = 0): 
     preimageHash,
     claimPublicKey,
     mnemonic: finalMnemonic,
-    keyIndex,
+    keyIndex: finalKeyIndex,
   }
 }

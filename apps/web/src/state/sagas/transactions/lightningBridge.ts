@@ -1,16 +1,24 @@
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable no-relative-import-paths/no-relative-import-paths */
+import { BigNumber } from 'bignumber.js'
+import { buildEvmLockupTx } from 'state/sagas/transactions/buildEvmLockupTx'
+import { generateChainSwapKeys } from 'state/sagas/transactions/chainSwapKeys'
+import { getSigner } from 'state/sagas/transactions/utils'
+import { btcToSat } from 'state/sagas/utils/lightningUtils'
 import { call } from 'typed-redux-saga'
-import { LightningBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
+import { uniswapUrls } from 'uniswap/src/constants/urls'
+import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
+import {
+  LightningBridgeSubmarineGetResponse,
+  LightningBridgeSubmarineLockResponse,
+} from 'uniswap/src/data/apiClients/tradingApi/utils/lightningBridge'
+import { BridgeQuote } from 'uniswap/src/data/tradingApi/__generated__'
+import { LightningBridgeDirection, LightningInvoice } from 'uniswap/src/data/tradingApi/types'
+import { LightningBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
-import { fetchLnurl } from '../utils/lightningUtils'
 
-interface HandleLightningBridgeLockTransactionStepParams {
-  step: LightningBridgeLockTransactionStep
+interface HandleLightningBridgeParams {
+  step: LightningBridgeTransactionStep
   setCurrentStep: SetCurrentStepFn
   trade: Trade
   account: AccountDetails
@@ -18,45 +26,83 @@ interface HandleLightningBridgeLockTransactionStepParams {
   onTransactionHash?: (hash: string) => void
 }
 
-/**
- * Delay helper for waiting between operations
- */
-const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+const tradingApiClient = createApiClient({
+  baseUrl: uniswapUrls.tradingApiUrl,
+})
 
-export function* handleLightningBridgeLockTransactionStep(params: HandleLightningBridgeLockTransactionStepParams) {
+const lightningBridgeApiClient = createApiClient({
+  baseUrl: `${process.env.REACT_APP_LDS_API_URL}/swap/v2`,
+})
+
+export function* handleLightningBridge(params: HandleLightningBridgeParams) {
+  const direction = (params.trade.quote.quote as BridgeQuote).direction
+
+  if (direction === LightningBridgeDirection.Submarine) {
+    yield* call(handleLightningBridgeSubmarine, params)
+  } else {
+    yield* call(handleLightningBridgeReverse, params)
+  }
+}
+
+export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeParams) {
   const { step, setCurrentStep, trade, account, destinationAddress, onTransactionHash } = params
 
-  // TODO: Implement Lightning Network bridge logic here
-  // This will involve:
-  // 1. Creating a Lightning invoice or payment request
-  // 2. Locking funds on the source chain (likely EVM)
-  // 3. Waiting for Lightning Network payment confirmation
-  // 4. Completing the bridge transaction
+  const submarineResponse = yield* call(
+    lightningBridgeApiClient.get<LightningBridgeSubmarineGetResponse>,
+    '/swap/submarine',
+  )
+  const pairHash = submarineResponse.cBTC.BTC.hash
+  const outputAmountBTC = new BigNumber(trade.outputAmount.toExact())
 
-  console.log('Lightning Bridge swap initiated:', {
-    account: account.address,
-    destinationAddress,
-    trade,
+  const invoiceResponse: LightningInvoice = yield* call(
+    tradingApiClient.post<LightningInvoice>,
+    '/v1/lightning/invoice',
+    {
+      body: JSON.stringify({
+        amount: btcToSat(outputAmountBTC).toString(),
+        lnLikeAddress: destinationAddress,
+      }),
+    },
+  )
+  const {
+    invoice: { paymentRequest: invoice, paymentHash: preimageHash },
+  } = invoiceResponse
+  const { claimPublicKey: refundPublicKey } = generateChainSwapKeys()
+
+  const lockupResponse = yield* call(
+    lightningBridgeApiClient.post<LightningBridgeSubmarineLockResponse>,
+    '/swap/submarine',
+    {
+      body: JSON.stringify({
+        from: 'cBTC',
+        to: 'BTC',
+        invoice,
+        pairHash,
+        referralId: 'boltz_webapp_desktop',
+        refundPublicKey,
+      }),
+    },
+  )
+
+  const signer = yield* call(getSigner, account.address)
+
+  const evmTxResult = yield* call(buildEvmLockupTx, {
+    signer,
+    contractAddress: lockupResponse.address,
+    preimageHash,
+    claimAddress: lockupResponse.claimAddress,
+    timeoutBlockHeight: lockupResponse.timeoutBlockHeight,
+    amountSatoshis: lockupResponse.expectedAmount,
   })
 
-  fetchLnurl('35644c@lightning.space', 2600).then((invoice) => {
-    console.log('Invoice:', invoice)
-  })
-
-  // Placeholder implementation
-  console.log('Lightning Bridge: Step 1 - Create invoice')
-  yield* call(delay, 1000)
-
-  console.log('Lightning Bridge: Step 2 - Lock funds on source chain')
-  yield* call(delay, 2000)
-
-  console.log('Lightning Bridge: Step 3 - Wait for Lightning payment confirmation')
-  yield* call(delay, 3000)
-
-  console.log('Lightning Bridge: Step 4 - Complete bridge transaction')
-  yield* call(delay, 1000)
-
-  console.log('Lightning Bridge swap completed successfully')
+  if (onTransactionHash) {
+    yield* call(onTransactionHash, evmTxResult.hash)
+  }
 
   setCurrentStep({ step, accepted: true })
+}
+
+export function handleLightningBridgeReverse(_params: HandleLightningBridgeParams): void {
+  // TODO: Implement reverse lightning bridge
+  throw new Error('Lightning bridge reverse not implemented yet')
 }

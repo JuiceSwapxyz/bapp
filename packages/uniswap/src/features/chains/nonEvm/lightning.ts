@@ -71,7 +71,7 @@ export const LIGHTNING_NETWORK_CHAIN_INFO = {
   nativeCurrency: {
     name: 'Lightning BTC',
     symbol: 'lnBTC',
-    decimals: 18,
+    decimals: 8,
     address: DEFAULT_NATIVE_ADDRESS,
     explorerLink: undefined,
     logo: LIGHTNING_LOGO,
@@ -99,7 +99,7 @@ export const LIGHTNING_NETWORK_CHAIN_INFO = {
   wrappedNativeCurrency: {
     name: 'Wrapped Lightning BTC',
     symbol: 'WLBTC',
-    decimals: 18,
+    decimals: 8,
     address: '0x0000000000000000000000000000000000000000',
   },
   faucetUrl: undefined,

@@ -25,7 +25,7 @@ import { Contract as EthersContract } from 'ethers'
  * // Build transaction
  * const tx = await buildEvmLockupTx({
  *   signer,
- *   contractAddress: "0x...", // EtherSwap contract address
+ *   contractAddress: "0x...", // CoinSwap contract address
  *   contractAbi: [...], // EtherSwap ABI
  *   preimageHash: "abc123...", // hex string without 0x
  *   claimAddress: "0x...", // BTC address (will be converted)
@@ -39,13 +39,25 @@ import { Contract as EthersContract } from 'ethers'
  * ```
  */
 
+const COIN_SWAP_ABI = [
+  {
+    inputs: [
+      { name: 'preimageHash', type: 'bytes32' },
+      { name: 'claimAddress', type: 'address' },
+      { name: 'timeoutBlockHeight', type: 'uint256' },
+    ],
+    name: 'lock',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+] as const
+
 export type BuildEvmLockupTxParams = {
   /** Ethers Signer instance (from wallet provider) */
   signer: Signer
-  /** EtherSwap contract address */
+  /** CoinSwap contract address */
   contractAddress: string
-  /** EtherSwap contract ABI */
-  contractAbi: any
   /** Preimage hash (hex string without 0x prefix) */
   preimageHash: string
   /** Claim address - can be:
@@ -119,11 +131,10 @@ const prefix0x = (val: string): string => {
  * @returns Transaction response that can be awaited for receipt
  */
 export const buildEvmLockupTx = async (params: BuildEvmLockupTxParams): Promise<EvmLockupTransaction> => {
-  const { signer, contractAddress, contractAbi, preimageHash, claimAddress, timeoutBlockHeight, amountSatoshis } =
-    params
+  const { signer, contractAddress, preimageHash, claimAddress, timeoutBlockHeight, amountSatoshis } = params
 
   // Create contract instance
-  const contract = new EthersContract(contractAddress, contractAbi, signer) as Contract
+  const contract = new EthersContract(contractAddress, COIN_SWAP_ABI, signer) as Contract
 
   // Convert preimageHash to bytes32 with 0x prefix
   const preimageHashBytes32 = prefix0x(preimageHash)
