@@ -38,6 +38,9 @@ const ExtensionUninstall = lazy(() => import('pages/ExtensionUninstall/Extension
 const Bapps = lazy(() => import('pages/Bapps'))
 const FirstSqueezer = lazy(() => import('pages/FirstSqueezer'))
 const OAuthCallback = lazy(() => import('pages/OAuthCallback'))
+const Launchpad = lazy(() => import('pages/Launchpad'))
+const LaunchpadTokenDetail = lazy(() => import('pages/Launchpad/TokenDetail'))
+const LaunchpadCreate = lazy(() => import('pages/Launchpad/Create'))
 
 interface RouterConfig {
   browserRouterEnabled?: boolean
@@ -373,6 +376,25 @@ export const routes: RouteDefinition[] = [
     path: '/oauth-callback',
     getElement: () => <OAuthCallback />,
     getTitle: () => 'OAuth Callback - JuiceSwap',
+  }),
+  // Launchpad - Bonding Curve Token Launch
+  createRouteDefinition({
+    path: '/launchpad',
+    getElement: () => <Launchpad />,
+    getTitle: () => 'Launchpad - JuiceSwap',
+    getDescription: () => 'Launch tokens with bonding curves. Graduate to JuiceSwap V2 with locked liquidity.',
+  }),
+  createRouteDefinition({
+    path: '/launchpad/create',
+    getElement: () => <LaunchpadCreate />,
+    getTitle: () => 'Create Token - JuiceSwap Launchpad',
+    getDescription: () => 'Launch your token on a bonding curve with no upfront liquidity required.',
+  }),
+  createRouteDefinition({
+    path: '/launchpad/:tokenAddress',
+    getElement: () => <LaunchpadTokenDetail />,
+    getTitle: () => 'Token - JuiceSwap Launchpad',
+    getDescription: () => 'Trade tokens on the bonding curve before graduation to JuiceSwap V2.',
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),
