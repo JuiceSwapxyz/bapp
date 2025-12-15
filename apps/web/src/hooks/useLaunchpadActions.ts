@@ -1,5 +1,7 @@
 import { ContractTransaction } from '@ethersproject/contracts'
+import { useAccount } from 'hooks/useAccount'
 import { useContract } from 'hooks/useContract'
+import useSelectChain from 'hooks/useSelectChain'
 import { useCallback, useMemo, useRef } from 'react'
 import { BONDING_CURVE_TOKEN_ABI, TOKEN_FACTORY_ABI, LAUNCHPAD_ADDRESSES, DEFAULT_LAUNCHPAD_SLIPPAGE_BPS } from 'constants/launchpad'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -61,14 +63,26 @@ export interface CreateTokenParams {
  */
 export function useBuy(
   tokenAddress: string | undefined,
-  chainId?: UniverseChainId
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
 ): (params: BuyParams) => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
+  const account = useAccount()
+  const selectChain = useSelectChain()
   const contractRef = useRef(contract)
   contractRef.current = contract
+  const accountRef = useRef(account)
+  accountRef.current = account
 
   return useCallback(
     async ({ baseIn, minTokensOut }: BuyParams): Promise<ContractTransaction> => {
+      const currentAccount = accountRef.current
+      if (currentAccount.chainId !== chainId) {
+        const switched = await selectChain(chainId)
+        if (!switched) {
+          throw new Error('Please switch to Citrea Testnet to continue')
+        }
+      }
+
       const contract = contractRef.current
       if (!contract) {
         throw new Error('Contract not available')
@@ -93,7 +107,7 @@ export function useBuy(
         throw error
       }
     },
-    []
+    [chainId, selectChain]
   )
 }
 
@@ -104,14 +118,26 @@ export function useBuy(
  */
 export function useSell(
   tokenAddress: string | undefined,
-  chainId?: UniverseChainId
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
 ): (params: SellParams) => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
+  const account = useAccount()
+  const selectChain = useSelectChain()
   const contractRef = useRef(contract)
   contractRef.current = contract
+  const accountRef = useRef(account)
+  accountRef.current = account
 
   return useCallback(
     async ({ tokensIn, minBaseOut }: SellParams): Promise<ContractTransaction> => {
+      const currentAccount = accountRef.current
+      if (currentAccount.chainId !== chainId) {
+        const switched = await selectChain(chainId)
+        if (!switched) {
+          throw new Error('Please switch to Citrea Testnet to continue')
+        }
+      }
+
       const contract = contractRef.current
       if (!contract) {
         throw new Error('Contract not available')
@@ -136,7 +162,7 @@ export function useSell(
         throw error
       }
     },
-    []
+    [chainId, selectChain]
   )
 }
 
@@ -148,11 +174,23 @@ export function useCreateToken(
   chainId: UniverseChainId = UniverseChainId.CitreaTestnet
 ): (params: CreateTokenParams) => Promise<{ tx: ContractTransaction; tokenAddress: string | null }> {
   const contract = useTokenFactoryContract(chainId)
+  const account = useAccount()
+  const selectChain = useSelectChain()
   const contractRef = useRef(contract)
   contractRef.current = contract
+  const accountRef = useRef(account)
+  accountRef.current = account
 
   return useCallback(
     async ({ name, symbol }: CreateTokenParams): Promise<{ tx: ContractTransaction; tokenAddress: string | null }> => {
+      const currentAccount = accountRef.current
+      if (currentAccount.chainId !== chainId) {
+        const switched = await selectChain(chainId)
+        if (!switched) {
+          throw new Error('Please switch to Citrea Testnet to continue')
+        }
+      }
+
       const contract = contractRef.current
       if (!contract) {
         throw new Error('Factory contract not available')
@@ -200,7 +238,7 @@ export function useCreateToken(
         throw error
       }
     },
-    []
+    [chainId, selectChain]
   )
 }
 
@@ -211,13 +249,25 @@ export function useCreateToken(
  */
 export function useGraduate(
   tokenAddress: string | undefined,
-  chainId?: UniverseChainId
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
 ): () => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
+  const account = useAccount()
+  const selectChain = useSelectChain()
   const contractRef = useRef(contract)
   contractRef.current = contract
+  const accountRef = useRef(account)
+  accountRef.current = account
 
   return useCallback(async (): Promise<ContractTransaction> => {
+    const currentAccount = accountRef.current
+    if (currentAccount.chainId !== chainId) {
+      const switched = await selectChain(chainId)
+      if (!switched) {
+        throw new Error('Please switch to Citrea Testnet to continue')
+      }
+    }
+
     const contract = contractRef.current
     if (!contract) {
       throw new Error('Contract not available')
@@ -236,7 +286,7 @@ export function useGraduate(
       logger.error('useLaunchpadActions', 'useGraduate', 'Graduate transaction failed', { error })
       throw error
     }
-  }, [])
+  }, [chainId, selectChain])
 }
 
 /**
