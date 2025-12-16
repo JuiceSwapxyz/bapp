@@ -3,6 +3,7 @@ import { Flex, IconButton, useIsShortMobileDevice } from 'ui/src'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import type { Warning } from 'uniswap/src/components/modals/WarningModal/types'
 import { useValidateLightningAddress } from 'uniswap/src/data/apiClients/tradingApi/useValidateLightningAddress'
+import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { UnichainPoweredMessage } from 'uniswap/src/features/transactions/TransactionDetails/UnichainPoweredMessage'
 import { getShouldDisplayTokenWarningCard } from 'uniswap/src/features/transactions/TransactionDetails/utils/getShouldDisplayTokenWarningCard'
@@ -17,6 +18,7 @@ import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/
 import { isValidSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import { isLightningBridge } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { isWeb } from 'utilities/src/platform'
+import { useLnBrideSwapDetails } from '../../hooks/useLnBrideSwapDetails'
 
 export const SwapReviewFooter = memo(function SwapReviewFooter(): JSX.Element | null {
   const showInterfaceReviewSteps = useShowInterfaceReviewSteps()
@@ -88,7 +90,9 @@ function useSwapSubmitButton(): {
     feeOnTransferProps,
   })
 
+  const { direction } = useLnBrideSwapDetails()
   const isLNBridge = isLightningBridge(swapTxContext)
+  const isSubmarine = direction === LightningBridgeDirection.Submarine
 
   const {
     data: lightningValidation,
@@ -99,8 +103,7 @@ function useSwapSubmitButton(): {
   const submitButtonDisabled = useMemo(() => {
     const validSwap = isValidSwapTxContext(swapTxContext)
     const isTokenWarningBlocking = shouldDisplayTokenWarningCard && !tokenWarningChecked
-    const isLightningAddressInvalid =
-      isLNBridge && (!lightningValidation?.validated || !!lightningValidationError || isValidatingLightning)
+    const isLightningAddressInvalid = false
 
     return (
       (!validSwap && !isWrap) ||

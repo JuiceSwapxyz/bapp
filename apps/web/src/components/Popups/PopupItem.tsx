@@ -2,6 +2,7 @@ import { MismatchToastItem } from 'components/Popups/MismatchToastItem'
 import {
   FORTransactionPopupContent,
   FailedNetworkSwitchPopup,
+  LightningBridgePopupContent,
   TransactionPopupContent,
   UniswapXOrderPopupContent,
 } from 'components/Popups/PopupContent'
@@ -74,6 +75,18 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
         />
       )
     }
+    case PopupType.LightningBridge: {
+      return (
+        <LightningBridgePopupContent
+          id={content.id}
+          direction={content.direction}
+          status={content.status}
+          onClose={onClose}
+        />
+      )
+    }
+    default:
+      return null
   }
 }
 

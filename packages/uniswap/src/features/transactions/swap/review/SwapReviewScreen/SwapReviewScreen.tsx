@@ -7,7 +7,6 @@ import { useTransactionModalContext } from 'uniswap/src/features/transactions/co
 import { FLASHBLOCKS_UI_SKIP_ROUTES } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/constants'
 import { useClearFlashblocksSwapNotifications } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/hooks/useClearFlashblocksSwapNotifications'
 import { useIsUnichainFlashblocksEnabled } from 'uniswap/src/features/transactions/swap/hooks/useIsUnichainFlashblocksEnabled'
-import { SwapEnterBitcoinLikeAddress } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapEnterBitcoinLikeAddress'
 import { SwapErrorScreen } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapErrorScreen'
 import { SwapReviewFooter } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/SwapReviewFooter'
 import { SwapReviewLoadingView } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewLoadingView'
@@ -36,6 +35,7 @@ import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
 import { logger } from 'utilities/src/logger/logger'
 import { isWeb } from 'utilities/src/platform'
+import { SwapLnBridgeDetails } from './SwapLnBridgeDetails/SwapLnBridgeDetails'
 
 interface SwapReviewScreenProps {
   hideContent: boolean
@@ -94,9 +94,10 @@ export function SwapReviewScreenProviders({ hideContent, onSubmitSwap }: SwapRev
 }
 
 function SwapReviewContent(): JSX.Element | null {
-  const { acceptedDerivedSwapInfo, isWrap, newTradeRequiresAcceptance } = useSwapReviewTransactionStore((s) => ({
+  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, newTradeRequiresAcceptance } = useSwapReviewTransactionStore((s) => ({
     acceptedDerivedSwapInfo: s.acceptedDerivedSwapInfo,
     isWrap: s.isWrap,
+    isLnBridge: s.isLnBridge,
     newTradeRequiresAcceptance: s.newTradeRequiresAcceptance,
   }))
 
@@ -160,9 +161,9 @@ function SwapReviewContent(): JSX.Element | null {
             <ProgressIndicator currentStep={currentStep} steps={steps} />
           ) : isWrap ? (
             <SwapReviewWrapTransactionDetails />
+          ) : isLnBridge ? (
+            <SwapLnBridgeDetails />
           ) : null}
-          {/* TODO: This component is displayed always, but it should only be displayed if the bridge type is Bitcoin or Lightning */}
-          <SwapEnterBitcoinLikeAddress />
         </Flex>
       </SwapReviewContentWrapper>
       <SwapReviewFooter />

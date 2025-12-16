@@ -171,10 +171,7 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
       return undefined
     } else if (isLightningBridge(swapTxContext)) {
       const { trade, txRequests, includesDelegation, destinationAddress } = swapTxContext
-      if (destinationAddress) {
-        return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }
-      }
-      return undefined
+      return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }
     } else if (isBridge(swapTxContext)) {
       const { trade, txRequests, includesDelegation } = swapTxContext
       if (txRequests) {

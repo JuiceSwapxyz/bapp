@@ -329,6 +329,7 @@ function* swap(params: SwapParams) {
             account,
             destinationAddress: swapTxContext.destinationAddress,
             onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
           })
           break
         }
@@ -347,7 +348,10 @@ function* swap(params: SwapParams) {
     return
   }
 
-  yield* call(onSuccess)
+  // For lightning bridge, onSuccess is called earlier in the flow
+  if (!isLightningBridgeSwap) {
+    yield* call(onSuccess)
+  }
 }
 
 export const swapSaga = createSaga(swap, 'swapSaga')

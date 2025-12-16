@@ -118,6 +118,7 @@
     "https://rpc.testnet.juiceswap.com",
     "https://dev.lightning.space",
     "https://*.lightning.space",
+    "wss://*.lightning.space",
     "wss://*.uniswap.org",
     "wss://relay.walletconnect.com",
     "wss://relay.walletconnect.org",

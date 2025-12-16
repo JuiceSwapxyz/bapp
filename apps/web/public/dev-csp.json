@@ -16,6 +16,7 @@
     "https://dev.ponder.juiceswap.com",
     "https://rpc.testnet.juiceswap.com",
     "https://dev.lightning.space",
-    "https://*.lightning.space"
+    "https://*.lightning.space",
+    "wss://*.lightning.space"
   ]
 }

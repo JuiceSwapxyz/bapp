@@ -120,7 +120,7 @@ const satoshiToWei = (satoshis: number): bigint => {
 /**
  * Adds 0x prefix to hex string if not present
  */
-const prefix0x = (val: string): string => {
+export const prefix0x = (val: string): string => {
   return val.startsWith('0x') ? val : `0x${val}`
 }
 

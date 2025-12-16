@@ -9,8 +9,8 @@ import { Activity } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
 import { PortfolioLogo } from 'components/AccountDrawer/MiniPortfolio/PortfolioLogo'
 import AlertTriangleFilled from 'components/Icons/AlertTriangleFilled'
 import { LoaderV3 } from 'components/Icons/LoadingSpinner'
-import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { POPUP_MAX_WIDTH } from 'components/Popups/constants'
+import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { useIsRecentFlashblocksNotification } from 'hooks/useIsRecentFlashblocksNotification'
 import { useTranslation } from 'react-i18next'
 import { useOrder } from 'state/signatures/hooks'
@@ -205,4 +205,116 @@ export function FORTransactionPopupContent({
   }
 
   return <ActivityPopupContent activity={activity} onClose={onClose} onClick={noop} />
+}
+
+export function BridgingPopupContent({ hash, onClose }: { hash: string; onClose: () => void }) {
+  const transaction = useTransaction(hash)
+
+  const { formatNumberOrString } = useLocalizationContext()
+  const { data: activity } = useQuery(
+    getTransactionToActivityQueryOptions({
+      transaction,
+      formatNumber: formatNumberOrString,
+    }),
+  )
+
+  if (!transaction || !activity) {
+    return null
+  }
+
+  const onClick = () =>
+    window.open(
+      getExplorerLink({ chainId: activity.chainId, data: activity.hash, type: ExplorerDataType.TRANSACTION }),
+      '_blank',
+    )
+
+  const explorerUrlUnavailable = isPendingTx(transaction) && transaction.batchInfo
+
+  return (
+    <ActivityPopupContent
+      activity={activity}
+      onClick={explorerUrlUnavailable ? undefined : onClick}
+      onClose={onClose}
+    />
+  )
+}
+
+export function LightningBridgePopupContent({
+  id,
+  direction,
+  status,
+  invoice,
+  onClose,
+}: {
+  id: string
+  direction: 'submarine' | 'reverse'
+  status: 'pending' | 'confirmed' | 'failed'
+  invoice?: string
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const colors = useSporeColors()
+
+  const title = direction === 'submarine' ? t('Lightning Bridge Submarine') : t('Lightning Bridge Reverse')
+  const getDescriptor = () => {
+    if (status === 'pending') {
+      return t('Processing Lightning Bridge transaction...')
+    }
+    if (status === 'confirmed') {
+      return t('Lightning Bridge completed successfully')
+    }
+    return t('Lightning Bridge failed')
+  }
+
+  const isPending = status === 'pending'
+
+  return (
+    <Flex
+      row
+      width={POPUP_MAX_WIDTH}
+      backgroundColor="$surface1"
+      position="relative"
+      borderWidth={1}
+      borderRadius="$rounded16"
+      borderColor="$surface3"
+      py={2}
+      px={0}
+      animation="300ms"
+      $sm={{
+        mx: 'auto',
+        width: '100%',
+      }}
+    >
+      <TouchableArea onPress={noop} flex={1}>
+        <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
+          <Flex justifyContent="center">
+            {status === 'failed' ? (
+              <AlertTriangleFilled color="$neutral2" size="32px" />
+            ) : (
+              <PortfolioLogo chainId={UniverseChainId.Mainnet} currencies={[]} />
+            )}
+          </Flex>
+          <Flex justifyContent="center" gap="$gap4" fill>
+            <Text variant="body2" color="$neutral1">
+              {title}
+            </Text>
+            <Text variant="body3" color="$neutral2" {...EllipsisTamaguiStyle}>
+              {getDescriptor()}
+            </Text>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+      {isPending ? (
+        <Flex position="absolute" top="$spacing24" right="$spacing16">
+          <LoaderV3 color={colors.accent1.variable} size="20px" />
+        </Flex>
+      ) : (
+        <Flex position="absolute" right="$spacing16" top="$spacing16" data-testid={TestID.ActivityPopupCloseIcon}>
+          <TouchableArea onPress={onClose}>
+            <X color="$neutral2" size={16} />
+          </TouchableArea>
+        </Flex>
+      )}
+    </Flex>
+  )
 }

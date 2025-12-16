@@ -2,6 +2,7 @@ import { TransactionStepType } from 'uniswap/src/features/transactions/steps/typ
 
 export interface LightningBridgeTransactionStep {
   type: TransactionStepType.LightningBridgeTransactionStep
+  invoice?: string
 }
 
 export const createLightningBridgeTransactionStep = (): LightningBridgeTransactionStep => {
