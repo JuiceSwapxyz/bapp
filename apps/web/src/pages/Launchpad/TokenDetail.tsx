@@ -1,9 +1,13 @@
 import { useParams, useNavigate } from 'react-router'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 import { CopyAlt } from 'ui/src/components/icons/CopyAlt'
+import { InfoCircle } from 'ui/src/components/icons/InfoCircle'
+import { ModalCloseIcon } from 'ui/src'
+import { Modal } from 'uniswap/src/components/modals/Modal'
+import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
 import { useTokenInfo } from 'hooks/useTokenFactory'
 import { useGraduate } from 'hooks/useLaunchpadActions'
@@ -98,8 +102,8 @@ const Card = styled(Flex, {
   borderRadius: '$rounded16',
   borderWidth: 1,
   borderColor: '$surface3',
-  padding: '$spacing20',
-  gap: '$spacing16',
+  padding: '$spacing16',
+  gap: '$spacing12',
 })
 
 const CardTitle = styled(Text, {
@@ -125,7 +129,7 @@ const StatRow = styled(Flex, {
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-  paddingVertical: '$spacing8',
+  paddingVertical: '$spacing4',
 })
 
 const StatLabel = styled(Text, {
@@ -191,6 +195,7 @@ export default function TokenDetail() {
   } = useBondingCurveToken(tokenAddress)
 
   const { tokenInfo } = useTokenInfo(tokenAddress)
+  const [showBondingModal, setShowBondingModal] = useState(false)
 
   const graduate = useGraduate(tokenAddress)
 
@@ -326,6 +331,21 @@ export default function TokenDetail() {
                     </Text>
                   </Flex>
 
+                  <Flex
+                    flexDirection="row"
+                    alignItems="center"
+                    gap="$spacing6"
+                    marginTop="$spacing4"
+                    cursor="pointer"
+                    onPress={() => setShowBondingModal(true)}
+                    hoverStyle={{ opacity: 0.7 }}
+                  >
+                    <Text variant="body3" color="$neutral3">
+                      Graduates to V2 at 100% · 1% fee
+                    </Text>
+                    <InfoCircle size={14} color="$neutral3" />
+                  </Flex>
+
                   {canGraduate && !graduated && (
                     <GraduateButton onPress={handleGraduate}>
                       <Text variant="buttonLabel2" color="$white">
@@ -352,7 +372,21 @@ export default function TokenDetail() {
                 </StatRow>
                 <StatRow>
                   <StatLabel>Creator</StatLabel>
-                  <StatValue>{creatorShort}</StatValue>
+                  <AddressLink
+                    onPress={() => {
+                      if (tokenInfo?.creator) {
+                        const url = getExplorerLink({
+                          chainId: UniverseChainId.CitreaTestnet,
+                          data: tokenInfo.creator,
+                          type: ExplorerDataType.ADDRESS,
+                        })
+                        window.open(url, '_blank')
+                      }
+                    }}
+                  >
+                    <StatValue>{creatorShort}</StatValue>
+                    <ExternalLink size="$icon.16" color="$neutral2" />
+                  </AddressLink>
                 </StatRow>
                 {createdDate && (
                   <StatRow>
@@ -374,33 +408,10 @@ export default function TokenDetail() {
                       }}
                     >
                       <StatValue>{v2Pair.slice(0, 6)}...{v2Pair.slice(-4)}</StatValue>
-                      <ExternalLink size="$icon.14" color="$neutral2" />
+                      <ExternalLink size="$icon.16" color="$neutral2" />
                     </AddressLink>
                   </StatRow>
                 )}
-              </Card>
-
-              <Card>
-                <CardTitle>About Bonding Curves</CardTitle>
-                <Text variant="body3" color="$neutral2">
-                  Tokens start on a bonding curve where price increases as more tokens are purchased.
-                  When 100% of tokens are sold from the curve, the token graduates to JuiceSwap V2
-                  with permanently locked liquidity.
-                </Text>
-                <Flex gap="$spacing8">
-                  <Text variant="body3" color="$neutral2">
-                    • 1% fee on all trades
-                  </Text>
-                  <Text variant="body3" color="$neutral2">
-                    • ~79.31% sold on bonding curve
-                  </Text>
-                  <Text variant="body3" color="$neutral2">
-                    • ~20.69% reserved for DEX liquidity
-                  </Text>
-                  <Text variant="body3" color="$neutral2">
-                    • LP tokens burned forever
-                  </Text>
-                </Flex>
               </Card>
             </LeftColumn>
 
@@ -417,6 +428,36 @@ export default function TokenDetail() {
           </MainContent>
         </ContentWrapper>
       </PageContainer>
+
+      <Modal
+        name={ModalName.AccountEdit}
+        maxWidth={420}
+        isModalOpen={showBondingModal}
+        onClose={() => setShowBondingModal(false)}
+        padding={0}
+      >
+        <Flex gap="$spacing16" padding="$spacing24">
+          <Flex flexDirection="row" justifyContent="space-between" alignItems="center">
+            <Text variant="subheading1" color="$neutral1">
+              About Bonding Curves
+            </Text>
+            <ModalCloseIcon onClose={() => setShowBondingModal(false)} />
+          </Flex>
+
+          <Text variant="body2" color="$neutral2">
+            Tokens start on a bonding curve where price increases as more tokens are purchased.
+            When 100% of tokens are sold from the curve, the token graduates to JuiceSwap V2
+            with permanently locked liquidity.
+          </Text>
+
+          <Flex gap="$spacing8">
+            <Text variant="body3" color="$neutral2">• 1% fee on all trades</Text>
+            <Text variant="body3" color="$neutral2">• ~79.31% sold on bonding curve</Text>
+            <Text variant="body3" color="$neutral2">• ~20.69% reserved for DEX liquidity</Text>
+            <Text variant="body3" color="$neutral2">• LP tokens burned forever</Text>
+          </Flex>
+        </Flex>
+      </Modal>
     </Trace>
   )
 }

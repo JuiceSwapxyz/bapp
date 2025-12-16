@@ -8173,16 +8173,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@juiceswapxyz/launchpad@npm:1.0.1":
-  version: 1.0.1
-  resolution: "@juiceswapxyz/launchpad@npm:1.0.1"
+"@juiceswapxyz/launchpad@npm:1.0.2":
+  version: 1.0.2
+  resolution: "@juiceswapxyz/launchpad@npm:1.0.2"
   dependencies:
     "@openzeppelin/contracts": ^5.4.0
     "@uniswap/v2-core": ^1.0.1
     "@uniswap/v2-periphery": ^1.1.0-beta.0
   peerDependencies:
     viem: ">=2.0.0"
-  checksum: c9279f3fcfcb4aa75d97fc479f624724180efe21f30af3b5ad94d54be266d1b4a85c7118e8d8ae7e3c252792ca62f250419510ff903c626a7829c79b12aaf14d
+  checksum: 39c854cbfb004bd625faee15ba9d460dd4c86ffcfd8f40b7b4b1b4105d136ad23bd635bdbb29bc7fe03347695b35aa0397143337d387ff779dfa391ae00d15c5
   languageName: node
   linkType: hard
 
@@ -16850,7 +16850,7 @@ __metadata:
     "@graphql-codegen/typescript-react-apollo": 3.3.7
     "@graphql-codegen/typescript-resolvers": 3.2.1
     "@juggle/resize-observer": 3.4.0
-    "@juiceswapxyz/launchpad": 1.0.1
+    "@juiceswapxyz/launchpad": 1.0.2
     "@juiceswapxyz/router-sdk": 0.1.0-beta.0
     "@juiceswapxyz/sdk-core": 0.1.0-beta.0
     "@juiceswapxyz/uniswapx-sdk": 0.1.0-beta.0

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
+import styledComponents from 'lib/styled-components'
 import { useAccount } from 'hooks/useAccount'
 import { useTokenAllowance, useUpdateTokenAllowance } from 'hooks/useTokenAllowance'
 import { useCalculateBuy, useCalculateSell, useBondingCurveBalance } from 'hooks/useBondingCurveToken'
@@ -37,7 +38,7 @@ const Tab = styled(Flex, {
   variants: {
     active: {
       true: {
-        backgroundColor: '$surface1',
+        backgroundColor: '$accent1',
       },
     },
   } as const,
@@ -60,19 +61,30 @@ const InputWrapper = styled(Flex, {
   borderWidth: 1,
   borderColor: '$surface3',
   paddingHorizontal: '$spacing16',
-  paddingVertical: '$spacing12',
+  paddingVertical: '$spacing16',
   gap: '$spacing12',
 })
 
-const StyledInput = styled('input', {
-  flex: 1,
-  backgroundColor: 'transparent',
-  border: 'none',
-  outline: 'none',
-  fontSize: 18,
-  fontWeight: '500',
-  color: '$neutral1',
-})
+const StyledInput = styledComponents.input`
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  font-size: 18px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.neutral1};
+  padding: 0;
+  -webkit-appearance: textfield;
+
+  ::placeholder {
+    color: ${({ theme }) => theme.neutral3};
+  }
+
+  ::-webkit-outer-spin-button,
+  ::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+`
 
 const MaxButton = styled(Flex, {
   paddingHorizontal: '$spacing12',
@@ -85,11 +97,17 @@ const MaxButton = styled(Flex, {
   },
 })
 
+const OutputCard = styled(Flex, {
+  backgroundColor: '$surface3',
+  borderRadius: '$rounded12',
+  padding: '$spacing12',
+  gap: '$spacing8',
+})
+
 const OutputRow = styled(Flex, {
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-  paddingVertical: '$spacing8',
 })
 
 const ActionButton = styled(Flex, {
@@ -339,12 +357,12 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
     <PanelContainer>
       <TabContainer>
         <Tab active={isBuy} onPress={() => setIsBuy(true)}>
-          <Text variant="buttonLabel3" color={isBuy ? '$statusSuccess' : '$neutral2'}>
+          <Text variant="buttonLabel3" color={isBuy ? '$white' : '$neutral2'}>
             Buy
           </Text>
         </Tab>
         <Tab active={!isBuy} onPress={() => setIsBuy(false)}>
-          <Text variant="buttonLabel3" color={!isBuy ? '$statusCritical' : '$neutral2'}>
+          <Text variant="buttonLabel3" color={!isBuy ? '$white' : '$neutral2'}>
             Sell
           </Text>
         </Tab>
@@ -359,28 +377,34 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
             placeholder="0.0"
             value={amount}
             onChange={handleAmountChange}
+            autoComplete="off"
+            autoCorrect="off"
           />
-          {!isBuy && (
-            <MaxButton onPress={handleMaxClick}>
-              <Text variant="buttonLabel4" color="$accent1">MAX</Text>
-            </MaxButton>
-          )}
+          <MaxButton
+            onPress={!isBuy ? handleMaxClick : undefined}
+            opacity={isBuy ? 0 : 1}
+            pointerEvents={isBuy ? 'none' : 'auto'}
+          >
+            <Text variant="buttonLabel4" color="$accent1">MAX</Text>
+          </MaxButton>
         </InputWrapper>
       </InputContainer>
 
-      <OutputRow>
-        <Text variant="body2" color="$neutral2">
-          {isBuy ? `You receive (${tokenSymbol})` : 'You receive (JUSD)'}
-        </Text>
-        <Text variant="body1" color="$neutral1" fontWeight="500">
-          {buyQuoteLoading || sellQuoteLoading ? '...' : Number(outputAmount).toLocaleString(undefined, { maximumFractionDigits: 4 })}
-        </Text>
-      </OutputRow>
+      <OutputCard>
+        <OutputRow>
+          <Text variant="body2" color="$neutral2">
+            {isBuy ? `You receive (${tokenSymbol})` : 'You receive (JUSD)'}
+          </Text>
+          <Text variant="body1" color="$neutral1" fontWeight="500">
+            {buyQuoteLoading || sellQuoteLoading ? '...' : Number(outputAmount).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+          </Text>
+        </OutputRow>
 
-      <BalanceRow>
-        <Text variant="body3" color="$neutral2">Your {tokenSymbol} balance</Text>
-        <Text variant="body3" color="$neutral1">{formattedTokenBalance}</Text>
-      </BalanceRow>
+        <BalanceRow>
+          <Text variant="body3" color="$neutral2">Your {tokenSymbol} balance</Text>
+          <Text variant="body3" color="$neutral1">{formattedTokenBalance}</Text>
+        </BalanceRow>
+      </OutputCard>
 
       {error && (
         <Text variant="body3" color="$statusCritical" textAlign="center">
