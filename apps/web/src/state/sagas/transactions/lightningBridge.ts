@@ -1,12 +1,12 @@
 import { BigNumber } from 'bignumber.js'
 import { popupRegistry } from 'components/Popups/registry'
 import { LightningBridgeStatus, PopupType } from 'components/Popups/types'
-import { retry, RetryableError } from 'state/activity/polling/retry'
+import { RetryableError, retry } from 'state/activity/polling/retry'
 import { buildEvmLockupTx, prefix0x } from 'state/sagas/transactions/buildEvmLockupTx'
 import { generateChainSwapKeys } from 'state/sagas/transactions/chainSwapKeys'
 import { getSigner } from 'state/sagas/transactions/utils'
 import { btcToSat } from 'state/sagas/utils/lightningUtils'
-import { call, put, race } from 'typed-redux-saga'
+import { call, race } from 'typed-redux-saga'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import {
@@ -44,30 +44,33 @@ const ponderClaim = createApiClient({
 })
 
 const pollPonderForLockup = (preimageHash: string) => {
-  return retry(async () => {
-    const response = await ponderClaim.post<{ data: { lockups: { preimageHash: string }[] } }>('/', {
-      body: JSON.stringify({
-        operationName: 'LockupQuery',
-        query: `query LockupQuery {
+  return retry(
+    async () => {
+      const response = await ponderClaim.post<{ data: { lockups: { preimageHash: string }[] } }>('/', {
+        body: JSON.stringify({
+          operationName: 'LockupQuery',
+          query: `query LockupQuery {
           lockups(preimageHash: "${prefix0x(preimageHash)}") {
             preimageHash
           }
         }`,
-      }),
-    })
-    
-    if (!response?.data?.lockups) {
-      throw new RetryableError('Lockup not found yet, retrying...')
-    }
-    
-    return response.data.lockups
-  }, {
-    n: 100,
-    minWait: 7000,
-    medWait: 7000,
-    maxWait: 7000,
-  })
-} 
+        }),
+      })
+
+      if (response.data.lockups.length === 0) {
+        throw new RetryableError('Lockup not found yet, retrying...')
+      }
+
+      return response.data.lockups
+    },
+    {
+      n: 100,
+      minWait: 7000,
+      medWait: 7000,
+      maxWait: 7000,
+    },
+  )
+}
 
 export function* handleLightningBridge(params: HandleLightningBridgeParams) {
   const direction = (params.trade.quote.quote as BridgeQuote).direction
@@ -142,7 +145,7 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgePar
       type: PopupType.LightningBridge,
       id: evmTxResult.hash,
       direction: LightningBridgeDirection.Submarine,
-      status: LightningBridgeStatus.Pending
+      status: LightningBridgeStatus.Pending,
     },
     evmTxResult.hash,
   )
@@ -185,7 +188,11 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeParam
   const { promise: ponderPromise, cancel: cancelPonderPolling } = pollPonderForLockup(preimageHash)
 
   yield* race({
-    transactionConfirmed: call(ldsSocket.subscribeToSwapUntil, reverseInvoiceResponse.id, LdsSwapStatus.TransactionConfirmed),
+    transactionConfirmed: call(
+      ldsSocket.subscribeToSwapUntil,
+      reverseInvoiceResponse.id,
+      LdsSwapStatus.TransactionConfirmed,
+    ),
     ponderConfirmed: call(() => ponderPromise),
   })
 
@@ -194,7 +201,7 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeParam
       type: PopupType.LightningBridge,
       id: reverseInvoiceResponse.id,
       direction: LightningBridgeDirection.Reverse,
-      status: LightningBridgeStatus.Pending
+      status: LightningBridgeStatus.Pending,
     },
     reverseInvoiceResponse.id,
   )
@@ -209,10 +216,12 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeParam
   cancelPonderPolling()
 
   // this returns {txHash: string} that we can use later
-  yield* call(() => ponderClaim.post<{ preimage: string; preimageHash: string }>('/help-me-claim', {
-    body: JSON.stringify({
-      preimage,
-      preimageHash: prefix0x(preimageHash),
+  yield* call(() =>
+    ponderClaim.post<{ preimage: string; preimageHash: string }>('/help-me-claim', {
+      body: JSON.stringify({
+        preimage,
+        preimageHash: prefix0x(preimageHash),
+      }),
     }),
-  }))
+  )
 }

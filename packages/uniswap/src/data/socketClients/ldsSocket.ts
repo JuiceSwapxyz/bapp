@@ -4,11 +4,28 @@ export enum LdsSwapStatus {
   TransactionConfirmed = 'transaction.confirmed',
 }
 
+export interface SwapUpdateEvent {
+  id?: string
+  status: LdsSwapStatus
+}
 
-export const createLdsSocketClient = () => {
-  const socket = new WebSocket(`${process.env.REACT_APP_LDS_API_URL!.replace('https://', 'wss://')}/swap/v2/ws`)
+interface WebSocketMessage {
+  event: string
+  channel: string
+  args: SwapUpdateEvent[]
+}
 
-  const listeners = new Map<string, (event: any) => void>()
+export const createLdsSocketClient = (): {
+  subscribeToSwapUntil: (swapId: string, status: LdsSwapStatus) => Promise<SwapUpdateEvent>
+  disconnect: () => void
+} => {
+  const apiUrl = process.env.REACT_APP_LDS_API_URL
+  if (!apiUrl) {
+    throw new Error('REACT_APP_LDS_API_URL is not defined')
+  }
+  const socket = new WebSocket(`${apiUrl.replace('https://', 'wss://')}/swap/v2/ws`)
+
+  const listeners = new Map<string, (event: SwapUpdateEvent) => void>()
 
   const waitForConnection = (): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -22,9 +39,9 @@ export const createLdsSocketClient = () => {
     })
   }
 
-  const subscribeToSwapUntil = async (swapId: string, status: LdsSwapStatus): Promise<any> => {
+  const subscribeToSwapUntil = async (swapId: string, status: LdsSwapStatus): Promise<SwapUpdateEvent> => {
     await waitForConnection()
-    
+
     socket.send(
       JSON.stringify({
         op: 'subscribe',
@@ -33,8 +50,8 @@ export const createLdsSocketClient = () => {
       }),
     )
 
-    const promise = new Promise((resolve) => {
-      listeners.set(swapId, (event: any) => {
+    const promise = new Promise<SwapUpdateEvent>((resolve) => {
+      listeners.set(swapId, (event: SwapUpdateEvent) => {
         if (event.status === status) {
           resolve(event)
           listeners.delete(swapId)
@@ -45,14 +62,12 @@ export const createLdsSocketClient = () => {
     return promise
   }
 
-  socket.onmessage = (event: MessageEvent) => {
-    console.log('event', event)
-    const data = JSON.parse(event.data)
-    console.log('data', data)
+  socket.onmessage = (event: MessageEvent): void => {
+    const data = JSON.parse(event.data) as WebSocketMessage
     if (data.event === 'update' && data.channel === 'swap.update') {
-      data.args.forEach((arg: any) => {
-        if(arg?.id) {
-          listeners.get(arg?.id)?.(arg)
+      data.args.forEach((arg: SwapUpdateEvent) => {
+        if (arg.id) {
+          listeners.get(arg.id)?.(arg)
         }
       })
     }

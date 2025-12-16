@@ -240,16 +240,16 @@ export function BridgingPopupContent({ hash, onClose }: { hash: string; onClose:
 }
 
 export function LightningBridgePopupContent({
-  id,
+  _id,
   direction,
   status,
-  invoice,
+  _invoice,
   onClose,
 }: {
-  id: string
+  _id: string
   direction: 'submarine' | 'reverse'
   status: 'pending' | 'confirmed' | 'failed'
-  invoice?: string
+  _invoice?: string
   onClose: () => void
 }) {
   const { t } = useTranslation()
