@@ -3,7 +3,9 @@ import { ChainId, GetSwappableTokensResponse, SafetyLevel } from 'uniswap/src/da
 // Temporal mapping of swappable tokens for bridges (Citrea, Bitcoin, Lightning Network)
 // TODO: remove this once the backend API is updated
 
-export const swappableTokensMappping: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = {
+const USE_SWAPPABLE_TOKENS_MAPPING = process.env.USE_SWAPPABLE_TOKENS_MAPPING === 'true'
+
+const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = {
   [ChainId._5115]: {
     '0x0000000000000000000000000000000000000000': [
       /*
@@ -77,3 +79,6 @@ export const swappableTokensMappping: Partial<Record<ChainId, Record<string, Get
     ],
   },
 }
+
+export const swappableTokensMappping: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> =
+  USE_SWAPPABLE_TOKENS_MAPPING ? swappableTokensData : {}
