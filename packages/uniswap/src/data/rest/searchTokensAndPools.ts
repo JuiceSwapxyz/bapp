@@ -23,15 +23,9 @@ import { createEthersProvider } from 'uniswap/src/features/providers/createEther
 import { PoolSearchResult, SearchResultType } from 'uniswap/src/features/search/SearchResult'
 import { buildCurrencyId, currencyId, isNativeCurrencyAddress } from 'uniswap/src/utils/currencyId'
 
-/**
- * Wrapper around Tanstack useQuery for the Uniswap REST BE service SearchTokens
- * This includes data for both token search AND pool search
- * @param input - The search request parameters including search query, chain IDs, search type, page and size
- * @returns data, error, isPending, and refetch
- */
 export function useSearchTokensAndPoolsQuery<TSelectType>({
   input,
-  enabled = true,
+  enabled: _enabled = true,
   select,
 }: {
   input?: PartialMessage<SearchTokensRequest>
@@ -40,7 +34,7 @@ export function useSearchTokensAndPoolsQuery<TSelectType>({
 }): UseQueryResult<TSelectType, ConnectError> {
   return useQuery(searchTokens, input, {
     transport: uniswapPostTransport,
-    enabled: !!input && enabled,
+    enabled: false,
     select,
   })
 }

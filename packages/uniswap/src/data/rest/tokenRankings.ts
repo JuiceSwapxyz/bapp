@@ -17,17 +17,11 @@ import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/u
 import { getCurrencySafetyInfo } from 'uniswap/src/features/dataApi/utils/getCurrencySafetyInfo'
 import { currencyId } from 'uniswap/src/utils/currencyId'
 
-/**
- * Wrapper around Tanstack useQuery for the Uniswap REST BE service TokenRankings
- * This includes the top tokens pre-sorted by various filters
- * @param input { chainId: string } - string representation of the chain to query or `ALL_NETWORKS` for aggregated data
- * @returns UseQueryResult<TokenRankingsResponse, ConnectError>
- */
 export function useTokenRankingsQuery(
   input?: PartialMessage<TokenRankingsRequest>,
-  enabled = true,
+  _enabled = true,
 ): UseQueryResult<TokenRankingsResponse, ConnectError> {
-  return useQuery(tokenRankings, input, { transport: uniswapGetTransport, enabled })
+  return useQuery(tokenRankings, input, { transport: uniswapGetTransport, enabled: false })
 }
 
 export function tokenRankingsStatToCurrencyInfo(tokenRankingsStat: TokenRankingsStat): CurrencyInfo | null {
