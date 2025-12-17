@@ -5,6 +5,7 @@ import { config } from 'uniswap/src/config'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
+import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
   isBitcoinBridgeQuote,
@@ -40,6 +41,7 @@ import {
   DutchQuoteV2,
   DutchQuoteV3,
   Encode7702ResponseBody,
+  Err404,
   GetOrdersResponse,
   GetSwappableTokensResponse,
   GetSwapsResponse,
@@ -224,16 +226,28 @@ const getLightningBridgeDirection = (params: QuoteRequest): LightningBridgeDirec
   throw new Error('Invalid lightning bridge direction')
 }
 
-const getFeeLightningBridge = async (
+export type LightningBridgeStateParams = {
+  fees: {
+    percentage: number
+    minerFees: number
+  }
+  limits: {
+    maximal: number
+    minimal: number
+  }
+}
+
+const getLightningBridgeStateParams = async (
   direction: LightningBridgeDirection,
-): Promise<{ percentage: number; minerFees: number }> => {
+): Promise<LightningBridgeStateParams> => {
   switch (direction) {
     case LightningBridgeDirection.Submarine: {
       const submarineResp = await LightningBridgeApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/submarine')
       if (!submarineResp.cBTC?.BTC) {
         throw new Error('Pair not found')
       }
-      return submarineResp.cBTC.BTC.fees
+      const { fees, limits } = submarineResp.cBTC.BTC
+      return { fees, limits }
     }
 
     case LightningBridgeDirection.Reverse: {
@@ -241,11 +255,12 @@ const getFeeLightningBridge = async (
       if (!reverseResp.BTC?.cBTC) {
         throw new Error('Pair not found')
       }
+      const { fees, limits } = reverseResp.BTC.cBTC
       const {
         percentage,
         minerFees: { claim, lockup },
-      } = reverseResp.BTC.cBTC.fees
-      return { percentage, minerFees: claim + lockup }
+      } = fees
+      return { fees: { percentage, minerFees: claim + lockup }, limits }
     }
 
     default:
@@ -253,9 +268,20 @@ const getFeeLightningBridge = async (
   }
 }
 
+const adjustAmountForDecimals = (params: { amount: string; inputDecimals: number; outputDecimals: number }): bigint => {
+  const { amount, inputDecimals, outputDecimals } = params
+  const decimalDifference = outputDecimals - inputDecimals
+  return decimalDifference === 0
+    ? BigInt(amount)
+    : decimalDifference > 0
+      ? BigInt(amount) * BigInt(10 ** decimalDifference)
+      : BigInt(amount) / BigInt(10 ** Math.abs(decimalDifference))
+}
+
 const getLightningBridgeQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
   const direction = getLightningBridgeDirection(params)
-  const { percentage, minerFees } = await getFeeLightningBridge(direction)
+  const { fees, limits } = await getLightningBridgeStateParams(direction)
+  const { percentage, minerFees } = fees
 
   const inputAmount = params.amount
   const inputChainInfo = getChainInfo(params.tokenInChainId as number)
@@ -263,20 +289,38 @@ const getLightningBridgeQuote = async (params: QuoteRequest): Promise<Discrimina
   const inputDecimals = inputChainInfo.nativeCurrency.decimals
   const outputDecimals = outputChainInfo.nativeCurrency.decimals
 
-  const decimalDifference = outputDecimals - inputDecimals
-  const adjustedAmount =
-    decimalDifference === 0
-      ? inputAmount
-      : decimalDifference > 0
-        ? BigInt(inputAmount) * BigInt(10 ** decimalDifference)
-        : BigInt(inputAmount) / BigInt(10 ** Math.abs(decimalDifference))
-
+  const adjustedAmount = adjustAmountForDecimals({ amount: inputAmount, inputDecimals, outputDecimals })
   const precision = 1000000
   const percentageScale = precision * 100
   const percentageFactor = BigInt(percentage * precision)
   const feePercentage = (BigInt(adjustedAmount) * percentageFactor) / BigInt(percentageScale)
   const feeMiner = BigInt(minerFees)
   const outputAmount = (BigInt(adjustedAmount) - feePercentage - feeMiner).toString()
+
+  const inputAmountInSats =
+    direction === LightningBridgeDirection.Submarine
+      ? adjustAmountForDecimals({ amount: outputAmount, inputDecimals: outputDecimals, outputDecimals: 8 })
+      : adjustAmountForDecimals({ amount: inputAmount, inputDecimals, outputDecimals: 8 })
+
+  if (inputAmountInSats < limits.minimal) {
+    throw new FetchError({
+      response: new Response(null, { status: 404 }),
+      data: {
+        errorCode: Err404.errorCode.QUOTE_AMOUNT_TOO_LOW_ERROR,
+        detail: `Amount is below minimum limit of ${limits.minimal} sats`,
+      },
+    })
+  }
+
+  if (inputAmountInSats > limits.maximal) {
+    throw new FetchError({
+      response: new Response(null, { status: 404 }),
+      data: {
+        errorCode: Err404.errorCode.QUOTE_AMOUNT_TOO_HIGH,
+        detail: `Amount exceeds maximum limit of ${limits.maximal} sats`,
+      },
+    })
+  }
 
   const bridgeQuote: BridgeQuote = {
     quoteId: `lightning-bridge-${Date.now()}`,
