@@ -6,7 +6,7 @@ import { useParsedSwapWarnings } from 'uniswap/src/features/transactions/swap/ho
 import { SwapReviewTransactionStoreContext } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewTransactionStore/SwapReviewTransactionStoreContext'
 import type { SwapReviewTransactionState } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewTransactionStore/createSwapReviewTransactionStore'
 import { createSwapReviewTransactionStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewTransactionStore/createSwapReviewTransactionStore'
-import { isClassic, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isClassic, isLightningBridge, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { isWrapAction } from 'uniswap/src/features/transactions/swap/utils/wrap'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { useHasValueChanged } from 'utilities/src/react/useHasValueChanged'
@@ -34,6 +34,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
 
   const { blockingWarning, reviewScreenWarning } = useParsedSwapWarnings()
   const isWrap = isWrapAction(wrapType)
+  const isLnBridge = Boolean(trade && isLightningBridge(trade))
   const acceptedTrade = acceptedDerivedSwapInfo?.trade.trade
   const feeOnTransferProps = useFeeOnTransferAmounts(acceptedDerivedSwapInfo)
   const tokenWarningProps = getRelevantTokenWarningSeverity(acceptedDerivedSwapInfo)
@@ -56,6 +57,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
       derivedSwapInfo,
       acceptedDerivedSwapInfo,
       isWrap,
+      isLnBridge,
       blockingWarning,
       reviewScreenWarning,
       txSimulationErrors,
@@ -75,6 +77,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
       derivedSwapInfo,
       acceptedDerivedSwapInfo,
       isWrap,
+      isLnBridge,
       blockingWarning,
       reviewScreenWarning,
       txSimulationErrors,

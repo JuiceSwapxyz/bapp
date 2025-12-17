@@ -7,7 +7,11 @@ import { SlippageInfo } from 'uniswap/src/features/transactions/swap/components/
 import { AutoSlippageBadge } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormTooltips/MaxSlippageTooltip'
 import { usePriceUXEnabled } from 'uniswap/src/features/transactions/swap/hooks/usePriceUXEnabled'
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
-import { BridgeTrade } from 'uniswap/src/features/transactions/swap/types/trade'
+import {
+  BitcoinBridgeTrade,
+  BridgeTrade,
+  LightningBridgeTrade,
+} from 'uniswap/src/features/transactions/swap/types/trade'
 
 interface MaxSlippageRowProps {
   acceptedDerivedSwapInfo: DerivedSwapInfo<CurrencyInfo, CurrencyInfo>
@@ -32,7 +36,11 @@ export function MaxSlippageRow({
     throw new Error('Invalid render of `MaxSlippageInfo` with no `trade`')
   }
 
-  if (acceptedTrade instanceof BridgeTrade) {
+  if (
+    acceptedTrade instanceof BridgeTrade ||
+    acceptedTrade instanceof BitcoinBridgeTrade ||
+    acceptedTrade instanceof LightningBridgeTrade
+  ) {
     throw new Error('Invalid render of `MaxSlippageInfo` for bridge trade')
   }
 

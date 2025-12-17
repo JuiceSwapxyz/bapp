@@ -12,7 +12,8 @@ import { usePreviousWithLayoutEffect } from 'utilities/src/react/usePreviousWith
 const LegacySwapTxStoreContextProvider = ({ children }: { children: React.ReactNode }): JSX.Element => {
   const account = useWallet().evmAccount
   const derivedSwapInfo = useSwapFormStore((s) => s.derivedSwapInfo)
-  const txState = useLegacySwapTxAndGasInfo({ derivedSwapInfo, account })
+  const bitcoinDestinationAddress = useSwapFormStore((s) => s.bitcoinDestinationAddress)
+  const txState = useLegacySwapTxAndGasInfo({ derivedSwapInfo, account, bitcoinDestinationAddress })
 
   const [{ store, cleanup }] = useState(() => createSwapTxStore(txState))
 

@@ -5,7 +5,9 @@ import type { IncreaseLiquiditySteps } from 'uniswap/src/features/transactions/l
 import type { MigrationSteps } from 'uniswap/src/features/transactions/liquidity/steps/migrationSteps'
 import type { SignTypedDataStepFields } from 'uniswap/src/features/transactions/steps/permit2Signature'
 import { WrapTransactionStep } from 'uniswap/src/features/transactions/steps/wrap'
+import type { BitcoinBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import type { ClassicSwapSteps } from 'uniswap/src/features/transactions/swap/steps/classicSteps'
+import type { LightningBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import type { UniswapXSwapSteps } from 'uniswap/src/features/transactions/swap/steps/uniswapxSteps'
 import type { ValidatedTransactionRequest } from 'uniswap/src/features/transactions/types/transactionRequests'
 
@@ -26,6 +28,9 @@ export enum TransactionStepType {
   MigratePositionTransactionAsync = 'MigratePositionTransactionAsync',
   CollectFeesTransactionStep = 'CollectFeesTransaction',
   CollectLpIncentiveRewardsTransactionStep = 'CollectLpIncentiveRewardsTransactionStep',
+  BitcoinBridgeLockTransactionStep = 'BitcoinBridgeLockTransactionStep',
+  LightningBridgeSubmarineStep = 'LightningBridgeSubmarineStep',
+  LightningBridgeReverseStep = 'LightningBridgeReverseStep',
 }
 
 // TODO: add v4 lp flow
@@ -38,6 +43,8 @@ export type TransactionStep =
   | CollectFeesSteps
   | CollectLpIncentiveRewardsSteps
   | WrapTransactionStep
+  | BitcoinBridgeLockTransactionStep
+  | LightningBridgeTransactionStep
 export type OnChainTransactionStep = TransactionStep & OnChainTransactionFields
 export type OnChainTransactionStepBatched = TransactionStep & OnChainTransactionFieldsBatched
 export type SignatureTransactionStep = TransactionStep & SignTypedDataStepFields

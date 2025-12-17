@@ -1,15 +1,4 @@
 import { config } from 'uniswap/src/config'
-import { isBetaEnv, isDevEnv, isPlaywrightEnv, isTestEnv } from 'utilities/src/environment/env'
-import { isAndroid, isExtension, isInterface, isMobileApp } from 'utilities/src/platform'
-
-enum TrafficFlows {
-  GraphQL = 'graphql',
-  TradingApi = 'trading-api-labs',
-}
-
-const FLOWS_USING_BETA: TrafficFlows[] = []
-
-const isDevOrBeta = isPlaywrightEnv() ? false : isDevEnv() || isBetaEnv()
 
 export const UNISWAP_WEB_HOSTNAME = 'bapp.juiceswap.com'
 // const EMBEDDED_WALLET_HOSTNAME = isPlaywrightEnv() || isDevEnv() ? 'staging.ew.unihq.org' : UNISWAP_WEB_HOSTNAME

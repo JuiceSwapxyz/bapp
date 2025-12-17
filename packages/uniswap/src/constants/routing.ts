@@ -167,6 +167,16 @@ export const COMMON_BASES: ChainCurrencyList = {
     WRAPPED_NATIVE_CURRENCY[UniverseChainId.CitreaTestnet] as Token,
     CITREA_TESTNET_CHAIN_INFO.tokens.USDC,
   ].map(buildPartialCurrencyInfo),
+
+  [UniverseChainId.Bitcoin]: [
+    nativeOnChain(UniverseChainId.Bitcoin),
+    WRAPPED_NATIVE_CURRENCY[UniverseChainId.Bitcoin] as Token,
+  ].map(buildPartialCurrencyInfo),
+
+  [UniverseChainId.LightningNetwork]: [
+    nativeOnChain(UniverseChainId.LightningNetwork),
+    WRAPPED_NATIVE_CURRENCY[UniverseChainId.LightningNetwork] as Token,
+  ].map(buildPartialCurrencyInfo),
 }
 
 export function getCommonBase(chainId?: number, address?: string): CurrencyInfo | undefined {

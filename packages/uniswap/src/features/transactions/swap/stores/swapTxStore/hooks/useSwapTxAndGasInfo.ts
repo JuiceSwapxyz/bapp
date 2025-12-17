@@ -3,9 +3,11 @@ import { Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
 import { useTokenApprovalInfo } from 'uniswap/src/features/transactions/swap/review/hooks/useTokenApprovalInfo'
 import { getUniswapXSwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/uniswapx/utils'
 import {
+  getBitcoinBridgeSwapTxAndGasInfo,
   getBridgeSwapTxAndGasInfo,
   getClassicSwapTxAndGasInfo,
   getFallbackSwapTxAndGasInfo,
+  getLightningBridgeSwapTxAndGasInfo,
   getWrapTxAndGasInfo,
   usePermitTxInfo,
 } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/utils'
@@ -18,9 +20,11 @@ import { CurrencyField } from 'uniswap/src/types/currency'
 export function useSwapTxAndGasInfo({
   derivedSwapInfo,
   account,
+  bitcoinDestinationAddress,
 }: {
   derivedSwapInfo: DerivedSwapInfo
   account?: AccountDetails
+  bitcoinDestinationAddress?: string
 }): SwapTxAndGasInfo {
   const {
     chainId,
@@ -53,6 +57,20 @@ export function useSwapTxAndGasInfo({
       case Routing.DUTCH_V3:
       case Routing.PRIORITY:
         return getUniswapXSwapTxAndGasInfo({ trade, swapTxInfo, approvalTxInfo })
+      case Routing.BITCOIN_BRIDGE:
+        return getBitcoinBridgeSwapTxAndGasInfo({
+          trade,
+          swapTxInfo,
+          approvalTxInfo,
+          destinationAddress: bitcoinDestinationAddress,
+        })
+      case Routing.LN_BRIDGE:
+        return getLightningBridgeSwapTxAndGasInfo({
+          trade,
+          swapTxInfo,
+          approvalTxInfo,
+          destinationAddress: bitcoinDestinationAddress,
+        })
       case Routing.BRIDGE:
         return getBridgeSwapTxAndGasInfo({ trade, swapTxInfo, approvalTxInfo })
       case Routing.CLASSIC:
@@ -63,5 +81,5 @@ export function useSwapTxAndGasInfo({
       default:
         return getFallbackSwapTxAndGasInfo({ swapTxInfo, approvalTxInfo })
     }
-  }, [approvalTxInfo, permitTxInfo, swapTxInfo, trade])
+  }, [approvalTxInfo, permitTxInfo, swapTxInfo, trade, bitcoinDestinationAddress])
 }

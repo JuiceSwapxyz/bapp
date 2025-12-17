@@ -60,6 +60,16 @@ export function getSwapWarningFromError({
           message: t('swap.warning.noRoutesFound.message'),
         }
       }
+
+      case Err404.errorCode.QUOTE_AMOUNT_TOO_HIGH: {
+        return {
+          type: WarningLabel.EnterSmallerAmount,
+          severity: WarningSeverity.Low,
+          action: WarningAction.DisableReview,
+          title: t('Exceeds maximum limit available'),
+          message: t('Exceeds maximum limit available'),
+        }
+      }
     }
   }
 

@@ -16,11 +16,13 @@ const approvalResponseFile = project.addSourceFileAtPath(`${path}/ApprovalRespon
 const createSwapResponseFile = project.addSourceFileAtPath(`${path}/CreateSwapResponse.ts`)
 const createSendResponseFile = project.addSourceFileAtPath(`${path}/CreateSendResponse.ts`)
 const classicQuoteFile = project.addSourceFileAtPath(`${path}/ClassicQuote.ts`)
+const bridgeQuoteFile = project.addSourceFileAtPath(`${path}/BridgeQuote.ts`)
 const responseFiles = [approvalResponseFile, createSwapResponseFile, createSendResponseFile, classicQuoteFile]
 
 // Enums
 const routingFile = project.addSourceFileAtPath(`${path}/Routing.ts`)
 const chainIdFile = project.addSourceFileAtPath(`${path}/ChainId.ts`)
+const err404File = project.addSourceFileAtPath(`${path}/Err404.ts`)
 
 function addImport(file: SourceFile, importName: string): void {
   if (!file.getImportDeclaration((imp) => imp.getModuleSpecifierValue() === '../../types')) {
@@ -96,6 +98,43 @@ function addEnumMember(file: SourceFile, enumName: string, newMember: { name: st
   console.log(`Added enum member ${newMember.name} = ${initializer} to ${enumName}`)
 }
 
+function addNestedEnumMember(
+  file: SourceFile,
+  namespaceName: string,
+  enumName: string,
+  newMember: { name: string; value: string | number },
+): void {
+  const namespace = file.getModule(namespaceName)
+
+  if (!namespace) {
+    console.log(`Namespace ${namespaceName} not found in ${file.getBaseName()}`)
+    return
+  }
+
+  const enumDecl = namespace.getEnum(enumName)
+
+  if (!enumDecl) {
+    console.log(`Enum ${enumName} not found in namespace ${namespaceName}`)
+    return
+  }
+
+  const existing = enumDecl.getMember(newMember.name)
+
+  if (existing) {
+    console.log(`Enum member ${newMember.name} already exists in ${namespaceName}.${enumName}`)
+    return
+  }
+
+  const initializer = typeof newMember.value === 'string' ? `'${newMember.value}'` : String(newMember.value)
+
+  enumDecl.addMember({
+    name: newMember.name,
+    initializer,
+  })
+
+  console.log(`Added enum member ${newMember.name} = ${initializer} to ${namespaceName}.${enumName}`)
+}
+
 // Modify the request interfaces
 requestFiles.forEach((file) => {
   addImport(file, 'GasStrategy')
@@ -117,9 +156,20 @@ responseFiles.forEach((file) => {
   ])
 })
 
+addImport(bridgeQuoteFile, 'LightningBridgeDirection')
+modifyType(bridgeQuoteFile, 'BridgeQuote', [{ name: 'direction', type: 'LightningBridgeDirection', isOptional: true }])
+
 // Add new enum members
 addEnumMember(routingFile, 'Routing', { name: 'JUPITER', value: 'JUPITER' })
+addEnumMember(routingFile, 'Routing', { name: 'BITCOIN_BRIDGE', value: 'BITCOIN_BRIDGE' })
+addEnumMember(routingFile, 'Routing', { name: 'LN_BRIDGE', value: 'LN_BRIDGE' })
 addEnumMember(chainIdFile, 'ChainId', { name: '_5115', value: 5115 })
+addEnumMember(chainIdFile, 'ChainId', { name: '_21_000_000', value: 21000000 })
+addEnumMember(chainIdFile, 'ChainId', { name: '_21_000_001', value: 21000001 })
+addNestedEnumMember(err404File, 'Err404', 'errorCode', {
+  name: 'QUOTE_AMOUNT_TOO_HIGH',
+  value: 'QuoteAmountTooHighError',
+})
 
 // Save the changes
 requestFiles.forEach((file) => {
@@ -128,7 +178,9 @@ requestFiles.forEach((file) => {
 responseFiles.forEach((file) => {
   file.saveSync()
 })
+bridgeQuoteFile.saveSync()
 routingFile.saveSync()
 chainIdFile.saveSync()
+err404File.saveSync()
 
 console.log('Trading API types have been updated')
