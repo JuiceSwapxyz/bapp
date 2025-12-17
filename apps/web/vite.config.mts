@@ -236,6 +236,7 @@ export default defineConfig(({ mode }) => {
     },
 
     build: {
+      target: 'es2022',
       outDir: 'build',
       sourcemap: isProduction ? false : 'hidden',
       minify: isProduction ? 'esbuild' : undefined,
