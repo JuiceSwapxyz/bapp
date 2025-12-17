@@ -6,6 +6,7 @@ import { ChainId, GetSwappableTokensResponse, SafetyLevel } from 'uniswap/src/da
 export const swappableTokensMappping: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = {
   [ChainId._5115]: {
     '0x0000000000000000000000000000000000000000': [
+      /*
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: ChainId._21_000_000,
@@ -20,6 +21,7 @@ export const swappableTokensMappping: Partial<Record<ChainId, Record<string, Get
         symbol: 'BTC',
         decimals: 18,
       },
+      */
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: ChainId._21_000_001,
@@ -36,6 +38,7 @@ export const swappableTokensMappping: Partial<Record<ChainId, Record<string, Get
       },
     ],
   },
+  /*
   [ChainId._21_000_000]: {
     '0x0000000000000000000000000000000000000000': [
       {
@@ -54,6 +57,7 @@ export const swappableTokensMappping: Partial<Record<ChainId, Record<string, Get
       },
     ],
   },
+  */
   [ChainId._21_000_001]: {
     '0x0000000000000000000000000000000000000000': [
       {
