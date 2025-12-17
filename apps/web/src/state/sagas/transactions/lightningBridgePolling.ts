@@ -1,20 +1,16 @@
 import { RetryableError, retry } from 'state/activity/polling/retry'
-import {
-  checkPreimageHashForClaim,
-  checkPreimageHashForLockup,
-} from 'uniswap/src/data/apiClients/lightningBridge/LightningBridgeApiClient'
+import { getLockup } from 'uniswap/src/data/apiClients/lightningBridge/LightningBridgeApiClient'
 
 export function pollForLockupConfirmation(preimageHash: string) {
   return retry(
     async () => {
-      const response = await checkPreimageHashForLockup(preimageHash).catch((error) => {
-        if (error.response?.status === 404) {
-          throw new RetryableError('Lockup not found yet, retrying...')
-        }
-        throw error
-      })
+      const response = await getLockup(preimageHash)
 
-      return response.lockup
+      if (!response.data.lockups) {
+        throw new RetryableError('Lockup not found yet, retrying...')
+      }
+
+      return response.data.lockups
     },
     {
       n: 100,
@@ -28,18 +24,13 @@ export function pollForLockupConfirmation(preimageHash: string) {
 export function pollForClaimablePreimage(preimageHash: string) {
   return retry(
     async () => {
-      const response = await checkPreimageHashForClaim(preimageHash).catch((error) => {
-        if (error.response?.status === 404) {
-          throw new RetryableError('Claim not found yet, retrying...')
-        }
-        throw error
-      })
+      const response = await getLockup(preimageHash)
 
-      if (!response.lockup || !response.lockup.preimage) {
+      if (!response.data.lockups || !response.data.lockups.preimage) {
         throw new RetryableError('Claim not found yet, retrying...')
       }
 
-      return response.lockup.preimage
+      return response.data.lockups.preimage
     },
     {
       n: 100,

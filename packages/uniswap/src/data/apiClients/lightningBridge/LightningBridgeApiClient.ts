@@ -10,8 +10,17 @@ const LightningBridgeApiClient = createApiClient({
 })
 
 export interface LockupCheckResponse {
-  lockup?: {
+  lockups: {
+    amount: string
+    claimAddress: string
+    claimTxHash: string
+    claimed: boolean
     preimageHash: string
+    preimage: string
+    refundAddress: string
+    refundTxHash: string
+    refunded: boolean
+    timelock: number
   } | null
 }
 
@@ -91,5 +100,26 @@ export async function checkPreimageHashForClaim(preimageHash: string): Promise<C
 export async function helpMeClaim(params: HelpMeClaimRequest): Promise<HelpMeClaimResponse> {
   return await LightningBridgeApiClient.post<HelpMeClaimResponse>('/claim/help-me-claim', {
     body: JSON.stringify(params),
+  })
+}
+
+export async function getLockup(preimageHash: string): Promise<{ data: LockupCheckResponse }> {
+  return await LightningBridgeApiClient.post<{ data: LockupCheckResponse }>(`/claim/graphql`, {
+    body: JSON.stringify({
+      operationName: 'LockupQuery',
+      query: `query LockupQuery {
+          lockups(preimageHash: "0x${preimageHash}") {
+            amount
+            claimAddress
+            claimTxHash
+            claimed
+            preimage
+            refundAddress
+            refundTxHash
+            refunded
+            timelock
+          }
+        }`,
+    }),
   })
 }
