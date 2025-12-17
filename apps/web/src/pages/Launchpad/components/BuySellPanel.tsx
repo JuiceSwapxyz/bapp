@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
 import styledComponents from 'lib/styled-components'
 import { useAccount } from 'hooks/useAccount'
@@ -140,6 +141,19 @@ const BalanceRow = styled(Flex, {
   alignItems: 'center',
 })
 
+const TradeOnSwapButton = styled(Flex, {
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: '$spacing16',
+  backgroundColor: '$accent1',
+  borderRadius: '$rounded12',
+  cursor: 'pointer',
+  marginTop: '$spacing8',
+  hoverStyle: {
+    opacity: 0.9,
+  },
+})
+
 interface BuySellPanelProps {
   tokenAddress: string
   tokenSymbol: string
@@ -153,6 +167,7 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const navigate = useNavigate()
   const account = useAccount()
   const chainId = UniverseChainId.CitreaTestnet
   const addTransaction = useTransactionAdder()
@@ -349,6 +364,11 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
         <Text variant="body2" color="$neutral2" textAlign="center">
           Trade on the main DEX instead
         </Text>
+        <TradeOnSwapButton onPress={() => navigate(`/swap?outputCurrency=${tokenAddress}`)}>
+          <Text variant="buttonLabel2" color="$white">
+            Trade on Swap
+          </Text>
+        </TradeOnSwapButton>
       </PanelContainer>
     )
   }
