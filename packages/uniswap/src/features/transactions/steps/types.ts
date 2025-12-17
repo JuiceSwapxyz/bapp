@@ -29,7 +29,8 @@ export enum TransactionStepType {
   CollectFeesTransactionStep = 'CollectFeesTransaction',
   CollectLpIncentiveRewardsTransactionStep = 'CollectLpIncentiveRewardsTransactionStep',
   BitcoinBridgeLockTransactionStep = 'BitcoinBridgeLockTransactionStep',
-  LightningBridgeTransactionStep = 'LightningBridgeTransactionStep',
+  LightningBridgeSubmarineStep = 'LightningBridgeSubmarineStep',
+  LightningBridgeReverseStep = 'LightningBridgeReverseStep',
 }
 
 // TODO: add v4 lp flow

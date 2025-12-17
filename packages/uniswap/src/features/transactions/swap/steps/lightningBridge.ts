@@ -1,13 +1,26 @@
+import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 
-export interface LightningBridgeTransactionStep {
-  type: TransactionStepType.LightningBridgeTransactionStep
+export interface LightningBridgeSubmarineStep {
+  type: TransactionStepType.LightningBridgeSubmarineStep
+}
+
+export interface LightningBridgeReverseStep {
+  type: TransactionStepType.LightningBridgeReverseStep
   invoice?: string
 }
 
-export const createLightningBridgeTransactionStep = (): LightningBridgeTransactionStep => {
-  // Here we can collect stuff for my saga to run
+export type LightningBridgeTransactionStep = LightningBridgeSubmarineStep | LightningBridgeReverseStep
+
+export const createLightningBridgeTransactionStep = (
+  direction: LightningBridgeDirection,
+): LightningBridgeTransactionStep => {
+  if (direction === LightningBridgeDirection.Submarine) {
+    return {
+      type: TransactionStepType.LightningBridgeSubmarineStep,
+    }
+  }
   return {
-    type: TransactionStepType.LightningBridgeTransactionStep,
+    type: TransactionStepType.LightningBridgeReverseStep,
   }
 }

@@ -12,7 +12,7 @@ import { TransactionStepType } from 'uniswap/src/features/transactions/steps/typ
 import { SwapEnterBitcoinLikeAddress } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLnBridgeDetails/SwapEnterBitcoinLikeAddress'
 import { useLnBrideSwapDetails } from 'uniswap/src/features/transactions/swap/review/hooks/useLnBrideSwapDetails'
 import { useSwapReviewStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewStore/useSwapReviewStore'
-import { LightningBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
+import { LightningBridgeReverseStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { setClipboard } from 'uniswap/src/utils/clipboard'
 import { trimToLength } from 'utilities/src/primitives/string'
 
@@ -43,8 +43,8 @@ export function ReverseLnBridgeDetails(): JSX.Element {
   const [isCopied, setIsCopied] = useState(false)
 
   const lightningInvoice =
-    currentStep?.step.type === TransactionStepType.LightningBridgeTransactionStep
-      ? (currentStep.step as LightningBridgeTransactionStep).invoice
+    currentStep?.step.type === TransactionStepType.LightningBridgeReverseStep
+      ? (currentStep.step as LightningBridgeReverseStep).invoice
       : undefined
 
   useEffect(() => {

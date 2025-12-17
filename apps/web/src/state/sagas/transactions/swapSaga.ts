@@ -11,7 +11,8 @@ import { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
 import { handleBitcoinBridgeLockTransactionStep } from 'state/sagas/transactions/bitcoinBridge'
-import { handleLightningBridge } from 'state/sagas/transactions/lightningBridge'
+import { handleLightningBridgeReverse } from 'state/sagas/transactions/lightningBridgeReverse'
+import { handleLightningBridgeSubmarine } from 'state/sagas/transactions/lightningBridgeSubmarine'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
 import { handleUniswapXSignatureStep } from 'state/sagas/transactions/uniswapx'
 import {
@@ -320,9 +321,22 @@ function* swap(params: SwapParams) {
           })
           break
         }
-        case TransactionStepType.LightningBridgeTransactionStep: {
+        case TransactionStepType.LightningBridgeSubmarineStep: {
           requireRouting(swapTxContext, [Routing.LN_BRIDGE])
-          yield* call(handleLightningBridge, {
+          yield* call(handleLightningBridgeSubmarine, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
+        case TransactionStepType.LightningBridgeReverseStep: {
+          requireRouting(swapTxContext, [Routing.LN_BRIDGE])
+          yield* call(handleLightningBridgeReverse, {
             step,
             setCurrentStep,
             trade,

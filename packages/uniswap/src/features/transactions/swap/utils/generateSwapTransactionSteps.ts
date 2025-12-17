@@ -1,3 +1,5 @@
+import { BridgeQuote } from 'uniswap/src/data/tradingApi/__generated__'
+import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { createApprovalTransactionStep } from 'uniswap/src/features/transactions/steps/approve'
 import { createPermit2SignatureStep } from 'uniswap/src/features/transactions/steps/permit2Signature'
 import { createPermit2TransactionStep } from 'uniswap/src/features/transactions/steps/permit2Transaction'
@@ -71,7 +73,8 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo): Trans
     } else if (isBitcoinBridge(txContext)) {
       return [createBitcoinBridgeLockTransactionStep()]
     } else if (isLightningBridge(txContext)) {
-      return [createLightningBridgeTransactionStep()]
+      const direction = (txContext.trade.quote.quote as BridgeQuote).direction ?? LightningBridgeDirection.Submarine
+      return [createLightningBridgeTransactionStep(direction)]
     } else if (isBridge(txContext)) {
       if (txContext.txRequests.length > 1) {
         return orderClassicSwapSteps({

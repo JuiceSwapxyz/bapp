@@ -65,7 +65,7 @@ import {
   WalletEncode7702RequestBody,
   WrapUnwrapQuote,
 } from 'uniswap/src/data/tradingApi/__generated__'
-import { FeeType, LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
+import { FeeType, LightningBridgeDirection, LightningInvoice } from 'uniswap/src/data/tradingApi/types'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
@@ -741,6 +741,18 @@ export async function fetchWalletEncoding7702(params: WalletEncode7702RequestBod
     headers: {
       ...getFeatureFlaggedHeaders(),
     },
+  })
+}
+
+export async function fetchLightningInvoice(params: {
+  amount: string
+  lnLikeAddress: string
+}): Promise<LightningInvoice> {
+  return await TradingApiClient.post<LightningInvoice>('/v1/lightning/invoice', {
+    body: JSON.stringify({
+      amount: params.amount,
+      lnLikeAddress: params.lnLikeAddress,
+    }),
   })
 }
 
