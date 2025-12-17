@@ -11,6 +11,7 @@ export enum PopupType {
   Mismatch = 'mismatch',
   FORTransaction = 'forTransaction',
   CampaignTaskCompleted = 'campaignTaskCompleted',
+  LightningBridge = 'lightningBridge',
 }
 
 export enum SwitchNetworkAction {
@@ -21,6 +22,17 @@ export enum SwitchNetworkAction {
   Limit = 'limit',
   LP = 'lp',
   PoolFinder = 'poolFinder',
+}
+
+export enum LightningBridgeDirection {
+  Submarine = 'submarine',
+  Reverse = 'reverse',
+}
+
+export enum LightningBridgeStatus {
+  Pending = 'pending',
+  Confirmed = 'confirmed',
+  Failed = 'failed',
 }
 
 export type PopupContent =
@@ -58,4 +70,10 @@ export type PopupContent =
       type: PopupType.CampaignTaskCompleted
       taskName: string
       progress: number
+    }
+  | {
+      type: PopupType.LightningBridge
+      id: string
+      direction: LightningBridgeDirection
+      status: LightningBridgeStatus
     }

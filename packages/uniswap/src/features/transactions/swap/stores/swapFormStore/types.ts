@@ -33,6 +33,7 @@ export type SwapFormState = {
   isPrefilled?: boolean
   instantOutputAmountRaw?: string
   instantReceiptFetchTime?: number
+  bitcoinDestinationAddress?: string
 }
 
 type SwapFormMethods = {

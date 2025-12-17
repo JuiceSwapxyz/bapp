@@ -12,6 +12,7 @@ import {
   currencyIdToContractInput,
 } from 'uniswap/src/features/dataApi/utils/currencyIdToContractInput'
 import { gqlTokenToCurrencyInfo } from 'uniswap/src/features/dataApi/utils/gqlTokenToCurrencyInfo'
+import { useLocalCurrencyInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/hooks/useLocalCurrencyInfo'
 import {
   buildNativeCurrencyId,
   buildWrappedNativeCurrencyId,
@@ -111,11 +112,12 @@ function useCurrencyInfoQuery(
 }
 
 export function useCurrencyInfo(
-  _currencyId?: string,
+  currencyId?: string,
   options?: { refetch?: boolean; skip?: boolean },
 ): Maybe<CurrencyInfo> {
-  const { currencyInfo } = useCurrencyInfoQuery(_currencyId, options)
-  return currencyInfo
+  const localCurrencyInfo = useLocalCurrencyInfo(currencyId)
+  const { currencyInfo } = useCurrencyInfoQuery(currencyId, options)
+  return localCurrencyInfo || currencyInfo
 }
 
 export function useCurrencyInfoWithLoading(

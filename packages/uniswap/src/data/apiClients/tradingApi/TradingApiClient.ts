@@ -5,7 +5,17 @@ import { config } from 'uniswap/src/config'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
+import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
+import {
+  isBitcoinBridgeQuote,
+  isLnBitcoinBridgeQuote,
+} from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
+import {
+  LightningBridgeReverseGetResponse,
+  LightningBridgeSubmarineGetResponse,
+} from 'uniswap/src/data/apiClients/tradingApi/utils/lightningBridge'
+import { swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
 import {
   ApprovalRequest,
   ApprovalResponse,
@@ -31,6 +41,7 @@ import {
   DutchQuoteV2,
   DutchQuoteV3,
   Encode7702ResponseBody,
+  Err404,
   GetOrdersResponse,
   GetSwappableTokensResponse,
   GetSwapsResponse,
@@ -54,7 +65,8 @@ import {
   WalletEncode7702RequestBody,
   WrapUnwrapQuote,
 } from 'uniswap/src/data/tradingApi/__generated__'
-import { FeeType } from 'uniswap/src/data/tradingApi/types'
+import { FeeType, LightningBridgeDirection, LightningInvoice } from 'uniswap/src/data/tradingApi/types'
+import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { getSpenderAddress } from 'uniswap/src/utils/approvalCalldata'
@@ -92,7 +104,7 @@ export type ClassicQuoteResponse = QuoteResponse & {
 
 export type BridgeQuoteResponse = QuoteResponse & {
   quote: BridgeQuote
-  routing: Routing.BRIDGE
+  routing: Routing.BRIDGE | Routing.BITCOIN_BRIDGE | Routing.LN_BRIDGE
 }
 
 export type WrapQuoteResponse<T extends Routing.WRAP | Routing.UNWRAP> = QuoteResponse & {
@@ -126,6 +138,10 @@ const CustomQuoteApiClient = createApiClient({
   },
 })
 
+const LightningBridgeApiClient = createApiClient({
+  baseUrl: `${process.env.REACT_APP_LDS_API_URL}/swap/v2`,
+})
+
 const V4_HEADERS = {
   'x-universal-router-version': UniversalRouterVersion._2_0,
 }
@@ -140,13 +156,205 @@ export const getFeatureFlaggedHeaders = (): Record<string, string> => {
   }
 }
 
-export type FetchQuote = (params: QuoteRequest & { isUSDQuote?: boolean }) => Promise<DiscriminatedQuoteResponse>
+const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
+  // TODO: It is one to one in this hardcoded mapping, but we need to request the actual quote from boltz
+  const inputAmount = params.amount
 
-export async function fetchQuote({
-  isUSDQuote: _isUSDQuote,
-  ...params
-}: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  return await CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
+  // Get decimals from chain info for native tokens
+  const inputChainInfo = getChainInfo(params.tokenInChainId as number)
+  const outputChainInfo = getChainInfo(params.tokenOutChainId as number)
+  const inputDecimals = inputChainInfo.nativeCurrency.decimals
+  const outputDecimals = outputChainInfo.nativeCurrency.decimals
+
+  // Adjust output amount based on decimal difference
+  // If input has 8 decimals and output has 18, multiply by 10^10
+  // If input has 18 decimals and output has 8, divide by 10^10
+  const decimalDifference = outputDecimals - inputDecimals
+  const adjustedAmount =
+    decimalDifference === 0
+      ? inputAmount
+      : decimalDifference > 0
+        ? (BigInt(inputAmount) * BigInt(10 ** decimalDifference)).toString()
+        : (BigInt(inputAmount) / BigInt(10 ** Math.abs(decimalDifference))).toString()
+
+  // Apply 0.1% discount to output amount, then subtract 1 (smallest unit)
+  const outputAmount = ((BigInt(adjustedAmount) * BigInt(999)) / BigInt(1000) - BigInt(1)).toString()
+
+  const bridgeQuote: BridgeQuote = {
+    quoteId: `bitcoin-bridge-${Date.now()}`,
+    chainId: params.tokenInChainId,
+    destinationChainId: params.tokenOutChainId,
+    swapper: params.swapper,
+    input: {
+      amount: inputAmount,
+      token: params.tokenIn,
+    },
+    output: {
+      amount: outputAmount,
+      token: params.tokenOut,
+    },
+    tradeType: params.type,
+    gasUseEstimate: '21000',
+    estimatedFillTimeMs: 300000,
+  }
+
+  const routing = isLnBitcoinBridgeQuote(params) ? Routing.LN_BRIDGE : Routing.BITCOIN_BRIDGE
+
+  const response: BridgeQuoteResponse = {
+    requestId: `bitcoin-bridge-${Date.now()}`,
+    quote: bridgeQuote,
+    routing,
+    permitData: null,
+  }
+
+  return response
+}
+
+const submarineResponse = await LightningBridgeApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/submarine')
+
+if (!submarineResponse.cBTC?.BTC) {
+  throw new Error('No BTC pair found')
+}
+
+const getLightningBridgeDirection = (params: QuoteRequest): LightningBridgeDirection => {
+  if (params.tokenInChainId === ChainId._5115 && params.tokenOutChainId === ChainId._21_000_001) {
+    return LightningBridgeDirection.Submarine
+  }
+  if (params.tokenInChainId === ChainId._21_000_001 && params.tokenOutChainId === ChainId._5115) {
+    return LightningBridgeDirection.Reverse
+  }
+  throw new Error('Invalid lightning bridge direction')
+}
+
+export type LightningBridgeStateParams = {
+  fees: {
+    percentage: number
+    minerFees: number
+  }
+  limits: {
+    maximal: number
+    minimal: number
+  }
+}
+
+const getLightningBridgeStateParams = async (
+  direction: LightningBridgeDirection,
+): Promise<LightningBridgeStateParams> => {
+  switch (direction) {
+    case LightningBridgeDirection.Submarine: {
+      const submarineResp = await LightningBridgeApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/submarine')
+      if (!submarineResp.cBTC?.BTC) {
+        throw new Error('Pair not found')
+      }
+      const { fees, limits } = submarineResp.cBTC.BTC
+      return { fees, limits }
+    }
+
+    case LightningBridgeDirection.Reverse: {
+      const reverseResp = await LightningBridgeApiClient.get<LightningBridgeReverseGetResponse>('/swap/reverse')
+      if (!reverseResp.BTC?.cBTC) {
+        throw new Error('Pair not found')
+      }
+      const { fees, limits } = reverseResp.BTC.cBTC
+      const {
+        percentage,
+        minerFees: { claim, lockup },
+      } = fees
+      return { fees: { percentage, minerFees: claim + lockup }, limits }
+    }
+
+    default:
+      throw new Error('Invalid lightning bridge direction')
+  }
+}
+
+const adjustAmountForDecimals = (params: { amount: string; inputDecimals: number; outputDecimals: number }): bigint => {
+  const { amount, inputDecimals, outputDecimals } = params
+  const decimalDifference = outputDecimals - inputDecimals
+  return decimalDifference === 0
+    ? BigInt(amount)
+    : decimalDifference > 0
+      ? BigInt(amount) * BigInt(10 ** decimalDifference)
+      : BigInt(amount) / BigInt(10 ** Math.abs(decimalDifference))
+}
+
+const getLightningBridgeQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
+  const direction = getLightningBridgeDirection(params)
+  const { fees, limits } = await getLightningBridgeStateParams(direction)
+  const { percentage, minerFees } = fees
+
+  const inputAmount = params.amount
+  const inputChainInfo = getChainInfo(params.tokenInChainId as number)
+  const outputChainInfo = getChainInfo(params.tokenOutChainId as number)
+  const inputDecimals = inputChainInfo.nativeCurrency.decimals
+  const outputDecimals = outputChainInfo.nativeCurrency.decimals
+
+  const adjustedAmount = adjustAmountForDecimals({ amount: inputAmount, inputDecimals, outputDecimals })
+  const precision = 1000000
+  const percentageScale = precision * 100
+  const percentageFactor = BigInt(percentage * precision)
+  const feePercentage = (BigInt(adjustedAmount) * percentageFactor) / BigInt(percentageScale)
+  const feeMiner = BigInt(minerFees)
+  const outputAmount = (BigInt(adjustedAmount) - feePercentage - feeMiner).toString()
+
+  const inputAmountInSats =
+    direction === LightningBridgeDirection.Submarine
+      ? adjustAmountForDecimals({ amount: outputAmount, inputDecimals: outputDecimals, outputDecimals: 8 })
+      : adjustAmountForDecimals({ amount: inputAmount, inputDecimals, outputDecimals: 8 })
+
+  if (inputAmountInSats < limits.minimal) {
+    throw new FetchError({
+      response: new Response(null, { status: 404 }),
+      data: {
+        errorCode: Err404.errorCode.QUOTE_AMOUNT_TOO_LOW_ERROR,
+        detail: `Amount is below minimum limit of ${limits.minimal} sats`,
+      },
+    })
+  }
+
+  if (inputAmountInSats > limits.maximal) {
+    throw new FetchError({
+      response: new Response(null, { status: 404 }),
+      data: {
+        errorCode: Err404.errorCode.QUOTE_AMOUNT_TOO_HIGH,
+        detail: `Amount exceeds maximum limit of ${limits.maximal} sats`,
+      },
+    })
+  }
+
+  const bridgeQuote: BridgeQuote = {
+    quoteId: `lightning-bridge-${Date.now()}`,
+    chainId: params.tokenInChainId,
+    destinationChainId: params.tokenOutChainId,
+    direction,
+    swapper: params.swapper,
+    input: {
+      amount: params.amount,
+      token: params.tokenIn,
+    },
+    output: {
+      amount: outputAmount,
+      token: params.tokenOut,
+    },
+    tradeType: params.type,
+    gasUseEstimate: '21000',
+    estimatedFillTimeMs: 300000,
+  }
+
+  const routing = Routing.LN_BRIDGE
+
+  const response: BridgeQuoteResponse = {
+    requestId: `lightning-bridge-${Date.now()}`,
+    quote: bridgeQuote,
+    routing,
+    permitData: null,
+  }
+
+  return response
+}
+
+export const swapQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
+  return CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
     body: JSON.stringify({
       ...params,
       type: 'EXACT_INPUT', // TODO: Remove this once the backend is updated
@@ -157,6 +365,23 @@ export async function fetchQuote({
       ...getFeatureFlaggedHeaders(),
     },
   })
+}
+
+export type FetchQuote = (params: QuoteRequest & { isUSDQuote?: boolean }) => Promise<DiscriminatedQuoteResponse>
+
+export async function fetchQuote({
+  isUSDQuote: _isUSDQuote,
+  ...params
+}: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
+  if (isBitcoinBridgeQuote(params)) {
+    return await getBitcoinCrossChainQuote(params)
+  }
+
+  if (isLnBitcoinBridgeQuote(params)) {
+    return await getLightningBridgeQuote(params)
+  }
+
+  return await swapQuote(params)
 }
 
 // min parameters needed for indicative quotes
@@ -408,22 +633,14 @@ export async function fetchOrdersWithoutIds({
   })
 }
 
-export async function fetchSwappableTokens(_params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
-  // DISABLED: Endpoint /v1/swappable_tokens does not exist in backend API
-  return {
-    requestId: '',
-    tokens: [],
-  }
+export async function fetchSwappableTokens(params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
+  const { tokenIn, tokenInChainId } = params
+  const tokens = swappableTokensMappping[tokenInChainId]?.[tokenIn] ?? []
 
-  // return await TradingApiClient.get<GetSwappableTokensResponse>(uniswapUrls.tradingApiPaths.swappableTokens, {
-  //   params: {
-  //     tokenIn: _params.tokenIn,
-  //     tokenInChainId: _params.tokenInChainId,
-  //   },
-  //   headers: {
-  //     ...getFeatureFlaggedHeaders(),
-  //   },
-  // })
+  return {
+    requestId: Math.random().toString(36).substring(2, 15),
+    tokens,
+  }
 }
 
 export async function createLpPosition(params: CreateLPPositionRequest): Promise<CreateLPPositionResponse> {
@@ -524,6 +741,18 @@ export async function fetchWalletEncoding7702(params: WalletEncode7702RequestBod
     headers: {
       ...getFeatureFlaggedHeaders(),
     },
+  })
+}
+
+export async function fetchLightningInvoice(params: {
+  amount: string
+  lnLikeAddress: string
+}): Promise<LightningInvoice> {
+  return await TradingApiClient.post<LightningInvoice>('/v1/lightning/invoice', {
+    body: JSON.stringify({
+      amount: params.amount,
+      lnLikeAddress: params.lnLikeAddress,
+    }),
   })
 }
 
@@ -649,4 +878,12 @@ export async function checkWalletDelegation(
   // Merge all responses
   return mergeDelegationResponses(responses)
   */
+}
+
+export async function validateLightningAddress(params: { lnLikeAddress: string }): Promise<{ validated: boolean }> {
+  return await TradingApiClient.post<{ validated: boolean }>('/v1/lightning/validate', {
+    body: JSON.stringify({
+      ...params,
+    }),
+  })
 }

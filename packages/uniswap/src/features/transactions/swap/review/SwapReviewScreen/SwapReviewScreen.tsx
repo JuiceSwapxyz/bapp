@@ -8,9 +8,9 @@ import { FLASHBLOCKS_UI_SKIP_ROUTES } from 'uniswap/src/features/transactions/sw
 import { useClearFlashblocksSwapNotifications } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/hooks/useClearFlashblocksSwapNotifications'
 import { useIsUnichainFlashblocksEnabled } from 'uniswap/src/features/transactions/swap/hooks/useIsUnichainFlashblocksEnabled'
 import { SwapErrorScreen } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapErrorScreen'
+import { SwapLnBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLnBridgeDetails/SwapLnBridgeDetails'
 import { SwapReviewFooter } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/SwapReviewFooter'
 import { SwapReviewLoadingView } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewLoadingView'
-import { SwapReviewSwapDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewSwapDetails'
 import { SwapReviewWarningModal } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewWarningModal'
 import { SwapReviewWrapTransactionDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewWrapTransactionDetails'
 import { TransactionAmountsReview } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/TransactionAmountsReview'
@@ -94,11 +94,14 @@ export function SwapReviewScreenProviders({ hideContent, onSubmitSwap }: SwapRev
 }
 
 function SwapReviewContent(): JSX.Element | null {
-  const { acceptedDerivedSwapInfo, isWrap, newTradeRequiresAcceptance } = useSwapReviewTransactionStore((s) => ({
-    acceptedDerivedSwapInfo: s.acceptedDerivedSwapInfo,
-    isWrap: s.isWrap,
-    newTradeRequiresAcceptance: s.newTradeRequiresAcceptance,
-  }))
+  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, newTradeRequiresAcceptance } = useSwapReviewTransactionStore(
+    (s) => ({
+      acceptedDerivedSwapInfo: s.acceptedDerivedSwapInfo,
+      isWrap: s.isWrap,
+      isLnBridge: s.isLnBridge,
+      newTradeRequiresAcceptance: s.newTradeRequiresAcceptance,
+    }),
+  )
 
   const { steps, currentStep, hideContent } = useSwapReviewStore((s) => ({
     steps: s.steps,
@@ -160,9 +163,9 @@ function SwapReviewContent(): JSX.Element | null {
             <ProgressIndicator currentStep={currentStep} steps={steps} />
           ) : isWrap ? (
             <SwapReviewWrapTransactionDetails />
-          ) : (
-            <SwapReviewSwapDetails />
-          )}
+          ) : isLnBridge ? (
+            <SwapLnBridgeDetails />
+          ) : null}
         </Flex>
       </SwapReviewContentWrapper>
       <SwapReviewFooter />

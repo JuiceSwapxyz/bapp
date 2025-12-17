@@ -2,11 +2,14 @@ import { memo, useMemo } from 'react'
 import { Flex, IconButton, useIsShortMobileDevice } from 'ui/src'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import type { Warning } from 'uniswap/src/components/modals/WarningModal/types'
+import { useValidateLightningAddress } from 'uniswap/src/data/apiClients/tradingApi/useValidateLightningAddress'
+import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { UnichainPoweredMessage } from 'uniswap/src/features/transactions/TransactionDetails/UnichainPoweredMessage'
 import { getShouldDisplayTokenWarningCard } from 'uniswap/src/features/transactions/TransactionDetails/utils/getShouldDisplayTokenWarningCard'
 import { TransactionModalFooterContainer } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModal'
 import { SubmitSwapButton } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/SubmitSwapButton'
+import { useLnBrideSwapDetails } from 'uniswap/src/features/transactions/swap/review/hooks/useLnBrideSwapDetails'
 import { useSwapOnPrevious } from 'uniswap/src/features/transactions/swap/review/hooks/useSwapOnPrevious'
 import { useSwapReviewCallbacksStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewCallbacksStore/useSwapReviewCallbacksStore'
 import { useShowInterfaceReviewSteps } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewStore/useSwapReviewStore'
@@ -72,11 +75,21 @@ function useSwapSubmitButton(): {
   }))
 
   const tokenWarningChecked = useSwapReviewWarningStore((s) => s.tokenWarningChecked)
+  const bitcoinDestinationAddress = useSwapFormStore((s) => s.bitcoinDestinationAddress)
+  const { data: validated } = useValidateLightningAddress({
+    lnLikeAddress: bitcoinDestinationAddress ?? '',
+    debounceDelayMs: 200,
+  })
+  const { direction } = useLnBrideSwapDetails()
+  const shouldValidateLightningAddress = direction === LightningBridgeDirection.Submarine
+
   const { isSubmitting, showPendingUI } = useSwapFormStore((s) => ({
     isSubmitting: s.isSubmitting,
     showPendingUI: s.showPendingUI,
   }))
+
   const onSwapButtonClick = useSwapReviewCallbacksStore((s) => s.onSwapButtonClick)
+
   const { shouldDisplayTokenWarningCard } = getShouldDisplayTokenWarningCard({
     tokenWarningProps,
     feeOnTransferProps,
@@ -85,13 +98,15 @@ function useSwapSubmitButton(): {
   const submitButtonDisabled = useMemo(() => {
     const validSwap = isValidSwapTxContext(swapTxContext)
     const isTokenWarningBlocking = shouldDisplayTokenWarningCard && !tokenWarningChecked
+    const isLightningAddressInvalid = shouldValidateLightningAddress && !validated
 
     return (
       (!validSwap && !isWrap) ||
       !!blockingWarning ||
       newTradeRequiresAcceptance ||
       isSubmitting ||
-      isTokenWarningBlocking
+      isTokenWarningBlocking ||
+      isLightningAddressInvalid
     )
   }, [
     swapTxContext,
@@ -101,6 +116,8 @@ function useSwapSubmitButton(): {
     isSubmitting,
     tokenWarningChecked,
     shouldDisplayTokenWarningCard,
+    shouldValidateLightningAddress,
+    validated,
   ])
 
   return {

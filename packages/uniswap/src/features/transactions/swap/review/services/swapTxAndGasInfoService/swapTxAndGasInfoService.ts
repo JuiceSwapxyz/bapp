@@ -8,6 +8,7 @@ export type SwapTxAndGasInfoParameters<T extends Trade = Trade> = {
   derivedSwapInfo: DerivedSwapInfo
   trade: T
   approvalTxInfo: ApprovalTxInfo
+  bitcoinDestinationAddress?: string
 }
 
 export interface SwapTxAndGasInfoService<T extends Trade = Trade> {

@@ -10,6 +10,9 @@ import { useSetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap
 import { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
+import { handleBitcoinBridgeLockTransactionStep } from 'state/sagas/transactions/bitcoinBridge'
+import { handleLightningBridgeReverse } from 'state/sagas/transactions/lightningBridgeReverse'
+import { handleLightningBridgeSubmarine } from 'state/sagas/transactions/lightningBridgeSubmarine'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
 import { handleUniswapXSignatureStep } from 'state/sagas/transactions/uniswapx'
 import {
@@ -52,7 +55,11 @@ import { PermitMethod, ValidatedSwapTxContext } from 'uniswap/src/features/trans
 import { BridgeTrade, ClassicTrade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { slippageToleranceToPercent } from 'uniswap/src/features/transactions/swap/utils/format'
 import { generateSwapTransactionSteps } from 'uniswap/src/features/transactions/swap/utils/generateSwapTransactionSteps'
-import { UNISWAPX_ROUTING_VARIANTS, isClassic } from 'uniswap/src/features/transactions/swap/utils/routing'
+import {
+  UNISWAPX_ROUTING_VARIANTS,
+  isClassic,
+  isLightningBridge,
+} from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import {
@@ -239,10 +246,14 @@ function* swap(params: SwapParams) {
   } = params
   const { trade } = swapTxContext
 
-  const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
-  if (chainSwitchFailed) {
-    onFailure()
-    return
+  const isLightningBridgeSwap = isLightningBridge(swapTxContext)
+  const changeChain = !isLightningBridgeSwap
+  if (changeChain) {
+    const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
+    if (chainSwitchFailed) {
+      onFailure()
+      return
+    }
   }
 
   const steps = yield* call(generateSwapTransactionSteps, swapTxContext, v4Enabled)
@@ -298,6 +309,44 @@ function* swap(params: SwapParams) {
           yield* call(handleUniswapXSignatureStep, { account, step, setCurrentStep, trade, analytics })
           break
         }
+        case TransactionStepType.BitcoinBridgeLockTransactionStep: {
+          requireRouting(swapTxContext, [Routing.BITCOIN_BRIDGE])
+          yield* call(handleBitcoinBridgeLockTransactionStep, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+          })
+          break
+        }
+        case TransactionStepType.LightningBridgeSubmarineStep: {
+          requireRouting(swapTxContext, [Routing.LN_BRIDGE])
+          yield* call(handleLightningBridgeSubmarine, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
+        case TransactionStepType.LightningBridgeReverseStep: {
+          requireRouting(swapTxContext, [Routing.LN_BRIDGE])
+          yield* call(handleLightningBridgeReverse, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
         default: {
           throw new UnexpectedTransactionStateError(`Unexpected step type: ${step.type}`)
         }
@@ -313,7 +362,10 @@ function* swap(params: SwapParams) {
     return
   }
 
-  yield* call(onSuccess)
+  // For lightning bridge, onSuccess is called earlier in the flow
+  if (!isLightningBridgeSwap) {
+    yield* call(onSuccess)
+  }
 }
 
 export const swapSaga = createSaga(swap, 'swapSaga')
