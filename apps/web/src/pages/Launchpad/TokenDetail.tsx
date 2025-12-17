@@ -229,7 +229,7 @@ export default function TokenDetail() {
     try {
       const tx = await graduate()
       addTransaction(tx, {
-        type: TransactionType.Unknown,
+        type: TransactionType.LaunchpadGraduate,
         tokenAddress: tokenAddress as `0x${string}`,
         dappInfo: { name: `Graduated ${symbol} to JuiceSwap V2` },
       })
@@ -238,7 +238,7 @@ export default function TokenDetail() {
     } finally {
       setIsGraduating(false)
     }
-  }, [graduate, addTransaction, symbol])
+  }, [graduate, addTransaction, symbol, tokenAddress])
 
   // Format values
   const liquidity = useMemo(() => {

@@ -164,6 +164,26 @@ const getTransactionTitleTable = (): {
     [TransactionStatus.Success]: i18n.t('transaction.status.swap.success'),
     [TransactionStatus.Failed]: i18n.t('common.swap.failed'),
   },
+  [TransactionType.LaunchpadCreateToken]: {
+    [TransactionStatus.Pending]: i18n.t('common.creating'),
+    [TransactionStatus.Success]: i18n.t('common.created'),
+    [TransactionStatus.Failed]: i18n.t('common.create.failed'),
+  },
+  [TransactionType.LaunchpadBuy]: {
+    [TransactionStatus.Pending]: i18n.t('common.buying'),
+    [TransactionStatus.Success]: i18n.t('common.bought'),
+    [TransactionStatus.Failed]: i18n.t('common.buy.failed'),
+  },
+  [TransactionType.LaunchpadSell]: {
+    [TransactionStatus.Pending]: i18n.t('common.selling'),
+    [TransactionStatus.Success]: i18n.t('common.sold'),
+    [TransactionStatus.Failed]: i18n.t('common.sell.failed'),
+  },
+  [TransactionType.LaunchpadGraduate]: {
+    [TransactionStatus.Pending]: i18n.t('common.graduating'),
+    [TransactionStatus.Success]: i18n.t('common.graduated'),
+    [TransactionStatus.Failed]: i18n.t('common.graduate.failed'),
+  },
   [TransactionType.RemoveDelegation]: {
     [TransactionStatus.Pending]: i18n.t('transaction.status.removeDelegation.pending'),
     [TransactionStatus.Success]: i18n.t('transaction.status.removeDelegation.success'),
@@ -202,6 +222,10 @@ export const getCancelledTransactionTitleTable = (): { [key in TransactionType]:
   [TransactionType.SendCalls]: i18n.t('transaction.status.send.canceled'),
   [TransactionType.CreatePosition]: i18n.t('pool.createdPosition.canceled'),
   [TransactionType.UniswapXOrder]: i18n.t('transaction.status.swap.canceled'),
+  [TransactionType.LaunchpadCreateToken]: i18n.t('common.create.canceled'),
+  [TransactionType.LaunchpadBuy]: i18n.t('common.buy.canceled'),
+  [TransactionType.LaunchpadSell]: i18n.t('common.sell.canceled'),
+  [TransactionType.LaunchpadGraduate]: i18n.t('common.graduate.canceled'),
   [TransactionType.RemoveDelegation]: i18n.t('transaction.status.removeDelegation.canceled'),
 })
 

@@ -103,7 +103,7 @@ export function useBuy(
         if (didUserReject(error)) {
           throw new UserRejectedRequestError('Buy transaction rejected')
         }
-        logger.error('useLaunchpadActions', 'useBuy', 'Buy transaction failed', { error })
+        logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useBuy' } })
         throw error
       }
     },
@@ -158,7 +158,7 @@ export function useSell(
         if (didUserReject(error)) {
           throw new UserRejectedRequestError('Sell transaction rejected')
         }
-        logger.error('useLaunchpadActions', 'useSell', 'Sell transaction failed', { error })
+        logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useSell' } })
         throw error
       }
     },
@@ -234,7 +234,7 @@ export function useCreateToken(
         if (didUserReject(error)) {
           throw new UserRejectedRequestError('Create token transaction rejected')
         }
-        logger.error('useLaunchpadActions', 'useCreateToken', 'Create token transaction failed', { error })
+        logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useCreateToken' } })
         throw error
       }
     },
@@ -283,7 +283,7 @@ export function useGraduate(
       if (didUserReject(error)) {
         throw new UserRejectedRequestError('Graduate transaction rejected')
       }
-      logger.error('useLaunchpadActions', 'useGraduate', 'Graduate transaction failed', { error })
+      logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useGraduate' } })
       throw error
     }
   }, [chainId, selectChain])

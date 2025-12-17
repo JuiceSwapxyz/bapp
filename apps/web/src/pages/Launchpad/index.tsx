@@ -103,15 +103,15 @@ const TokenGrid = styled(Flex, {
 })
 
 const TokenCardWrapper = styled(Flex, {
-  width: '100%',
-  $gtSm: {
-    width: 'calc(50% - 8px)',
-  },
-  $gtMd: {
+  width: 'calc(25% - 12px)',
+  $lg: {
     width: 'calc(33.333% - 11px)',
   },
-  $gtLg: {
-    width: 'calc(25% - 12px)',
+  $md: {
+    width: 'calc(50% - 8px)',
+  },
+  $sm: {
+    width: '100%',
   },
 })
 
@@ -127,7 +127,7 @@ const SkeletonCard = styled(Flex, {
 const SkeletonBox = styled(Flex, {
   backgroundColor: '$surface3',
   borderRadius: '$rounded8',
-  animation: 'pulse 1.5s ease-in-out infinite',
+  opacity: 0.7,
 })
 
 const EmptyState = styled(Flex, {
@@ -287,8 +287,8 @@ export default function Launchpad() {
             {pagination && pagination.totalPages > 1 && (
               <Flex flexDirection="row" justifyContent="center" gap="$spacing8">
                 <FilterTab
-                  onPress={() => setPage(Math.max(0, page - 1))}
-                  style={{ opacity: page === 0 ? 0.5 : 1 }}
+                  onPress={page === 0 ? undefined : () => setPage(Math.max(0, page - 1))}
+                  style={{ opacity: page === 0 ? 0.5 : 1, cursor: page === 0 ? 'not-allowed' : 'pointer' }}
                 >
                   <Text variant="body2" color="$neutral2">Previous</Text>
                 </FilterTab>
@@ -298,8 +298,8 @@ export default function Launchpad() {
                   </Text>
                 </FilterTab>
                 <FilterTab
-                  onPress={() => setPage(page + 1)}
-                  style={{ opacity: page + 1 >= pagination.totalPages ? 0.5 : 1 }}
+                  onPress={page + 1 >= pagination.totalPages ? undefined : () => setPage(page + 1)}
+                  style={{ opacity: page + 1 >= pagination.totalPages ? 0.5 : 1, cursor: page + 1 >= pagination.totalPages ? 'not-allowed' : 'pointer' }}
                 >
                   <Text variant="body2" color="$neutral2">Next</Text>
                 </FilterTab>

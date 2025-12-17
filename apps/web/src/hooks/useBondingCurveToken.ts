@@ -37,7 +37,7 @@ export function useBondingCurveToken(
 
   const contracts = useMemo(() => {
     if (!address) {
-      return []
+      return undefined
     }
     const baseContract = { address, chainId, abi: BONDING_CURVE_TOKEN_ABI }
     return [
@@ -62,7 +62,7 @@ export function useBondingCurveToken(
   })
 
   return useMemo(() => {
-    if (!data || data.length === 0) {
+    if (!data) {
       return {
         name: undefined,
         symbol: undefined,

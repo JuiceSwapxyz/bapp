@@ -44,7 +44,7 @@ export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.Citre
 
   const contracts = useMemo(() => {
     if (!address) {
-      return []
+      return undefined
     }
     const baseContract = { address, chainId, abi: TOKEN_FACTORY_ABI }
     return [
@@ -61,7 +61,7 @@ export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.Citre
   })
 
   return useMemo(() => {
-    if (!data || data.length === 0) {
+    if (!data) {
       return {
         baseAsset: undefined,
         feeRecipient: undefined,

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Flex, Text, styled } from 'ui/src'
 import styledComponents from 'lib/styled-components'
 import { useAccount } from 'hooks/useAccount'
@@ -172,6 +173,7 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
   const account = useAccount()
   const chainId = UniverseChainId.CitreaTestnet
   const addTransaction = useTransactionAdder()
+  const queryClient = useQueryClient()
 
   // Parse input amount
   const parsedAmount = useMemo(() => {
@@ -318,7 +320,7 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
         const tx = await buy({ baseIn: parsedAmount, minTokensOut: minOut })
         const formattedAmount = Number(formatUnits(tokensOut || 0n, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
         addTransaction(tx, {
-          type: TransactionType.Unknown,
+          type: TransactionType.LaunchpadBuy,
           tokenAddress: tokenAddress as `0x${string}`,
           dappInfo: { name: `Bought ${formattedAmount} ${tokenSymbol}` },
         })
@@ -332,7 +334,7 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
         const tx = await sell({ tokensIn: parsedAmount, minBaseOut: minOut })
         const formattedAmount = Number(formatUnits(parsedAmount, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
         addTransaction(tx, {
-          type: TransactionType.Unknown,
+          type: TransactionType.LaunchpadSell,
           tokenAddress: tokenAddress as `0x${string}`,
           dappInfo: { name: `Sold ${formattedAmount} ${tokenSymbol}` },
         })
@@ -340,6 +342,9 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
       setAmount('')
       refetchTokenBalance()
       refetchBaseBalance()
+      // Invalidate launchpad queries to update progress bars
+      queryClient.invalidateQueries({ queryKey: ['launchpad-tokens'] })
+      queryClient.invalidateQueries({ queryKey: ['launchpad-token', tokenAddress] })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Transaction failed'
       setError(message)
@@ -362,6 +367,8 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
     refetchBaseBalance,
     addTransaction,
     tokenSymbol,
+    tokenAddress,
+    queryClient,
   ])
 
   const buttonText = useMemo(() => {

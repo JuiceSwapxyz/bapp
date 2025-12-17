@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router'
 import { useCallback, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
+import styledComponents from 'lib/styled-components'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import { useAccount } from 'hooks/useAccount'
 import { useCreateToken } from 'hooks/useLaunchpadActions'
@@ -80,22 +81,21 @@ const InputHint = styled(Text, {
   color: '$neutral3',
 })
 
-const StyledInput = styled('input', {
-  width: '100%',
-  height: 48,
-  backgroundColor: '$surface1',
-  borderWidth: 1,
-  borderColor: '$surface3',
-  borderRadius: '$rounded12',
-  paddingLeft: 16,
-  paddingRight: 16,
-  fontSize: 16,
-  color: '$neutral1',
-  outline: 'none',
-  focusStyle: {
-    borderColor: '$accent1',
-  },
-})
+const StyledInput = styledComponents.input`
+  width: 100%;
+  height: 48px;
+  background-color: ${({ theme }) => theme.surface1};
+  border: 1px solid ${({ theme }) => theme.surface3};
+  border-radius: 12px;
+  padding-left: 16px;
+  padding-right: 16px;
+  font-size: 16px;
+  color: ${({ theme }) => theme.neutral1};
+  outline: none;
+  &:focus {
+    border-color: ${({ theme }) => theme.accent1};
+  }
+`
 
 const CreateButton = styled(Flex, {
   alignItems: 'center',
@@ -203,7 +203,7 @@ export default function CreateToken() {
     try {
       const { tx, tokenAddress } = await createToken({ name: trimmedName, symbol: trimmedSymbol })
       addTransaction(tx, {
-        type: TransactionType.Unknown,
+        type: TransactionType.LaunchpadCreateToken,
         tokenAddress: tokenAddress as `0x${string}` | undefined,
         dappInfo: { name: `Created ${trimmedSymbol} token` },
       })
@@ -257,9 +257,9 @@ export default function CreateToken() {
                 placeholder="My Awesome Token"
                 value={name}
                 onChange={handleNameChange}
-                maxLength={50}
+                maxLength={32}
               />
-              <InputHint>The full name of your token (e.g., "Dogecoin")</InputHint>
+              <InputHint>The full name of your token (e.g., "Dogecoin"). Max 32 characters.</InputHint>
             </InputGroup>
 
             <InputGroup>
