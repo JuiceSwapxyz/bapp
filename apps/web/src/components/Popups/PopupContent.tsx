@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import bitcoinLogo from 'assets/images/coins/bitcoin.png'
 import { useOpenOffchainActivityModal } from 'components/AccountDrawer/MiniPortfolio/Activity/OffchainActivityModal'
 import {
   getFORTransactionToActivityQueryOptions,
@@ -9,17 +10,23 @@ import { Activity } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
 import { PortfolioLogo } from 'components/AccountDrawer/MiniPortfolio/PortfolioLogo'
 import AlertTriangleFilled from 'components/Icons/AlertTriangleFilled'
 import { LoaderV3 } from 'components/Icons/LoadingSpinner'
-import { POPUP_MAX_WIDTH } from 'components/Popups/constants'
 import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
+import { POPUP_MAX_WIDTH } from 'components/Popups/constants'
+import { LightningBridgeStatus } from 'components/Popups/types'
 import { useIsRecentFlashblocksNotification } from 'hooks/useIsRecentFlashblocksNotification'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useOrder } from 'state/signatures/hooks'
 import { useTransaction } from 'state/transactions/hooks'
 import { isPendingTx } from 'state/transactions/utils'
 import { EllipsisTamaguiStyle } from 'theme/components/styles'
 import { Flex, Text, TouchableArea, useSporeColors } from 'ui/src'
+import { Arrow } from 'ui/src/components/arrow/Arrow'
 import { X } from 'ui/src/components/icons/X'
+import { iconSizes } from 'ui/src/theme'
+import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { BridgeIcon } from 'uniswap/src/components/CurrencyLogo/SplitLogo'
+import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useIsSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -240,33 +247,53 @@ export function BridgingPopupContent({ hash, onClose }: { hash: string; onClose:
 }
 
 export function LightningBridgePopupContent({
-  _id,
   direction,
   status,
-  _invoice,
   onClose,
 }: {
-  _id: string
-  direction: 'submarine' | 'reverse'
-  status: 'pending' | 'confirmed' | 'failed'
-  _invoice?: string
+  direction: LightningBridgeDirection
+  status: LightningBridgeStatus
   onClose: () => void
 }) {
   const { t } = useTranslation()
   const colors = useSporeColors()
 
-  const title = direction === 'submarine' ? t('Lightning Bridge Submarine') : t('Lightning Bridge Reverse')
-  const getDescriptor = () => {
-    if (status === 'pending') {
-      return t('Processing Lightning Bridge transaction...')
+  const title = useMemo(() => {
+    switch (status) {
+      case LightningBridgeStatus.Pending:
+        return t('Bridging Bitcoins')
+      case LightningBridgeStatus.Confirmed:
+        return t('Bitcoins bridged successfully')
+      case LightningBridgeStatus.Failed:
+        return t('Bitcoins bridging failed')
+      default:
+        return t('Bridging Bitcoins')
     }
-    if (status === 'confirmed') {
-      return t('Lightning Bridge completed successfully')
-    }
-    return t('Lightning Bridge failed')
-  }
+  }, [status, t])
 
-  const isPending = status === 'pending'
+  const logoTo = useMemo(() => {
+    switch (direction) {
+      case LightningBridgeDirection.Submarine:
+        return UniverseChainId.LightningNetwork
+      case LightningBridgeDirection.Reverse:
+        return UniverseChainId.CitreaTestnet
+      default:
+        return UniverseChainId.CitreaTestnet
+    }
+  }, [direction])
+
+  const logoFrom = useMemo(() => {
+    switch (direction) {
+      case LightningBridgeDirection.Submarine:
+        return UniverseChainId.CitreaTestnet
+      case LightningBridgeDirection.Reverse:
+        return UniverseChainId.LightningNetwork
+      default:
+        return UniverseChainId.CitreaTestnet
+    }
+  }, [direction])
+
+  const isPending = status === LightningBridgeStatus.Pending
 
   return (
     <Flex
@@ -288,19 +315,23 @@ export function LightningBridgePopupContent({
       <TouchableArea onPress={noop} flex={1}>
         <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
           <Flex justifyContent="center">
-            {status === 'failed' ? (
-              <AlertTriangleFilled color="$neutral2" size="32px" />
-            ) : (
-              <PortfolioLogo chainId={UniverseChainId.Mainnet} currencies={[]} />
-            )}
+            <PortfolioLogo chainId={UniverseChainId.Mainnet} images={[bitcoinLogo]} size={32} />
           </Flex>
           <Flex justifyContent="center" gap="$gap4" fill>
             <Text variant="body2" color="$neutral1">
               {title}
             </Text>
-            <Text variant="body3" color="$neutral2" {...EllipsisTamaguiStyle}>
-              {getDescriptor()}
-            </Text>
+            <Flex row alignItems="center" gap="$gap4">
+              <NetworkLogo chainId={logoFrom} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {direction === 'submarine' ? 'Citrea' : 'Lightning Network'}
+              </Text>
+              <Arrow direction="e" color="$neutral3" size={iconSizes.icon16} />
+              <NetworkLogo chainId={logoTo} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {direction === 'submarine' ? 'Lightning Network' : 'Citrea'}
+              </Text>
+            </Flex>
           </Flex>
         </Flex>
       </TouchableArea>

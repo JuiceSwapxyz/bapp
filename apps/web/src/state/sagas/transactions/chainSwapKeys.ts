@@ -48,7 +48,7 @@ const saveKeyIndex = (keyIndex: number) => {
  */
 export const generateChainSwapKeys = (mnemonic?: string, index?: number): ChainSwapKeys => {
   const finalMnemonic = mnemonic || getLastMnemonic() || generateMnemonic(wordlist)
-  const lastKeyIndex = index || getLastKeyIndex()
+  const lastKeyIndex = index !== undefined ? index : getLastKeyIndex()
   const finalKeyIndex = lastKeyIndex + 1
 
   saveMnemonic(finalMnemonic)

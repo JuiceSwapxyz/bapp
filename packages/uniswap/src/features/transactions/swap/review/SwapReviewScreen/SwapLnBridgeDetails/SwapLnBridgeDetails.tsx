@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
 import { Flex, QRCodeDisplay, Text, TouchableArea, useSporeColors } from 'ui/src'
+import { HeightAnimator } from 'ui/src/animations/components/HeightAnimator'
 import { CopySheets } from 'ui/src/components/icons/CopySheets'
 import { Separator } from 'ui/src/components/layout/Separator'
 import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
@@ -77,19 +78,21 @@ export function ReverseLnBridgeDetails(): JSX.Element {
   return (
     <>
       <Separator my="$spacing8" ml="$spacing12" mr="$spacing12" />
-      {lightningInvoice ? (
-        <Flex alignItems="center" gap="$spacing12">
-          <QRCodeDisplay encodedValue={lightningInvoice} size={300} color="white" ecl="L" />
-          <TouchableArea hitSlop={16} onPress={handleCopyInvoice}>
-            <Flex row alignItems="center" gap="$spacing8">
-              <Text color={isCopied ? '$statusSuccess' : '$neutral2'} variant="body3">
-                {isCopied ? t('common.copied') : displayInvoice}
-              </Text>
-              <CopySheets color={isCopied ? colors.statusSuccess.get() : colors.neutral3.get()} size="$icon.16" />
-            </Flex>
-          </TouchableArea>
-        </Flex>
-      ) : null}
+      {lightningInvoice && (
+        <HeightAnimator open animation="fast">
+          <Flex alignItems="center" gap="$spacing12">
+            <QRCodeDisplay encodedValue={lightningInvoice} size={300} color="white" ecl="L" />
+            <TouchableArea hitSlop={16} onPress={handleCopyInvoice}>
+              <Flex row alignItems="center" gap="$spacing8">
+                <Text color={isCopied ? '$statusSuccess' : '$neutral2'} variant="body3">
+                  {isCopied ? t('common.copied') : displayInvoice}
+                </Text>
+                <CopySheets color={isCopied ? colors.statusSuccess.get() : colors.neutral3.get()} size="$icon.16" />
+              </Flex>
+            </TouchableArea>
+          </Flex>
+        </HeightAnimator>
+      )}
     </>
   )
 }

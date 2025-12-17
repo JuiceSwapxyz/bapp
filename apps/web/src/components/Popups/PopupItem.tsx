@@ -76,14 +76,7 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
       )
     }
     case PopupType.LightningBridge: {
-      return (
-        <LightningBridgePopupContent
-          _id={content.id}
-          direction={content.direction}
-          status={content.status}
-          onClose={onClose}
-        />
-      )
+      return <LightningBridgePopupContent direction={content.direction} status={content.status} onClose={onClose} />
     }
     default:
       return null

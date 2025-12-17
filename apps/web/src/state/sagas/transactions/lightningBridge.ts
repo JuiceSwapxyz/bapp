@@ -46,7 +46,7 @@ const ponderClaim = createApiClient({
 const pollPonderForLockup = (preimageHash: string) => {
   return retry(
     async () => {
-      const response = await ponderClaim.post<{ data: { lockups: { preimageHash: string }[] } }>('/', {
+      const response = await ponderClaim.post<{ data: { lockups?: { preimageHash: string } | null } }>('/', {
         body: JSON.stringify({
           operationName: 'LockupQuery',
           query: `query LockupQuery {
@@ -57,11 +57,44 @@ const pollPonderForLockup = (preimageHash: string) => {
         }),
       })
 
-      if (response.data.lockups.length === 0) {
+      if (!response.data.lockups) {
         throw new RetryableError('Lockup not found yet, retrying...')
       }
 
       return response.data.lockups
+    },
+    {
+      n: 100,
+      minWait: 7000,
+      medWait: 7000,
+      maxWait: 7000,
+    },
+  )
+}
+
+const pollPonderForClaim = (preimageHash: string) => {
+  return retry(
+    async () => {
+      const response = await ponderClaim.post<{
+        data: { lockups?: { preimageHash: string; preimage: string } | null }
+      }>('/', {
+        body: JSON.stringify({
+          operationName: 'LockupQuery',
+          query: `query LockupQuery {
+          lockups(preimageHash: "${prefix0x(preimageHash)}") {
+            preimageHash
+            preimage
+
+          }
+        }`,
+        }),
+      })
+
+      if (!response.data.lockups || !response.data.lockups.preimage) {
+        throw new RetryableError('Claim not found yet, retrying...')
+      }
+
+      return response.data.lockups.preimage
     },
     {
       n: 100,
@@ -153,6 +186,18 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgePar
   if (onSuccess) {
     yield* call(onSuccess)
   }
+
+  yield* call(pollPonderForClaim, preimageHash)
+
+  popupRegistry.addPopup(
+    {
+      type: PopupType.LightningBridge,
+      id: preimageHash,
+      direction: LightningBridgeDirection.Submarine,
+      status: LightningBridgeStatus.Confirmed,
+    },
+    preimageHash,
+  )
 }
 
 export function* handleLightningBridgeReverse(params: HandleLightningBridgeParams) {
@@ -215,13 +260,22 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeParam
   yield* call(() => ponderPromise)
   cancelPonderPolling()
 
-  // this returns {txHash: string} that we can use later
-  yield* call(() =>
-    ponderClaim.post<{ preimage: string; preimageHash: string }>('/help-me-claim', {
+  const { txHash } = yield* call(() =>
+    ponderClaim.post<{ txHash: string }>('/help-me-claim', {
       body: JSON.stringify({
         preimage,
         preimageHash: prefix0x(preimageHash),
       }),
     }),
+  )
+
+  popupRegistry.addPopup(
+    {
+      type: PopupType.LightningBridge,
+      id: txHash,
+      direction: LightningBridgeDirection.Reverse,
+      status: LightningBridgeStatus.Confirmed,
+    },
+    txHash,
   )
 }
