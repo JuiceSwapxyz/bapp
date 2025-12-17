@@ -17,6 +17,8 @@ import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
+import { useTransactionAdder } from 'state/transactions/hooks'
+import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
 
 const PageContainer = styled(Flex, {
   width: '100%',
@@ -196,8 +198,10 @@ export default function TokenDetail() {
 
   const { tokenInfo } = useTokenInfo(tokenAddress)
   const [showBondingModal, setShowBondingModal] = useState(false)
+  const [isGraduating, setIsGraduating] = useState(false)
 
   const graduate = useGraduate(tokenAddress)
+  const addTransaction = useTransactionAdder()
 
   const handleBack = useCallback(() => {
     navigate('/launchpad')
@@ -221,12 +225,20 @@ export default function TokenDetail() {
   }, [tokenAddress])
 
   const handleGraduate = useCallback(async () => {
+    setIsGraduating(true)
     try {
-      await graduate()
+      const tx = await graduate()
+      addTransaction(tx, {
+        type: TransactionType.Unknown,
+        tokenAddress: tokenAddress as `0x${string}`,
+        dappInfo: { name: `Graduated ${symbol} to JuiceSwap V2` },
+      })
     } catch (error) {
       console.error('Graduate failed:', error)
+    } finally {
+      setIsGraduating(false)
     }
-  }, [graduate])
+  }, [graduate, addTransaction, symbol])
 
   // Format values
   const liquidity = useMemo(() => {
@@ -347,9 +359,13 @@ export default function TokenDetail() {
                   </Flex>
 
                   {canGraduate && !graduated && (
-                    <GraduateButton onPress={handleGraduate}>
+                    <GraduateButton
+                      onPress={isGraduating ? undefined : handleGraduate}
+                      opacity={isGraduating ? 0.6 : 1}
+                      cursor={isGraduating ? 'not-allowed' : 'pointer'}
+                    >
                       <Text variant="buttonLabel2" color="$white">
-                        Graduate to JuiceSwap V2
+                        {isGraduating ? 'Graduating...' : 'Graduate to JuiceSwap V2'}
                       </Text>
                     </GraduateButton>
                   )}

@@ -203,8 +203,9 @@ export default function CreateToken() {
     try {
       const { tx, tokenAddress } = await createToken({ name: trimmedName, symbol: trimmedSymbol })
       addTransaction(tx, {
-        type: TransactionType.Custom,
-        summary: `Created ${trimmedSymbol} token`,
+        type: TransactionType.Unknown,
+        tokenAddress: tokenAddress as `0x${string}` | undefined,
+        dappInfo: { name: `Created ${trimmedSymbol} token` },
       })
       if (tokenAddress) {
         navigate(`/launchpad/${tokenAddress}`)

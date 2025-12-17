@@ -11,6 +11,7 @@ import { TransactionType } from 'uniswap/src/features/transactions/types/transac
 import { formatUnits, parseUnits } from 'viem'
 import { Token, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { useBalance } from 'wagmi'
 
 const PanelContainer = styled(Flex, {
   backgroundColor: '$surface2',
@@ -201,6 +202,14 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
     chainId
   )
 
+  // Get base asset (JUSD) balance
+  const { data: baseBalance, refetch: refetchBaseBalance } = useBalance({
+    address: account.address as `0x${string}` | undefined,
+    token: baseAsset as `0x${string}` | undefined,
+    chainId,
+    query: { enabled: !!account.address && !!baseAsset },
+  })
+
   // Create Token objects for allowance hook
   const baseToken = useMemo(() => {
     if (!baseAsset) {return undefined}
@@ -272,6 +281,11 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
     return Number(formatUnits(tokenBalance, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [tokenBalance])
 
+  const formattedBaseBalance = useMemo(() => {
+    if (!baseBalance) {return '0'}
+    return Number(formatUnits(baseBalance.value, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
+  }, [baseBalance])
+
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
@@ -281,10 +295,12 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
   }, [])
 
   const handleMaxClick = useCallback(() => {
-    if (!isBuy && tokenBalance) {
+    if (isBuy && baseBalance) {
+      setAmount(formatUnits(baseBalance.value, 18))
+    } else if (!isBuy && tokenBalance) {
       setAmount(formatUnits(tokenBalance, 18))
     }
-  }, [isBuy, tokenBalance])
+  }, [isBuy, baseBalance, tokenBalance])
 
   const handleAction = useCallback(async () => {
     if (!parsedAmount || parsedAmount === 0n || !account.address) {return}
@@ -302,8 +318,9 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
         const tx = await buy({ baseIn: parsedAmount, minTokensOut: minOut })
         const formattedAmount = Number(formatUnits(tokensOut || 0n, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
         addTransaction(tx, {
-          type: TransactionType.Custom,
-          summary: `Bought ${formattedAmount} ${tokenSymbol}`,
+          type: TransactionType.Unknown,
+          tokenAddress: tokenAddress as `0x${string}`,
+          dappInfo: { name: `Bought ${formattedAmount} ${tokenSymbol}` },
         })
       } else {
         if (needsTokenApproval) {
@@ -315,12 +332,14 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
         const tx = await sell({ tokensIn: parsedAmount, minBaseOut: minOut })
         const formattedAmount = Number(formatUnits(parsedAmount, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
         addTransaction(tx, {
-          type: TransactionType.Custom,
-          summary: `Sold ${formattedAmount} ${tokenSymbol}`,
+          type: TransactionType.Unknown,
+          tokenAddress: tokenAddress as `0x${string}`,
+          dappInfo: { name: `Sold ${formattedAmount} ${tokenSymbol}` },
         })
       }
       setAmount('')
       refetchTokenBalance()
+      refetchBaseBalance()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Transaction failed'
       setError(message)
@@ -340,6 +359,7 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
     buy,
     sell,
     refetchTokenBalance,
+    refetchBaseBalance,
     addTransaction,
     tokenSymbol,
   ])
@@ -400,11 +420,7 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
             autoComplete="off"
             autoCorrect="off"
           />
-          <MaxButton
-            onPress={!isBuy ? handleMaxClick : undefined}
-            opacity={isBuy ? 0 : 1}
-            pointerEvents={isBuy ? 'none' : 'auto'}
-          >
+          <MaxButton onPress={handleMaxClick}>
             <Text variant="buttonLabel4" color="$accent1">MAX</Text>
           </MaxButton>
         </InputWrapper>
@@ -419,6 +435,11 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
             {buyQuoteLoading || sellQuoteLoading ? '...' : Number(outputAmount).toLocaleString(undefined, { maximumFractionDigits: 4 })}
           </Text>
         </OutputRow>
+
+        <BalanceRow>
+          <Text variant="body3" color="$neutral2">Your JUSD balance</Text>
+          <Text variant="body3" color="$neutral1">{formattedBaseBalance}</Text>
+        </BalanceRow>
 
         <BalanceRow>
           <Text variant="body3" color="$neutral2">Your {tokenSymbol} balance</Text>

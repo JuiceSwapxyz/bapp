@@ -64,6 +64,16 @@ export interface LaunchpadTrade {
   tokenSymbol?: string
 }
 
+export interface LaunchpadTradesResponse {
+  trades: LaunchpadTrade[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
 /**
  * Fetch launchpad tokens with filtering and pagination
  */
@@ -131,13 +141,17 @@ export function useLaunchpadStats() {
 }
 
 /**
- * Fetch trades for a specific token
+ * Fetch trades for a specific token with pagination
  */
-export function useLaunchpadTrades(address: string | undefined, limit: number = 50) {
+export function useLaunchpadTrades(address: string | undefined, page: number = 0, limit: number = 50) {
   return useQuery({
-    queryKey: ['launchpad-trades', address, limit],
-    queryFn: async (): Promise<{ trades: LaunchpadTrade[] }> => {
-      const response = await fetch(`${API_URL}/v1/launchpad/token/${address}/trades?limit=${limit}`)
+    queryKey: ['launchpad-trades', address, page, limit],
+    queryFn: async (): Promise<LaunchpadTradesResponse> => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      })
+      const response = await fetch(`${API_URL}/v1/launchpad/token/${address}/trades?${params}`)
       if (!response.ok) {
         throw new Error('Failed to fetch trades')
       }
