@@ -109,11 +109,13 @@ export const broadcastClaimTransaction = async (
   transactionHex: string,
   apiBaseUrl?: string,
 ): Promise<{ id: string }> => {
-  return BoltzApi.broadcastTransaction({
-    currency: 'BTC',
-    request: { hex: transactionHex },
-    baseUrl: apiBaseUrl,
-  })
+  // TODO: Implement BoltzApi.broadcastTransaction
+  throw new Error('BoltzApi.broadcastTransaction not implemented')
+  // return BoltzApi.broadcastTransaction({
+  //   currency: 'BTC',
+  //   request: { hex: transactionHex },
+  //   baseUrl: apiBaseUrl,
+  // })
 }
 
 // Helper: Derive private key from mnemonic
@@ -209,7 +211,8 @@ const createAdjustedClaim = async (
 }
 
 // Import Boltz API
-import { BoltzApi } from 'state/sagas/utils/boltzFetcher'
+// TODO: Implement BoltzApi
+// import { BoltzApi } from 'state/sagas/utils/boltzFetcher'
 
 /**
  * Builds and signs a claim transaction for a chain swap.
@@ -313,76 +316,78 @@ export const buildChainSwapClaim = async (params: ChainSwapClaimParams): Promise
 
   // Cooperative signing
   if (cooperative && apiBaseUrl) {
-    try {
-      // Get server's claim details
-      const serverClaimDetails = await BoltzApi.getClaimDetails(swapId, apiBaseUrl)
-
-      // Get our public nonce (before aggregating)
-      const ourPubNonce = Buffer.from(musig.getPublicNonce()).toString('hex')
-
-      // Aggregate nonces with server's nonce
-      musig.aggregateNonces([[serverPublicKey, Buffer.from(serverClaimDetails.pubNonce, 'hex')]])
-
-      // Initialize session with transaction hash
-      const hash = hashForWitnessV1(bitcoinNetwork, details, claimTx, 0)
-      musig.initializeSession(hash)
-
-      // Sign our partial signature
-      const ourPartialSignature = musig.signPartial()
-
-      const ourPartial = {
-        pubNonce: ourPubNonce,
-        partialSignature: Buffer.from(ourPartialSignature).toString('hex'),
-      }
-
-      // Post our signature and get server's partial signature
-      const theirPartial = await BoltzApi.postClaimDetails({
-        swapId,
-        request: {
-          preimage,
-          signature: ourPartial,
-          toSign: {
-            index: 0,
-            transaction: claimTx.toHex(),
-            pubNonce: ourPubNonce,
-          },
-        },
-        baseUrl: apiBaseUrl,
-      })
-
-      // Re-aggregate nonces with server's nonce from response
-      musig.aggregateNonces([[serverPublicKey, Buffer.from(theirPartial.pubNonce, 'hex')]])
-
-      // Re-initialize session
-      musig.initializeSession(hash)
-
-      // Add server's partial signature
-      musig.addPartial(serverPublicKey, Buffer.from(theirPartial.partialSignature, 'hex'))
-
-      // Sign our part again (after adding their partial)
-      musig.signPartial()
-
-      // Aggregate final signature
-      const finalSignature = musig.aggregatePartials()
-      claimTx.ins[0].witness = [finalSignature]
-    } catch (error: any) {
-      const errorMessage = error?.message || error?.toString() || 'Unknown error'
-
-      // Check for specific error cases
-      if (errorMessage.includes('swap not eligible') || errorMessage.includes('already broadcast')) {
-        throw new Error(
-          'Server has already claimed or swap is not eligible for cooperative claim. ' +
-            'You may need to use non-cooperative claim (not implemented in this version).',
-        )
-      }
-
-      console.warn('Cooperative signing failed:', errorMessage)
-      // Fall back to non-cooperative (would need different implementation)
-      throw new Error(
-        `Cooperative signing failed: ${errorMessage}. ` +
-          'Non-cooperative claim not implemented in this standalone version.',
-      )
-    }
+    // TODO: Implement BoltzApi
+    throw new Error('Cooperative signing not implemented - BoltzApi missing')
+    // try {
+    //   // Get server's claim details
+    //   const serverClaimDetails = await BoltzApi.getClaimDetails(swapId, apiBaseUrl)
+    //
+    //   // Get our public nonce (before aggregating)
+    //   const ourPubNonce = Buffer.from(musig.getPublicNonce()).toString('hex')
+    //
+    //   // Aggregate nonces with server's nonce
+    //   musig.aggregateNonces([[serverPublicKey, Buffer.from(serverClaimDetails.pubNonce, 'hex')]])
+    //
+    //   // Initialize session with transaction hash
+    //   const hash = hashForWitnessV1(bitcoinNetwork, details, claimTx, 0)
+    //   musig.initializeSession(hash)
+    //
+    //   // Sign our partial signature
+    //   const ourPartialSignature = musig.signPartial()
+    //
+    //   const ourPartial = {
+    //     pubNonce: ourPubNonce,
+    //     partialSignature: Buffer.from(ourPartialSignature).toString('hex'),
+    //   }
+    //
+    //   // Post our signature and get server's partial signature
+    //   const theirPartial = await BoltzApi.postClaimDetails({
+    //     swapId,
+    //     request: {
+    //       preimage,
+    //       signature: ourPartial,
+    //       toSign: {
+    //         index: 0,
+    //         transaction: claimTx.toHex(),
+    //         pubNonce: ourPubNonce,
+    //       },
+    //     },
+    //     baseUrl: apiBaseUrl,
+    //   })
+    //
+    //   // Re-aggregate nonces with server's nonce from response
+    //   musig.aggregateNonces([[serverPublicKey, Buffer.from(theirPartial.pubNonce, 'hex')]])
+    //
+    //   // Re-initialize session
+    //   musig.initializeSession(hash)
+    //
+    //   // Add server's partial signature
+    //   musig.addPartial(serverPublicKey, Buffer.from(theirPartial.partialSignature, 'hex'))
+    //
+    //   // Sign our part again (after adding their partial)
+    //   musig.signPartial()
+    //
+    //   // Aggregate final signature
+    //   const finalSignature = musig.aggregatePartials()
+    //   claimTx.ins[0].witness = [finalSignature]
+    // } catch (error: any) {
+    //   const errorMessage = error?.message || error?.toString() || 'Unknown error'
+    //
+    //   // Check for specific error cases
+    //   if (errorMessage.includes('swap not eligible') || errorMessage.includes('already broadcast')) {
+    //     throw new Error(
+    //       'Server has already claimed or swap is not eligible for cooperative claim. ' +
+    //         'You may need to use non-cooperative claim (not implemented in this version).',
+    //     )
+    //   }
+    //
+    //   console.warn('Cooperative signing failed:', errorMessage)
+    //   // Fall back to non-cooperative (would need different implementation)
+    //   throw new Error(
+    //     `Cooperative signing failed: ${errorMessage}. ` +
+    //       'Non-cooperative claim not implemented in this standalone version.',
+    //   )
+    // }
   } else {
     // Non-cooperative signing (simplified - would need full implementation)
     throw new Error('Non-cooperative claim not fully implemented. Use cooperative signing with apiBaseUrl.')

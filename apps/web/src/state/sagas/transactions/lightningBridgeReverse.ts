@@ -6,11 +6,7 @@ import { generateChainSwapKeys } from 'state/sagas/transactions/chainSwapKeys'
 import { pollForLockupConfirmation } from 'state/sagas/transactions/lightningBridgePolling'
 import { btcToSat } from 'state/sagas/utils/lightningUtils'
 import { call, race } from 'typed-redux-saga'
-import {
-  createReverseSwap,
-  fetchReversePairs,
-  helpMeClaim,
-} from 'uniswap/src/data/apiClients/lightningBridge/LightningBridgeApiClient'
+import { createReverseSwap, fetchReversePairs, helpMeClaim } from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
 import { LdsSwapStatus, createLdsSocketClient } from 'uniswap/src/data/socketClients/ldsSocket'
 import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { LightningBridgeReverseStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'

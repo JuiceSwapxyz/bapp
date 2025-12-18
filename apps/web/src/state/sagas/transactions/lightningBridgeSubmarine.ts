@@ -7,10 +7,7 @@ import { pollForClaimablePreimage } from 'state/sagas/transactions/lightningBrid
 import { getSigner } from 'state/sagas/transactions/utils'
 import { btcToSat } from 'state/sagas/utils/lightningUtils'
 import { call } from 'typed-redux-saga'
-import {
-  createSubmarineSwap,
-  fetchSubmarinePairs,
-} from 'uniswap/src/data/apiClients/lightningBridge/LightningBridgeApiClient'
+import { createSubmarineSwap, fetchSubmarinePairs } from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
 import { fetchLightningInvoice } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { LightningBridgeSubmarineStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'

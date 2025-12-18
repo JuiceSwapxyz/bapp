@@ -57,6 +57,11 @@ export enum LightningBridgeDirection {
   Reverse = 'reverse',
 }
 
+export enum BitcoinBridgeDirection {
+  BitcoinToCitrea = 'bitcoin-to-citrea',
+  CitreaToBitcoin = 'citrea-to-bitcoin',
+}
+
 export interface LightningInvoice {
   requestId: string
   invoice: {

@@ -4,8 +4,9 @@ import { parseUnits } from 'ethers/lib/utils'
 import { config } from 'uniswap/src/config'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
-import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
+import { fetchChainPairs } from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
+import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
   isBitcoinBridgeQuote,
@@ -65,7 +66,12 @@ import {
   WalletEncode7702RequestBody,
   WrapUnwrapQuote,
 } from 'uniswap/src/data/tradingApi/__generated__'
-import { FeeType, LightningBridgeDirection, LightningInvoice } from 'uniswap/src/data/tradingApi/types'
+import {
+  BitcoinBridgeDirection,
+  FeeType,
+  LightningBridgeDirection,
+  LightningInvoice,
+} from 'uniswap/src/data/tradingApi/types'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
@@ -156,29 +162,121 @@ export const getFeatureFlaggedHeaders = (): Record<string, string> => {
   }
 }
 
-const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
-  // TODO: It is one to one in this hardcoded mapping, but we need to request the actual quote from boltz
-  const inputAmount = params.amount
+export type BridgeStateParams = {
+  fees: {
+    percentage: number
+    minerFees: number
+  }
+  limits: {
+    maximal: number
+    minimal: number
+  }
+}
 
-  // Get decimals from chain info for native tokens
+const adjustAmountForDecimals = (params: { amount: string; inputDecimals: number; outputDecimals: number }): bigint => {
+  const { amount, inputDecimals, outputDecimals } = params
+  const decimalDifference = outputDecimals - inputDecimals
+  return decimalDifference === 0
+    ? BigInt(amount)
+    : decimalDifference > 0
+      ? BigInt(amount) * BigInt(10 ** decimalDifference)
+      : BigInt(amount) / BigInt(10 ** Math.abs(decimalDifference))
+}
+
+const calculateOutputAmountAfterFees = (params: {
+  inputAmount: string
+  inputDecimals: number
+  outputDecimals: number
+  percentage: number
+  minerFees: number
+}): string => {
+  const { inputAmount, inputDecimals, outputDecimals, percentage, minerFees } = params
+
+  const adjustedAmount: bigint = adjustAmountForDecimals({ amount: inputAmount, inputDecimals, outputDecimals })
+  const precision = 1000000
+  const percentageScale = precision * 100
+  const percentageFactor = BigInt(percentage * precision)
+  const feePercentage = (adjustedAmount * percentageFactor) / BigInt(percentageScale)
+  const feeMiner: bigint = adjustAmountForDecimals({ amount: minerFees.toString(), inputDecimals: 8, outputDecimals })
+  const outputAmount = (adjustedAmount - feePercentage - feeMiner).toString()
+
+  return outputAmount
+}
+
+const getBitcoinCrossChainDirection = (params: QuoteRequest): BitcoinBridgeDirection => {
+  if (params.tokenInChainId === ChainId._21_000_000 && params.tokenOutChainId === ChainId._5115) {
+    return BitcoinBridgeDirection.BitcoinToCitrea
+  }
+  if (params.tokenInChainId === ChainId._5115 && params.tokenOutChainId === ChainId._21_000_000) {
+    return BitcoinBridgeDirection.CitreaToBitcoin
+  }
+  throw new Error('Invalid bitcoin cross chain direction')
+}
+
+const getBitcoinCrossChainStateParams = async (direction: BitcoinBridgeDirection): Promise<BridgeStateParams> => {
+  const chainPairs = await fetchChainPairs()
+  const pair = direction === BitcoinBridgeDirection.BitcoinToCitrea ? chainPairs.BTC?.cBTC : chainPairs.cBTC?.BTC
+  if (!pair) {
+    throw new Error('Pair not found')
+  }
+
+  const { fees, limits } = pair
+  return {
+    fees: {
+      percentage: fees.percentage,
+      minerFees: fees.minerFees.server + fees.minerFees.user.claim,
+    },
+    limits: {
+      maximal: limits.maximal,
+      minimal: limits.minimal,
+    },
+  }
+}
+
+const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
+  const inputAmount = params.amount
   const inputChainInfo = getChainInfo(params.tokenInChainId as number)
   const outputChainInfo = getChainInfo(params.tokenOutChainId as number)
   const inputDecimals = inputChainInfo.nativeCurrency.decimals
   const outputDecimals = outputChainInfo.nativeCurrency.decimals
 
-  // Adjust output amount based on decimal difference
-  // If input has 8 decimals and output has 18, multiply by 10^10
-  // If input has 18 decimals and output has 8, divide by 10^10
-  const decimalDifference = outputDecimals - inputDecimals
-  const adjustedAmount =
-    decimalDifference === 0
-      ? inputAmount
-      : decimalDifference > 0
-        ? (BigInt(inputAmount) * BigInt(10 ** decimalDifference)).toString()
-        : (BigInt(inputAmount) / BigInt(10 ** Math.abs(decimalDifference))).toString()
+  const direction = getBitcoinCrossChainDirection(params)
+  const { fees, limits } = await getBitcoinCrossChainStateParams(direction)
+  const { percentage, minerFees } = fees
 
-  // Apply 0.1% discount to output amount, then subtract 1 (smallest unit)
-  const outputAmount = ((BigInt(adjustedAmount) * BigInt(999)) / BigInt(1000) - BigInt(1)).toString()
+  const outputAmount = calculateOutputAmountAfterFees({
+    inputAmount,
+    inputDecimals,
+    outputDecimals,
+    percentage,
+    minerFees,
+  })
+
+  const inputAmountInSats = adjustAmountForDecimals({
+    amount: outputAmount,
+    inputDecimals: outputDecimals,
+    outputDecimals: 8,
+  })
+
+  if (inputAmountInSats < limits.minimal) {
+    throw new FetchError({
+      response: new Response(null, { status: 404 }),
+      data: {
+        errorCode: Err404.errorCode.QUOTE_AMOUNT_TOO_LOW_ERROR,
+        detail: `Amount is below minimum limit of ${limits.minimal} sats`,
+      },
+    })
+  }
+
+  if (inputAmountInSats > limits.maximal) {
+    throw new FetchError({
+      response: new Response(null, { status: 404 }),
+      data: {
+        errorCode: Err404.errorCode.QUOTE_AMOUNT_TOO_HIGH,
+        detail: `Amount exceeds maximum limit of ${limits.maximal} sats`,
+      },
+    })
+  }
 
   const bridgeQuote: BridgeQuote = {
     quoteId: `bitcoin-bridge-${Date.now()}`,
@@ -198,7 +296,7 @@ const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<Discrimi
     estimatedFillTimeMs: 300000,
   }
 
-  const routing = isLnBitcoinBridgeQuote(params) ? Routing.LN_BRIDGE : Routing.BITCOIN_BRIDGE
+  const routing = Routing.BITCOIN_BRIDGE
 
   const response: BridgeQuoteResponse = {
     requestId: `bitcoin-bridge-${Date.now()}`,
@@ -208,12 +306,6 @@ const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<Discrimi
   }
 
   return response
-}
-
-const submarineResponse = await LightningBridgeApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/submarine')
-
-if (!submarineResponse.cBTC?.BTC) {
-  throw new Error('No BTC pair found')
 }
 
 const getLightningBridgeDirection = (params: QuoteRequest): LightningBridgeDirection => {
@@ -226,20 +318,7 @@ const getLightningBridgeDirection = (params: QuoteRequest): LightningBridgeDirec
   throw new Error('Invalid lightning bridge direction')
 }
 
-export type LightningBridgeStateParams = {
-  fees: {
-    percentage: number
-    minerFees: number
-  }
-  limits: {
-    maximal: number
-    minimal: number
-  }
-}
-
-const getLightningBridgeStateParams = async (
-  direction: LightningBridgeDirection,
-): Promise<LightningBridgeStateParams> => {
+const getLightningBridgeStateParams = async (direction: LightningBridgeDirection): Promise<BridgeStateParams> => {
   switch (direction) {
     case LightningBridgeDirection.Submarine: {
       const submarineResp = await LightningBridgeApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/submarine')
@@ -267,17 +346,6 @@ const getLightningBridgeStateParams = async (
       throw new Error('Invalid lightning bridge direction')
   }
 }
-
-const adjustAmountForDecimals = (params: { amount: string; inputDecimals: number; outputDecimals: number }): bigint => {
-  const { amount, inputDecimals, outputDecimals } = params
-  const decimalDifference = outputDecimals - inputDecimals
-  return decimalDifference === 0
-    ? BigInt(amount)
-    : decimalDifference > 0
-      ? BigInt(amount) * BigInt(10 ** decimalDifference)
-      : BigInt(amount) / BigInt(10 ** Math.abs(decimalDifference))
-}
-
 const getLightningBridgeQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
   const direction = getLightningBridgeDirection(params)
   const { fees, limits } = await getLightningBridgeStateParams(direction)
@@ -289,13 +357,13 @@ const getLightningBridgeQuote = async (params: QuoteRequest): Promise<Discrimina
   const inputDecimals = inputChainInfo.nativeCurrency.decimals
   const outputDecimals = outputChainInfo.nativeCurrency.decimals
 
-  const adjustedAmount = adjustAmountForDecimals({ amount: inputAmount, inputDecimals, outputDecimals })
-  const precision = 1000000
-  const percentageScale = precision * 100
-  const percentageFactor = BigInt(percentage * precision)
-  const feePercentage = (BigInt(adjustedAmount) * percentageFactor) / BigInt(percentageScale)
-  const feeMiner = BigInt(minerFees)
-  const outputAmount = (BigInt(adjustedAmount) - feePercentage - feeMiner).toString()
+  const outputAmount = calculateOutputAmountAfterFees({
+    inputAmount,
+    inputDecimals,
+    outputDecimals,
+    percentage,
+    minerFees,
+  })
 
   const inputAmountInSats =
     direction === LightningBridgeDirection.Submarine

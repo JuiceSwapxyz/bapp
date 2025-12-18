@@ -5,7 +5,7 @@ import {
   LightningBridgeSubmarineLockResponse,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/lightningBridge'
 
-const LightningBridgeApiClient = createApiClient({
+const LdsApiClient = createApiClient({
   baseUrl: `${process.env.REACT_APP_LDS_API_URL}`,
 })
 
@@ -63,48 +63,66 @@ export interface CreateReverseSwapResponse {
   id: string
 }
 
+export interface ChainPairInfo {
+  hash: string
+  rate: number
+  limits: {
+    maximal: number
+    minimal: number
+    maximalZeroConf: number
+  }
+  fees: {
+    percentage: number
+    minerFees: {
+      server: number
+      user: {
+        claim: number
+        lockup: number
+      }
+    }
+  }
+}
+
+export type ChainPairsResponse = Record<string, Record<string, ChainPairInfo>>
+
 export async function fetchSubmarinePairs(): Promise<LightningBridgeSubmarineGetResponse> {
-  return await LightningBridgeApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/v2/swap/submarine')
+  return await LdsApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/v2/swap/submarine')
 }
 
 export async function fetchReversePairs(): Promise<LightningBridgeReverseGetResponse> {
-  return await LightningBridgeApiClient.get<LightningBridgeReverseGetResponse>('/swap/v2/swap/reverse')
+  return await LdsApiClient.get<LightningBridgeReverseGetResponse>('/swap/v2/swap/reverse')
 }
 
 export async function createSubmarineSwap(
   params: CreateSubmarineSwapRequest,
 ): Promise<LightningBridgeSubmarineLockResponse> {
-  return await LightningBridgeApiClient.post<LightningBridgeSubmarineLockResponse>('/swap/v2/swap/submarine', {
+  return await LdsApiClient.post<LightningBridgeSubmarineLockResponse>('/swap/v2/swap/submarine', {
     body: JSON.stringify(params),
   })
 }
 
 export async function createReverseSwap(params: CreateReverseSwapRequest): Promise<CreateReverseSwapResponse> {
-  return await LightningBridgeApiClient.post<CreateReverseSwapResponse>('/swap/v2/swap/reverse', {
+  return await LdsApiClient.post<CreateReverseSwapResponse>('/swap/v2/swap/reverse', {
     body: JSON.stringify(params),
   })
 }
 
 export async function checkPreimageHashForLockup(preimageHash: string): Promise<LockupCheckResponse> {
-  return await LightningBridgeApiClient.get<LockupCheckResponse>(
-    `/claim/check-preimagehash?preimageHash=${preimageHash}`,
-  )
+  return await LdsApiClient.get<LockupCheckResponse>(`/claim/check-preimagehash?preimageHash=${preimageHash}`)
 }
 
 export async function checkPreimageHashForClaim(preimageHash: string): Promise<ClaimCheckResponse> {
-  return await LightningBridgeApiClient.get<ClaimCheckResponse>(
-    `/claim/check-preimagehash?preimageHash=${preimageHash}`,
-  )
+  return await LdsApiClient.get<ClaimCheckResponse>(`/claim/check-preimagehash?preimageHash=${preimageHash}`)
 }
 
 export async function helpMeClaim(params: HelpMeClaimRequest): Promise<HelpMeClaimResponse> {
-  return await LightningBridgeApiClient.post<HelpMeClaimResponse>('/claim/help-me-claim', {
+  return await LdsApiClient.post<HelpMeClaimResponse>('/claim/help-me-claim', {
     body: JSON.stringify(params),
   })
 }
 
 export async function getLockup(preimageHash: string): Promise<{ data: LockupCheckResponse }> {
-  return await LightningBridgeApiClient.post<{ data: LockupCheckResponse }>(`/claim/graphql`, {
+  return await LdsApiClient.post<{ data: LockupCheckResponse }>(`/claim/graphql`, {
     body: JSON.stringify({
       operationName: 'LockupQuery',
       query: `query LockupQuery {
@@ -122,4 +140,8 @@ export async function getLockup(preimageHash: string): Promise<{ data: LockupChe
         }`,
     }),
   })
+}
+
+export async function fetchChainPairs(): Promise<ChainPairsResponse> {
+  return await LdsApiClient.get<ChainPairsResponse>(`/swap/v2/swap/chain/`)
 }
