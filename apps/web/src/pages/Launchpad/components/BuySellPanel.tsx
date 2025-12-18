@@ -13,6 +13,9 @@ import { formatUnits, parseUnits } from 'viem'
 import { Token, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useBalance } from 'wagmi'
+import { toast } from 'sonner'
+import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
+import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 
 const PanelContainer = styled(Flex, {
   backgroundColor: '$surface2',
@@ -161,9 +164,10 @@ interface BuySellPanelProps {
   tokenSymbol: string
   baseAsset: string
   graduated: boolean
+  onTransactionComplete?: () => void
 }
 
-export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }: BuySellPanelProps) {
+export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, onTransactionComplete }: BuySellPanelProps) {
   const [isBuy, setIsBuy] = useState(true)
   const [amount, setAmount] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -324,6 +328,26 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
           tokenAddress: tokenAddress as `0x${string}`,
           dappInfo: { name: `Bought ${formattedAmount} ${tokenSymbol}` },
         })
+        // Wait for confirmation before showing success toast
+        await tx.wait()
+        // Show success toast
+        toast(
+          <ToastRegularSimple
+            icon={<CheckCircleFilled color="$statusSuccess" size="$icon.28" />}
+            text={
+              <Flex gap="$gap4" flexWrap="wrap" flex={1}>
+                <Text variant="body2" color="$neutral1">
+                  Bought
+                </Text>
+                <Text variant="body3" color="$neutral2">
+                  {formattedAmount} {tokenSymbol}
+                </Text>
+              </Flex>
+            }
+            onDismiss={() => toast.dismiss()}
+          />,
+          { duration: 5000 }
+        )
       } else {
         if (needsTokenApproval) {
           const { response: approvalTx, info: approvalInfo } = await approveToken()
@@ -338,10 +362,31 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
           tokenAddress: tokenAddress as `0x${string}`,
           dappInfo: { name: `Sold ${formattedAmount} ${tokenSymbol}` },
         })
+        // Wait for confirmation before showing success toast
+        await tx.wait()
+        // Show success toast
+        toast(
+          <ToastRegularSimple
+            icon={<CheckCircleFilled color="$statusSuccess" size="$icon.28" />}
+            text={
+              <Flex gap="$gap4" flexWrap="wrap" flex={1}>
+                <Text variant="body2" color="$neutral1">
+                  Sold
+                </Text>
+                <Text variant="body3" color="$neutral2">
+                  {formattedAmount} {tokenSymbol}
+                </Text>
+              </Flex>
+            }
+            onDismiss={() => toast.dismiss()}
+          />,
+          { duration: 5000 }
+        )
       }
       setAmount('')
       refetchTokenBalance()
       refetchBaseBalance()
+      onTransactionComplete?.()
       // Invalidate launchpad queries to update progress bars
       queryClient.invalidateQueries({ queryKey: ['launchpad-tokens'] })
       queryClient.invalidateQueries({ queryKey: ['launchpad-token', tokenAddress] })
@@ -365,6 +410,7 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated }
     sell,
     refetchTokenBalance,
     refetchBaseBalance,
+    onTransactionComplete,
     addTransaction,
     tokenSymbol,
     tokenAddress,

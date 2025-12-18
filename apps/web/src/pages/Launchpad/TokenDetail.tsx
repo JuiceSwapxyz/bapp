@@ -19,6 +19,9 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
+import { toast } from 'sonner'
+import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
+import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 
 const PageContainer = styled(Flex, {
   width: '100%',
@@ -194,6 +197,7 @@ export default function TokenDetail() {
     baseAsset,
     v2Pair,
     isLoading,
+    refetch: refetchBondingCurve,
   } = useBondingCurveToken(tokenAddress)
 
   const { tokenInfo } = useTokenInfo(tokenAddress)
@@ -233,12 +237,34 @@ export default function TokenDetail() {
         tokenAddress: tokenAddress as `0x${string}`,
         dappInfo: { name: `Graduated ${symbol} to JuiceSwap V2` },
       })
+      // Wait for confirmation
+      await tx.wait()
+      // Show success toast
+      toast(
+        <ToastRegularSimple
+          icon={<CheckCircleFilled color="$statusSuccess" size="$icon.28" />}
+          text={
+            <Flex gap="$gap4" flexWrap="wrap" flex={1}>
+              <Text variant="body2" color="$neutral1">
+                Graduated
+              </Text>
+              <Text variant="body3" color="$neutral2">
+                {symbol} to JuiceSwap V2
+              </Text>
+            </Flex>
+          }
+          onDismiss={() => toast.dismiss()}
+        />,
+        { duration: 5000 }
+      )
+      // Refresh token data to show graduated state
+      refetchBondingCurve()
     } catch (error) {
       console.error('Graduate failed:', error)
     } finally {
       setIsGraduating(false)
     }
-  }, [graduate, addTransaction, symbol, tokenAddress])
+  }, [graduate, addTransaction, symbol, tokenAddress, refetchBondingCurve])
 
   // Format values
   const liquidity = useMemo(() => {
@@ -438,6 +464,7 @@ export default function TokenDetail() {
                   tokenSymbol={symbol || '???'}
                   baseAsset={baseAsset}
                   graduated={graduated}
+                  onTransactionComplete={refetchBondingCurve}
                 />
               )}
             </RightColumn>
