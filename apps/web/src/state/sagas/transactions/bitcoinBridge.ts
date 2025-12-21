@@ -10,6 +10,7 @@ import {
   TaprootUtils,
 } from 'boltz-core'
 import { hashForWitnessV1 } from 'boltz-core/dist/lib/swap/TaprootUtils'
+import { Buffer } from 'buffer'
 import { popupRegistry } from 'components/Popups/registry'
 import { BitcoinBridgeDirection, LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { generateChainSwapKeys } from 'state/sagas/transactions/chainSwapKeys'
@@ -54,7 +55,6 @@ export function* handleBitcoinBridgeLockTransactionStep(params: HandleBitcoinBri
   const preimageHash = crypto.sha256(Buffer.from(preimage)).toString('hex')
   const chainPairs = yield* call(fetchChainPairs)
   const pairHash = chainPairs.cBTC.BTC.hash
-
   const userLockAmount = btcToSat(new BigNumber(trade.inputAmount.toExact())).toNumber()
 
   const chainSwapResponse = yield* call(createChainSwap, {
@@ -84,53 +84,6 @@ export function* handleBitcoinBridgeLockTransactionStep(params: HandleBitcoinBri
 
   yield* call(ldsSocket.subscribeToSwapUntil, chainSwapResponse.id, LdsSwapStatus.TransactionServerMempool)
 
-  const chainTransactionsResponse = yield* call(fetchChainTransactionsBySwapId, chainSwapResponse.id)
-
-  const swap = chainSwapResponse
-  const lockupTxHex = chainTransactionsResponse.serverLock?.transaction.hex
-  const boltzRefundPublicKey = Buffer.from(swap.claimDetails.serverPublicKey, 'hex')
-  const ourClaimMusig = yield* call(createMusig, claimKeyPair, boltzRefundPublicKey)
-  const claimTree = SwapTreeSerializer.deserializeSwapTree(swap.claimDetails.swapTree)
-  const tweakedKey = TaprootUtils.tweakMusig(ourClaimMusig, claimTree.tree)
-
-  const lockupTx = Transaction.fromHex(lockupTxHex as string)
-  const swapOutput = detectSwap(tweakedKey, lockupTx as any)
-  const details: ClaimDetails = {
-    ...swapOutput,
-    cooperative: true,
-    swapTree: claimTree,
-    keys: claimKeyPair,
-    type: OutputType.Taproot,
-    txHash: lockupTx.getHash(),
-    internalKey: ourClaimMusig.getAggregatedPublicKey(),
-    preimage,
-  } as any
-
-  const decodedAddress = Buffer.from(address.toOutputScript(claimAddress, networks.bitcoin))
-  const inputSum = details.value
-
-  const feeBudget = inputSum - chainSwapResponse.claimDetails.amount
-  const claimTx = constructClaimTransaction([details], decodedAddress, feeBudget, true)
-
-  const postClaimChainSwapResponse = yield* call(postClaimChainSwap, chainSwapResponse.id, {
-    preimage: Buffer.from(preimage).toString('hex'),
-    toSign: {
-      index: 0,
-      transaction: claimTx.toHex(),
-      pubNonce: Buffer.from(ourClaimMusig.getPublicNonce()).toString('hex'),
-    },
-  })
-
-  const theirPublicNonce = Buffer.from(postClaimChainSwapResponse.pubNonce, 'hex')
-  ourClaimMusig.aggregateNonces([[boltzRefundPublicKey, theirPublicNonce]])
-  ourClaimMusig.initializeSession(hashForWitnessV1([details], claimTx, 0))
-  ourClaimMusig.addPartial(boltzRefundPublicKey, Buffer.from(postClaimChainSwapResponse.partialSignature, 'hex'))
-  ourClaimMusig.signPartial()
-  const finalSignature = ourClaimMusig.aggregatePartials()
-  claimTx.ins[0].witness = [finalSignature]
-  const signedClaimTxHex = claimTx.toHex()
-  yield* call(broadcastChainSwap, signedClaimTxHex)
-
   if (onTransactionHash) {
     onTransactionHash(evmTxResult.hash)
   }
@@ -148,6 +101,51 @@ export function* handleBitcoinBridgeLockTransactionStep(params: HandleBitcoinBri
   if (onSuccess) {
     yield* call(onSuccess)
   }
+
+  const chainTransactionsResponse = yield* call(fetchChainTransactionsBySwapId, chainSwapResponse.id)
+
+  const { claimDetails } = chainSwapResponse
+  const lockupTxHex = chainTransactionsResponse.serverLock?.transaction.hex
+  const boltzRefundPublicKey = Buffer.from(Buffer.from(claimDetails.serverPublicKey, 'hex'))
+  const ourClaimMusig = yield* call(createMusig, claimKeyPair, boltzRefundPublicKey)
+  const claimTree = SwapTreeSerializer.deserializeSwapTree(claimDetails.swapTree)
+  const tweakedKey = TaprootUtils.tweakMusig(ourClaimMusig, claimTree.tree)
+  const lockupTx = Transaction.fromHex(lockupTxHex as string)
+  const swapOutput = detectSwap(tweakedKey, lockupTx as any)
+
+  const details: ClaimDetails = {
+    ...swapOutput,
+    cooperative: true,
+    swapTree: claimTree,
+    keys: claimKeyPair,
+    type: OutputType.Taproot,
+    txHash: lockupTx.getHash(),
+    internalKey: ourClaimMusig.getAggregatedPublicKey(),
+    preimage,
+  } as any
+
+  const decodedAddress = Buffer.from(address.toOutputScript(claimAddress, networks.bitcoin))
+  const expectedAmount = btcToSat(new BigNumber(trade.outputAmount.toExact())).toNumber()
+  const feeBudget = details.value - expectedAmount
+  const claimTx = constructClaimTransaction([details], decodedAddress, feeBudget, true)
+
+  const postClaimChainSwapResponse = yield* call(postClaimChainSwap, chainSwapResponse.id, {
+    preimage: Buffer.from(preimage).toString('hex'),
+    toSign: {
+      index: 0,
+      transaction: claimTx.toHex(),
+      pubNonce: Buffer.from(ourClaimMusig.getPublicNonce()).toString('hex'),
+    },
+  })
+
+  const theirPublicNonce = Buffer.from(Buffer.from(postClaimChainSwapResponse.pubNonce, 'hex'))
+  ourClaimMusig.aggregateNoncesOrdered([theirPublicNonce, ourClaimMusig.getPublicNonce()])
+  ourClaimMusig.initializeSession(hashForWitnessV1([details], claimTx, 0))
+  ourClaimMusig.addPartial(0, Buffer.from(postClaimChainSwapResponse.partialSignature, 'hex'))
+  ourClaimMusig.signPartial()
+  claimTx.ins[0].witness = [ourClaimMusig.aggregatePartials()]
+
+  yield* call(broadcastChainSwap, claimTx.toHex())
 
   ldsSocket.disconnect()
 }
