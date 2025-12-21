@@ -12,6 +12,7 @@ export enum PopupType {
   FORTransaction = 'forTransaction',
   CampaignTaskCompleted = 'campaignTaskCompleted',
   LightningBridge = 'lightningBridge',
+  BitcoinBridge = 'bitcoinBridge',
 }
 
 export enum SwitchNetworkAction {
@@ -29,7 +30,12 @@ export enum LightningBridgeDirection {
   Reverse = 'reverse',
 }
 
-export enum LightningBridgeStatus {
+export enum BitcoinBridgeDirection {
+  BitcoinToCitrea = 'bitcoin-to-citrea',
+  CitreaToBitcoin = 'citrea-to-bitcoin',
+}
+
+export enum LdsBridgeStatus {
   Pending = 'pending',
   Confirmed = 'confirmed',
   Failed = 'failed',
@@ -75,5 +81,11 @@ export type PopupContent =
       type: PopupType.LightningBridge
       id: string
       direction: LightningBridgeDirection
-      status: LightningBridgeStatus
+      status: LdsBridgeStatus
+    }
+  | {
+      type: PopupType.BitcoinBridge
+      id: string
+      status: LdsBridgeStatus
+      direction: BitcoinBridgeDirection
     }

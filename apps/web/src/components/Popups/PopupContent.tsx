@@ -12,7 +12,7 @@ import AlertTriangleFilled from 'components/Icons/AlertTriangleFilled'
 import { LoaderV3 } from 'components/Icons/LoadingSpinner'
 import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { POPUP_MAX_WIDTH } from 'components/Popups/constants'
-import { LightningBridgeStatus } from 'components/Popups/types'
+import { BitcoinBridgeDirection, LdsBridgeStatus } from 'components/Popups/types'
 import { useIsRecentFlashblocksNotification } from 'hooks/useIsRecentFlashblocksNotification'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -252,7 +252,7 @@ export function LightningBridgePopupContent({
   onClose,
 }: {
   direction: LightningBridgeDirection
-  status: LightningBridgeStatus
+  status: LdsBridgeStatus
   onClose: () => void
 }) {
   const { t } = useTranslation()
@@ -260,11 +260,11 @@ export function LightningBridgePopupContent({
 
   const title = useMemo(() => {
     switch (status) {
-      case LightningBridgeStatus.Pending:
+      case LdsBridgeStatus.Pending:
         return t('Bridging Bitcoins')
-      case LightningBridgeStatus.Confirmed:
+      case LdsBridgeStatus.Confirmed:
         return t('Bitcoins bridged successfully')
-      case LightningBridgeStatus.Failed:
+      case LdsBridgeStatus.Failed:
         return t('Bitcoins bridging failed')
       default:
         return t('Bridging Bitcoins')
@@ -293,7 +293,7 @@ export function LightningBridgePopupContent({
     }
   }, [direction])
 
-  const isPending = status === LightningBridgeStatus.Pending
+  const isPending = status === LdsBridgeStatus.Pending
 
   return (
     <Flex
@@ -330,6 +330,110 @@ export function LightningBridgePopupContent({
               <NetworkLogo chainId={logoTo} size={16} />
               <Text variant="body3" color="$neutral2">
                 {direction === 'submarine' ? 'Lightning Network' : 'Citrea'}
+              </Text>
+            </Flex>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+      {isPending ? (
+        <Flex position="absolute" top="$spacing24" right="$spacing16">
+          <LoaderV3 color={colors.accent1.variable} size="20px" />
+        </Flex>
+      ) : (
+        <Flex position="absolute" right="$spacing16" top="$spacing16" data-testid={TestID.ActivityPopupCloseIcon}>
+          <TouchableArea onPress={onClose}>
+            <X color="$neutral2" size={16} />
+          </TouchableArea>
+        </Flex>
+      )}
+    </Flex>
+  )
+}
+
+export function BitcoinBridgePopupContent({
+  direction,
+  status,
+  onClose,
+}: {
+  direction: BitcoinBridgeDirection
+  status: LdsBridgeStatus
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const colors = useSporeColors()
+
+  const title = useMemo(() => {
+    switch (status) {
+      case LdsBridgeStatus.Pending:
+        return t('Bridging Bitcoins')
+      case LdsBridgeStatus.Confirmed:
+        return t('Bitcoins bridged successfully')
+      case LdsBridgeStatus.Failed:
+        return t('Bitcoins bridging failed')
+      default:
+        return t('Bridging Bitcoins')
+    }
+  }, [status, t])
+
+  const logoTo = useMemo(() => {
+    switch (direction) {
+      case BitcoinBridgeDirection.BitcoinToCitrea:
+        return UniverseChainId.CitreaTestnet
+      case BitcoinBridgeDirection.CitreaToBitcoin:
+        return UniverseChainId.Bitcoin
+      default:
+        return UniverseChainId.CitreaTestnet
+    }
+  }, [direction])
+
+  const logoFrom = useMemo(() => {
+    switch (direction) {
+      case BitcoinBridgeDirection.BitcoinToCitrea:
+        return UniverseChainId.Bitcoin
+      case BitcoinBridgeDirection.CitreaToBitcoin:
+        return UniverseChainId.CitreaTestnet
+      default:
+        return UniverseChainId.CitreaTestnet
+    }
+  }, [direction])
+
+  const isPending = status === LdsBridgeStatus.Pending
+
+  return (
+    <Flex
+      row
+      width={POPUP_MAX_WIDTH}
+      backgroundColor="$surface1"
+      position="relative"
+      borderWidth={1}
+      borderRadius="$rounded16"
+      borderColor="$surface3"
+      py={2}
+      px={0}
+      animation="300ms"
+      $sm={{
+        mx: 'auto',
+        width: '100%',
+      }}
+    >
+      <TouchableArea onPress={noop} flex={1}>
+        <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
+          <Flex justifyContent="center">
+            <PortfolioLogo chainId={UniverseChainId.Mainnet} images={[bitcoinLogo]} size={32} />
+          </Flex>
+          <Flex justifyContent="center" gap="$gap4" fill>
+            <Text variant="body2" color="$neutral1">
+              {title}
+            </Text>
+            <Flex row alignItems="center" gap="$gap4">
+              <NetworkLogo chainId={logoFrom} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {direction === BitcoinBridgeDirection.BitcoinToCitrea ? 'Bitcoin' : 'Citrea'}
+              </Text>
+              <Arrow direction="e" color="$neutral3" size={iconSizes.icon16} />
+              <NetworkLogo chainId={logoTo} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {direction === BitcoinBridgeDirection.BitcoinToCitrea ? 'Citrea' : 'Bitcoin'}
               </Text>
             </Flex>
           </Flex>

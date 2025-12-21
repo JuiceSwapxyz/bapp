@@ -83,8 +83,93 @@ export interface ChainPairInfo {
   }
 }
 
+export interface CreateChainSwapRequest {
+  from: string
+  to: string
+  preimageHash: string
+  claimPublicKey: string
+  claimAddress: string
+  pairHash: string
+  referralId: string
+  userLockAmount: number
+}
+
+export interface CreateChainSwapResponse {
+  id: string
+  referralId: string
+  claimDetails: {
+    serverPublicKey: string
+    amount: number
+    lockupAddress: string
+    timeoutBlockHeight: number
+    swapTree: {
+      claimLeaf: {
+        version: number
+        output: string
+      }
+      refundLeaf: {
+        version: number
+        output: string
+      }
+    }
+  }
+  lockupDetails: {
+    claimAddress: string
+    amount: number
+    lockupAddress: string
+    timeoutBlockHeight: number
+  }
+}
+
+export interface ChainTransactionsResponse {
+  userLock?: {
+    transaction: {
+      id: string
+    }
+    timeout: {
+      eta: number
+      blockHeight: number
+    }
+  }
+  serverLock?: {
+    transaction: {
+      hex: string
+      id: string
+    }
+    timeout: {
+      eta: number
+      blockHeight: number
+    }
+  }
+}
+export interface ClaimChainSwapRequest {
+  preimage: string
+  toSign: {
+    index: number
+    transaction: string
+    pubNonce: string
+  }
+}
+export interface ClaimChainSwapResponse {
+  pubNonce: string
+  partialSignature: string
+}
+
 export type ChainPairsResponse = Record<string, Record<string, ChainPairInfo>>
 
+export interface PostClaimChainSwapRequest {
+  preimage: string
+  toSign: {
+    index: number
+    transaction: string
+    pubNonce: string
+  }
+}
+
+export interface PostClaimChainSwapResponse {
+  pubNonce: string
+  partialSignature: string
+}
 export async function fetchSubmarinePairs(): Promise<LightningBridgeSubmarineGetResponse> {
   return await LdsApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/v2/swap/submarine')
 }
@@ -144,4 +229,35 @@ export async function getLockup(preimageHash: string): Promise<{ data: LockupChe
 
 export async function fetchChainPairs(): Promise<ChainPairsResponse> {
   return await LdsApiClient.get<ChainPairsResponse>(`/swap/v2/swap/chain/`)
+}
+
+export async function createChainSwap(params: CreateChainSwapRequest): Promise<CreateChainSwapResponse> {
+  return await LdsApiClient.post<CreateChainSwapResponse>(`/swap/v2/swap/chain/`, {
+    body: JSON.stringify(params),
+  })
+}
+
+export async function fetchChainTransactionsBySwapId(swapId: string): Promise<ChainTransactionsResponse> {
+  return await LdsApiClient.get<ChainTransactionsResponse>(`/swap/v2/swap/chain/${swapId}/transactions`)
+}
+
+export async function claimChainSwap(swapId: string, params: ClaimChainSwapRequest): Promise<ClaimChainSwapResponse> {
+  return await LdsApiClient.post<ClaimChainSwapResponse>(`/swap/v2/swap/chain/${swapId}/claim`, {
+    body: JSON.stringify(params),
+  })
+}
+
+export async function postClaimChainSwap(
+  swapId: string,
+  params: ClaimChainSwapRequest,
+): Promise<ClaimChainSwapResponse> {
+  return await LdsApiClient.post<ClaimChainSwapResponse>(`/swap/v2/swap/chain/${swapId}/claim`, {
+    body: JSON.stringify(params),
+  })
+}
+
+export async function broadcastChainSwap(hex: string): Promise<{ id: string }> {
+  return await LdsApiClient.post<{ id: string }>(`/swap/v2/chain/BTC/transaction`, {
+    body: JSON.stringify({ hex }),
+  })
 }

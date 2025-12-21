@@ -253,8 +253,8 @@ const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<Discrimi
   })
 
   const inputAmountInSats = adjustAmountForDecimals({
-    amount: outputAmount,
-    inputDecimals: outputDecimals,
+    amount: inputAmount,
+    inputDecimals,
     outputDecimals: 8,
   })
 

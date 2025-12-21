@@ -2,6 +2,8 @@ export enum LdsSwapStatus {
   SwapCreated = 'swap.created',
   TransactionMempool = 'transaction.mempool',
   TransactionConfirmed = 'transaction.confirmed',
+  TransactionServerMempool = 'transaction.server.mempool',
+  TransactionServerConfirmed = 'transaction.server.confirmed',
 }
 
 export interface SwapUpdateEvent {

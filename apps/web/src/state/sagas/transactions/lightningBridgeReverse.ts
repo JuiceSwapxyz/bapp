@@ -1,9 +1,9 @@
 import { BigNumber } from 'bignumber.js'
 import { popupRegistry } from 'components/Popups/registry'
-import { LightningBridgeStatus, PopupType } from 'components/Popups/types'
-import { prefix0x } from 'state/sagas/transactions/buildEvmLockupTx'
+import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { generateChainSwapKeys } from 'state/sagas/transactions/chainSwapKeys'
 import { pollForLockupConfirmation } from 'state/sagas/transactions/lightningBridgePolling'
+import { prefix0x } from 'state/sagas/utils/buildEvmLockupTx'
 import { btcToSat } from 'state/sagas/utils/lightningUtils'
 import { call, race } from 'typed-redux-saga'
 import { createReverseSwap, fetchReversePairs, helpMeClaim } from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
@@ -64,7 +64,7 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
       type: PopupType.LightningBridge,
       id: reverseInvoiceResponse.id,
       direction: LightningBridgeDirection.Reverse,
-      status: LightningBridgeStatus.Pending,
+      status: LdsBridgeStatus.Pending,
     },
     reverseInvoiceResponse.id,
   )
@@ -88,7 +88,7 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
       type: PopupType.LightningBridge,
       id: txHash,
       direction: LightningBridgeDirection.Reverse,
-      status: LightningBridgeStatus.Confirmed,
+      status: LdsBridgeStatus.Confirmed,
     },
     txHash,
   )

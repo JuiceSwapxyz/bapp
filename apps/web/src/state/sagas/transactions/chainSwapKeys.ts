@@ -1,11 +1,10 @@
 import ecc from '@bitcoinerlab/secp256k1'
-import { sha256 } from '@noble/hashes/sha2.js'
 import { HDKey } from '@scure/bip32'
 import { generateMnemonic, mnemonicToSeedSync } from '@scure/bip39'
 import { wordlist } from '@scure/bip39/wordlists/english.js'
-import { initEccLib } from 'bitcoinjs-lib'
+import { crypto, initEccLib } from 'bitcoinjs-lib'
 import { Buffer } from 'buffer'
-import { ECPairFactory } from 'ecpair'
+import { ECPairFactory, ECPairInterface } from 'ecpair'
 
 // Initialize ECC library for bitcoinjs-lib
 initEccLib(ecc)
@@ -15,6 +14,8 @@ export type ChainSwapKeys = {
   preimage: string
   preimageHash: string
   claimPublicKey: string
+  derivedKey: HDKey
+  claimKeyPair: ECPairInterface
   mnemonic: string
   keyIndex: number
 }
@@ -64,14 +65,16 @@ export const generateChainSwapKeys = (mnemonic?: string, index?: number): ChainS
   }
 
   const claimKeyPair = ECPair.fromPrivateKey(Buffer.from(derivedKey.privateKey))
-  const preimage = sha256(Buffer.from(derivedKey.privateKey))
-  const preimageHash = Buffer.from(sha256(preimage)).toString('hex')
+  const preimage = crypto.sha256(Buffer.from(derivedKey.privateKey))
+  const preimageHash = crypto.sha256(preimage).toString('hex')
   const claimPublicKey = Buffer.from(claimKeyPair.publicKey).toString('hex')
 
   return {
-    preimage: Buffer.from(preimage).toString('hex'),
+    preimage: preimage.toString('hex'),
     preimageHash,
     claimPublicKey,
+    derivedKey,
+    claimKeyPair,
     mnemonic: finalMnemonic,
     keyIndex: finalKeyIndex,
   }

@@ -8,7 +8,8 @@ import { FLASHBLOCKS_UI_SKIP_ROUTES } from 'uniswap/src/features/transactions/sw
 import { useClearFlashblocksSwapNotifications } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/hooks/useClearFlashblocksSwapNotifications'
 import { useIsUnichainFlashblocksEnabled } from 'uniswap/src/features/transactions/swap/hooks/useIsUnichainFlashblocksEnabled'
 import { SwapErrorScreen } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapErrorScreen'
-import { SwapLnBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLnBridgeDetails/SwapLnBridgeDetails'
+import { SwapBtcBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapBtcBridgeDetails'
+import { SwapLnBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapLnBridgeDetails'
 import { SwapReviewFooter } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/SwapReviewFooter'
 import { SwapReviewLoadingView } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewLoadingView'
 import { SwapReviewWarningModal } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewWarningModal'
@@ -94,14 +95,14 @@ export function SwapReviewScreenProviders({ hideContent, onSubmitSwap }: SwapRev
 }
 
 function SwapReviewContent(): JSX.Element | null {
-  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, newTradeRequiresAcceptance } = useSwapReviewTransactionStore(
-    (s) => ({
+  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, isBtcBridge, newTradeRequiresAcceptance } =
+    useSwapReviewTransactionStore((s) => ({
       acceptedDerivedSwapInfo: s.acceptedDerivedSwapInfo,
       isWrap: s.isWrap,
       isLnBridge: s.isLnBridge,
+      isBtcBridge: s.isBtcBridge,
       newTradeRequiresAcceptance: s.newTradeRequiresAcceptance,
-    }),
-  )
+    }))
 
   const { steps, currentStep, hideContent } = useSwapReviewStore((s) => ({
     steps: s.steps,
@@ -165,6 +166,8 @@ function SwapReviewContent(): JSX.Element | null {
             <SwapReviewWrapTransactionDetails />
           ) : isLnBridge ? (
             <SwapLnBridgeDetails />
+          ) : isBtcBridge ? (
+            <SwapBtcBridgeDetails />
           ) : null}
         </Flex>
       </SwapReviewContentWrapper>

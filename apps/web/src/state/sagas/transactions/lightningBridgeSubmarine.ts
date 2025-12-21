@@ -1,10 +1,10 @@
 import { BigNumber } from 'bignumber.js'
 import { popupRegistry } from 'components/Popups/registry'
-import { LightningBridgeStatus, PopupType } from 'components/Popups/types'
-import { buildEvmLockupTx } from 'state/sagas/transactions/buildEvmLockupTx'
+import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { generateChainSwapKeys } from 'state/sagas/transactions/chainSwapKeys'
 import { pollForClaimablePreimage } from 'state/sagas/transactions/lightningBridgePolling'
 import { getSigner } from 'state/sagas/transactions/utils'
+import { buildEvmLockupTx } from 'state/sagas/utils/buildEvmLockupTx'
 import { btcToSat } from 'state/sagas/utils/lightningUtils'
 import { call } from 'typed-redux-saga'
 import { createSubmarineSwap, fetchSubmarinePairs } from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
@@ -74,7 +74,7 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
       type: PopupType.LightningBridge,
       id: evmTxResult.hash,
       direction: LightningBridgeDirection.Submarine,
-      status: LightningBridgeStatus.Pending,
+      status: LdsBridgeStatus.Pending,
     },
     evmTxResult.hash,
   )
@@ -90,7 +90,7 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
       type: PopupType.LightningBridge,
       id: preimageHash,
       direction: LightningBridgeDirection.Submarine,
-      status: LightningBridgeStatus.Confirmed,
+      status: LdsBridgeStatus.Confirmed,
     },
     preimageHash,
   )
