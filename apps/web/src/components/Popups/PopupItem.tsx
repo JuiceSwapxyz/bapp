@@ -1,5 +1,6 @@
 import { MismatchToastItem } from 'components/Popups/MismatchToastItem'
 import {
+  BitcoinBridgePopupContent,
   FORTransactionPopupContent,
   FailedNetworkSwitchPopup,
   LightningBridgePopupContent,
@@ -77,6 +78,9 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
     }
     case PopupType.LightningBridge: {
       return <LightningBridgePopupContent direction={content.direction} status={content.status} onClose={onClose} />
+    }
+    case PopupType.BitcoinBridge: {
+      return <BitcoinBridgePopupContent direction={content.direction} status={content.status} onClose={onClose} />
     }
     default:
       return null

@@ -1,5 +1,5 @@
 import { RetryableError, retry } from 'state/activity/polling/retry'
-import { getLockup } from 'uniswap/src/data/apiClients/lightningBridge/LightningBridgeApiClient'
+import { getLockup } from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
 
 export function pollForLockupConfirmation(preimageHash: string) {
   return retry(

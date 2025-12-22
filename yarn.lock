@@ -17013,7 +17013,7 @@ __metadata:
     array.prototype.flatmap: 1.3.2
     babel-plugin-react-compiler: 19.1.0-rc.2
     bignumber.js: ^9.3.1
-    bitcoinjs-lib: 7.0.0
+    bitcoinjs-lib: ^6.1.7
     boltz-bolt12: ^0.2.0
     boltz-core: 3.0.0
     browser-cache-mock: 0.1.7
@@ -20494,6 +20494,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"base58-js@npm:3.0.3":
+  version: 3.0.3
+  resolution: "base58-js@npm:3.0.3"
+  checksum: 62bad85b233290102ec3acdd47f604a3f657e20c1cb8a2de960c645f5f34d4a15806ece82e0fec75af5c66ea020d37be3c9daa00b92652570b7c43c4ecf7224a
+  languageName: node
+  linkType: hard
+
 "base64-js@npm:0.0.8":
   version: 0.0.8
   resolution: "base64-js@npm:0.0.8"
@@ -20554,7 +20561,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bech32@npm:^2.0.0":
+"bech32@npm:2.0.0, bech32@npm:^2.0.0":
   version: 2.0.0
   resolution: "bech32@npm:2.0.0"
   checksum: fa15acb270b59aa496734a01f9155677b478987b773bf701f465858bf1606c6a970085babd43d71ce61895f1baa594cb41a2cd1394bd2c6698f03cc2d811300e
@@ -20646,16 +20653,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bip174@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "bip174@npm:3.0.0"
-  dependencies:
-    uint8array-tools: ^0.0.9
-    varuint-bitcoin: ^2.0.0
-  checksum: b8a8877dd546350ebea89991cb4e4c5d9a9f78b0abcdb7faa55602c6096bc8365929b590efcdf28ba2285e71abb755a60627888e735e58908739fe6e7cfd9ce5
-  languageName: node
-  linkType: hard
-
 "bip32@npm:^4.0.0":
   version: 4.0.0
   resolution: "bip32@npm:4.0.0"
@@ -20688,21 +20685,6 @@ __metadata:
   version: 2.0.0
   resolution: "bip66@npm:2.0.0"
   checksum: 919b25d3ed2b9d774eefe550ae6e825e29e1aa450fc1af12e7cef39115a8bc867018b5aa3d8e68b459ec198decabfc1ebe2bdbae9edfdca61c97e862d1db098d
-  languageName: node
-  linkType: hard
-
-"bitcoinjs-lib@npm:7.0.0":
-  version: 7.0.0
-  resolution: "bitcoinjs-lib@npm:7.0.0"
-  dependencies:
-    "@noble/hashes": ^1.2.0
-    bech32: ^2.0.0
-    bip174: ^3.0.0
-    bs58check: ^4.0.0
-    uint8array-tools: ^0.0.9
-    valibot: ^0.38.0
-    varuint-bitcoin: ^2.0.0
-  checksum: f61064637a92a30b8edf1aeac864fab1625a817a445c7debdf8a13b4161028800408127d8753a22c05554747ae9753d739a47db660205f72a839ab02b8db77ef
   languageName: node
   linkType: hard
 
@@ -42734,6 +42716,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sha256-uint8array@npm:0.10.7":
+  version: 0.10.7
+  resolution: "sha256-uint8array@npm:0.10.7"
+  checksum: ff735efd42664ab3d663cbc71a2e5f58a02637e9d57e072c509b5765f5368a2dc34fafefa390e065ef24415946b780ac72fd4582eeeb745ece42256de5b85e94
+  languageName: node
+  linkType: hard
+
 "shallow-clone@npm:^1.0.0":
   version: 1.0.0
   resolution: "shallow-clone@npm:1.0.0"
@@ -46118,13 +46107,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uint8array-tools@npm:^0.0.9":
-  version: 0.0.9
-  resolution: "uint8array-tools@npm:0.0.9"
-  checksum: 66cd8c414638285bf6dfec71df5aff0bb2be64e9331612a99ae63c2eebb201181a0c0d618c94d2abbefe5d5fae29b0fc3c25dad2cbd7ee8f3a4130ebec35970b
-  languageName: node
-  linkType: hard
-
 "uint8arrays@npm:3.1.0":
   version: 3.1.0
   resolution: "uint8arrays@npm:3.1.0"
@@ -46425,6 +46407,8 @@ __metadata:
     "@uniswap/permit2-sdk": 1.3.0
     "@walletconnect/types": 2.21.4
     apollo-link-rest: 0.9.0
+    base58-js: 3.0.3
+    bech32: 2.0.0
     date-fns: 2.30.0
     dayjs: 1.11.7
     depcheck: 1.4.7
@@ -46478,6 +46462,7 @@ __metadata:
     redux: 4.2.1
     redux-persist: 6.0.0
     redux-saga: 1.2.2
+    sha256-uint8array: 0.10.7
     tiny-invariant: 1.3.1
     ts-morph: 23.0.0
     tsafe: 1.6.4
@@ -47065,18 +47050,6 @@ __metadata:
     typescript:
       optional: true
   checksum: 2847b40bbcaeccff194aa6f9fbaa8bb9f4995dd35e8118c73101ed43a889f941813bebfe081175438883843954e2d0b056bf72a8801d966011e74b2ec276d963
-  languageName: node
-  linkType: hard
-
-"valibot@npm:^0.38.0":
-  version: 0.38.0
-  resolution: "valibot@npm:0.38.0"
-  peerDependencies:
-    typescript: ">=5"
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: aa2608d503175f4a8b8c0bc70f025cf857aca6ac8f60639407689c0f901c3f0dc2271f5e3c3a10843b5cf7283e6c232a5f09309419e4502e7909a76dc0b470e7
   languageName: node
   linkType: hard
 

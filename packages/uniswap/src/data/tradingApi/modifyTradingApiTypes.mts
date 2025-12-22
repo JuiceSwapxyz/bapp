@@ -157,7 +157,10 @@ responseFiles.forEach((file) => {
 })
 
 addImport(bridgeQuoteFile, 'LightningBridgeDirection')
-modifyType(bridgeQuoteFile, 'BridgeQuote', [{ name: 'direction', type: 'LightningBridgeDirection', isOptional: true }])
+addImport(bridgeQuoteFile, 'BitcoinBridgeDirection')
+modifyType(bridgeQuoteFile, 'BridgeQuote', [
+  { name: 'direction', type: 'LightningBridgeDirection | BitcoinBridgeDirection', isOptional: true },
+])
 
 // Add new enum members
 addEnumMember(routingFile, 'Routing', { name: 'JUPITER', value: 'JUPITER' })

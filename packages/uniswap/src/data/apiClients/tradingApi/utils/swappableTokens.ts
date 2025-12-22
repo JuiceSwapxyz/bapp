@@ -8,7 +8,6 @@ const USE_SWAPPABLE_TOKENS_MAPPING = process.env.USE_SWAPPABLE_TOKENS_MAPPING ==
 const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = {
   [ChainId._5115]: {
     '0x0000000000000000000000000000000000000000': [
-      /*
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: ChainId._21_000_000,
@@ -23,7 +22,6 @@ const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwappableTo
         symbol: 'BTC',
         decimals: 18,
       },
-      */
       {
         address: '0x0000000000000000000000000000000000000000',
         chainId: ChainId._21_000_001,
@@ -40,7 +38,6 @@ const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwappableTo
       },
     ],
   },
-  /*
   [ChainId._21_000_000]: {
     '0x0000000000000000000000000000000000000000': [
       {
@@ -59,7 +56,6 @@ const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwappableTo
       },
     ],
   },
-  */
   [ChainId._21_000_001]: {
     '0x0000000000000000000000000000000000000000': [
       {

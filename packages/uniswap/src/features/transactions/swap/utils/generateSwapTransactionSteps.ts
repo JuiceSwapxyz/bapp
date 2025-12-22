@@ -1,11 +1,11 @@
 import { BridgeQuote } from 'uniswap/src/data/tradingApi/__generated__'
-import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
+import { BitcoinBridgeDirection, LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { createApprovalTransactionStep } from 'uniswap/src/features/transactions/steps/approve'
 import { createPermit2SignatureStep } from 'uniswap/src/features/transactions/steps/permit2Signature'
 import { createPermit2TransactionStep } from 'uniswap/src/features/transactions/steps/permit2Transaction'
 import { createRevocationTransactionStep } from 'uniswap/src/features/transactions/steps/revoke'
 import { TransactionStep } from 'uniswap/src/features/transactions/steps/types'
-import { createBitcoinBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
+import { createBitcoinBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { orderClassicSwapSteps } from 'uniswap/src/features/transactions/swap/steps/classicSteps'
 import { createLightningBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { createSignUniswapXOrderStep } from 'uniswap/src/features/transactions/swap/steps/signOrder'
@@ -71,9 +71,14 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo): Trans
         signOrder: createSignUniswapXOrderStep(txContext.permit.typedData, txContext.trade.quote.quote),
       })
     } else if (isBitcoinBridge(txContext)) {
-      return [createBitcoinBridgeLockTransactionStep()]
+      const direction =
+        ((txContext.trade.quote.quote as BridgeQuote).direction as BitcoinBridgeDirection | undefined) ??
+        BitcoinBridgeDirection.CitreaToBitcoin
+      return [createBitcoinBridgeTransactionStep(direction)]
     } else if (isLightningBridge(txContext)) {
-      const direction = (txContext.trade.quote.quote as BridgeQuote).direction ?? LightningBridgeDirection.Submarine
+      const direction =
+        ((txContext.trade.quote.quote as BridgeQuote).direction as LightningBridgeDirection | undefined) ??
+        LightningBridgeDirection.Submarine
       return [createLightningBridgeTransactionStep(direction)]
     } else if (isBridge(txContext)) {
       if (txContext.txRequests.length > 1) {

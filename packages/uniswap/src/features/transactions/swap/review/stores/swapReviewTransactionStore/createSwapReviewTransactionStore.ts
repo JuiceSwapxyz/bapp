@@ -29,6 +29,7 @@ export type SwapReviewTransactionState = {
   acceptedDerivedSwapInfo: DerivedSwapInfo | undefined
   isWrap: boolean
   isLnBridge: boolean
+  isBtcBridge: boolean
   blockingWarning: Warning | undefined
   reviewScreenWarning: WarningWithStyle | undefined
   txSimulationErrors: TransactionFailureReason[] | undefined
