@@ -5,7 +5,7 @@ import type { IncreaseLiquiditySteps } from 'uniswap/src/features/transactions/l
 import type { MigrationSteps } from 'uniswap/src/features/transactions/liquidity/steps/migrationSteps'
 import type { SignTypedDataStepFields } from 'uniswap/src/features/transactions/steps/permit2Signature'
 import { WrapTransactionStep } from 'uniswap/src/features/transactions/steps/wrap'
-import type { BitcoinBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
+import type { BitcoinBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import type { ClassicSwapSteps } from 'uniswap/src/features/transactions/swap/steps/classicSteps'
 import type { LightningBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import type { UniswapXSwapSteps } from 'uniswap/src/features/transactions/swap/steps/uniswapxSteps'
@@ -28,7 +28,8 @@ export enum TransactionStepType {
   MigratePositionTransactionAsync = 'MigratePositionTransactionAsync',
   CollectFeesTransactionStep = 'CollectFeesTransaction',
   CollectLpIncentiveRewardsTransactionStep = 'CollectLpIncentiveRewardsTransactionStep',
-  BitcoinBridgeLockTransactionStep = 'BitcoinBridgeLockTransactionStep',
+  BitcoinBridgeCitreaToBitcoinStep = 'BitcoinBridgeCitreaToBitcoinStep',
+  BitcoinBridgeBitcoinToCitreaStep = 'BitcoinBridgeBitcoinToCitreaStep',
   LightningBridgeSubmarineStep = 'LightningBridgeSubmarineStep',
   LightningBridgeReverseStep = 'LightningBridgeReverseStep',
 }
@@ -43,7 +44,7 @@ export type TransactionStep =
   | CollectFeesSteps
   | CollectLpIncentiveRewardsSteps
   | WrapTransactionStep
-  | BitcoinBridgeLockTransactionStep
+  | BitcoinBridgeTransactionStep
   | LightningBridgeTransactionStep
 export type OnChainTransactionStep = TransactionStep & OnChainTransactionFields
 export type OnChainTransactionStepBatched = TransactionStep & OnChainTransactionFieldsBatched

@@ -27,13 +27,13 @@ import {
   postClaimChainSwap,
 } from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
 import { createLdsSocketClient, LdsSwapStatus } from 'uniswap/src/data/socketClients/ldsSocket'
-import { BitcoinBridgeLockTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
+import { BitcoinBridgeCitreaToBitcoinStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 
-interface HandleBitcoinBridgeLockTransactionStepParams {
-  step: BitcoinBridgeLockTransactionStep
+interface HandleBitcoinBridgeCitreaToBitcoinParams {
+  step: BitcoinBridgeCitreaToBitcoinStep
   setCurrentStep: SetCurrentStepFn
   trade: Trade
   account: AccountDetails
@@ -42,14 +42,14 @@ interface HandleBitcoinBridgeLockTransactionStepParams {
   onSuccess?: () => void
 }
 
-export function* handleBitcoinBridgeLockTransactionStep(params: HandleBitcoinBridgeLockTransactionStepParams) {
+export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeCitreaToBitcoinParams) {
   const { destinationAddress: claimAddress, trade, account, onSuccess, onTransactionHash } = params
 
   if (!claimAddress) {
     throw new Error('Claim address is required for Bitcoin bridge swap')
   }
 
-  const { claimPublicKey, claimKeyPair } = generateChainSwapKeys(undefined, 2)
+  const { claimPublicKey, claimKeyPair } = generateChainSwapKeys()
 
   const preimage = randomBytes(32)
   const preimageHash = crypto.sha256(Buffer.from(preimage)).toString('hex')
@@ -84,7 +84,7 @@ export function* handleBitcoinBridgeLockTransactionStep(params: HandleBitcoinBri
 
   yield* call(ldsSocket.subscribeToSwapUntil, chainSwapResponse.id, LdsSwapStatus.TransactionServerMempool)
 
-  if (onTransactionHash) {
+  if (onTransactionHash && evmTxResult.hash) {
     onTransactionHash(evmTxResult.hash)
   }
 
@@ -106,9 +106,9 @@ export function* handleBitcoinBridgeLockTransactionStep(params: HandleBitcoinBri
 
   const { claimDetails } = chainSwapResponse
   const lockupTxHex = chainTransactionsResponse.serverLock?.transaction.hex
-  const boltzRefundPublicKey = Buffer.from(Buffer.from(claimDetails.serverPublicKey, 'hex'))
+  const boltzRefundPublicKey = Buffer.from(Buffer.from(claimDetails.serverPublicKey!, 'hex'))
   const ourClaimMusig = yield* call(createMusig, claimKeyPair, boltzRefundPublicKey)
-  const claimTree = SwapTreeSerializer.deserializeSwapTree(claimDetails.swapTree)
+  const claimTree = SwapTreeSerializer.deserializeSwapTree(claimDetails.swapTree!)
   const tweakedKey = TaprootUtils.tweakMusig(ourClaimMusig, claimTree.tree)
   const lockupTx = Transaction.fromHex(lockupTxHex as string)
   const swapOutput = detectSwap(tweakedKey, lockupTx as any)

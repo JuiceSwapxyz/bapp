@@ -1,26 +1,26 @@
 import type { BridgeQuote } from 'uniswap/src/data/tradingApi/__generated__/models/BridgeQuote'
-import type { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
+import { BitcoinBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { useSwapReviewTransactionStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewTransactionStore/useSwapReviewTransactionStore'
-import { isLightningBridge } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isBitcoinBridge } from 'uniswap/src/features/transactions/swap/utils/routing'
 
-interface LnBridgeSwapDetails {
+interface BtcBridgeDetails {
+  direction: BitcoinBridgeDirection | undefined
   quote: BridgeQuote | undefined
-  direction: LightningBridgeDirection | undefined
 }
 
-export function useLnBrideSwapDetails(): LnBridgeSwapDetails {
+export function useBtcBridgeDetails(): BtcBridgeDetails {
   const { derivedSwapInfo } = useSwapReviewTransactionStore((s) => ({ derivedSwapInfo: s.derivedSwapInfo }))
 
   const trade = derivedSwapInfo.trade.trade
-  if (!trade || !isLightningBridge(trade)) {
-    return { quote: undefined, direction: undefined }
+  if (!trade || !isBitcoinBridge(trade)) {
+    return { direction: undefined, quote: undefined }
   }
 
   const quote = trade.quote.quote as BridgeQuote
-  const direction = quote.direction as LightningBridgeDirection
+  const direction = quote.direction as BitcoinBridgeDirection
 
   return {
-    quote,
     direction,
+    quote,
   }
 }

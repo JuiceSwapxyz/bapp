@@ -20,7 +20,7 @@ export type BuildEvmLockupTxParams = {
   signer: Signer
   contractAddress: string
   preimageHash: string
-  claimAddress: string
+  claimAddress: string | undefined
   timeoutBlockHeight: number
   amountSatoshis: number
 }
@@ -40,14 +40,18 @@ export const prefix0x = (val: string): string => {
   return val.startsWith('0x') ? val : `0x${val}`
 }
 
-export const buildEvmLockupTx = async (params: BuildEvmLockupTxParams): Promise<EvmLockupTransaction> => {
+export function* buildEvmLockupTx(params: BuildEvmLockupTxParams): Generator<any, EvmLockupTransaction, any> {
   const { signer, contractAddress, preimageHash, claimAddress, timeoutBlockHeight, amountSatoshis } = params
+
+  if (!claimAddress) {
+    throw new Error('claimAddress is required for EVM lockup transaction')
+  }
 
   const contract = new EthersContract(contractAddress, COIN_SWAP_ABI, signer) as Contract
   const preimageHashBytes32 = prefix0x(preimageHash)
   const value = satoshiToWei(amountSatoshis)
 
-  const tx = await contract.lock(preimageHashBytes32, claimAddress, timeoutBlockHeight, {
+  const tx = yield contract.lock(preimageHashBytes32, claimAddress, timeoutBlockHeight, {
     value,
   })
 

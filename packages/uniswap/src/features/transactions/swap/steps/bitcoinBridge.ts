@@ -1,12 +1,24 @@
+import { BitcoinBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 
-export interface BitcoinBridgeLockTransactionStep {
-  type: TransactionStepType.BitcoinBridgeLockTransactionStep
+export interface BitcoinBridgeCitreaToBitcoinStep {
+  type: TransactionStepType.BitcoinBridgeCitreaToBitcoinStep
 }
 
-export const createBitcoinBridgeLockTransactionStep = (): BitcoinBridgeLockTransactionStep => {
-  // Here we can collect stuff for my saga to run
+export interface BitcoinBridgeBitcoinToCitreaStep {
+  type: TransactionStepType.BitcoinBridgeBitcoinToCitreaStep
+  bip21?: string
+}
+
+export type BitcoinBridgeTransactionStep = BitcoinBridgeCitreaToBitcoinStep | BitcoinBridgeBitcoinToCitreaStep
+
+export const createBitcoinBridgeTransactionStep = (direction: BitcoinBridgeDirection): BitcoinBridgeTransactionStep => {
+  if (direction === BitcoinBridgeDirection.CitreaToBitcoin) {
+    return {
+      type: TransactionStepType.BitcoinBridgeCitreaToBitcoinStep,
+    }
+  }
   return {
-    type: TransactionStepType.BitcoinBridgeLockTransactionStep,
+    type: TransactionStepType.BitcoinBridgeBitcoinToCitreaStep,
   }
 }

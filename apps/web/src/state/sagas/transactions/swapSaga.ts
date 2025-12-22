@@ -10,7 +10,8 @@ import { useSetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap
 import { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
-import { handleBitcoinBridgeLockTransactionStep } from 'state/sagas/transactions/bitcoinBridge'
+import { handleBitcoinBridgeBitcoinToCitrea } from 'state/sagas/transactions/bitcoinBridgeBitcoinToCitrea'
+import { handleBitcoinBridgeCitreaToBitcoin } from 'state/sagas/transactions/bitcoinBridgeCitreaToBitcoin'
 import { handleLightningBridgeReverse } from 'state/sagas/transactions/lightningBridgeReverse'
 import { handleLightningBridgeSubmarine } from 'state/sagas/transactions/lightningBridgeSubmarine'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
@@ -57,6 +58,7 @@ import { slippageToleranceToPercent } from 'uniswap/src/features/transactions/sw
 import { generateSwapTransactionSteps } from 'uniswap/src/features/transactions/swap/utils/generateSwapTransactionSteps'
 import {
   UNISWAPX_ROUTING_VARIANTS,
+  isBitcoinBridge,
   isClassic,
   isLightningBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -247,7 +249,8 @@ function* swap(params: SwapParams) {
   const { trade } = swapTxContext
 
   const isLightningBridgeSwap = isLightningBridge(swapTxContext)
-  const changeChain = !isLightningBridgeSwap
+  const isBitcoinBridgeSwap = isBitcoinBridge(swapTxContext)
+  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap
   if (changeChain) {
     const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
     if (chainSwitchFailed) {
@@ -309,15 +312,29 @@ function* swap(params: SwapParams) {
           yield* call(handleUniswapXSignatureStep, { account, step, setCurrentStep, trade, analytics })
           break
         }
-        case TransactionStepType.BitcoinBridgeLockTransactionStep: {
+        case TransactionStepType.BitcoinBridgeCitreaToBitcoinStep: {
           requireRouting(swapTxContext, [Routing.BITCOIN_BRIDGE])
-          yield* call(handleBitcoinBridgeLockTransactionStep, {
+          yield* call(handleBitcoinBridgeCitreaToBitcoin, {
             step,
             setCurrentStep,
             trade,
             account,
             destinationAddress: swapTxContext.destinationAddress,
             onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
+        case TransactionStepType.BitcoinBridgeBitcoinToCitreaStep: {
+          requireRouting(swapTxContext, [Routing.BITCOIN_BRIDGE])
+          yield* call(handleBitcoinBridgeBitcoinToCitrea, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
           })
           break
         }
@@ -362,8 +379,8 @@ function* swap(params: SwapParams) {
     return
   }
 
-  // For lightning bridge, onSuccess is called earlier in the flow
-  if (!isLightningBridgeSwap) {
+  // For lightning bridge and bitcoin bridge, onSuccess is called earlier in the flow
+  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap) {
     yield* call(onSuccess)
   }
 }

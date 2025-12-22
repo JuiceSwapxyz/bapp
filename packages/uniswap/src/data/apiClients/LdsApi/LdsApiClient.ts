@@ -87,8 +87,9 @@ export interface CreateChainSwapRequest {
   from: string
   to: string
   preimageHash: string
-  claimPublicKey: string
+  claimPublicKey?: string
   claimAddress: string
+  refundPublicKey?: string
   pairHash: string
   referralId: string
   userLockAmount: number
@@ -98,11 +99,12 @@ export interface CreateChainSwapResponse {
   id: string
   referralId: string
   claimDetails: {
-    serverPublicKey: string
+    serverPublicKey?: string
+    refundAddress?: string
     amount: number
     lockupAddress: string
     timeoutBlockHeight: number
-    swapTree: {
+    swapTree?: {
       claimLeaf: {
         version: number
         output: string
@@ -114,10 +116,22 @@ export interface CreateChainSwapResponse {
     }
   }
   lockupDetails: {
-    claimAddress: string
+    serverPublicKey?: string
+    claimAddress?: string
     amount: number
     lockupAddress: string
     timeoutBlockHeight: number
+    swapTree?: {
+      claimLeaf: {
+        version: number
+        output: string
+      }
+      refundLeaf: {
+        version: number
+        output: string
+      }
+    }
+    bip21?: string
   }
 }
 

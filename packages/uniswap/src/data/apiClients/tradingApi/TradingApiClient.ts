@@ -69,6 +69,7 @@ import {
 import {
   BitcoinBridgeDirection,
   FeeType,
+  GasStrategy,
   LightningBridgeDirection,
   LightningInvoice,
 } from 'uniswap/src/data/tradingApi/types'
@@ -283,6 +284,7 @@ const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<Discrimi
     chainId: params.tokenInChainId,
     destinationChainId: params.tokenOutChainId,
     swapper: params.swapper,
+    direction,
     input: {
       amount: inputAmount,
       token: params.tokenIn,
@@ -624,7 +626,8 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
     },
   })
 
-  const gasStrategy = (params as ApprovalRequest & { gasStrategies?: unknown[] }).gasStrategies?.[0] || {
+  const gasStrategy: GasStrategy = (params as ApprovalRequest & { gasStrategies?: GasStrategy[] })
+    .gasStrategies?.[0] || {
     limitInflationFactor: 1.2,
     displayLimitInflationFactor: 1.2,
     priceInflationFactor: 1.1,
