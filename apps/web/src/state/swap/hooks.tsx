@@ -13,6 +13,7 @@ import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { ALWAYS_ENABLED_CHAIN_IDS } from 'uniswap/src/features/chains/utils'
 import { selectFilteredChainIds } from 'uniswap/src/features/transactions/swap/state/selectors'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { isAddress } from 'utilities/src/addresses'
@@ -232,7 +233,8 @@ export function useInitialCurrencyState(): {
 
   const supportedChainId = useSupportedChainId(parsedCurrencyState.chainId ?? defaultChainId) ?? UniverseChainId.Mainnet
   const supportedChainInfo = getChainInfo(supportedChainId)
-  const isSupportedChainCompatible = isTestnetModeEnabled === !!supportedChainInfo.testnet
+  const isSupportedChainCompatible =
+    isTestnetModeEnabled === !!supportedChainInfo.testnet || ALWAYS_ENABLED_CHAIN_IDS.includes(supportedChainId)
 
   const hasCurrencyQueryParams =
     parsedCurrencyState.inputCurrencyAddress || parsedCurrencyState.outputCurrencyAddress || parsedCurrencyState.chainId
