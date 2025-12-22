@@ -1,5 +1,6 @@
 import { Separator } from 'ui/src/components/layout/Separator'
 import { BitcoinBridgeDirection } from 'uniswap/src/data/tradingApi/types'
+import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 import { InvoiceLikeStringDisplay } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/InvoiceLikeStringDisplay'
 import {
   BitcoinLikeAddressType,
@@ -14,7 +15,10 @@ export function SwapBtcBridgeDetails(): JSX.Element {
   const currentStep = useSwapReviewStore((s) => s.currentStep)
 
   if (direction === BitcoinBridgeDirection.BitcoinToCitrea) {
-    const bip21 = (currentStep?.step as BitcoinBridgeBitcoinToCitreaStep).bip21
+    const bip21 =
+      currentStep?.step.type === TransactionStepType.BitcoinBridgeBitcoinToCitreaStep
+        ? (currentStep.step as BitcoinBridgeBitcoinToCitreaStep).bip21
+        : undefined
 
     if (!bip21) {
       return <></>
