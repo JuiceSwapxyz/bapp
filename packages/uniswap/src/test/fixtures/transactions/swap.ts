@@ -116,6 +116,7 @@ export function createMockDerivedSwapInfo({
     wrapType: WrapType.NotApplicable,
     exactAmountToken: CurrencyField.INPUT,
     exactCurrencyField: CurrencyField.INPUT,
+    limits: null,
     ...overrides,
   }
 }

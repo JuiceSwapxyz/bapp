@@ -190,6 +190,8 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
   })
 }
 
+export const ALWAYS_ENABLED_CHAIN_IDS = [UniverseChainId.Bitcoin, UniverseChainId.LightningNetwork]
+
 export function getEnabledChains({
   platform,
   /**
@@ -213,6 +215,10 @@ export function getEnabledChains({
     // Filter by platform - removed conditional as all chains are EVM now
     if (platform !== undefined) {
       // All chains are now Platform.EVM, so no filtering needed
+    }
+
+    if (ALWAYS_ENABLED_CHAIN_IDS.includes(chainInfo.id)) {
+      return true
     }
 
     // Filter mainnet vs testnet based on mode
