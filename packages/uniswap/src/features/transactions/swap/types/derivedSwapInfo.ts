@@ -5,6 +5,7 @@ import { WrapType } from 'uniswap/src/features/transactions/types/wrap'
 import { TradeWithStatus } from 'uniswap/src/features/transactions/swap/types/trade'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyField } from 'uniswap/src/types/currency'
+import { BridgeLimitsInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/hooks/useBridgeLimits'
 
 export type DerivedSwapInfo<
   TInput = CurrencyInfo,
@@ -30,4 +31,5 @@ export type DerivedSwapInfo<
   wrapType: WrapType
   selectingCurrencyField?: CurrencyField
   txId?: string
+  limits: Maybe<BridgeLimitsInfo>
 }

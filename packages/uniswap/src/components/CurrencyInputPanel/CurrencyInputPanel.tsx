@@ -1,6 +1,6 @@
 /* eslint-disable complexity */
 import { forwardRef, memo, useCallback } from 'react'
-import { Flex, TouchableArea, useIsShortMobileDevice, useShakeAnimation } from 'ui/src'
+import { Flex, Text, TouchableArea, useIsShortMobileDevice, useShakeAnimation } from 'ui/src'
 import { AmountInputPresets } from 'uniswap/src/components/CurrencyInputPanel/AmountInputPresets/AmountInputPresets'
 import { PresetAmountButton } from 'uniswap/src/components/CurrencyInputPanel/AmountInputPresets/PresetAmountButton'
 import type { PresetPercentage } from 'uniswap/src/components/CurrencyInputPanel/AmountInputPresets/types'
@@ -47,6 +47,7 @@ export const CurrencyInputPanel = memo(
         headerLabel,
         transactionType,
         customPanelStyle,
+        limits,
       } = props
       const account = useWallet().evmAccount
       const isShortMobileDevice = useIsShortMobileDevice()
@@ -178,14 +179,16 @@ export const CurrencyInputPanel = memo(
               )}
               {currencyInfo && (
                 <Flex row centered ml="auto" gap="$spacing4" justifyContent="flex-end">
-                  <CurrencyInputPanelBalance
-                    currencyField={currencyField}
-                    currencyBalance={currencyBalance}
-                    currencyInfo={currencyInfo}
-                    showInsufficientBalanceWarning={showInsufficientBalanceWarning}
-                  />
+                  {!limits && (
+                    <CurrencyInputPanelBalance
+                      currencyField={currencyField}
+                      currencyBalance={currencyBalance}
+                      currencyInfo={currencyInfo}
+                      showInsufficientBalanceWarning={showInsufficientBalanceWarning}
+                    />
+                  )}
                   {/* Max button */}
-                  {showMaxButton && onSetPresetValue && (
+                  {showMaxButton && onSetPresetValue && !limits && (
                     <PresetAmountButton
                       percentage="max"
                       currencyAmount={currencyAmount}
@@ -197,6 +200,11 @@ export const CurrencyInputPanel = memo(
                       }}
                       onSetPresetValue={handleSetPresetValue}
                     />
+                  )}
+                  {limits && (
+                    <Text variant="body3" color="$neutral2">
+                      Limits: {limits.min?.toExact()} - {limits.max?.toExact()}
+                    </Text>
                   )}
                 </Flex>
               )}

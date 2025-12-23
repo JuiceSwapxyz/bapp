@@ -70,6 +70,7 @@ export function SwapFormCurrencyOutputPanel(): JSX.Element {
   }))
 
   const focusedStyles = useCurrencyInputFocusedStyle(focusOnCurrencyField === CurrencyField.OUTPUT)
+  const limits = derivedSwapInfo.limits?.[CurrencyField.OUTPUT]
 
   return (
     <Trace section={SectionName.CurrencyOutputPanel}>
@@ -93,6 +94,7 @@ export function SwapFormCurrencyOutputPanel(): JSX.Element {
           value={exactFieldIsOutput ? exactValue : formattedDerivedValue}
           valueIsIndicative={!exactFieldIsOutput && trade.indicativeTrade && !trade.trade}
           tokenColor={tokenColor}
+          limits={limits}
           onPressDisabled={isBridge ? undefined : showTemporaryFoTWarning}
           onPressIn={onFocusOutput}
           onSelectionChange={onOutputSelectionChange}

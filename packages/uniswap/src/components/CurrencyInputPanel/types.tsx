@@ -43,4 +43,8 @@ export type CurrencyInputPanelProps = {
   tokenColor?: string
   priceDifferencePercentage?: number
   customPanelStyle?: FlexProps
+  limits?: {
+    min?: CurrencyAmount<Currency>
+    max?: CurrencyAmount<Currency>
+  }
 }
