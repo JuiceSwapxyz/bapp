@@ -118,6 +118,8 @@ export const routingApi = createApi({
           tradeType,
           sendPortionEnabled,
         } = args
+        const routingConfig = getRoutingAPIConfig(args)
+        const classicConfig = routingConfig.find((c): c is ClassicAPIConfig => c.routingType === URAQuoteType.CLASSIC)
         const requestBody = {
           tokenInChainId,
           tokenIn,
@@ -127,9 +129,11 @@ export const routingApi = createApi({
           sendPortionEnabled,
           type: isExactInput(tradeType) ? 'EXACT_INPUT' : 'EXACT_OUTPUT',
           intent: args.routerPreference === INTERNAL_ROUTER_PREFERENCE_PRICE ? QuoteIntent.Pricing : QuoteIntent.Quote,
-          configs: getRoutingAPIConfig(args),
+          configs: routingConfig,
           useUniswapX: args.routerPreference === RouterPreference.X,
           swapper: args.account,
+          // Add protocols at top level for JuiceSwap API compatibility (expects protocols outside configs)
+          protocols: classicConfig?.protocols.map((p) => (p === Protocol.V2 ? 'V2' : p === Protocol.V3 ? 'V3' : 'MIXED')),
         }
         try {
           const response = await fetch({

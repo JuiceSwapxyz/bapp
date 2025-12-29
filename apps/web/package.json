@@ -174,7 +174,7 @@
     "@juggle/resize-observer": "3.4.0",
     "@juiceswapxyz/launchpad": "1.0.2",
     "@juiceswapxyz/router-sdk": "0.1.0-beta.0",
-    "@juiceswapxyz/sdk-core": "0.1.0-beta.0",
+    "@juiceswapxyz/sdk-core": "0.1.1-beta.0",
     "@juiceswapxyz/uniswapx-sdk": "0.1.0-beta.0",
     "@juiceswapxyz/universal-router-sdk": "0.1.0-beta.0",
     "@juiceswapxyz/v2-sdk": "0.1.0-beta.0",

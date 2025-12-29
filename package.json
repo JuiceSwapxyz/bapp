@@ -64,6 +64,7 @@
     "metro-resolver": "Pinning previous version because of excessive logging thats not fixed until RN 0.79 https://github.com/facebook/hermes/commit/c615b115dfa471c108256982ce07f10adee63667"
   },
   "resolutions": {
+    "@juiceswapxyz/sdk-core": "0.1.2-beta.0",
     "@apollo/client": "3.10.4",
     "@babel/preset-env": "7.26.0",
     "@coinbase/wallet-sdk": "4.3.2",
