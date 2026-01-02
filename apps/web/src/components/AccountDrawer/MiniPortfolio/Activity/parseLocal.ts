@@ -469,6 +469,16 @@ export async function transactionToActivity({
         descriptor: i18n.t('notification.transaction.unknown.success.short'),
         logos: [StaticRouteIcon],
       }
+    } else if (
+      info.type === TransactionType.LaunchpadBuy ||
+      info.type === TransactionType.LaunchpadSell ||
+      info.type === TransactionType.LaunchpadCreateToken ||
+      info.type === TransactionType.LaunchpadGraduate
+    ) {
+      // Launchpad transactions use dappInfo.name for the descriptor
+      additionalFields = {
+        descriptor: info.dappInfo?.name ?? '',
+      }
     }
 
     const activity = { ...defaultFields, ...additionalFields }

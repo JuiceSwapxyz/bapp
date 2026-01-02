@@ -29,7 +29,7 @@ if (UNISWAP_GATEWAY_DNS_URL === undefined) {
   throw new Error(`UNISWAP_GATEWAY_DNS_URL must be defined environment variables`)
 }
 
-const protocols: Protocol[] = [Protocol.V3]
+const protocols: Protocol[] = [Protocol.V2, Protocol.V3]
 
 // routing API quote query params: https://github.com/Uniswap/routing-api/blob/main/lib/handlers/quote/schema/quote-schema.ts
 const DEFAULT_QUERY_PARAMS = {
@@ -118,6 +118,8 @@ export const routingApi = createApi({
           tradeType,
           sendPortionEnabled,
         } = args
+        const routingConfig = getRoutingAPIConfig(args)
+        const classicConfig = routingConfig.find((c): c is ClassicAPIConfig => c.routingType === URAQuoteType.CLASSIC)
         const requestBody = {
           tokenInChainId,
           tokenIn,
@@ -127,9 +129,11 @@ export const routingApi = createApi({
           sendPortionEnabled,
           type: isExactInput(tradeType) ? 'EXACT_INPUT' : 'EXACT_OUTPUT',
           intent: args.routerPreference === INTERNAL_ROUTER_PREFERENCE_PRICE ? QuoteIntent.Pricing : QuoteIntent.Quote,
-          configs: getRoutingAPIConfig(args),
+          configs: routingConfig,
           useUniswapX: args.routerPreference === RouterPreference.X,
           swapper: args.account,
+          // Add protocols at top level for JuiceSwap API compatibility (expects protocols outside configs)
+          protocols: classicConfig?.protocols.map((p) => (p === Protocol.V2 ? 'V2' : p === Protocol.V3 ? 'V3' : 'MIXED')),
         }
         try {
           const response = await fetch({

@@ -428,7 +428,7 @@ export const swapQuote = async (params: QuoteRequest): Promise<DiscriminatedQuot
     body: JSON.stringify({
       ...params,
       type: 'EXACT_INPUT', // TODO: Remove this once the backend is updated
-      protocols: [Protocol.V3],
+      protocols: params.protocols ?? [Protocol.V3, Protocol.V2],
     }),
     headers: {
       ...V4_HEADERS,
@@ -502,6 +502,7 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
     slippageTolerance: '5',
     deadline: params.deadline || '1800',
     chainId: tokenIn?.chainId,
+    protocols: ['V3', 'V2'],
     ...params.customSwapData,
   }
 

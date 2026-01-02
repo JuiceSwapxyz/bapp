@@ -109,6 +109,11 @@ export const createUniverseTransaction = ({
     case TransactionType.LocalOffRamp:
     case TransactionType.SendCalls:
     case TransactionType.RemoveDelegation:
+    // Launchpad transaction types
+    case TransactionType.LaunchpadCreateToken:
+    case TransactionType.LaunchpadBuy:
+    case TransactionType.LaunchpadSell:
+    case TransactionType.LaunchpadGraduate:
       return { ...baseTransaction, ...info } as UniswapTransactionDetails
     default:
       assertUnreachable(info)

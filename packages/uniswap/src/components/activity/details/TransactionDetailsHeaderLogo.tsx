@@ -18,6 +18,10 @@ import {
   CollectFeesTransactionInfo,
   CreatePairTransactionInfo,
   CreatePoolTransactionInfo,
+  LaunchpadBuyTransactionInfo,
+  LaunchpadCreateTokenTransactionInfo,
+  LaunchpadGraduateTransactionInfo,
+  LaunchpadSellTransactionInfo,
   LiquidityDecreaseTransactionInfo,
   LiquidityIncreaseTransactionInfo,
   LpIncentivesClaimTransactionInfo,
@@ -124,6 +128,10 @@ export function TransactionDetailsHeaderLogo({ transactionDetails }: HeaderLogoP
     case TransactionType.MigrateLiquidityV2ToV3:
     case TransactionType.MigrateLiquidityV3ToV4:
     case TransactionType.LPIncentivesClaimRewards:
+    case TransactionType.LaunchpadCreateToken:
+    case TransactionType.LaunchpadBuy:
+    case TransactionType.LaunchpadSell:
+    case TransactionType.LaunchpadGraduate:
       return <UnknownHeaderLogo transactionDetails={transactionDetails} typeInfo={typeInfo} />
     default:
       return <UnknownHeaderLogo transactionDetails={transactionDetails} typeInfo={typeInfo} />
@@ -273,6 +281,10 @@ function UnknownHeaderLogo({
   | MigrateV2LiquidityToV3TransactionInfo
   | MigrateV3LiquidityToV4TransactionInfo
   | LpIncentivesClaimTransactionInfo
+  | LaunchpadCreateTokenTransactionInfo
+  | LaunchpadBuyTransactionInfo
+  | LaunchpadSellTransactionInfo
+  | LaunchpadGraduateTransactionInfo
 >): JSX.Element {
   const colors = useSporeColors()
   // Check if dappInfo exists since it may not exist on all transaction types
