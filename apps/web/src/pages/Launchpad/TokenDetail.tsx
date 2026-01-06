@@ -10,8 +10,11 @@ import { Modal } from 'uniswap/src/components/modals/Modal'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
 import { useTokenInfo } from 'hooks/useTokenFactory'
+import { useLaunchpadToken } from 'hooks/useLaunchpadTokens'
+import { useTokenMetadata, getSocialLink } from 'hooks/useTokenMetadata'
 import { useGraduate } from 'hooks/useLaunchpadActions'
 import { BuySellPanel } from 'pages/Launchpad/components/BuySellPanel'
+import { TokenLogo } from 'pages/Launchpad/components/TokenLogo'
 import { formatUnits } from 'viem'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
@@ -55,16 +58,6 @@ const HeaderSection = styled(Flex, {
   alignItems: 'flex-start',
   gap: '$spacing24',
   flexWrap: 'wrap',
-})
-
-const TokenLogo = styled(Flex, {
-  width: 80,
-  height: 80,
-  borderRadius: '$roundedFull',
-  backgroundColor: '$accent2',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
 })
 
 const TokenInfo = styled(Flex, {
@@ -201,6 +194,8 @@ export default function TokenDetail() {
   } = useBondingCurveToken(tokenAddress)
 
   const { tokenInfo } = useTokenInfo(tokenAddress)
+  const { data: launchpadData } = useLaunchpadToken(tokenAddress)
+  const { data: metadata } = useTokenMetadata(launchpadData?.token?.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
   const [isGraduating, setIsGraduating] = useState(false)
 
@@ -293,10 +288,6 @@ export default function TokenDetail() {
     return new Date(tokenInfo.timestamp * 1000).toLocaleDateString()
   }, [tokenInfo])
 
-  const logoLetter = useMemo(() => {
-    return symbol?.charAt(0).toUpperCase() || '?'
-  }, [symbol])
-
   if (isLoading) {
     return (
       <PageContainer>
@@ -327,9 +318,11 @@ export default function TokenDetail() {
           </BackButton>
 
           <HeaderSection>
-            <TokenLogo>
-              <Text variant="heading1" color="$accent1">{logoLetter}</Text>
-            </TokenLogo>
+            <TokenLogo
+              metadataURI={launchpadData?.token?.metadataURI}
+              symbol={symbol || '?'}
+              size={80}
+            />
             <TokenInfo>
               <Flex flexDirection="row" alignItems="center" gap="$spacing12">
                 <TokenName>{name || 'Unknown Token'}</TokenName>
@@ -351,8 +344,49 @@ export default function TokenDetail() {
                   <ExternalLink size="$icon.16" color="$neutral3" />
                 </AddressLink>
               </AddressRow>
+              {(metadata?.external_url || getSocialLink(metadata, 'Twitter') || getSocialLink(metadata, 'Telegram')) && (
+                <Flex flexDirection="row" gap="$spacing12" flexWrap="wrap" marginTop="$spacing4">
+                  {metadata?.external_url && (
+                    <AddressLink onPress={() => window.open(metadata.external_url, '_blank', 'noopener')}>
+                      <Text variant="body3" color="$accent1">Website</Text>
+                      <ExternalLink size="$icon.12" color="$accent1" />
+                    </AddressLink>
+                  )}
+                  {getSocialLink(metadata, 'Twitter') && (
+                    <AddressLink
+                      onPress={() => {
+                        const handle = getSocialLink(metadata, 'Twitter')?.replace('@', '')
+                        window.open(`https://twitter.com/${handle}`, '_blank', 'noopener')
+                      }}
+                    >
+                      <Text variant="body3" color="$accent1">Twitter</Text>
+                      <ExternalLink size="$icon.12" color="$accent1" />
+                    </AddressLink>
+                  )}
+                  {getSocialLink(metadata, 'Telegram') && (
+                    <AddressLink
+                      onPress={() => {
+                        const handle = getSocialLink(metadata, 'Telegram')?.replace('@', '')
+                        window.open(`https://t.me/${handle}`, '_blank', 'noopener')
+                      }}
+                    >
+                      <Text variant="body3" color="$accent1">Telegram</Text>
+                      <ExternalLink size="$icon.12" color="$accent1" />
+                    </AddressLink>
+                  )}
+                </Flex>
+              )}
             </TokenInfo>
           </HeaderSection>
+
+          {metadata?.description && (
+            <Card>
+              <CardTitle>About</CardTitle>
+              <Text variant="body2" color="$neutral2">
+                {metadata.description}
+              </Text>
+            </Card>
+          )}
 
           <MainContent>
             <LeftColumn>

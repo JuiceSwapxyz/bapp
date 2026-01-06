@@ -19,6 +19,7 @@ export interface LaunchpadToken {
   symbol: string
   creator: `0x${string}`
   baseAsset: `0x${string}`
+  metadataURI: string | null // IPFS/Arweave/HTTPS URI to token metadata JSON - nullable for pre-v2.1.0 tokens
   createdAt: string // bigint as string
   createdAtBlock: string
   txHash: `0x${string}`
@@ -30,6 +31,7 @@ export interface LaunchpadToken {
   totalSells: number
   totalVolumeBase: string // bigint as string
   lastTradeAt: string | null
+  progress: number // Bonding curve progress in basis points (0-10000)
 }
 
 export interface LaunchpadTokensResponse {

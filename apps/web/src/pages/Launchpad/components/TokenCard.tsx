@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react'
 import { formatUnits } from 'viem'
 import { type LaunchpadToken } from 'hooks/useLaunchpadTokens'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
+import { TokenLogo } from './TokenLogo'
 
 const Card = styled(Flex, {
   backgroundColor: '$surface2',
@@ -28,14 +29,6 @@ const TokenHeader = styled(Flex, {
   gap: '$spacing12',
 })
 
-const TokenLogo = styled(Flex, {
-  width: 48,
-  height: 48,
-  borderRadius: '$roundedFull',
-  backgroundColor: '$accent2',
-  alignItems: 'center',
-  justifyContent: 'center',
-})
 
 const TokenName = styled(Text, {
   variant: 'body1',
@@ -118,11 +111,6 @@ export function TokenCard({ token }: TokenCardProps) {
     return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [reserves])
 
-  // Get first letter for logo placeholder
-  const logoLetter = useMemo(() => {
-    return token.symbol?.charAt(0).toUpperCase() || '?'
-  }, [token.symbol])
-
   // Format creator address
   const creatorShort = useMemo(() => {
     return `${token.creator.slice(0, 6)}...${token.creator.slice(-4)}`
@@ -145,9 +133,7 @@ export function TokenCard({ token }: TokenCardProps) {
   return (
     <Card onPress={handleClick}>
       <TokenHeader>
-        <TokenLogo>
-          <Text variant="heading3" color="$accent1">{logoLetter}</Text>
-        </TokenLogo>
+        <TokenLogo metadataURI={token.metadataURI} symbol={token.symbol} size={48} />
         <Flex flex={1} gap="$spacing2">
           <Flex flexDirection="row" alignItems="center" gap="$spacing8">
             <TokenName>{token.name || 'Unknown Token'}</TokenName>

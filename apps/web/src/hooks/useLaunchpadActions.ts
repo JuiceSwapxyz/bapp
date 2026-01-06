@@ -54,6 +54,7 @@ export interface SellParams {
 export interface CreateTokenParams {
   name: string
   symbol: string
+  metadataURI: string
 }
 
 /**
@@ -182,7 +183,7 @@ export function useCreateToken(
   accountRef.current = account
 
   return useCallback(
-    async ({ name, symbol }: CreateTokenParams): Promise<{ tx: ContractTransaction; tokenAddress: string | null }> => {
+    async ({ name, symbol, metadataURI }: CreateTokenParams): Promise<{ tx: ContractTransaction; tokenAddress: string | null }> => {
       const currentAccount = accountRef.current
       if (currentAccount.chainId !== chainId) {
         const switched = await selectChain(chainId)
@@ -201,13 +202,17 @@ export function useCreateToken(
       if (!symbol.trim()) {
         throw new Error('Token symbol is required')
       }
+      if (!metadataURI.trim()) {
+        throw new Error('Token metadata URI is required')
+      }
 
       try {
-        const tx = await contract.createToken(name, symbol)
+        const tx = await contract.createToken(name, symbol, metadataURI)
         logger.info('useLaunchpadActions', 'useCreateToken', 'Create token transaction submitted', {
           hash: tx.hash,
           name,
           symbol,
+          metadataURI,
         })
 
         // Wait for receipt to get the token address from events
@@ -296,4 +301,113 @@ export function useGraduate(
  */
 export function calculateMinOutput(expectedOutput: bigint, slippageBps: number = DEFAULT_LAUNCHPAD_SLIPPAGE_BPS): bigint {
   return expectedOutput - (expectedOutput * BigInt(slippageBps)) / 10000n
+}
+
+// API URL for metadata uploads
+const API_URL =
+  process.env.REACT_APP_TRADING_API_URL_OVERRIDE ||
+  process.env.REACT_APP_UNISWAP_GATEWAY_DNS ||
+  'https://api.juiceswap.com'
+
+export interface UploadImageResponse {
+  imageURI: string
+}
+
+export interface UploadMetadataParams {
+  name: string
+  description: string
+  imageURI: string
+  website?: string
+  twitter?: string
+  telegram?: string
+}
+
+export interface UploadMetadataResponse {
+  metadataURI: string
+}
+
+/**
+ * Upload an image file to IPFS via API
+ * @param image - The image file to upload
+ * @returns The IPFS URI of the uploaded image
+ */
+export async function uploadTokenImage(image: File): Promise<string> {
+  const formData = new FormData()
+  formData.append('image', image)
+
+  const response = await fetch(`${API_URL}/v1/launchpad/upload-image`, {
+    method: 'POST',
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Upload failed' }))
+    throw new Error(error.error || 'Failed to upload image')
+  }
+
+  const data: UploadImageResponse = await response.json()
+  return data.imageURI
+}
+
+/**
+ * Upload token metadata JSON to IPFS via API
+ * @param params - The metadata parameters
+ * @returns The IPFS URI of the uploaded metadata
+ */
+export async function uploadTokenMetadata(params: UploadMetadataParams): Promise<string> {
+  const response = await fetch(`${API_URL}/v1/launchpad/upload-metadata`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Upload failed' }))
+    throw new Error(error.error || 'Failed to upload metadata')
+  }
+
+  const data: UploadMetadataResponse = await response.json()
+  return data.metadataURI
+}
+
+/**
+ * Hook for uploading token metadata (image + JSON) to IPFS
+ * Combines image upload and metadata upload into a single flow
+ */
+export function useUploadTokenMetadata() {
+  return useCallback(
+    async (params: {
+      name: string
+      description: string
+      image: File
+      website?: string
+      twitter?: string
+      telegram?: string
+    }): Promise<string> => {
+      logger.info('useLaunchpadActions', 'useUploadTokenMetadata', 'Starting metadata upload', {
+        name: params.name,
+        imageSize: params.image.size,
+      })
+
+      // 1. Upload image to IPFS
+      const imageURI = await uploadTokenImage(params.image)
+      logger.info('useLaunchpadActions', 'useUploadTokenMetadata', 'Image uploaded', { imageURI })
+
+      // 2. Upload metadata JSON with the image URI
+      const metadataURI = await uploadTokenMetadata({
+        name: params.name,
+        description: params.description,
+        imageURI,
+        website: params.website,
+        twitter: params.twitter,
+        telegram: params.telegram,
+      })
+      logger.info('useLaunchpadActions', 'useUploadTokenMetadata', 'Metadata uploaded', { metadataURI })
+
+      return metadataURI
+    },
+    []
+  )
 }
