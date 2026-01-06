@@ -11,6 +11,7 @@ import { TransactionType } from 'uniswap/src/features/transactions/types/transac
 import { formatUnits } from 'viem'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
+import { BackButton, StatRow, StatLabel, StatValue } from 'pages/Launchpad/components/shared'
 
 const PageContainer = styled(Flex, {
   width: '100%',
@@ -26,17 +27,6 @@ const ContentWrapper = styled(Flex, {
   width: '100%',
   alignSelf: 'center',
   gap: '$spacing24',
-})
-
-const BackButton = styled(Flex, {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: '$spacing8',
-  cursor: 'pointer',
-  paddingVertical: '$spacing8',
-  hoverStyle: {
-    opacity: 0.7,
-  },
 })
 
 const HeaderSection = styled(Flex, {
@@ -179,23 +169,6 @@ const InfoCard = styled(Flex, {
   borderRadius: '$rounded12',
   padding: '$spacing16',
   gap: '$spacing12',
-})
-
-const StatRow = styled(Flex, {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-})
-
-const StatLabel = styled(Text, {
-  variant: 'body3',
-  color: '$neutral2',
-})
-
-const StatValue = styled(Text, {
-  variant: 'body3',
-  color: '$neutral1',
-  fontWeight: '500',
 })
 
 const ErrorText = styled(Text, {
@@ -529,24 +502,24 @@ export default function CreateToken() {
           <InfoCard>
             <Text variant="body2" color="$neutral1" fontWeight="600">Token Economics</Text>
             <StatRow>
-              <StatLabel>Total Supply</StatLabel>
-              <StatValue>1,000,000,000</StatValue>
+              <StatLabel variant="body3">Total Supply</StatLabel>
+              <StatValue variant="body3">1,000,000,000</StatValue>
             </StatRow>
             <StatRow>
-              <StatLabel>Available on Curve</StatLabel>
-              <StatValue>793,100,000 (79.31%)</StatValue>
+              <StatLabel variant="body3">Available on Curve</StatLabel>
+              <StatValue variant="body3">793,100,000 (79.31%)</StatValue>
             </StatRow>
             <StatRow>
-              <StatLabel>Reserved for DEX</StatLabel>
-              <StatValue>206,900,000 (20.69%)</StatValue>
+              <StatLabel variant="body3">Reserved for DEX</StatLabel>
+              <StatValue variant="body3">206,900,000 (20.69%)</StatValue>
             </StatRow>
             <StatRow>
-              <StatLabel>Initial Virtual Liquidity</StatLabel>
-              <StatValue>{initialLiquidity} JUSD</StatValue>
+              <StatLabel variant="body3">Initial Virtual Liquidity</StatLabel>
+              <StatValue variant="body3">{initialLiquidity} JUSD</StatValue>
             </StatRow>
             <StatRow>
-              <StatLabel>Trading Fee</StatLabel>
-              <StatValue>1%</StatValue>
+              <StatLabel variant="body3">Trading Fee</StatLabel>
+              <StatValue variant="body3">1%</StatValue>
             </StatRow>
           </InfoCard>
 

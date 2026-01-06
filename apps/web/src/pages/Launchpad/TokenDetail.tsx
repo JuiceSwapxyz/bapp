@@ -15,6 +15,7 @@ import { useTokenMetadata, getSocialLink } from 'hooks/useTokenMetadata'
 import { useGraduate } from 'hooks/useLaunchpadActions'
 import { BuySellPanel } from 'pages/Launchpad/components/BuySellPanel'
 import { TokenLogo } from 'pages/Launchpad/components/TokenLogo'
+import { Card, BackButton, StatRow, StatLabel, StatValue, ProgressBar, ProgressFill, GraduatedBadge } from 'pages/Launchpad/components/shared'
 import { formatUnits } from 'viem'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
@@ -40,17 +41,6 @@ const ContentWrapper = styled(Flex, {
   width: '100%',
   alignSelf: 'center',
   gap: '$spacing24',
-})
-
-const BackButton = styled(Flex, {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: '$spacing8',
-  cursor: 'pointer',
-  paddingVertical: '$spacing8',
-  hoverStyle: {
-    opacity: 0.7,
-  },
 })
 
 const HeaderSection = styled(Flex, {
@@ -95,50 +85,10 @@ const RightColumn = styled(Flex, {
   gap: '$spacing24',
 })
 
-const Card = styled(Flex, {
-  backgroundColor: '$surface2',
-  borderRadius: '$rounded16',
-  borderWidth: 1,
-  borderColor: '$surface3',
-  padding: '$spacing16',
-  gap: '$spacing12',
-})
-
 const CardTitle = styled(Text, {
   variant: 'body1',
   color: '$neutral1',
   fontWeight: '600',
-})
-
-const ProgressBar = styled(Flex, {
-  height: 12,
-  backgroundColor: '$surface3',
-  borderRadius: '$rounded8',
-  overflow: 'hidden',
-})
-
-const ProgressFill = styled(Flex, {
-  height: '100%',
-  backgroundColor: '$accent1',
-  borderRadius: '$rounded8',
-})
-
-const StatRow = styled(Flex, {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingVertical: '$spacing4',
-})
-
-const StatLabel = styled(Text, {
-  variant: 'body2',
-  color: '$neutral2',
-})
-
-const StatValue = styled(Text, {
-  variant: 'body2',
-  color: '$neutral1',
-  fontWeight: '500',
 })
 
 const AddressRow = styled(Flex, {
@@ -167,13 +117,6 @@ const GraduateButton = styled(Flex, {
   hoverStyle: {
     backgroundColor: '$accent2',
   },
-})
-
-const GraduatedBadge = styled(Flex, {
-  backgroundColor: '$statusSuccess2',
-  paddingHorizontal: '$spacing12',
-  paddingVertical: '$spacing6',
-  borderRadius: '$rounded8',
 })
 
 export default function TokenDetail() {
@@ -327,7 +270,7 @@ export default function TokenDetail() {
               <Flex flexDirection="row" alignItems="center" gap="$spacing12">
                 <TokenName>{name || 'Unknown Token'}</TokenName>
                 {graduated && (
-                  <GraduatedBadge>
+                  <GraduatedBadge size="md">
                     <Text variant="body3" color="$statusSuccess" fontWeight="600">Graduated</Text>
                   </GraduatedBadge>
                 )}
@@ -393,8 +336,8 @@ export default function TokenDetail() {
               {!graduated && (
                 <Card>
                   <CardTitle>Bonding Curve Progress</CardTitle>
-                  <ProgressBar>
-                    <ProgressFill style={{ width: `${Math.min(progress, 100)}%` }} />
+                  <ProgressBar size="md">
+                    <ProgressFill size="md" style={{ width: `${Math.min(progress, 100)}%` }} />
                   </ProgressBar>
                   <Flex flexDirection="row" justifyContent="space-between">
                     <Text variant="body2" color="$neutral2">{progress.toFixed(2)}% complete</Text>
@@ -434,20 +377,20 @@ export default function TokenDetail() {
 
               <Card>
                 <CardTitle>Token Info</CardTitle>
-                <StatRow>
-                  <StatLabel>Current Price</StatLabel>
-                  <StatValue>{currentPrice} JUSD</StatValue>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Current Price</StatLabel>
+                  <StatValue variant="body2">{currentPrice} JUSD</StatValue>
                 </StatRow>
-                <StatRow>
-                  <StatLabel>Liquidity</StatLabel>
-                  <StatValue>{liquidity} JUSD</StatValue>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Liquidity</StatLabel>
+                  <StatValue variant="body2">{liquidity} JUSD</StatValue>
                 </StatRow>
-                <StatRow>
-                  <StatLabel>Total Supply</StatLabel>
-                  <StatValue>1,000,000,000</StatValue>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Total Supply</StatLabel>
+                  <StatValue variant="body2">1,000,000,000</StatValue>
                 </StatRow>
-                <StatRow>
-                  <StatLabel>Creator</StatLabel>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Creator</StatLabel>
                   <AddressLink
                     onPress={() => {
                       if (tokenInfo?.creator) {
@@ -460,19 +403,19 @@ export default function TokenDetail() {
                       }
                     }}
                   >
-                    <StatValue>{creatorShort}</StatValue>
+                    <StatValue variant="body2">{creatorShort}</StatValue>
                     <ExternalLink size="$icon.16" color="$neutral2" />
                   </AddressLink>
                 </StatRow>
                 {createdDate && (
-                  <StatRow>
-                    <StatLabel>Created</StatLabel>
-                    <StatValue>{createdDate}</StatValue>
+                  <StatRow paddingVertical="$spacing4">
+                    <StatLabel variant="body2">Created</StatLabel>
+                    <StatValue variant="body2">{createdDate}</StatValue>
                   </StatRow>
                 )}
                 {graduated && v2Pair && (
-                  <StatRow>
-                    <StatLabel>V2 Pair</StatLabel>
+                  <StatRow paddingVertical="$spacing4">
+                    <StatLabel variant="body2">V2 Pair</StatLabel>
                     <AddressLink
                       onPress={() => {
                         const url = getExplorerLink({
@@ -483,7 +426,7 @@ export default function TokenDetail() {
                         window.open(url, '_blank')
                       }}
                     >
-                      <StatValue>{v2Pair.slice(0, 6)}...{v2Pair.slice(-4)}</StatValue>
+                      <StatValue variant="body2">{v2Pair.slice(0, 6)}...{v2Pair.slice(-4)}</StatValue>
                       <ExternalLink size="$icon.16" color="$neutral2" />
                     </AddressLink>
                   </StatRow>
