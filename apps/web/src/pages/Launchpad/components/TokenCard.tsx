@@ -4,37 +4,13 @@ import { useCallback, useMemo } from 'react'
 import { formatUnits } from 'viem'
 import { type LaunchpadToken } from 'hooks/useLaunchpadTokens'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
-
-const Card = styled(Flex, {
-  backgroundColor: '$surface2',
-  borderRadius: '$rounded16',
-  borderWidth: 1,
-  borderColor: '$surface3',
-  padding: '$spacing16',
-  gap: '$spacing12',
-  cursor: 'pointer',
-  hoverStyle: {
-    borderColor: '$accent1',
-    backgroundColor: '$surface3',
-  },
-  pressStyle: {
-    scale: 0.98,
-  },
-})
+import { TokenLogo } from './TokenLogo'
+import { Card, StatRow, StatLabel, StatValue, ProgressBar, ProgressFill, GraduatedBadge } from './shared'
 
 const TokenHeader = styled(Flex, {
   flexDirection: 'row',
   alignItems: 'center',
   gap: '$spacing12',
-})
-
-const TokenLogo = styled(Flex, {
-  width: 48,
-  height: 48,
-  borderRadius: '$roundedFull',
-  backgroundColor: '$accent2',
-  alignItems: 'center',
-  justifyContent: 'center',
 })
 
 const TokenName = styled(Text, {
@@ -46,43 +22,6 @@ const TokenName = styled(Text, {
 const TokenSymbol = styled(Text, {
   variant: 'body3',
   color: '$neutral2',
-})
-
-const ProgressBar = styled(Flex, {
-  height: 8,
-  backgroundColor: '$surface3',
-  borderRadius: '$rounded4',
-  overflow: 'hidden',
-})
-
-const ProgressFill = styled(Flex, {
-  height: '100%',
-  backgroundColor: '$accent1',
-  borderRadius: '$rounded4',
-})
-
-const StatRow = styled(Flex, {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-})
-
-const StatLabel = styled(Text, {
-  variant: 'body3',
-  color: '$neutral2',
-})
-
-const StatValue = styled(Text, {
-  variant: 'body3',
-  color: '$neutral1',
-  fontWeight: '500',
-})
-
-const GraduatedBadge = styled(Flex, {
-  backgroundColor: '$statusSuccess2',
-  paddingHorizontal: '$spacing8',
-  paddingVertical: '$spacing4',
-  borderRadius: '$rounded8',
 })
 
 const GraduatedText = styled(Text, {
@@ -118,11 +57,6 @@ export function TokenCard({ token }: TokenCardProps) {
     return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [reserves])
 
-  // Get first letter for logo placeholder
-  const logoLetter = useMemo(() => {
-    return token.symbol?.charAt(0).toUpperCase() || '?'
-  }, [token.symbol])
-
   // Format creator address
   const creatorShort = useMemo(() => {
     return `${token.creator.slice(0, 6)}...${token.creator.slice(-4)}`
@@ -143,11 +77,9 @@ export function TokenCard({ token }: TokenCardProps) {
   const totalTrades = token.totalBuys + token.totalSells
 
   return (
-    <Card onPress={handleClick}>
+    <Card interactive onPress={handleClick}>
       <TokenHeader>
-        <TokenLogo>
-          <Text variant="heading3" color="$accent1">{logoLetter}</Text>
-        </TokenLogo>
+        <TokenLogo metadataURI={token.metadataURI} symbol={token.symbol} size={48} />
         <Flex flex={1} gap="$spacing2">
           <Flex flexDirection="row" alignItems="center" gap="$spacing8">
             <TokenName>{token.name || 'Unknown Token'}</TokenName>
@@ -169,8 +101,8 @@ export function TokenCard({ token }: TokenCardProps) {
       {!token.graduated && (
         <Flex gap="$spacing4">
           <StatRow>
-            <StatLabel>Progress to graduation</StatLabel>
-            <StatValue>{progress.toFixed(1)}%</StatValue>
+            <StatLabel variant="body3">Progress to graduation</StatLabel>
+            <StatValue variant="body3">{progress.toFixed(1)}%</StatValue>
           </StatRow>
           <ProgressBar>
             <ProgressFill style={{ width: `${Math.min(progress, 100)}%` }} />
@@ -179,28 +111,28 @@ export function TokenCard({ token }: TokenCardProps) {
       )}
 
       <StatRow>
-        <StatLabel>Liquidity</StatLabel>
-        <StatValue>{liquidity} JUSD</StatValue>
+        <StatLabel variant="body3">Liquidity</StatLabel>
+        <StatValue variant="body3">{liquidity} JUSD</StatValue>
       </StatRow>
 
       <StatRow>
-        <StatLabel>Volume</StatLabel>
-        <StatValue>{volume} JUSD</StatValue>
+        <StatLabel variant="body3">Volume</StatLabel>
+        <StatValue variant="body3">{volume} JUSD</StatValue>
       </StatRow>
 
       <StatRow>
-        <StatLabel>Trades</StatLabel>
-        <StatValue>{totalTrades}</StatValue>
+        <StatLabel variant="body3">Trades</StatLabel>
+        <StatValue variant="body3">{totalTrades}</StatValue>
       </StatRow>
 
       <StatRow>
-        <StatLabel>Creator</StatLabel>
-        <StatValue>{creatorShort}</StatValue>
+        <StatLabel variant="body3">Creator</StatLabel>
+        <StatValue variant="body3">{creatorShort}</StatValue>
       </StatRow>
 
       <StatRow>
-        <StatLabel>Created</StatLabel>
-        <StatValue>{timeAgo}</StatValue>
+        <StatLabel variant="body3">Created</StatLabel>
+        <StatValue variant="body3">{timeAgo}</StatValue>
       </StatRow>
     </Card>
   )

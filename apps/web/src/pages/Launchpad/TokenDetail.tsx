@@ -10,8 +10,12 @@ import { Modal } from 'uniswap/src/components/modals/Modal'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
 import { useTokenInfo } from 'hooks/useTokenFactory'
+import { useLaunchpadToken } from 'hooks/useLaunchpadTokens'
+import { useTokenMetadata, getSocialLink } from 'hooks/useTokenMetadata'
 import { useGraduate } from 'hooks/useLaunchpadActions'
 import { BuySellPanel } from 'pages/Launchpad/components/BuySellPanel'
+import { TokenLogo } from 'pages/Launchpad/components/TokenLogo'
+import { Card, BackButton, StatRow, StatLabel, StatValue, ProgressBar, ProgressFill, GraduatedBadge } from 'pages/Launchpad/components/shared'
 import { formatUnits } from 'viem'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
@@ -39,32 +43,11 @@ const ContentWrapper = styled(Flex, {
   gap: '$spacing24',
 })
 
-const BackButton = styled(Flex, {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: '$spacing8',
-  cursor: 'pointer',
-  paddingVertical: '$spacing8',
-  hoverStyle: {
-    opacity: 0.7,
-  },
-})
-
 const HeaderSection = styled(Flex, {
   flexDirection: 'row',
   alignItems: 'flex-start',
   gap: '$spacing24',
   flexWrap: 'wrap',
-})
-
-const TokenLogo = styled(Flex, {
-  width: 80,
-  height: 80,
-  borderRadius: '$roundedFull',
-  backgroundColor: '$accent2',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
 })
 
 const TokenInfo = styled(Flex, {
@@ -102,50 +85,10 @@ const RightColumn = styled(Flex, {
   gap: '$spacing24',
 })
 
-const Card = styled(Flex, {
-  backgroundColor: '$surface2',
-  borderRadius: '$rounded16',
-  borderWidth: 1,
-  borderColor: '$surface3',
-  padding: '$spacing16',
-  gap: '$spacing12',
-})
-
 const CardTitle = styled(Text, {
   variant: 'body1',
   color: '$neutral1',
   fontWeight: '600',
-})
-
-const ProgressBar = styled(Flex, {
-  height: 12,
-  backgroundColor: '$surface3',
-  borderRadius: '$rounded8',
-  overflow: 'hidden',
-})
-
-const ProgressFill = styled(Flex, {
-  height: '100%',
-  backgroundColor: '$accent1',
-  borderRadius: '$rounded8',
-})
-
-const StatRow = styled(Flex, {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingVertical: '$spacing4',
-})
-
-const StatLabel = styled(Text, {
-  variant: 'body2',
-  color: '$neutral2',
-})
-
-const StatValue = styled(Text, {
-  variant: 'body2',
-  color: '$neutral1',
-  fontWeight: '500',
 })
 
 const AddressRow = styled(Flex, {
@@ -176,13 +119,6 @@ const GraduateButton = styled(Flex, {
   },
 })
 
-const GraduatedBadge = styled(Flex, {
-  backgroundColor: '$statusSuccess2',
-  paddingHorizontal: '$spacing12',
-  paddingVertical: '$spacing6',
-  borderRadius: '$rounded8',
-})
-
 export default function TokenDetail() {
   const { tokenAddress } = useParams<{ tokenAddress: string }>()
   const navigate = useNavigate()
@@ -201,6 +137,8 @@ export default function TokenDetail() {
   } = useBondingCurveToken(tokenAddress)
 
   const { tokenInfo } = useTokenInfo(tokenAddress)
+  const { data: launchpadData } = useLaunchpadToken(tokenAddress)
+  const { data: metadata } = useTokenMetadata(launchpadData?.token?.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
   const [isGraduating, setIsGraduating] = useState(false)
 
@@ -293,10 +231,6 @@ export default function TokenDetail() {
     return new Date(tokenInfo.timestamp * 1000).toLocaleDateString()
   }, [tokenInfo])
 
-  const logoLetter = useMemo(() => {
-    return symbol?.charAt(0).toUpperCase() || '?'
-  }, [symbol])
-
   if (isLoading) {
     return (
       <PageContainer>
@@ -327,14 +261,16 @@ export default function TokenDetail() {
           </BackButton>
 
           <HeaderSection>
-            <TokenLogo>
-              <Text variant="heading1" color="$accent1">{logoLetter}</Text>
-            </TokenLogo>
+            <TokenLogo
+              metadataURI={launchpadData?.token?.metadataURI}
+              symbol={symbol || '?'}
+              size={80}
+            />
             <TokenInfo>
               <Flex flexDirection="row" alignItems="center" gap="$spacing12">
                 <TokenName>{name || 'Unknown Token'}</TokenName>
                 {graduated && (
-                  <GraduatedBadge>
+                  <GraduatedBadge size="md">
                     <Text variant="body3" color="$statusSuccess" fontWeight="600">Graduated</Text>
                   </GraduatedBadge>
                 )}
@@ -351,16 +287,57 @@ export default function TokenDetail() {
                   <ExternalLink size="$icon.16" color="$neutral3" />
                 </AddressLink>
               </AddressRow>
+              {(metadata?.external_url || getSocialLink(metadata, 'Twitter') || getSocialLink(metadata, 'Telegram')) && (
+                <Flex flexDirection="row" gap="$spacing12" flexWrap="wrap" marginTop="$spacing4">
+                  {metadata?.external_url && (
+                    <AddressLink onPress={() => window.open(metadata.external_url, '_blank', 'noopener')}>
+                      <Text variant="body3" color="$accent1">Website</Text>
+                      <ExternalLink size="$icon.12" color="$accent1" />
+                    </AddressLink>
+                  )}
+                  {getSocialLink(metadata, 'Twitter') && (
+                    <AddressLink
+                      onPress={() => {
+                        const handle = getSocialLink(metadata, 'Twitter')?.replace('@', '')
+                        window.open(`https://twitter.com/${handle}`, '_blank', 'noopener')
+                      }}
+                    >
+                      <Text variant="body3" color="$accent1">Twitter</Text>
+                      <ExternalLink size="$icon.12" color="$accent1" />
+                    </AddressLink>
+                  )}
+                  {getSocialLink(metadata, 'Telegram') && (
+                    <AddressLink
+                      onPress={() => {
+                        const handle = getSocialLink(metadata, 'Telegram')?.replace('@', '')
+                        window.open(`https://t.me/${handle}`, '_blank', 'noopener')
+                      }}
+                    >
+                      <Text variant="body3" color="$accent1">Telegram</Text>
+                      <ExternalLink size="$icon.12" color="$accent1" />
+                    </AddressLink>
+                  )}
+                </Flex>
+              )}
             </TokenInfo>
           </HeaderSection>
+
+          {metadata?.description && (
+            <Card>
+              <CardTitle>About</CardTitle>
+              <Text variant="body2" color="$neutral2">
+                {metadata.description}
+              </Text>
+            </Card>
+          )}
 
           <MainContent>
             <LeftColumn>
               {!graduated && (
                 <Card>
                   <CardTitle>Bonding Curve Progress</CardTitle>
-                  <ProgressBar>
-                    <ProgressFill style={{ width: `${Math.min(progress, 100)}%` }} />
+                  <ProgressBar size="md">
+                    <ProgressFill size="md" style={{ width: `${Math.min(progress, 100)}%` }} />
                   </ProgressBar>
                   <Flex flexDirection="row" justifyContent="space-between">
                     <Text variant="body2" color="$neutral2">{progress.toFixed(2)}% complete</Text>
@@ -400,20 +377,20 @@ export default function TokenDetail() {
 
               <Card>
                 <CardTitle>Token Info</CardTitle>
-                <StatRow>
-                  <StatLabel>Current Price</StatLabel>
-                  <StatValue>{currentPrice} JUSD</StatValue>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Current Price</StatLabel>
+                  <StatValue variant="body2">{currentPrice} JUSD</StatValue>
                 </StatRow>
-                <StatRow>
-                  <StatLabel>Liquidity</StatLabel>
-                  <StatValue>{liquidity} JUSD</StatValue>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Liquidity</StatLabel>
+                  <StatValue variant="body2">{liquidity} JUSD</StatValue>
                 </StatRow>
-                <StatRow>
-                  <StatLabel>Total Supply</StatLabel>
-                  <StatValue>1,000,000,000</StatValue>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Total Supply</StatLabel>
+                  <StatValue variant="body2">1,000,000,000</StatValue>
                 </StatRow>
-                <StatRow>
-                  <StatLabel>Creator</StatLabel>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Creator</StatLabel>
                   <AddressLink
                     onPress={() => {
                       if (tokenInfo?.creator) {
@@ -426,19 +403,19 @@ export default function TokenDetail() {
                       }
                     }}
                   >
-                    <StatValue>{creatorShort}</StatValue>
+                    <StatValue variant="body2">{creatorShort}</StatValue>
                     <ExternalLink size="$icon.16" color="$neutral2" />
                   </AddressLink>
                 </StatRow>
                 {createdDate && (
-                  <StatRow>
-                    <StatLabel>Created</StatLabel>
-                    <StatValue>{createdDate}</StatValue>
+                  <StatRow paddingVertical="$spacing4">
+                    <StatLabel variant="body2">Created</StatLabel>
+                    <StatValue variant="body2">{createdDate}</StatValue>
                   </StatRow>
                 )}
                 {graduated && v2Pair && (
-                  <StatRow>
-                    <StatLabel>V2 Pair</StatLabel>
+                  <StatRow paddingVertical="$spacing4">
+                    <StatLabel variant="body2">V2 Pair</StatLabel>
                     <AddressLink
                       onPress={() => {
                         const url = getExplorerLink({
@@ -449,7 +426,7 @@ export default function TokenDetail() {
                         window.open(url, '_blank')
                       }}
                     >
-                      <StatValue>{v2Pair.slice(0, 6)}...{v2Pair.slice(-4)}</StatValue>
+                      <StatValue variant="body2">{v2Pair.slice(0, 6)}...{v2Pair.slice(-4)}</StatValue>
                       <ExternalLink size="$icon.16" color="$neutral2" />
                     </AddressLink>
                   </StatRow>

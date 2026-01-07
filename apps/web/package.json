@@ -172,7 +172,7 @@
     "@graphql-codegen/typescript-react-apollo": "3.3.7",
     "@graphql-codegen/typescript-resolvers": "3.2.1",
     "@juggle/resize-observer": "3.4.0",
-    "@juiceswapxyz/launchpad": "1.0.2",
+    "@juiceswapxyz/launchpad": "2.1.0",
     "@juiceswapxyz/router-sdk": "0.1.0-beta.0",
     "@juiceswapxyz/sdk-core": "0.1.1-beta.0",
     "@juiceswapxyz/uniswapx-sdk": "0.1.0-beta.0",
