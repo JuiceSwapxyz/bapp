@@ -1,5 +1,6 @@
 export enum InterfacePageName {
   AboutPage = 'about-page',
+  BridgeSwapsPage = 'bridge-swaps-page',
   Buy = 'buy-page',
   CreatePosition = 'create-position-page',
   ExplorePage = 'explore-page',

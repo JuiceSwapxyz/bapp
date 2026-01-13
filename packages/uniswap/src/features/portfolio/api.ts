@@ -12,6 +12,8 @@ import { createEthersProvider } from 'uniswap/src/features/providers/createEther
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
 import { currencyAddress as getCurrencyAddress } from 'uniswap/src/utils/currencyId'
 import { ReactQueryCacheKey } from 'utilities/src/reactQuery/cache'
+import { getChainInfo } from '../chains/chainInfo'
+import { Platform } from '../platforms/types/Platform'
 
 export type BalanceLookupParams = {
   currencyAddress: Address
@@ -21,8 +23,12 @@ export type BalanceLookupParams = {
 }
 
 /** Custom fetcher that uses an ethers provider to fetch. */
-export async function getOnChainBalancesFetch(params: BalanceLookupParams): Promise<{ balance?: string }> {
-  return getOnChainBalancesFetchEVM(params)
+export async function getOnChainBalancesFetch(params: BalanceLookupParams): Promise<{ balance?: string } | undefined> {
+  const chainInfo = getChainInfo(params.chainId)
+  if (chainInfo.platform === Platform.EVM) {
+    return getOnChainBalancesFetchEVM(params)
+  }
+  return undefined
 }
 
 async function getOnChainBalancesFetchEVM(params: BalanceLookupParams): Promise<{ balance?: string }> {
@@ -101,7 +107,7 @@ export function useOnChainCurrencyBalance(
 ): { balance: CurrencyAmount<Currency> | undefined; isLoading: boolean; error: unknown } {
   const refetchInterval = getPollingIntervalByBlocktime(currency?.chainId)
 
-  const { data, error } = useQuery<{ balance?: string }>({
+  const { data, error } = useQuery<{ balance?: string } | undefined>({
     queryKey: [ReactQueryCacheKey.OnchainBalances, accountAddress, currency],
     queryFn:
       currency && accountAddress

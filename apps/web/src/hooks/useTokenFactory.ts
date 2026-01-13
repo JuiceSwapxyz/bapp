@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
 import { LAUNCHPAD_ADDRESSES, TOKEN_FACTORY_ABI } from 'constants/launchpad'
+import { useMemo } from 'react'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { assume0xAddress } from 'utils/wagmi'
 import { useReadContract, useReadContracts } from 'wagmi'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 export interface TokenInfo {
   address: string
@@ -75,9 +75,10 @@ export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.Citre
     const [baseAssetResult, feeRecipientResult, virtualBaseResult, totalTokensResult] = data
 
     return {
-      baseAsset: baseAssetResult.status === 'success' ? baseAssetResult.result as string : undefined,
-      feeRecipient: feeRecipientResult.status === 'success' ? feeRecipientResult.result as string : undefined,
-      initialVirtualBaseReserves: virtualBaseResult.status === 'success' ? virtualBaseResult.result as bigint : undefined,
+      baseAsset: baseAssetResult.status === 'success' ? (baseAssetResult.result as string) : undefined,
+      feeRecipient: feeRecipientResult.status === 'success' ? (feeRecipientResult.result as string) : undefined,
+      initialVirtualBaseReserves:
+        virtualBaseResult.status === 'success' ? (virtualBaseResult.result as bigint) : undefined,
       totalTokens: totalTokensResult.status === 'success' ? Number(totalTokensResult.result) : 0,
       isLoading,
       refetch,
@@ -92,7 +93,7 @@ export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.Citre
  */
 export function useTokenAtIndex(
   index: number | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): { tokenAddress: string | undefined; isLoading: boolean } {
   const factoryAddress = useFactoryAddress(chainId)
   const address = factoryAddress ? assume0xAddress(factoryAddress) : undefined
@@ -112,7 +113,7 @@ export function useTokenAtIndex(
       tokenAddress: data as string | undefined,
       isLoading,
     }),
-    [data, isLoading]
+    [data, isLoading],
   )
 }
 
@@ -123,7 +124,7 @@ export function useTokenAtIndex(
  */
 export function useTokenInfo(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): { tokenInfo: TokenInfo | undefined; isLoading: boolean } {
   const factoryAddress = useFactoryAddress(chainId)
   const factory = factoryAddress ? assume0xAddress(factoryAddress) : undefined
@@ -168,7 +169,7 @@ export function useTokenInfo(
 export function useTokenList(
   startIndex: number,
   count: number,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): { tokens: string[]; isLoading: boolean } {
   const factoryAddress = useFactoryAddress(chainId)
   const address = factoryAddress ? assume0xAddress(factoryAddress) : undefined
@@ -196,9 +197,7 @@ export function useTokenList(
       return { tokens: [], isLoading }
     }
 
-    const tokens = data
-      .filter((result) => result.status === 'success')
-      .map((result) => result.result as string)
+    const tokens = data.filter((result) => result.status === 'success').map((result) => result.result as string)
 
     return { tokens, isLoading }
   }, [data, isLoading])

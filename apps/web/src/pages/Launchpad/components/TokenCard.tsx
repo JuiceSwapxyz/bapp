@@ -1,11 +1,11 @@
+import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
+import { type LaunchpadToken } from 'hooks/useLaunchpadTokens'
+import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
-import { useCallback, useMemo } from 'react'
 import { formatUnits } from 'viem'
-import { type LaunchpadToken } from 'hooks/useLaunchpadTokens'
-import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
 import { TokenLogo } from './TokenLogo'
-import { Card, StatRow, StatLabel, StatValue, ProgressBar, ProgressFill, GraduatedBadge } from './shared'
+import { Card, GraduatedBadge, ProgressBar, ProgressFill, StatLabel, StatRow, StatValue } from './shared'
 
 const TokenHeader = styled(Flex, {
   flexDirection: 'row',
@@ -52,7 +52,9 @@ export function TokenCard({ token }: TokenCardProps) {
 
   // Format real-time liquidity from reserves
   const liquidity = useMemo(() => {
-    if (!reserves) {return '0'}
+    if (!reserves) {
+      return '0'
+    }
     const value = Number(formatUnits(reserves.realBase, 18))
     return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [reserves])
@@ -67,9 +69,15 @@ export function TokenCard({ token }: TokenCardProps) {
     const timestamp = Number(token.createdAt)
     const now = Math.floor(Date.now() / 1000)
     const diff = now - timestamp
-    if (diff < 60) {return 'Just now'}
-    if (diff < 3600) {return `${Math.floor(diff / 60)}m ago`}
-    if (diff < 86400) {return `${Math.floor(diff / 3600)}h ago`}
+    if (diff < 60) {
+      return 'Just now'
+    }
+    if (diff < 3600) {
+      return `${Math.floor(diff / 60)}m ago`
+    }
+    if (diff < 86400) {
+      return `${Math.floor(diff / 3600)}h ago`
+    }
     return `${Math.floor(diff / 86400)}d ago`
   }, [token.createdAt])
 

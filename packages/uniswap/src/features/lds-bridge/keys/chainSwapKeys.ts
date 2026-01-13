@@ -22,22 +22,32 @@ export type ChainSwapKeys = {
 
 const DERIVATION_PATH = 'm/44/0/0/0'
 
-const getLastMnemonic = () => {
+const getLastMnemonic = (): string | null => {
+  if (typeof localStorage === 'undefined') {
+    return null
+  }
   const mnemonic = localStorage.getItem('mnemonic')
   return mnemonic
 }
 
-const saveMnemonic = (mnemonic: string) => {
-  localStorage.setItem('mnemonic', mnemonic)
+const saveMnemonic = (mnemonic: string): void => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('mnemonic', mnemonic)
+  }
 }
 
-const getLastKeyIndex = () => {
+const getLastKeyIndex = (): number => {
+  if (typeof localStorage === 'undefined') {
+    return 0
+  }
   const keyIndex = localStorage.getItem('keyIndex')
   return keyIndex ? parseInt(keyIndex) : 0
 }
 
-const saveKeyIndex = (keyIndex: number) => {
-  localStorage.setItem('keyIndex', keyIndex.toString())
+const saveKeyIndex = (keyIndex: number): void => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('keyIndex', keyIndex.toString())
+  }
 }
 
 /**
@@ -49,11 +59,13 @@ const saveKeyIndex = (keyIndex: number) => {
  */
 export const generateChainSwapKeys = (mnemonic?: string, index?: number): ChainSwapKeys => {
   const finalMnemonic = mnemonic || getLastMnemonic() || generateMnemonic(wordlist)
-  const lastKeyIndex = index !== undefined ? index : getLastKeyIndex()
-  const finalKeyIndex = lastKeyIndex + 1
+  let finalKeyIndex = index !== undefined ? index : getLastKeyIndex()
 
-  saveMnemonic(finalMnemonic)
-  saveKeyIndex(finalKeyIndex)
+  if (!mnemonic && !index) {
+    finalKeyIndex++
+    saveMnemonic(finalMnemonic)
+    saveKeyIndex(finalKeyIndex)
+  }
 
   const seed = mnemonicToSeedSync(finalMnemonic)
   const hdKey = HDKey.fromMasterSeed(seed)

@@ -133,7 +133,9 @@ export const routingApi = createApi({
           useUniswapX: args.routerPreference === RouterPreference.X,
           swapper: args.account,
           // Add protocols at top level for JuiceSwap API compatibility (expects protocols outside configs)
-          protocols: classicConfig?.protocols.map((p) => (p === Protocol.V2 ? 'V2' : p === Protocol.V3 ? 'V3' : 'MIXED')),
+          protocols: classicConfig?.protocols.map((p) =>
+            p === Protocol.V2 ? 'V2' : p === Protocol.V3 ? 'V3' : 'MIXED',
+          ),
         }
         try {
           const response = await fetch({

@@ -1,0 +1,396 @@
+import { randomBytes } from '@ethersproject/random'
+import { crypto } from 'bitcoinjs-lib'
+import { Buffer } from 'buffer'
+import {
+  createChainSwap,
+  createReverseSwap,
+  createSubmarineSwap,
+  fetchChainPairs,
+  fetchChainTransactionsBySwapId,
+  fetchReversePairs,
+  fetchSubmarinePairs,
+  fetchSubmarineTransactionsBySwapId,
+  fetchSwapCurrentStatus,
+  helpMeClaim,
+} from 'uniswap/src/features/lds-bridge/api/client'
+import { createLdsSocketClient } from 'uniswap/src/features/lds-bridge/api/socket'
+import type {
+  ChainPairsResponse,
+  LightningBridgeReverseGetResponse,
+  LightningBridgeSubmarineGetResponse,
+} from 'uniswap/src/features/lds-bridge/lds-types/api'
+import { fetchBlockTipHeight } from './api/mempool'
+import { ChainSwapKeys, generateChainSwapKeys } from './keys/chainSwapKeys'
+import { ChainSwap, ReverseSwap, SomeSwap, SubmarineSwap, SwapType } from './lds-types/storage'
+import type { SwapUpdateEvent } from './lds-types/websocket'
+import { LdsSwapStatus, swapStatusFinal } from './lds-types/websocket'
+import { StorageManager } from './storage/StorageManager'
+import { SwapEventEmitter } from './storage/SwapEventEmitter'
+import { prefix0x } from './utils/hex'
+import { pollForLockupConfirmation } from './utils/polling'
+
+class LdsBridgeManager extends SwapEventEmitter {
+  private socketClient: ReturnType<typeof createLdsSocketClient>
+  private storageManager: StorageManager
+  private submarinePairs: LightningBridgeSubmarineGetResponse | null = null
+  private reversePairs: LightningBridgeReverseGetResponse | null = null
+  private chainPairs: ChainPairsResponse | null = null
+
+  constructor() {
+    super()
+    this.socketClient = createLdsSocketClient()
+    this.storageManager = new StorageManager()
+  }
+
+  getSubmarinePairs = async (): Promise<LightningBridgeSubmarineGetResponse> => {
+    if (!this.submarinePairs) {
+      this.submarinePairs = await fetchSubmarinePairs()
+    }
+    return this.submarinePairs
+  }
+
+  getReversePairs = async (): Promise<LightningBridgeReverseGetResponse> => {
+    if (!this.reversePairs) {
+      this.reversePairs = await fetchReversePairs()
+    }
+    return this.reversePairs
+  }
+
+  getChainPairs = async (): Promise<ChainPairsResponse> => {
+    if (!this.chainPairs) {
+      this.chainPairs = await fetchChainPairs()
+    }
+    return this.chainPairs
+  }
+
+  createReverseSwap = async (params: { invoiceAmount: number; claimAddress: string }): Promise<ReverseSwap> => {
+    const reversePairs = await this.getReversePairs()
+    const pairHash = reversePairs?.BTC?.cBTC?.hash
+    if (!pairHash) {
+      throw new Error('Pair hash not found')
+    }
+
+    const { invoiceAmount, claimAddress } = params
+    const { preimageHash, preimage, keyIndex, mnemonic } = generateChainSwapKeys()
+
+    const reverseInvoiceResponse = await createReverseSwap({
+      from: 'BTC',
+      to: 'cBTC',
+      pairHash,
+      invoiceAmount,
+      preimageHash,
+      claimAddress,
+    })
+
+    const reverseSwap: ReverseSwap = {
+      type: SwapType.Reverse,
+      version: 3,
+      status: LdsSwapStatus.SwapCreated,
+      assetSend: 'BTC',
+      assetReceive: 'cBTC',
+      sendAmount: invoiceAmount,
+      receiveAmount: reverseInvoiceResponse.onchainAmount,
+      date: Date.now(),
+      preimage,
+      preimageHash,
+      claimAddress,
+      claimPrivateKeyIndex: keyIndex,
+      mnemonic,
+      keyIndex,
+      ...reverseInvoiceResponse,
+    }
+
+    await this.storageManager.setSwap(reverseInvoiceResponse.id, reverseSwap)
+    this._subscribeToSwapUpdates(reverseInvoiceResponse.id)
+    await this._notifySwapChanges()
+    await this.waitForSwapUntilState(reverseInvoiceResponse.id, LdsSwapStatus.SwapCreated)
+    return reverseSwap
+  }
+
+  createSubmarineSwap = async (params: { invoice: string }): Promise<SubmarineSwap> => {
+    const submarinePairs = await this.getSubmarinePairs()
+    if (!submarinePairs) {
+      throw new Error('Submarine pairs not found')
+    }
+
+    const pairHash = submarinePairs.cBTC?.BTC?.hash
+    if (!pairHash) {
+      throw new Error('Pair hash not found')
+    }
+    const { invoice } = params
+    const { preimageHash, claimPublicKey, preimage, keyIndex, mnemonic } = generateChainSwapKeys()
+    const lockupResponse = await createSubmarineSwap({
+      from: 'cBTC',
+      to: 'BTC',
+      invoice,
+      pairHash,
+      referralId: 'boltz_webapp_desktop',
+      refundPublicKey: claimPublicKey,
+    })
+    const submarineSwap: SubmarineSwap = {
+      type: SwapType.Submarine,
+      version: 3,
+      status: LdsSwapStatus.InvoiceSet,
+      assetSend: 'cBTC',
+      assetReceive: 'BTC',
+      sendAmount: lockupResponse.expectedAmount,
+      receiveAmount: lockupResponse.expectedAmount,
+      date: Date.now(),
+      invoice,
+      preimageHash,
+      preimage,
+      refundPrivateKeyIndex: keyIndex,
+      mnemonic,
+      keyIndex,
+      ...lockupResponse,
+    }
+
+    await this.storageManager.setSwap(lockupResponse.id, submarineSwap)
+    this._subscribeToSwapUpdates(lockupResponse.id)
+    await this.waitForSwapUntilState(lockupResponse.id, LdsSwapStatus.InvoiceSet)
+    await this._notifySwapChanges()
+    return submarineSwap
+  }
+
+  createChainSwap = async (params: {
+    from: string
+    to: string
+    claimAddress: string
+    userLockAmount: number
+  }): Promise<ChainSwap> => {
+    const chainPairs = await this.getChainPairs()
+    const pairHash = chainPairs[params.from]?.[params.to]?.hash
+    if (!pairHash) {
+      throw new Error('Pair hash not found')
+    }
+
+    const { from, to, claimAddress, userLockAmount } = params
+    const {
+      preimageHash: preimageHashFromKey,
+      claimPublicKey: publicKey,
+      preimage: preimageFromKey,
+      keyIndex,
+      mnemonic,
+    } = generateChainSwapKeys()
+
+    const randomPreimage = Buffer.from(randomBytes(32))
+    const claimPublicKey = params.from === 'cBTC' ? publicKey : undefined
+    const preimage = params.from === 'cBTC' ? randomPreimage.toString('hex') : preimageFromKey
+    const preimageHash = params.from === 'cBTC' ? crypto.sha256(randomPreimage).toString('hex') : preimageHashFromKey
+    const refundPublicKey = params.from === 'BTC' ? publicKey : undefined
+
+    const chainSwapResponse = await createChainSwap({
+      from,
+      to,
+      pairHash,
+      referralId: 'boltz_webapp_desktop',
+      claimPublicKey,
+      refundPublicKey,
+      userLockAmount,
+      preimageHash,
+      claimAddress,
+    })
+
+    const chainSwap: ChainSwap = {
+      type: SwapType.Chain,
+      version: 3,
+      status: LdsSwapStatus.SwapCreated,
+      assetSend: params.from,
+      assetReceive: params.to,
+      sendAmount: chainSwapResponse.lockupDetails.amount,
+      receiveAmount: chainSwapResponse.lockupDetails.amount,
+      date: Date.now(),
+      preimageHash,
+      preimage,
+      claimAddress,
+      claimPrivateKeyIndex: keyIndex,
+      refundPrivateKeyIndex: keyIndex,
+      mnemonic,
+      keyIndex,
+      ...chainSwapResponse,
+    }
+
+    await this.storageManager.setSwap(chainSwapResponse.id, chainSwap)
+    this._subscribeToSwapUpdates(chainSwapResponse.id)
+    await this.waitForSwapUntilState(chainSwapResponse.id, LdsSwapStatus.SwapCreated)
+    await this._notifySwapChanges()
+    return chainSwap
+  }
+
+  autoClaimSwap = async (swapId: string): Promise<SomeSwap> => {
+    const swap = await this.storageManager.getSwap(swapId)
+    if (!swap) {
+      throw new Error('Swap not found')
+    }
+
+    if (swap.status === LdsSwapStatus.TransactionClaimed) {
+      return swap
+    }
+
+    const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
+    await ponderPromise
+    cancelPonderPolling()
+
+    const { txHash } = await helpMeClaim({
+      preimage: swap.preimage!,
+      preimageHash: prefix0x(swap.preimageHash),
+    })
+
+    swap.claimTx = txHash
+    await this.storageManager.setSwap(swapId, swap)
+    return swap
+  }
+
+  updateSwapRefundTx = async (swapId: string, refundTxId: string): Promise<void> => {
+    const swap = await this.storageManager.getSwap(swapId)
+    if (!swap) {
+      throw new Error('Swap not found')
+    }
+
+    swap.refundTx = refundTxId
+    await this.storageManager.setSwap(swapId, swap)
+    await this._notifySwapChanges()
+  }
+
+  _subscribeToSwapUpdates = (swapId: string): void => {
+    const updateCallback = async (event: SwapUpdateEvent) => {
+      const swap = await this.storageManager.getSwap(swapId)
+      if (!swap) {
+        this.socketClient.unsubscribeFromSwapUpdates(updateCallback)
+        return
+      }
+      swap.status = event.status
+      await this.storageManager.setSwap(swapId, swap)
+      await this._notifySwapChanges()
+    }
+    this.socketClient.subscribeToSwapUpdates(swapId, updateCallback)
+  }
+
+  private async _notifySwapChanges(): Promise<void> {
+    const swaps = await this.storageManager.getSwaps()
+    this.notifyListeners(swaps)
+  }
+
+  getKeysForSwap = async (swapId: string): Promise<ChainSwapKeys> => {
+    const swap = await this.storageManager.getSwap(swapId)
+    if (!swap || !swap.mnemonic || !swap.keyIndex) {
+      throw new Error('Swap not found')
+    }
+    return generateChainSwapKeys(swap.mnemonic, swap.keyIndex)
+  }
+
+  waitForSwapUntilState = async (swapId: string, state: LdsSwapStatus): Promise<void> => {
+    const swap = await this.storageManager.getSwap(swapId)
+    if (!swap) {
+      throw new Error('Swap not found')
+    }
+    if (swap.status === state) {
+      return
+    }
+    if (swapStatusFinal.includes(swap.status!) && swap.status !== state) {
+      throw new Error('Swap is in final state')
+    }
+
+    return new Promise((resolve, reject) => {
+      const updateCallback = async (event: SwapUpdateEvent) => {
+        try {
+          if (event.status === state) {
+            this.socketClient.unsubscribeFromSwapUpdates(updateCallback)
+            resolve()
+          }
+        } catch (error) {
+          reject(error)
+        }
+      }
+      this.socketClient.subscribeToSwapUpdates(swapId, updateCallback)
+    })
+  }
+
+  getSwaps = async (): Promise<Record<string, SomeSwap>> => {
+    return await this.storageManager.getSwaps()
+  }
+
+  getSwap = async (swapId: string): Promise<SomeSwap | undefined> => {
+    return await this.storageManager.getSwap(swapId)
+  }
+
+  getPendingSwaps = async (): Promise<SomeSwap[]> => {
+    const swaps = await this.storageManager.getSwaps()
+    return Object.values(swaps).filter((swap) => !swapStatusFinal.includes(swap.status!))
+  }
+
+  updatePendingSwapsStatuses = async (): Promise<void> => {
+    const swaps = await this.storageManager.getSwaps()
+    const pendingSwaps = Object.values(swaps).filter((swap) => !swapStatusFinal.includes(swap.status!))
+    await Promise.all(
+      pendingSwaps.map(async (swap) => {
+        const status = await fetchSwapCurrentStatus(swap.id)
+        swap.status = status.status
+        await this.storageManager.setSwap(swap.id, swap)
+        await this._notifySwapChanges()
+      }),
+    )
+  }
+
+  suscribeAllPendingSwaps = async (): Promise<void> => {
+    await this.updatePendingSwapsStatuses()
+    const swaps = await this.storageManager.getSwaps()
+    const pendingSwaps = Object.values(swaps).filter((swap) => !swapStatusFinal.includes(swap.status!))
+    pendingSwaps.forEach((swap) => {
+      this._subscribeToSwapUpdates(swap.id)
+    })
+  }
+
+  getLockupTransactions = async (
+    swapId: string,
+  ): Promise<{ id: string; hex: string; timeoutBlockHeight: number; timeoutEta?: number }> => {
+    const swap = await this.storageManager.getSwap(swapId)
+    if (!swap) {
+      throw new Error('Swap not found')
+    }
+
+    switch (swap.type) {
+      case SwapType.Chain:
+        const chainTransactionsResponse = await fetchChainTransactionsBySwapId(swapId)
+        return {
+          id: chainTransactionsResponse?.userLock?.transaction.id!,
+          hex: chainTransactionsResponse?.userLock?.transaction.hex!,
+          timeoutBlockHeight: chainTransactionsResponse?.userLock?.timeout.blockHeight!,
+          timeoutEta: chainTransactionsResponse?.userLock?.timeout.eta!,
+        }
+      case SwapType.Submarine:
+        return fetchSubmarineTransactionsBySwapId(swapId)
+      default:
+        throw new Error('Swap type not supported')
+    }
+  }
+
+  getChainRefundbleSwaps = async (): Promise<SomeSwap[]> => {
+    const swaps = await this.getSwaps()
+    const refundableCandidates = Object.values(swaps)
+      .filter((swap) => swap.status === LdsSwapStatus.TransactionRefunded)
+      .filter((swap) => !swap.refundTx)
+      .filter((swap) => swap.type === SwapType.Chain)
+
+    const blockTipHeight = await fetchBlockTipHeight()
+    const refundableSwaps = await Promise.all(
+      refundableCandidates.map(async (swap) => {
+        const { timeoutBlockHeight } = await this.getLockupTransactions(swap.id)
+        if (timeoutBlockHeight < blockTipHeight) {
+          return swap
+        }
+        return null
+      }),
+    )
+
+    return refundableSwaps.filter((swap): swap is SomeSwap => swap !== null)
+  }
+}
+
+let ldsBridgeManager: LdsBridgeManager | null = null
+export const getLdsBridgeManager = (): LdsBridgeManager => {
+  if (!ldsBridgeManager) {
+    ldsBridgeManager = new LdsBridgeManager()
+  }
+  return ldsBridgeManager
+}

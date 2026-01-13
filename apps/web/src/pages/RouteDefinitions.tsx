@@ -41,6 +41,7 @@ const OAuthCallback = lazy(() => import('pages/OAuthCallback'))
 const Launchpad = lazy(() => import('pages/Launchpad'))
 const LaunchpadTokenDetail = lazy(() => import('pages/Launchpad/TokenDetail'))
 const LaunchpadCreate = lazy(() => import('pages/Launchpad/Create'))
+const BridgeSwaps = lazy(() => import('pages/BridgeSwaps'))
 
 interface RouterConfig {
   browserRouterEnabled?: boolean
@@ -395,6 +396,13 @@ export const routes: RouteDefinition[] = [
     getElement: () => <LaunchpadTokenDetail />,
     getTitle: () => 'Token - JuiceSwap Launchpad',
     getDescription: () => 'Trade tokens on the bonding curve before graduation to JuiceSwap V2.',
+  }),
+  // Bridge Swaps
+  createRouteDefinition({
+    path: '/bridge-swaps',
+    getElement: () => <BridgeSwaps />,
+    getTitle: () => 'Bridge Swaps - JuiceSwap',
+    getDescription: () => 'View and manage all your Bitcoin bridge transactions',
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),

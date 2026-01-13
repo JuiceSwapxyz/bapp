@@ -11,14 +11,16 @@ export {
 } from '@juiceswapxyz/launchpad'
 
 // ABIs
-export { BondingCurveTokenABI as BONDING_CURVE_TOKEN_ABI } from '@juiceswapxyz/launchpad'
-export { TokenFactoryABI as TOKEN_FACTORY_ABI } from '@juiceswapxyz/launchpad'
+export {
+  BondingCurveTokenABI as BONDING_CURVE_TOKEN_ABI,
+  TokenFactoryABI as TOKEN_FACTORY_ABI,
+} from '@juiceswapxyz/launchpad'
 
 // Protocol constants
 export {
   LAUNCHPAD_CONSTANTS as BONDING_CURVE_CONSTANTS,
-  GRADUATION_ECONOMICS,
   DEAD_ADDRESS,
+  GRADUATION_ECONOMICS,
 } from '@juiceswapxyz/launchpad'
 
 /**

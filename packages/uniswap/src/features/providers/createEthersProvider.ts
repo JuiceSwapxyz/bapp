@@ -4,6 +4,8 @@ import { SignerInfo } from 'uniswap/src/features/providers/FlashbotsCommon'
 import { FlashbotsRpcProvider } from 'uniswap/src/features/providers/FlashbotsRpcProvider'
 import { selectRpcUrl } from 'uniswap/src/features/providers/rpcUrlSelector'
 import { logger } from 'utilities/src/logger/logger'
+import { getChainInfo } from '../chains/chainInfo'
+import { Platform } from '../platforms/types/Platform'
 
 // Should use ProviderManager for provider access unless being accessed outside of ProviderManagerContext (e.g., Apollo initialization)
 export function createEthersProvider({
@@ -16,6 +18,15 @@ export function createEthersProvider({
   signerInfo?: SignerInfo
 }): ethersProviders.JsonRpcProvider | null {
   try {
+    const chainInfo = getChainInfo(chainId)
+    if (!chainInfo) {
+      return null
+    }
+
+    if (chainInfo.platform !== Platform.EVM) {
+      return null
+    }
+
     // Use the shared RPC URL selector
     const rpcConfig = selectRpcUrl(chainId, rpcType)
     if (!rpcConfig) {

@@ -1,13 +1,18 @@
 import { ContractTransaction } from '@ethersproject/contracts'
+import {
+  BONDING_CURVE_TOKEN_ABI,
+  DEFAULT_LAUNCHPAD_SLIPPAGE_BPS,
+  LAUNCHPAD_ADDRESSES,
+  TOKEN_FACTORY_ABI,
+} from 'constants/launchpad'
 import { useAccount } from 'hooks/useAccount'
 import { useContract } from 'hooks/useContract'
 import useSelectChain from 'hooks/useSelectChain'
 import { useCallback, useMemo, useRef } from 'react'
-import { BONDING_CURVE_TOKEN_ABI, TOKEN_FACTORY_ABI, LAUNCHPAD_ADDRESSES, DEFAULT_LAUNCHPAD_SLIPPAGE_BPS } from 'constants/launchpad'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { logger } from 'utilities/src/logger/logger'
 import { UserRejectedRequestError } from 'utils/errors'
 import { didUserReject } from 'utils/swapErrorToUserReadableMessage'
-import { logger } from 'utilities/src/logger/logger'
 
 /**
  * Hook to get a BondingCurveToken contract instance
@@ -64,7 +69,7 @@ export interface CreateTokenParams {
  */
 export function useBuy(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): (params: BuyParams) => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
   const account = useAccount()
@@ -108,7 +113,7 @@ export function useBuy(
         throw error
       }
     },
-    [chainId, selectChain]
+    [chainId, selectChain],
   )
 }
 
@@ -119,7 +124,7 @@ export function useBuy(
  */
 export function useSell(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): (params: SellParams) => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
   const account = useAccount()
@@ -163,7 +168,7 @@ export function useSell(
         throw error
       }
     },
-    [chainId, selectChain]
+    [chainId, selectChain],
   )
 }
 
@@ -172,7 +177,7 @@ export function useSell(
  * @param chainId - Chain ID
  */
 export function useCreateToken(
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): (params: CreateTokenParams) => Promise<{ tx: ContractTransaction; tokenAddress: string | null }> {
   const contract = useTokenFactoryContract(chainId)
   const account = useAccount()
@@ -183,7 +188,11 @@ export function useCreateToken(
   accountRef.current = account
 
   return useCallback(
-    async ({ name, symbol, metadataURI }: CreateTokenParams): Promise<{ tx: ContractTransaction; tokenAddress: string | null }> => {
+    async ({
+      name,
+      symbol,
+      metadataURI,
+    }: CreateTokenParams): Promise<{ tx: ContractTransaction; tokenAddress: string | null }> => {
       const currentAccount = accountRef.current
       if (currentAccount.chainId !== chainId) {
         const switched = await selectChain(chainId)
@@ -243,7 +252,7 @@ export function useCreateToken(
         throw error
       }
     },
-    [chainId, selectChain]
+    [chainId, selectChain],
   )
 }
 
@@ -254,7 +263,7 @@ export function useCreateToken(
  */
 export function useGraduate(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): () => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
   const account = useAccount()
@@ -299,7 +308,10 @@ export function useGraduate(
  * @param expectedOutput - Expected output amount
  * @param slippageBps - Slippage tolerance in basis points (default 1%)
  */
-export function calculateMinOutput(expectedOutput: bigint, slippageBps: number = DEFAULT_LAUNCHPAD_SLIPPAGE_BPS): bigint {
+export function calculateMinOutput(
+  expectedOutput: bigint,
+  slippageBps: number = DEFAULT_LAUNCHPAD_SLIPPAGE_BPS,
+): bigint {
   return expectedOutput - (expectedOutput * BigInt(slippageBps)) / 10000n
 }
 
@@ -408,6 +420,6 @@ export function useUploadTokenMetadata() {
 
       return metadataURI
     },
-    []
+    [],
   )
 }

@@ -1,8 +1,8 @@
+import { BONDING_CURVE_CONSTANTS, BONDING_CURVE_TOKEN_ABI } from 'constants/launchpad'
 import { useMemo } from 'react'
-import { BONDING_CURVE_TOKEN_ABI, BONDING_CURVE_CONSTANTS } from 'constants/launchpad'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { assume0xAddress } from 'utils/wagmi'
 import { useReadContract, useReadContracts } from 'wagmi'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 export interface BondingCurveReserves {
   virtualToken: bigint
@@ -31,7 +31,7 @@ export interface BondingCurveTokenState {
  */
 export function useBondingCurveToken(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): BondingCurveTokenState {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
 
@@ -52,11 +52,7 @@ export function useBondingCurveToken(
     ] as const
   }, [address, chainId])
 
-  const {
-    data,
-    isLoading,
-    refetch,
-  } = useReadContracts({
+  const { data, isLoading, refetch } = useReadContracts({
     contracts,
     query: { enabled: !!address },
   })
@@ -77,7 +73,16 @@ export function useBondingCurveToken(
       }
     }
 
-    const [nameResult, symbolResult, graduatedResult, canGraduateResult, progressResult, reservesResult, baseAssetResult, v2PairResult] = data
+    const [
+      nameResult,
+      symbolResult,
+      graduatedResult,
+      canGraduateResult,
+      progressResult,
+      reservesResult,
+      baseAssetResult,
+      v2PairResult,
+    ] = data
 
     // Parse reserves from tuple result
     let reserves: BondingCurveReserves | undefined
@@ -91,14 +96,14 @@ export function useBondingCurveToken(
     const progress = progressBps / 100
 
     return {
-      name: nameResult.status === 'success' ? nameResult.result as string : undefined,
-      symbol: symbolResult.status === 'success' ? symbolResult.result as string : undefined,
-      graduated: graduatedResult.status === 'success' ? graduatedResult.result as boolean : false,
-      canGraduate: canGraduateResult.status === 'success' ? canGraduateResult.result as boolean : false,
+      name: nameResult.status === 'success' ? (nameResult.result as string) : undefined,
+      symbol: symbolResult.status === 'success' ? (symbolResult.result as string) : undefined,
+      graduated: graduatedResult.status === 'success' ? (graduatedResult.result as boolean) : false,
+      canGraduate: canGraduateResult.status === 'success' ? (canGraduateResult.result as boolean) : false,
       progress,
       reserves,
-      baseAsset: baseAssetResult.status === 'success' ? baseAssetResult.result as string : undefined,
-      v2Pair: v2PairResult.status === 'success' ? v2PairResult.result as string : undefined,
+      baseAsset: baseAssetResult.status === 'success' ? (baseAssetResult.result as string) : undefined,
+      v2Pair: v2PairResult.status === 'success' ? (v2PairResult.result as string) : undefined,
       isLoading,
       refetch,
     }
@@ -114,7 +119,7 @@ export function useBondingCurveToken(
 export function useCalculateBuy(
   tokenAddress: string | undefined,
   baseIn: bigint | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): { tokensOut: bigint | undefined; isLoading: boolean } {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
   const enabled = !!address && !!baseIn && baseIn > 0n
@@ -133,7 +138,7 @@ export function useCalculateBuy(
       tokensOut: data as bigint | undefined,
       isLoading,
     }),
-    [data, isLoading]
+    [data, isLoading],
   )
 }
 
@@ -146,7 +151,7 @@ export function useCalculateBuy(
 export function useCalculateSell(
   tokenAddress: string | undefined,
   tokensIn: bigint | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): { baseOut: bigint | undefined; isLoading: boolean } {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
   const enabled = !!address && !!tokensIn && tokensIn > 0n
@@ -165,7 +170,7 @@ export function useCalculateSell(
       baseOut: data as bigint | undefined,
       isLoading,
     }),
-    [data, isLoading]
+    [data, isLoading],
   )
 }
 
@@ -178,7 +183,7 @@ export function useCalculateSell(
 export function useBondingCurveBalance(
   tokenAddress: string | undefined,
   userAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet
+  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
 ): { balance: bigint | undefined; isLoading: boolean; refetch: () => void } {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
   const user = userAddress ? assume0xAddress(userAddress) : undefined
@@ -199,7 +204,7 @@ export function useBondingCurveBalance(
       isLoading,
       refetch,
     }),
-    [data, isLoading, refetch]
+    [data, isLoading, refetch],
   )
 }
 

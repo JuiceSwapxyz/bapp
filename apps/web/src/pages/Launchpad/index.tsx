@@ -1,9 +1,9 @@
-import { useNavigate } from 'react-router'
+import { useLaunchpadStats, useLaunchpadTokens, type LaunchpadFilterType } from 'hooks/useLaunchpadTokens'
+import { TokenCard } from 'pages/Launchpad/components/TokenCard'
 import { useCallback, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
 import { Plus } from 'ui/src/components/icons/Plus'
-import { useLaunchpadTokens, useLaunchpadStats, type LaunchpadFilterType } from 'hooks/useLaunchpadTokens'
-import { TokenCard } from 'pages/Launchpad/components/TokenCard'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 
@@ -204,9 +204,7 @@ export default function Launchpad() {
           <HeaderSection>
             <TitleSection>
               <MainTitle>Launchpad</MainTitle>
-              <Subtitle>
-                Launch tokens with bonding curves. Graduate to JuiceSwap V2 with locked liquidity.
-              </Subtitle>
+              <Subtitle>Launch tokens with bonding curves. Graduate to JuiceSwap V2 with locked liquidity.</Subtitle>
             </TitleSection>
             <CreateButton onPress={handleCreateToken}>
               <Plus size="$icon.16" color="$white" />
@@ -269,7 +267,9 @@ export default function Launchpad() {
               </TokenGrid>
             ) : tokens.length === 0 ? (
               <EmptyState>
-                <Text variant="heading3" color="$neutral1">No tokens yet</Text>
+                <Text variant="heading3" color="$neutral1">
+                  No tokens yet
+                </Text>
                 <Text variant="body2" color="$neutral2">
                   Be the first to create a token on the launchpad!
                 </Text>
@@ -290,7 +290,9 @@ export default function Launchpad() {
                   onPress={page === 0 ? undefined : () => setPage(Math.max(0, page - 1))}
                   style={{ opacity: page === 0 ? 0.5 : 1, cursor: page === 0 ? 'not-allowed' : 'pointer' }}
                 >
-                  <Text variant="body2" color="$neutral2">Previous</Text>
+                  <Text variant="body2" color="$neutral2">
+                    Previous
+                  </Text>
                 </FilterTab>
                 <FilterTab>
                   <Text variant="body2" color="$neutral1">
@@ -299,9 +301,14 @@ export default function Launchpad() {
                 </FilterTab>
                 <FilterTab
                   onPress={page + 1 >= pagination.totalPages ? undefined : () => setPage(page + 1)}
-                  style={{ opacity: page + 1 >= pagination.totalPages ? 0.5 : 1, cursor: page + 1 >= pagination.totalPages ? 'not-allowed' : 'pointer' }}
+                  style={{
+                    opacity: page + 1 >= pagination.totalPages ? 0.5 : 1,
+                    cursor: page + 1 >= pagination.totalPages ? 'not-allowed' : 'pointer',
+                  }}
                 >
-                  <Text variant="body2" color="$neutral2">Next</Text>
+                  <Text variant="body2" color="$neutral2">
+                    Next
+                  </Text>
                 </FilterTab>
               </Flex>
             )}

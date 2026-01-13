@@ -1,31 +1,38 @@
-import { useParams, useNavigate } from 'react-router'
-import { useCallback, useMemo, useState } from 'react'
-import { Flex, Text, styled } from 'ui/src'
-import { BackArrow } from 'ui/src/components/icons/BackArrow'
-import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
-import { CopyAlt } from 'ui/src/components/icons/CopyAlt'
-import { InfoCircle } from 'ui/src/components/icons/InfoCircle'
-import { ModalCloseIcon } from 'ui/src'
-import { Modal } from 'uniswap/src/components/modals/Modal'
-import { ModalName } from 'uniswap/src/features/telemetry/constants'
+import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
-import { useTokenInfo } from 'hooks/useTokenFactory'
-import { useLaunchpadToken } from 'hooks/useLaunchpadTokens'
-import { useTokenMetadata, getSocialLink } from 'hooks/useTokenMetadata'
 import { useGraduate } from 'hooks/useLaunchpadActions'
+import { useLaunchpadToken } from 'hooks/useLaunchpadTokens'
+import { useTokenInfo } from 'hooks/useTokenFactory'
+import { getSocialLink, useTokenMetadata } from 'hooks/useTokenMetadata'
 import { BuySellPanel } from 'pages/Launchpad/components/BuySellPanel'
 import { TokenLogo } from 'pages/Launchpad/components/TokenLogo'
-import { Card, BackButton, StatRow, StatLabel, StatValue, ProgressBar, ProgressFill, GraduatedBadge } from 'pages/Launchpad/components/shared'
-import { formatUnits } from 'viem'
-import Trace from 'uniswap/src/features/telemetry/Trace'
-import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
-import { useTransactionAdder } from 'state/transactions/hooks'
-import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
+import {
+  BackButton,
+  Card,
+  GraduatedBadge,
+  ProgressBar,
+  ProgressFill,
+  StatLabel,
+  StatRow,
+  StatValue,
+} from 'pages/Launchpad/components/shared'
+import { useCallback, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
-import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
+import { useTransactionAdder } from 'state/transactions/hooks'
+import { Flex, ModalCloseIcon, Text, styled } from 'ui/src'
+import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
+import { CopyAlt } from 'ui/src/components/icons/CopyAlt'
+import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
+import { InfoCircle } from 'ui/src/components/icons/InfoCircle'
+import { Modal } from 'uniswap/src/components/modals/Modal'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import Trace from 'uniswap/src/features/telemetry/Trace'
+import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
+import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
+import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
+import { formatUnits } from 'viem'
 
 const PageContainer = styled(Flex, {
   width: '100%',
@@ -193,7 +200,7 @@ export default function TokenDetail() {
           }
           onDismiss={() => toast.dismiss()}
         />,
-        { duration: 5000 }
+        { duration: 5000 },
       )
       // Refresh token data to show graduated state
       refetchBondingCurve()
@@ -206,28 +213,38 @@ export default function TokenDetail() {
 
   // Format values
   const liquidity = useMemo(() => {
-    if (!reserves) {return '0'}
+    if (!reserves) {
+      return '0'
+    }
     return Number(formatUnits(reserves.realBase, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [reserves])
 
   const tokensRemaining = useMemo(() => {
-    if (!reserves) {return '0'}
+    if (!reserves) {
+      return '0'
+    }
     return Number(formatUnits(reserves.realToken, 18)).toLocaleString(undefined, { maximumFractionDigits: 0 })
   }, [reserves])
 
   const currentPrice = useMemo(() => {
-    if (!reserves || reserves.virtualToken === 0n) {return '0'}
+    if (!reserves || reserves.virtualToken === 0n) {
+      return '0'
+    }
     const price = Number(reserves.virtualBase) / Number(reserves.virtualToken)
     return price.toFixed(8)
   }, [reserves])
 
   const creatorShort = useMemo(() => {
-    if (!tokenInfo?.creator) {return '...'}
+    if (!tokenInfo?.creator) {
+      return '...'
+    }
     return `${tokenInfo.creator.slice(0, 6)}...${tokenInfo.creator.slice(-4)}`
   }, [tokenInfo])
 
   const createdDate = useMemo(() => {
-    if (!tokenInfo?.timestamp) {return ''}
+    if (!tokenInfo?.timestamp) {
+      return ''
+    }
     return new Date(tokenInfo.timestamp * 1000).toLocaleDateString()
   }, [tokenInfo])
 
@@ -235,7 +252,9 @@ export default function TokenDetail() {
     return (
       <PageContainer>
         <ContentWrapper>
-          <Text variant="body1" color="$neutral2">Loading token...</Text>
+          <Text variant="body1" color="$neutral2">
+            Loading token...
+          </Text>
         </ContentWrapper>
       </PageContainer>
     )
@@ -245,7 +264,9 @@ export default function TokenDetail() {
     return (
       <PageContainer>
         <ContentWrapper>
-          <Text variant="body1" color="$neutral2">Token not found</Text>
+          <Text variant="body1" color="$neutral2">
+            Token not found
+          </Text>
         </ContentWrapper>
       </PageContainer>
     )
@@ -257,21 +278,21 @@ export default function TokenDetail() {
         <ContentWrapper>
           <BackButton onPress={handleBack}>
             <BackArrow size="$icon.20" color="$neutral2" />
-            <Text variant="body2" color="$neutral2">Back to Launchpad</Text>
+            <Text variant="body2" color="$neutral2">
+              Back to Launchpad
+            </Text>
           </BackButton>
 
           <HeaderSection>
-            <TokenLogo
-              metadataURI={launchpadData?.token?.metadataURI}
-              symbol={symbol || '?'}
-              size={80}
-            />
+            <TokenLogo metadataURI={launchpadData?.token?.metadataURI} symbol={symbol || '?'} size={80} />
             <TokenInfo>
               <Flex flexDirection="row" alignItems="center" gap="$spacing12">
                 <TokenName>{name || 'Unknown Token'}</TokenName>
                 {graduated && (
                   <GraduatedBadge size="md">
-                    <Text variant="body3" color="$statusSuccess" fontWeight="600">Graduated</Text>
+                    <Text variant="body3" color="$statusSuccess" fontWeight="600">
+                      Graduated
+                    </Text>
                   </GraduatedBadge>
                 )}
               </Flex>
@@ -287,11 +308,15 @@ export default function TokenDetail() {
                   <ExternalLink size="$icon.16" color="$neutral3" />
                 </AddressLink>
               </AddressRow>
-              {(metadata?.external_url || getSocialLink(metadata, 'Twitter') || getSocialLink(metadata, 'Telegram')) && (
+              {(metadata?.external_url ||
+                getSocialLink(metadata, 'Twitter') ||
+                getSocialLink(metadata, 'Telegram')) && (
                 <Flex flexDirection="row" gap="$spacing12" flexWrap="wrap" marginTop="$spacing4">
                   {metadata?.external_url && (
                     <AddressLink onPress={() => window.open(metadata.external_url, '_blank', 'noopener')}>
-                      <Text variant="body3" color="$accent1">Website</Text>
+                      <Text variant="body3" color="$accent1">
+                        Website
+                      </Text>
                       <ExternalLink size="$icon.12" color="$accent1" />
                     </AddressLink>
                   )}
@@ -302,7 +327,9 @@ export default function TokenDetail() {
                         window.open(`https://twitter.com/${handle}`, '_blank', 'noopener')
                       }}
                     >
-                      <Text variant="body3" color="$accent1">Twitter</Text>
+                      <Text variant="body3" color="$accent1">
+                        Twitter
+                      </Text>
                       <ExternalLink size="$icon.12" color="$accent1" />
                     </AddressLink>
                   )}
@@ -313,7 +340,9 @@ export default function TokenDetail() {
                         window.open(`https://t.me/${handle}`, '_blank', 'noopener')
                       }}
                     >
-                      <Text variant="body3" color="$accent1">Telegram</Text>
+                      <Text variant="body3" color="$accent1">
+                        Telegram
+                      </Text>
                       <ExternalLink size="$icon.12" color="$accent1" />
                     </AddressLink>
                   )}
@@ -340,7 +369,9 @@ export default function TokenDetail() {
                     <ProgressFill size="md" style={{ width: `${Math.min(progress, 100)}%` }} />
                   </ProgressBar>
                   <Flex flexDirection="row" justifyContent="space-between">
-                    <Text variant="body2" color="$neutral2">{progress.toFixed(2)}% complete</Text>
+                    <Text variant="body2" color="$neutral2">
+                      {progress.toFixed(2)}% complete
+                    </Text>
                     <Text variant="body2" color="$neutral1">
                       {tokensRemaining} tokens remaining
                     </Text>
@@ -426,7 +457,9 @@ export default function TokenDetail() {
                         window.open(url, '_blank')
                       }}
                     >
-                      <StatValue variant="body2">{v2Pair.slice(0, 6)}...{v2Pair.slice(-4)}</StatValue>
+                      <StatValue variant="body2">
+                        {v2Pair.slice(0, 6)}...{v2Pair.slice(-4)}
+                      </StatValue>
                       <ExternalLink size="$icon.16" color="$neutral2" />
                     </AddressLink>
                   </StatRow>
@@ -465,16 +498,23 @@ export default function TokenDetail() {
           </Flex>
 
           <Text variant="body2" color="$neutral2">
-            Tokens start on a bonding curve where price increases as more tokens are purchased.
-            When 100% of tokens are sold from the curve, the token graduates to JuiceSwap V2
-            with permanently locked liquidity.
+            Tokens start on a bonding curve where price increases as more tokens are purchased. When 100% of tokens are
+            sold from the curve, the token graduates to JuiceSwap V2 with permanently locked liquidity.
           </Text>
 
           <Flex gap="$spacing8">
-            <Text variant="body3" color="$neutral2">• 1% fee on all trades</Text>
-            <Text variant="body3" color="$neutral2">• ~79.31% sold on bonding curve</Text>
-            <Text variant="body3" color="$neutral2">• ~20.69% reserved for DEX liquidity</Text>
-            <Text variant="body3" color="$neutral2">• LP tokens burned forever</Text>
+            <Text variant="body3" color="$neutral2">
+              • 1% fee on all trades
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              • ~79.31% sold on bonding curve
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              • ~20.69% reserved for DEX liquidity
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              • LP tokens burned forever
+            </Text>
           </Flex>
         </Flex>
       </Modal>

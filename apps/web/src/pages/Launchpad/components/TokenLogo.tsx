@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
-import { Flex, Text, styled } from 'ui/src'
+import { ipfsToHttp, useTokenMetadata } from 'hooks/useTokenMetadata'
 import styledComponents from 'lib/styled-components'
-import { useTokenMetadata, ipfsToHttp } from 'hooks/useTokenMetadata'
+import { useEffect, useState } from 'react'
+import { Flex, Text, styled } from 'ui/src'
 
 interface TokenLogoProps {
   metadataURI?: string | null
@@ -45,14 +45,7 @@ export function TokenLogo({ metadataURI, symbol, size = 48 }: TokenLogoProps) {
 
   // Show image if available and loaded successfully
   if (imageUrl && !imageError) {
-    return (
-      <LogoImage
-        src={imageUrl}
-        alt={`${symbol} logo`}
-        $size={size}
-        onError={handleImageError}
-      />
-    )
+    return <LogoImage src={imageUrl} alt={`${symbol} logo`} $size={size} onError={handleImageError} />
   }
 
   // Fallback to letter placeholder
@@ -60,11 +53,7 @@ export function TokenLogo({ metadataURI, symbol, size = 48 }: TokenLogoProps) {
 
   return (
     <LogoPlaceholder width={size} height={size}>
-      <Text
-        variant={size >= 48 ? 'heading3' : 'body2'}
-        color="$accent1"
-        fontWeight="bold"
-      >
+      <Text variant={size >= 48 ? 'heading3' : 'body2'} color="$accent1" fontWeight="bold">
         {letter}
       </Text>
     </LogoPlaceholder>

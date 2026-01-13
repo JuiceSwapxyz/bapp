@@ -1,13 +1,8 @@
 import BigNumber from 'bignumber.js'
 import { popupRegistry } from 'components/Popups/registry'
 import { BitcoinBridgeDirection, LdsBridgeStatus, PopupType } from 'components/Popups/types'
-import { generateChainSwapKeys } from 'state/sagas/transactions/chainSwapKeys'
-import { pollForLockupConfirmation } from 'state/sagas/transactions/lightningBridgePolling'
-import { prefix0x } from 'state/sagas/utils/buildEvmLockupTx'
-import { btcToSat } from 'state/sagas/utils/lightningUtils'
 import { call } from 'typed-redux-saga'
-import { createChainSwap, fetchChainPairs, helpMeClaim } from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
-import { LdsSwapStatus, createLdsSocketClient } from 'uniswap/src/data/socketClients/ldsSocket'
+import { LdsSwapStatus, btcToSat, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
 import { BitcoinBridgeBitcoinToCitreaStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
@@ -26,32 +21,20 @@ interface HandleBitcoinBridgeBitcoinToCitreaParams {
 export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeBitcoinToCitreaParams) {
   const { step, setCurrentStep, trade, account, onSuccess } = params
 
-  const { claimPublicKey: refundPublicKey, preimage, preimageHash } = generateChainSwapKeys()
-
-  const chainPairs = yield* call(fetchChainPairs)
-  const pairHash = chainPairs.BTC.cBTC.hash
   const userLockAmount = btcToSat(new BigNumber(trade.inputAmount.toExact())).toNumber()
+  const ldsBridge = getLdsBridgeManager()
   const claimAddress = account.address
 
-  const chainSwapResponse = yield* call(createChainSwap, {
+  const chainSwapResponse = yield* call([ldsBridge, ldsBridge.createChainSwap], {
     from: 'BTC',
     to: 'cBTC',
-    preimageHash,
     claimAddress,
-    refundPublicKey,
-    pairHash,
-    referralId: 'boltz_webapp_desktop',
     userLockAmount,
   })
-
-  const ldsSocket = createLdsSocketClient()
-  yield* call(ldsSocket.subscribeToSwapUntil, chainSwapResponse.id, LdsSwapStatus.SwapCreated)
-
   step.bip21 = chainSwapResponse.lockupDetails.bip21
   setCurrentStep({ step, accepted: true })
 
-  yield* call(ldsSocket.subscribeToSwapUntil, chainSwapResponse.id, LdsSwapStatus.TransactionMempool)
-
+  yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwapResponse.id, LdsSwapStatus.TransactionMempool)
   if (onSuccess) {
     yield* call(onSuccess)
   }
@@ -66,25 +49,16 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
     chainSwapResponse.id,
   )
 
-  yield* call(ldsSocket.subscribeToSwapUntil, chainSwapResponse.id, LdsSwapStatus.TransactionConfirmed)
-  ldsSocket.disconnect()
-
-  const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(preimageHash)
-  yield* call(() => ponderPromise)
-  cancelPonderPolling()
-
-  const { txHash } = yield* call(helpMeClaim, {
-    preimage,
-    preimageHash: prefix0x(preimageHash),
-  })
+  yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwapResponse.id, LdsSwapStatus.TransactionConfirmed)
+  const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwapResponse.id)
 
   popupRegistry.addPopup(
     {
       type: PopupType.BitcoinBridge,
-      id: txHash,
+      id: txHash!,
       status: LdsBridgeStatus.Confirmed,
       direction: BitcoinBridgeDirection.BitcoinToCitrea,
     },
-    txHash,
+    txHash!,
   )
 }
