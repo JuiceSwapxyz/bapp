@@ -5,17 +5,12 @@ import { config } from 'uniswap/src/config'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
-import { fetchChainPairs } from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
   isBitcoinBridgeQuote,
   isLnBitcoinBridgeQuote,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
-import {
-  LightningBridgeReverseGetResponse,
-  LightningBridgeSubmarineGetResponse,
-} from 'uniswap/src/data/apiClients/tradingApi/utils/lightningBridge'
 import { swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
 import {
   ApprovalRequest,
@@ -76,6 +71,7 @@ import {
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
+import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
 import { getSpenderAddress } from 'uniswap/src/utils/approvalCalldata'
 
 // TradingAPI team is looking into updating type generation to produce the following types for it's current QuoteResponse type:
@@ -215,7 +211,8 @@ const getBitcoinCrossChainDirection = (params: QuoteRequest): BitcoinBridgeDirec
 }
 
 const getBitcoinCrossChainStateParams = async (direction: BitcoinBridgeDirection): Promise<BridgeStateParams> => {
-  const chainPairs = await fetchChainPairs()
+  const ldsBridge = getLdsBridgeManager()
+  const chainPairs = await ldsBridge.getChainPairs()
   const pair = direction === BitcoinBridgeDirection.BitcoinToCitrea ? chainPairs.BTC?.cBTC : chainPairs.cBTC?.BTC
   if (!pair) {
     throw new Error('Pair not found')
@@ -321,22 +318,23 @@ const getLightningBridgeDirection = (params: QuoteRequest): LightningBridgeDirec
 }
 
 const getLightningBridgeStateParams = async (direction: LightningBridgeDirection): Promise<BridgeStateParams> => {
+  const ldsBridge = getLdsBridgeManager()
   switch (direction) {
     case LightningBridgeDirection.Submarine: {
-      const submarineResp = await LightningBridgeApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/submarine')
-      if (!submarineResp.cBTC?.BTC) {
-        throw new Error('Pair not found')
+      const submarinePairs = await ldsBridge.getSubmarinePairs()
+      if (!submarinePairs.cBTC?.BTC) {
+        throw new Error('Submarine pairs not found')
       }
-      const { fees, limits } = submarineResp.cBTC.BTC
+      const { fees, limits } = submarinePairs.cBTC.BTC
       return { fees, limits }
     }
 
     case LightningBridgeDirection.Reverse: {
-      const reverseResp = await LightningBridgeApiClient.get<LightningBridgeReverseGetResponse>('/swap/reverse')
-      if (!reverseResp.BTC?.cBTC) {
+      const reversePairs = await ldsBridge.getReversePairs()
+      if (!reversePairs.BTC?.cBTC) {
         throw new Error('Pair not found')
       }
-      const { fees, limits } = reverseResp.BTC.cBTC
+      const { fees, limits } = reversePairs.BTC.cBTC
       const {
         percentage,
         minerFees: { claim, lockup },

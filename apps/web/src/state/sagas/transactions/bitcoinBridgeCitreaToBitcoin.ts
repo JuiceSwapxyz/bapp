@@ -1,32 +1,23 @@
-import { randomBytes } from '@ethersproject/random'
 import { BigNumber } from 'bignumber.js'
-import { address, crypto, networks, Transaction } from 'bitcoinjs-lib'
-import {
-  ClaimDetails,
-  constructClaimTransaction,
-  detectSwap,
-  OutputType,
-  SwapTreeSerializer,
-  TaprootUtils,
-} from 'boltz-core'
-import { hashForWitnessV1 } from 'boltz-core/dist/lib/swap/TaprootUtils'
+import { address, networks, Transaction } from 'bitcoinjs-lib'
+import { constructClaimTransaction } from 'boltz-core'
 import { Buffer } from 'buffer'
 import { popupRegistry } from 'components/Popups/registry'
 import { BitcoinBridgeDirection, LdsBridgeStatus, PopupType } from 'components/Popups/types'
-import { generateChainSwapKeys } from 'state/sagas/transactions/chainSwapKeys'
 import { getSigner } from 'state/sagas/transactions/utils'
-import { createMusig } from 'state/sagas/utils/buildChainSwapClaim'
-import { buildEvmLockupTx } from 'state/sagas/utils/buildEvmLockupTx'
-import { btcToSat } from 'state/sagas/utils/lightningUtils'
 import { call } from 'typed-redux-saga'
 import {
   broadcastChainSwap,
-  createChainSwap,
-  fetchChainPairs,
+  btcToSat,
+  buildClaimDetails,
+  buildEvmLockupTx,
+  completeCollaborativeSigning,
   fetchChainTransactionsBySwapId,
+  getLdsBridgeManager,
+  LdsSwapStatus,
   postClaimChainSwap,
-} from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
-import { createLdsSocketClient, LdsSwapStatus } from 'uniswap/src/data/socketClients/ldsSocket'
+  prepareClaimMusig,
+} from 'uniswap/src/features/lds-bridge'
 import { BitcoinBridgeCitreaToBitcoinStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
@@ -49,88 +40,73 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
     throw new Error('Claim address is required for Bitcoin bridge swap')
   }
 
-  const { claimPublicKey, claimKeyPair } = generateChainSwapKeys()
-
-  const preimage = randomBytes(32)
-  const preimageHash = crypto.sha256(Buffer.from(preimage)).toString('hex')
-  const chainPairs = yield* call(fetchChainPairs)
-  const pairHash = chainPairs.cBTC.BTC.hash
+  const ldsBridge = getLdsBridgeManager()
   const userLockAmount = btcToSat(new BigNumber(trade.inputAmount.toExact())).toNumber()
 
-  const chainSwapResponse = yield* call(createChainSwap, {
+  const chainSwap = yield* call([ldsBridge, ldsBridge.createChainSwap], {
     from: 'cBTC',
     to: 'BTC',
-    preimageHash,
-    claimPublicKey,
     claimAddress,
-    pairHash,
-    referralId: 'boltz_webapp_desktop',
     userLockAmount,
   })
 
-  const ldsSocket = createLdsSocketClient()
-  yield* call(ldsSocket.subscribeToSwapUntil, chainSwapResponse.id, LdsSwapStatus.SwapCreated)
-
   const signer = yield* call(getSigner, account.address)
-
   const evmTxResult = yield* call(buildEvmLockupTx, {
     signer,
-    contractAddress: chainSwapResponse.lockupDetails.lockupAddress,
-    preimageHash,
-    claimAddress: chainSwapResponse.lockupDetails.claimAddress,
-    timeoutBlockHeight: chainSwapResponse.lockupDetails.timeoutBlockHeight,
-    amountSatoshis: chainSwapResponse.lockupDetails.amount,
+    contractAddress: chainSwap.lockupDetails.lockupAddress,
+    preimageHash: chainSwap.preimageHash,
+    claimAddress: chainSwap.lockupDetails.claimAddress,
+    timeoutBlockHeight: chainSwap.lockupDetails.timeoutBlockHeight,
+    amountSatoshis: chainSwap.lockupDetails.amount,
   })
-
-  yield* call(ldsSocket.subscribeToSwapUntil, chainSwapResponse.id, LdsSwapStatus.TransactionServerMempool)
 
   if (onTransactionHash && evmTxResult.hash) {
     onTransactionHash(evmTxResult.hash)
   }
 
+  yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
+
   popupRegistry.addPopup(
     {
       type: PopupType.BitcoinBridge,
-      id: chainSwapResponse.id,
+      id: chainSwap.id,
       status: LdsBridgeStatus.Pending,
       direction: BitcoinBridgeDirection.CitreaToBitcoin,
     },
-    chainSwapResponse.id,
+    chainSwap.id,
   )
 
   if (onSuccess) {
     yield* call(onSuccess)
   }
 
-  const chainTransactionsResponse = yield* call(fetchChainTransactionsBySwapId, chainSwapResponse.id)
-
-  const { claimDetails } = chainSwapResponse
+  const chainTransactionsResponse = yield* call(fetchChainTransactionsBySwapId, chainSwap.id)
   const lockupTxHex = chainTransactionsResponse.serverLock?.transaction.hex
-  const boltzRefundPublicKey = Buffer.from(Buffer.from(claimDetails.serverPublicKey!, 'hex'))
-  const ourClaimMusig = yield* call(createMusig, claimKeyPair, boltzRefundPublicKey)
-  const claimTree = SwapTreeSerializer.deserializeSwapTree(claimDetails.swapTree!)
-  const tweakedKey = TaprootUtils.tweakMusig(ourClaimMusig, claimTree.tree)
   const lockupTx = Transaction.fromHex(lockupTxHex as string)
-  const swapOutput = detectSwap(tweakedKey, lockupTx as any)
 
-  const details: ClaimDetails = {
-    ...swapOutput,
-    cooperative: true,
+  const { claimKeyPair } = yield* call([ldsBridge, ldsBridge.getKeysForSwap], chainSwap.id)
+  const {
+    musig: ourClaimMusig,
+    tweakedKey,
     swapTree: claimTree,
-    keys: claimKeyPair,
-    type: OutputType.Taproot,
-    txHash: lockupTx.getHash(),
-    internalKey: ourClaimMusig.getAggregatedPublicKey(),
-    preimage,
-  } as any
+  } = yield* call(prepareClaimMusig, claimKeyPair, chainSwap)
+
+  const details = buildClaimDetails({
+    tweakedKey,
+    lockupTx,
+    swapTree: claimTree,
+    claimKeyPair,
+    musig: ourClaimMusig,
+    preimage: Buffer.from(chainSwap.preimage, 'hex'),
+  })
 
   const decodedAddress = Buffer.from(address.toOutputScript(claimAddress, networks.bitcoin))
   const expectedAmount = btcToSat(new BigNumber(trade.outputAmount.toExact())).toNumber()
   const feeBudget = details.value - expectedAmount
   const claimTx = constructClaimTransaction([details], decodedAddress, feeBudget, true)
 
-  const postClaimChainSwapResponse = yield* call(postClaimChainSwap, chainSwapResponse.id, {
-    preimage: Buffer.from(preimage).toString('hex'),
+  const postClaimChainSwapResponse = yield* call(postClaimChainSwap, chainSwap.id, {
+    preimage: chainSwap.preimage,
     toSign: {
       index: 0,
       transaction: claimTx.toHex(),
@@ -138,14 +114,15 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
     },
   })
 
-  const theirPublicNonce = Buffer.from(Buffer.from(postClaimChainSwapResponse.pubNonce, 'hex'))
-  ourClaimMusig.aggregateNoncesOrdered([theirPublicNonce, ourClaimMusig.getPublicNonce()])
-  ourClaimMusig.initializeSession(hashForWitnessV1([details], claimTx, 0))
-  ourClaimMusig.addPartial(0, Buffer.from(postClaimChainSwapResponse.partialSignature, 'hex'))
-  ourClaimMusig.signPartial()
-  claimTx.ins[0].witness = [ourClaimMusig.aggregatePartials()]
+  const aggregatedSignature = completeCollaborativeSigning({
+    musig: ourClaimMusig,
+    serverPubNonce: Buffer.from(postClaimChainSwapResponse.pubNonce, 'hex'),
+    serverPartialSignature: Buffer.from(postClaimChainSwapResponse.partialSignature, 'hex'),
+    claimDetails: [details],
+    claimTx,
+    inputIndex: 0,
+  })
+  claimTx.ins[0].witness = [aggregatedSignature]
 
   yield* call(broadcastChainSwap, claimTx.toHex())
-
-  ldsSocket.disconnect()
 }

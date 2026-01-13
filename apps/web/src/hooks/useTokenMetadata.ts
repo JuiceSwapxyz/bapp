@@ -68,10 +68,7 @@ export function useTokenMetadata(metadataURI: string | null | undefined) {
  * @param type - The trait_type to look for (e.g., 'Twitter', 'Telegram')
  * @returns The value if found, null otherwise
  */
-export function getSocialLink(
-  metadata: TokenMetadata | null | undefined,
-  type: string
-): string | null {
+export function getSocialLink(metadata: TokenMetadata | null | undefined, type: string): string | null {
   if (!metadata?.attributes) return null
   const attr = metadata.attributes.find((a) => a.trait_type === type)
   return attr?.value ?? null

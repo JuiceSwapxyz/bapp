@@ -1,17 +1,17 @@
-import { useNavigate } from 'react-router'
-import { useCallback, useRef, useState } from 'react'
-import { Flex, Text, styled } from 'ui/src'
-import styledComponents from 'lib/styled-components'
-import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import { useAccount } from 'hooks/useAccount'
 import { useCreateToken, useUploadTokenMetadata } from 'hooks/useLaunchpadActions'
 import { useTokenFactory } from 'hooks/useTokenFactory'
+import styledComponents from 'lib/styled-components'
+import { BackButton, StatLabel, StatRow, StatValue } from 'pages/Launchpad/components/shared'
+import { useCallback, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { useTransactionAdder } from 'state/transactions/hooks'
-import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
-import { formatUnits } from 'viem'
+import { Flex, Text, styled } from 'ui/src'
+import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
-import { BackButton, StatRow, StatLabel, StatValue } from 'pages/Launchpad/components/shared'
+import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
+import { formatUnits } from 'viem'
 
 const PageContainer = styled(Flex, {
   width: '100%',
@@ -356,15 +356,24 @@ export default function CreateToken() {
       setIsLoading(false)
       setLoadingStatus('')
     }
-  }, [name, symbol, description, imageFile, website, twitter, telegram, uploadMetadata, createToken, navigate, addTransaction])
+  }, [
+    name,
+    symbol,
+    description,
+    imageFile,
+    website,
+    twitter,
+    telegram,
+    uploadMetadata,
+    createToken,
+    navigate,
+    addTransaction,
+  ])
 
-  const isButtonDisabled = !account.address || isLoading || !name.trim() || !symbol.trim() || !description.trim() || !imageFile
+  const isButtonDisabled =
+    !account.address || isLoading || !name.trim() || !symbol.trim() || !description.trim() || !imageFile
 
-  const buttonText = !account.address
-    ? 'Connect Wallet'
-    : isLoading
-    ? loadingStatus || 'Creating...'
-    : 'Create Token'
+  const buttonText = !account.address ? 'Connect Wallet' : isLoading ? loadingStatus || 'Creating...' : 'Create Token'
 
   // Format initial liquidity
   const initialLiquidity = initialVirtualBaseReserves
@@ -377,14 +386,14 @@ export default function CreateToken() {
         <ContentWrapper>
           <BackButton onPress={handleBack}>
             <BackArrow size="$icon.20" color="$neutral2" />
-            <Text variant="body2" color="$neutral2">Back to Launchpad</Text>
+            <Text variant="body2" color="$neutral2">
+              Back to Launchpad
+            </Text>
           </BackButton>
 
           <HeaderSection>
             <MainTitle>Create Token</MainTitle>
-            <Subtitle>
-              Launch your token on the bonding curve. No upfront liquidity required.
-            </Subtitle>
+            <Subtitle>Launch your token on the bonding curve. No upfront liquidity required.</Subtitle>
           </HeaderSection>
 
           <FormCard>
@@ -436,14 +445,22 @@ export default function CreateToken() {
                   <Flex alignItems="center" gap="$spacing12">
                     <ImagePreview src={imagePreview} alt="Token logo preview" />
                     <Flex>
-                      <Text variant="body3" color="$neutral1">{imageFile?.name}</Text>
-                      <Text variant="body4" color="$neutral3">Click to change</Text>
+                      <Text variant="body3" color="$neutral1">
+                        {imageFile?.name}
+                      </Text>
+                      <Text variant="body4" color="$neutral3">
+                        Click to change
+                      </Text>
                     </Flex>
                   </Flex>
                 ) : (
                   <Flex alignItems="center" gap="$spacing8">
-                    <Text variant="body2" color="$neutral2">Click to upload logo</Text>
-                    <Text variant="body4" color="$neutral3">PNG, JPG, GIF, WebP, SVG (max 5MB)</Text>
+                    <Text variant="body2" color="$neutral2">
+                      Click to upload logo
+                    </Text>
+                    <Text variant="body4" color="$neutral3">
+                      PNG, JPG, GIF, WebP, SVG (max 5MB)
+                    </Text>
                   </Flex>
                 )}
               </FileUploadArea>
@@ -500,7 +517,9 @@ export default function CreateToken() {
           </FormCard>
 
           <InfoCard>
-            <Text variant="body2" color="$neutral1" fontWeight="600">Token Economics</Text>
+            <Text variant="body2" color="$neutral1" fontWeight="600">
+              Token Economics
+            </Text>
             <StatRow>
               <StatLabel variant="body3">Total Supply</StatLabel>
               <StatValue variant="body3">1,000,000,000</StatValue>
@@ -524,7 +543,9 @@ export default function CreateToken() {
           </InfoCard>
 
           <Flex gap="$spacing8" backgroundColor="$surface2" padding="$spacing16" borderRadius="$rounded12">
-            <Text variant="body2" color="$neutral1" fontWeight="600">How it works</Text>
+            <Text variant="body2" color="$neutral1" fontWeight="600">
+              How it works
+            </Text>
             <Text variant="body3" color="$neutral2">
               1. Your token launches on a bonding curve with virtual liquidity
             </Text>

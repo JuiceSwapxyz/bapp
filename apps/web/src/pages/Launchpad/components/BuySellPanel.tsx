@@ -1,21 +1,21 @@
+import { CurrencyAmount, Token } from '@juiceswapxyz/sdk-core'
+import { useQueryClient } from '@tanstack/react-query'
+import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
+import { useAccount } from 'hooks/useAccount'
+import { useBondingCurveBalance, useCalculateBuy, useCalculateSell } from 'hooks/useBondingCurveToken'
+import { calculateMinOutput, useBuy, useSell } from 'hooks/useLaunchpadActions'
+import { useTokenAllowance, useUpdateTokenAllowance } from 'hooks/useTokenAllowance'
+import styledComponents from 'lib/styled-components'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useQueryClient } from '@tanstack/react-query'
-import { Flex, Text, styled } from 'ui/src'
-import styledComponents from 'lib/styled-components'
-import { useAccount } from 'hooks/useAccount'
-import { useTokenAllowance, useUpdateTokenAllowance } from 'hooks/useTokenAllowance'
-import { useCalculateBuy, useCalculateSell, useBondingCurveBalance } from 'hooks/useBondingCurveToken'
-import { useBuy, useSell, calculateMinOutput } from 'hooks/useLaunchpadActions'
+import { toast } from 'sonner'
 import { useTransactionAdder } from 'state/transactions/hooks'
+import { Flex, Text, styled } from 'ui/src'
+import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { formatUnits, parseUnits } from 'viem'
-import { Token, CurrencyAmount } from '@juiceswapxyz/sdk-core'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useBalance } from 'wagmi'
-import { toast } from 'sonner'
-import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
-import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 
 const PanelContainer = styled(Flex, {
   backgroundColor: '$surface2',
@@ -167,7 +167,13 @@ interface BuySellPanelProps {
   onTransactionComplete?: () => void
 }
 
-export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, onTransactionComplete }: BuySellPanelProps) {
+export function BuySellPanel({
+  tokenAddress,
+  tokenSymbol,
+  baseAsset,
+  graduated,
+  onTransactionComplete,
+}: BuySellPanelProps) {
   const [isBuy, setIsBuy] = useState(true)
   const [amount, setAmount] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -181,7 +187,9 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
 
   // Parse input amount
   const parsedAmount = useMemo(() => {
-    if (!amount || isNaN(Number(amount))) {return undefined}
+    if (!amount || isNaN(Number(amount))) {
+      return undefined
+    }
     try {
       return parseUnits(amount, 18)
     } catch {
@@ -193,19 +201,19 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
   const { tokensOut, isLoading: buyQuoteLoading } = useCalculateBuy(
     tokenAddress,
     isBuy ? parsedAmount : undefined,
-    chainId
+    chainId,
   )
   const { baseOut, isLoading: sellQuoteLoading } = useCalculateSell(
     tokenAddress,
     !isBuy ? parsedAmount : undefined,
-    chainId
+    chainId,
   )
 
   // Get balances
   const { balance: tokenBalance, refetch: refetchTokenBalance } = useBondingCurveBalance(
     tokenAddress,
     account.address,
-    chainId
+    chainId,
   )
 
   // Get base asset (JUSD) balance
@@ -218,12 +226,16 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
 
   // Create Token objects for allowance hook
   const baseToken = useMemo(() => {
-    if (!baseAsset) {return undefined}
+    if (!baseAsset) {
+      return undefined
+    }
     return new Token(chainId, baseAsset as `0x${string}`, 18, 'JUSD', 'Juice Dollar')
   }, [baseAsset, chainId])
 
   const launchpadToken = useMemo(() => {
-    if (!tokenAddress) {return undefined}
+    if (!tokenAddress) {
+      return undefined
+    }
     return new Token(chainId, tokenAddress as `0x${string}`, 18, tokenSymbol, tokenSymbol)
   }, [tokenAddress, tokenSymbol, chainId])
 
@@ -243,12 +255,16 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
 
   // Approval functions
   const baseApproveAmount = useMemo(() => {
-    if (!baseToken || !parsedAmount) {return undefined}
+    if (!baseToken || !parsedAmount) {
+      return undefined
+    }
     return CurrencyAmount.fromRawAmount(baseToken, parsedAmount.toString())
   }, [baseToken, parsedAmount])
 
   const tokenApproveAmount = useMemo(() => {
-    if (!launchpadToken || !parsedAmount) {return undefined}
+    if (!launchpadToken || !parsedAmount) {
+      return undefined
+    }
     return CurrencyAmount.fromRawAmount(launchpadToken, parsedAmount.toString())
   }, [launchpadToken, parsedAmount])
 
@@ -257,12 +273,16 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
 
   // Check if approval needed
   const needsBaseApproval = useMemo(() => {
-    if (!isBuy || !baseAllowance || !parsedAmount) {return false}
+    if (!isBuy || !baseAllowance || !parsedAmount) {
+      return false
+    }
     return BigInt(baseAllowance.quotient.toString()) < parsedAmount
   }, [isBuy, baseAllowance, parsedAmount])
 
   const needsTokenApproval = useMemo(() => {
-    if (isBuy || !tokenAllowance || !parsedAmount) {return false}
+    if (isBuy || !tokenAllowance || !parsedAmount) {
+      return false
+    }
     return BigInt(tokenAllowance.quotient.toString()) < parsedAmount
   }, [isBuy, tokenAllowance, parsedAmount])
 
@@ -283,12 +303,16 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
 
   // Format balances
   const formattedTokenBalance = useMemo(() => {
-    if (!tokenBalance) {return '0'}
+    if (!tokenBalance) {
+      return '0'
+    }
     return Number(formatUnits(tokenBalance, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [tokenBalance])
 
   const formattedBaseBalance = useMemo(() => {
-    if (!baseBalance) {return '0'}
+    if (!baseBalance) {
+      return '0'
+    }
     return Number(formatUnits(baseBalance.value, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [baseBalance])
 
@@ -309,7 +333,9 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
   }, [isBuy, baseBalance, tokenBalance])
 
   const handleAction = useCallback(async () => {
-    if (!parsedAmount || parsedAmount === 0n || !account.address) {return}
+    if (!parsedAmount || parsedAmount === 0n || !account.address) {
+      return
+    }
 
     setIsLoading(true)
     setError(null)
@@ -322,7 +348,9 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
         }
         const minOut = tokensOut ? calculateMinOutput(tokensOut) : 0n
         const tx = await buy({ baseIn: parsedAmount, minTokensOut: minOut })
-        const formattedAmount = Number(formatUnits(tokensOut || 0n, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
+        const formattedAmount = Number(formatUnits(tokensOut || 0n, 18)).toLocaleString(undefined, {
+          maximumFractionDigits: 2,
+        })
         addTransaction(tx, {
           type: TransactionType.LaunchpadBuy,
           tokenAddress: tokenAddress as `0x${string}`,
@@ -346,7 +374,7 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
             }
             onDismiss={() => toast.dismiss()}
           />,
-          { duration: 5000 }
+          { duration: 5000 },
         )
       } else {
         if (needsTokenApproval) {
@@ -356,7 +384,9 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
         }
         const minOut = baseOut ? calculateMinOutput(baseOut) : 0n
         const tx = await sell({ tokensIn: parsedAmount, minBaseOut: minOut })
-        const formattedAmount = Number(formatUnits(parsedAmount, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
+        const formattedAmount = Number(formatUnits(parsedAmount, 18)).toLocaleString(undefined, {
+          maximumFractionDigits: 2,
+        })
         addTransaction(tx, {
           type: TransactionType.LaunchpadSell,
           tokenAddress: tokenAddress as `0x${string}`,
@@ -380,7 +410,7 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
             }
             onDismiss={() => toast.dismiss()}
           />,
-          { duration: 5000 }
+          { duration: 5000 },
         )
       }
       setAmount('')
@@ -418,11 +448,21 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
   ])
 
   const buttonText = useMemo(() => {
-    if (!account.address) {return 'Connect Wallet'}
-    if (isLoading) {return 'Processing...'}
-    if (!parsedAmount || parsedAmount === 0n) {return 'Enter amount'}
-    if (isBuy && needsBaseApproval) {return 'Approve JUSD'}
-    if (!isBuy && needsTokenApproval) {return `Approve ${tokenSymbol}`}
+    if (!account.address) {
+      return 'Connect Wallet'
+    }
+    if (isLoading) {
+      return 'Processing...'
+    }
+    if (!parsedAmount || parsedAmount === 0n) {
+      return 'Enter amount'
+    }
+    if (isBuy && needsBaseApproval) {
+      return 'Approve JUSD'
+    }
+    if (!isBuy && needsTokenApproval) {
+      return `Approve ${tokenSymbol}`
+    }
     return isBuy ? 'Buy' : 'Sell'
   }, [account.address, isLoading, parsedAmount, isBuy, needsBaseApproval, needsTokenApproval, tokenSymbol])
 
@@ -474,7 +514,9 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
             autoCorrect="off"
           />
           <MaxButton onPress={handleMaxClick}>
-            <Text variant="buttonLabel4" color="$accent1">MAX</Text>
+            <Text variant="buttonLabel4" color="$accent1">
+              MAX
+            </Text>
           </MaxButton>
         </InputWrapper>
       </InputContainer>
@@ -485,18 +527,28 @@ export function BuySellPanel({ tokenAddress, tokenSymbol, baseAsset, graduated, 
             {isBuy ? `You receive (${tokenSymbol})` : 'You receive (JUSD)'}
           </Text>
           <Text variant="body1" color="$neutral1" fontWeight="500">
-            {buyQuoteLoading || sellQuoteLoading ? '...' : Number(outputAmount).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+            {buyQuoteLoading || sellQuoteLoading
+              ? '...'
+              : Number(outputAmount).toLocaleString(undefined, { maximumFractionDigits: 4 })}
           </Text>
         </OutputRow>
 
         <BalanceRow>
-          <Text variant="body3" color="$neutral2">Your JUSD balance</Text>
-          <Text variant="body3" color="$neutral1">{formattedBaseBalance}</Text>
+          <Text variant="body3" color="$neutral2">
+            Your JUSD balance
+          </Text>
+          <Text variant="body3" color="$neutral1">
+            {formattedBaseBalance}
+          </Text>
         </BalanceRow>
 
         <BalanceRow>
-          <Text variant="body3" color="$neutral2">Your {tokenSymbol} balance</Text>
-          <Text variant="body3" color="$neutral1">{formattedTokenBalance}</Text>
+          <Text variant="body3" color="$neutral2">
+            Your {tokenSymbol} balance
+          </Text>
+          <Text variant="body3" color="$neutral1">
+            {formattedTokenBalance}
+          </Text>
         </BalanceRow>
       </OutputCard>
 

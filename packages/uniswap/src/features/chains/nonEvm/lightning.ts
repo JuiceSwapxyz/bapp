@@ -49,7 +49,7 @@ const lightningChain = defineChain({
 export const LIGHTNING_NETWORK_CHAIN_INFO = {
   ...lightningChain,
   id: UniverseChainId.LightningNetwork,
-  platform: Platform.EVM,
+  platform: Platform.NonEvm,
   assetRepoNetworkName: undefined,
   backendChain: {
     chain: 'LIGHTNING' as GqlChainId,

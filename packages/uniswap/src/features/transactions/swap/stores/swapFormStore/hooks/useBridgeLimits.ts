@@ -1,16 +1,11 @@
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useQuery } from '@tanstack/react-query'
-import {
-  ChainPairsResponse,
-  fetchChainPairs,
-  fetchReversePairs,
-  fetchSubmarinePairs,
-} from 'uniswap/src/data/apiClients/LdsApi/LdsApiClient'
-import {
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { ChainPairsResponse, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import type {
   LightningBridgeReverseGetResponse,
   LightningBridgeSubmarineGetResponse,
-} from 'uniswap/src/data/apiClients/tradingApi/utils/lightningBridge'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
+} from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { CurrencyField } from 'uniswap/src/types/currency'
 
 export interface BridgeLimits {
@@ -28,36 +23,36 @@ interface BridgeLimitsQueryParams {
   currencyOut: Currency | null | undefined
 }
 
-const useChainBridge = (params?: { enabled: boolean }): ReturnType<typeof useQuery<ChainPairsResponse>> =>
-  useQuery<ChainPairsResponse>({
+const useChainBridge = (params?: { enabled: boolean }): ReturnType<typeof useQuery<ChainPairsResponse>> => {
+  const ldsBridge = getLdsBridgeManager()
+  return useQuery<ChainPairsResponse>({
     queryKey: ['chain-bridge'],
-    queryFn: () => {
-      return fetchChainPairs()
-    },
+    queryFn: () => ldsBridge.getChainPairs(),
     enabled: params?.enabled,
   })
+}
 
 const useReverseBridge = (params?: {
   enabled: boolean
-}): ReturnType<typeof useQuery<LightningBridgeReverseGetResponse>> =>
-  useQuery<LightningBridgeReverseGetResponse>({
+}): ReturnType<typeof useQuery<LightningBridgeReverseGetResponse>> => {
+  const ldsBridge = getLdsBridgeManager()
+  return useQuery<LightningBridgeReverseGetResponse>({
     queryKey: ['reverse-bridge'],
-    queryFn: () => {
-      return fetchReversePairs()
-    },
+    queryFn: () => ldsBridge.getReversePairs(),
     enabled: params?.enabled,
   })
+}
 
 const useSubmarineBridge = (params?: {
   enabled: boolean
-}): ReturnType<typeof useQuery<LightningBridgeSubmarineGetResponse>> =>
-  useQuery<LightningBridgeSubmarineGetResponse>({
+}): ReturnType<typeof useQuery<LightningBridgeSubmarineGetResponse>> => {
+  const ldsBridge = getLdsBridgeManager()
+  return useQuery<LightningBridgeSubmarineGetResponse>({
     queryKey: ['submarine-bridge'],
-    queryFn: () => {
-      return fetchSubmarinePairs()
-    },
+    queryFn: () => ldsBridge.getSubmarinePairs(),
     enabled: params?.enabled,
   })
+}
 
 const isChainBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): boolean => {
   return currencyIn?.chainId === UniverseChainId.Bitcoin || currencyOut?.chainId === UniverseChainId.Bitcoin

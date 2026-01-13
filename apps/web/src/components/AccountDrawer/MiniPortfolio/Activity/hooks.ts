@@ -4,12 +4,15 @@ import { parseRemoteActivities } from 'components/AccountDrawer/MiniPortfolio/Ac
 import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
 import { useCreateCancelTransactionRequest } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
 import { GasFeeResult, GasSpeed, useTransactionGasFee } from 'hooks/useTransactionGasFee'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePendingOrders } from 'state/signatures/hooks'
 import { SignatureType, UniswapXOrderDetails } from 'state/signatures/types'
 import { usePendingTransactions, useTransactionCanceller } from 'state/transactions/hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
+import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
+import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
+import { swapStatusFinal } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
 
 /** Detects transactions from same account with the same nonce and different hash */
@@ -119,14 +122,54 @@ export function useOpenLimitOrders(account: string) {
   }
 }
 
+export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading: boolean } {
+  const [bridgeSwaps, setBridgeSwaps] = useState<SomeSwap[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const ldsBridgeManager = getLdsBridgeManager()
+
+    const loadInitialSwaps = async (): Promise<void> => {
+      try {
+        await ldsBridgeManager.suscribeAllPendingSwaps()
+        const swaps = await ldsBridgeManager.getSwaps()
+        const pendingSwaps = Object.values(swaps).filter(
+          (swap) => swap.status && !swapStatusFinal.includes(swap.status),
+        )
+        setBridgeSwaps(pendingSwaps)
+        setLoading(false)
+      } catch (error) {
+        console.error('Failed to load bridge swaps:', error)
+        setLoading(false)
+      }
+    }
+
+    const handleSwapChange = (swaps: Record<string, SomeSwap>): void => {
+      const pendingSwaps = Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
+      setBridgeSwaps(pendingSwaps)
+    }
+
+    void loadInitialSwaps()
+    ldsBridgeManager.addSwapChangeListener(handleSwapChange)
+
+    return () => {
+      ldsBridgeManager.removeSwapChangeListener(handleSwapChange)
+    }
+  }, [])
+
+  return { bridgeSwaps, loading }
+}
+
 export function usePendingActivity() {
   const pendingTransactions = usePendingTransactions()
   const pendingOrders = usePendingOrders()
+  const { bridgeSwaps } = usePendingBridgeActivities()
 
   const pendingOrdersWithoutLimits = pendingOrders.filter((order) => order.type !== SignatureType.SIGN_LIMIT)
 
-  const hasPendingActivity = pendingTransactions.length > 0 || pendingOrdersWithoutLimits.length > 0
-  const pendingActivityCount = pendingTransactions.length + pendingOrdersWithoutLimits.length
+  const hasPendingActivity =
+    pendingTransactions.length > 0 || pendingOrdersWithoutLimits.length > 0 || bridgeSwaps.length > 0
+  const pendingActivityCount = pendingTransactions.length + pendingOrdersWithoutLimits.length + bridgeSwaps.length
   const isOnlyUnichainPendingActivity =
     hasPendingActivity &&
     [...pendingTransactions, ...pendingOrdersWithoutLimits].every((tx) =>

@@ -49,7 +49,7 @@ const citreaTestnet = defineChain({
 export const BITCOIN_CHAIN_INFO = {
   ...citreaTestnet,
   id: UniverseChainId.Bitcoin,
-  platform: Platform.EVM,
+  platform: Platform.NonEvm,
   assetRepoNetworkName: undefined,
   backendChain: {
     chain: 'BITCOIN' as GqlChainId,

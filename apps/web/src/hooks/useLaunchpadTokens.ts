@@ -83,7 +83,7 @@ export function useLaunchpadTokens(
   filter: LaunchpadFilterType = 'all',
   page: number = 0,
   limit: number = 20,
-  sort: 'newest' | 'volume' | 'trades' = 'newest'
+  sort: 'newest' | 'volume' | 'trades' = 'newest',
 ) {
   return useQuery({
     queryKey: ['launchpad-tokens', filter, page, limit, sort],

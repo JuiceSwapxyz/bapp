@@ -123,7 +123,8 @@
     "wss://relay.walletconnect.com",
     "wss://relay.walletconnect.org",
     "wss://ws-us3.pusher.com/",
-    "wss://www.walletlink.org"
+    "wss://www.walletlink.org",
+    "https://blockstream.info/"
   ],
   "workerSrc": [
     "'self'",
