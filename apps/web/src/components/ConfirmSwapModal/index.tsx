@@ -12,7 +12,7 @@ import { useConfirmModalState } from 'hooks/useConfirmModalState'
 import { Allowance, AllowanceState } from 'hooks/usePermit2Allowance'
 import { SwapResult, useSwapTransactionStatus } from 'hooks/useSwapCallback'
 import styled from 'lib/styled-components'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSuppressPopups } from 'state/application/hooks'
 import { InterfaceTrade } from 'state/routing/types'
 import { isLimitTrade, isPreviewTrade, isUniswapXTradeType } from 'state/routing/utils'
@@ -21,7 +21,9 @@ import { ThemeProvider } from 'theme'
 import { FadePresence } from 'theme/components/FadePresence'
 import { UniswapXOrderStatus } from 'types/uniswapx'
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import { TradeFillType } from 'state/routing/types'
 import { ADAPTIVE_MODAL_ANIMATION_DURATION } from 'ui/src/components/modal/AdaptiveWebModal'
+import { LdsSwapStatus, SomeSwap, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
 import { SwapEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { SwapPriceUpdateUserResponse } from 'uniswap/src/features/telemetry/types'
@@ -169,6 +171,31 @@ export function ConfirmSwapModal({
       onCancel()
     }
   }, [onCancel, swapError, swapFailed])
+
+  const txHash = swapResult?.type === TradeFillType.Classic ? swapResult.response.hash : undefined
+  const hasClosedRef = useRef(false)
+
+  useEffect(() => {
+    if (!txHash || hasClosedRef.current || swapConfirmed) {
+      return
+    }
+
+    const ldsBridgeManager = getLdsBridgeManager()
+
+    const listener = (swaps: Record<string, SomeSwap>): void => {
+      const swap = Object.values(swaps).find((s) => s.lockupTx === txHash)
+      if (swap?.status === LdsSwapStatus.TransactionServerConfirmed && !hasClosedRef.current) {
+        hasClosedRef.current = true
+        onDismiss()
+        setTimeout(onCancel, ADAPTIVE_MODAL_ANIMATION_DURATION)
+      }
+    }
+
+    ldsBridgeManager.addSwapChangeListener(listener)
+    ldsBridgeManager.getSwaps().then(listener)
+
+    return () => ldsBridgeManager.removeSwapChangeListener(listener)
+  }, [txHash, swapConfirmed, onDismiss, onCancel])
 
   const { suppressPopups, unsuppressPopups } = useSuppressPopups([PopupType.Transaction, PopupType.Order])
 
