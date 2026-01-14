@@ -13,6 +13,7 @@ export enum PopupType {
   CampaignTaskCompleted = 'campaignTaskCompleted',
   LightningBridge = 'lightningBridge',
   BitcoinBridge = 'bitcoinBridge',
+  RefundableSwaps = 'refundableSwaps',
 }
 
 export enum SwitchNetworkAction {
@@ -88,4 +89,8 @@ export type PopupContent =
       id: string
       status: LdsBridgeStatus
       direction: BitcoinBridgeDirection
+    }
+  | {
+      type: PopupType.RefundableSwaps
+      count: number
     }

@@ -1,12 +1,15 @@
 import type { Currency } from '@juiceswapxyz/sdk-core'
 import { PrefetchBalancesWrapper } from 'appGraphql/data/apollo/AdaptiveTokenBalancesProvider'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { popupRegistry } from 'components/Popups/registry'
+import { PopupType } from 'components/Popups/types'
 import { SwapBottomCard } from 'components/SwapBottomCard'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { PageType, useIsPage } from 'hooks/useIsPage'
 import { useModalState } from 'hooks/useModalState'
+import { useRefundableSwaps } from 'hooks/useRefundableSwaps'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { useResetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap'
 import { useWebSwapSettings } from 'pages/Swap/settings/useWebSwapSettings'
@@ -64,12 +67,27 @@ export default function SwapPage() {
     triggerConnect,
   } = useInitialCurrencyState()
 
+  const { data: refundableSwaps = [] } = useRefundableSwaps()
+
   useEffect(() => {
     if (triggerConnect) {
       accountDrawer.open()
       navigate(location.pathname, { replace: true })
     }
   }, [accountDrawer, triggerConnect, navigate, location.pathname])
+
+  useEffect(() => {
+    if (refundableSwaps.length > 0) {
+      popupRegistry.addPopup(
+        {
+          type: PopupType.RefundableSwaps,
+          count: refundableSwaps.length,
+        },
+        'refundable-swaps',
+        Infinity,
+      )
+    }
+  }, [refundableSwaps.length])
 
   return (
     <Trace logImpression page={InterfacePageName.SwapPage}>
