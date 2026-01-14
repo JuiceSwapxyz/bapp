@@ -53,12 +53,13 @@ export async function fetchOnChainBalancesRest({
       }
 
       try {
-        const { balance: onchainBalance } = await getOnChainBalancesFetch({
-          currencyAddress,
-          chainId,
-          currencyIsNative: isNativeCurrencyAddress(chainId, currencyAddress),
-          accountAddress,
-        })
+        const { balance: onchainBalance } =
+          (await getOnChainBalancesFetch({
+            currencyAddress,
+            chainId,
+            currencyIsNative: isNativeCurrencyAddress(chainId, currencyAddress),
+            accountAddress,
+          })) || {}
 
         const cachedBalance = findCachedBalance({ cachedPortfolio, chainId, currencyAddress })
         const token = cachedBalance?.token

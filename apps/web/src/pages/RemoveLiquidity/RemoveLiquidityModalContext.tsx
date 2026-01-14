@@ -40,7 +40,7 @@ const RemoveLiquidityModalContext = createContext<RemoveLiquidityModalState>({
 
 export function RemoveLiquidityModalContextProvider({ children }: PropsWithChildren): JSX.Element {
   const [step, setStep] = useState(DecreaseLiquidityStep.Input)
-  const [unwrapNativeCurrency, setUnwrapNativeCurrency] = useState(true)
+  const [unwrapNativeCurrency, setUnwrapNativeCurrency] = useState(false)
   const [percent, setPercent] = useState<string>('')
   const [currentTransactionStep, setCurrentTransactionStep] = useState<
     { step: TransactionStep; accepted: boolean } | undefined

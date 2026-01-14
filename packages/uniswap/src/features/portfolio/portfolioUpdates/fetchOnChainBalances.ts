@@ -58,12 +58,13 @@ export async function fetchOnChainBalances({
         return
       }
 
-      const { balance: onchainBalance } = await getOnChainBalancesFetch({
-        currencyAddress,
-        chainId,
-        currencyIsNative: isNativeCurrencyAddress(chainId, currencyAddress),
-        accountAddress,
-      })
+      const { balance: onchainBalance } =
+        (await getOnChainBalancesFetch({
+          currencyAddress,
+          chainId,
+          currencyIsNative: isNativeCurrencyAddress(chainId, currencyAddress),
+          accountAddress,
+        })) || {}
 
       const token = apolloCache.readQuery<TokenQuery>({
         query: TokenDocument,
