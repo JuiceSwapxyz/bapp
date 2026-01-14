@@ -5,6 +5,8 @@ import {
   FailedNetworkSwitchPopup,
   LightningBridgePopupContent,
   RefundableSwapsPopupContent,
+  RefundsCompletedPopupContent,
+  RefundsInProgressPopupContent,
   TransactionPopupContent,
   UniswapXOrderPopupContent,
 } from 'components/Popups/PopupContent'
@@ -85,6 +87,12 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
     }
     case PopupType.RefundableSwaps: {
       return <RefundableSwapsPopupContent count={content.count} onClose={onClose} />
+    }
+    case PopupType.RefundsInProgress: {
+      return <RefundsInProgressPopupContent count={content.count} onClose={onClose} />
+    }
+    case PopupType.RefundsCompleted: {
+      return <RefundsCompletedPopupContent count={content.count} onClose={onClose} />
     }
     default:
       return null

@@ -24,6 +24,7 @@ import { EllipsisTamaguiStyle } from 'theme/components/styles'
 import { Flex, Text, TouchableArea, useShadowPropsMedium, useSporeColors } from 'ui/src'
 import { Arrow } from 'ui/src/components/arrow/Arrow'
 import { AlertTriangleFilled as AlertTriangleFilledUI } from 'ui/src/components/icons/AlertTriangleFilled'
+import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { X } from 'ui/src/components/icons/X'
 import { iconSizes } from 'ui/src/theme'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
@@ -497,6 +498,110 @@ export function RefundableSwapsPopupContent({ count, onClose }: { count: number;
             </Text>
             <Text variant="body3" color="$neutral2">
               These swaps have timed out and can be refunded to recover your funds.
+            </Text>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+    </Flex>
+  )
+}
+
+export function RefundsInProgressPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
+  const navigate = useNavigate()
+  const colors = useSporeColors()
+  const shadowProps = useShadowPropsMedium()
+
+  const handleClick = (): void => {
+    navigate('/bridge-swaps')
+    onClose()
+  }
+
+  return (
+    <Flex
+      row
+      alignItems="center"
+      animation="300ms"
+      backgroundColor="$surface1"
+      borderColor="$surface3"
+      borderRadius="$rounded16"
+      borderWidth="$spacing1"
+      justifyContent="space-between"
+      left={0}
+      mx="auto"
+      {...shadowProps}
+      p="$spacing16"
+      position="relative"
+      width={POPUP_MAX_WIDTH}
+      opacity={1}
+      $sm={{
+        maxWidth: '100%',
+        mx: 'auto',
+      }}
+    >
+      <TouchableArea onPress={handleClick} flex={1}>
+        <Flex row alignItems="center" gap="$gap12" flex={1}>
+          <Flex position="relative">
+            <AlertTriangleFilledUI color="$DEP_accentWarning" size="$icon.28" />
+            <Flex position="absolute" top={-4} right={-4}>
+              <LoaderV3 color={colors.accent1.variable} size="16px" />
+            </Flex>
+          </Flex>
+          <Flex gap="$gap4" flex={1}>
+            <Text variant="body2" color="$neutral1">
+              Refunds In Progress ({count})
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              Your refunds are being processed. Click to view details.
+            </Text>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+    </Flex>
+  )
+}
+
+export function RefundsCompletedPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
+  const navigate = useNavigate()
+  const shadowProps = useShadowPropsMedium()
+
+  const handleClick = (): void => {
+    navigate('/bridge-swaps')
+    onClose()
+  }
+
+  return (
+    <Flex
+      row
+      alignItems="center"
+      animation="300ms"
+      backgroundColor="$surface1"
+      borderColor="$surface3"
+      borderRadius="$rounded16"
+      borderWidth="$spacing1"
+      justifyContent="space-between"
+      left={0}
+      mx="auto"
+      {...shadowProps}
+      p="$spacing16"
+      position="relative"
+      width={POPUP_MAX_WIDTH}
+      opacity={1}
+      $sm={{
+        maxWidth: '100%',
+        mx: 'auto',
+      }}
+    >
+      <TouchableArea onPress={handleClick} flex={1}>
+        <Flex row alignItems="center" gap="$gap12" flex={1}>
+          <Flex>
+            <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
+          </Flex>
+          <Flex gap="$gap4" flex={1}>
+            <Text variant="body2" color="$neutral1">
+              Refunds Completed ({count})
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              Your refunds have been successfully processed. Click to view details.
             </Text>
           </Flex>
         </Flex>
