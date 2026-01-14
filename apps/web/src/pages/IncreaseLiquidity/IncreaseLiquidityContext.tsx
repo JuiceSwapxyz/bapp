@@ -60,7 +60,7 @@ export function IncreaseLiquidityContextProvider({ children }: PropsWithChildren
   const positionInfo = useAppSelector((state) => state.application.openModal)?.initialState
 
   const [step, setStep] = useState(IncreaseLiquidityStep.Input)
-  const [unwrapNativeCurrency, setUnwrapNativeCurrency] = useState(true)
+  const [unwrapNativeCurrency, setUnwrapNativeCurrency] = useState(false)
   const [increaseLiquidityState, setIncreaseLiquidityState] = useState<IncreaseLiquidityState>({
     ...DEFAULT_INCREASE_LIQUIDITY_STATE,
     position: positionInfo,

@@ -38,7 +38,7 @@ export function RemoveLiquidityForm() {
   const canUnwrap1 = canUnwrapCurrency(currency1Amount.currency, positionInfo.version)
   const nativeCurrency = nativeOnChain(positionInfo.chainId)
 
-  const canUnwrap = canUnwrap0 || canUnwrap1
+  const canUnwrap = unwrapNativeCurrency && (canUnwrap0 || canUnwrap1)
 
   const unwrapUnderCard = useMemo(() => {
     if (!canUnwrap) {
