@@ -29,6 +29,7 @@ import {
 } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { useAppFiatCurrency } from 'uniswap/src/features/fiatCurrency/hooks'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
@@ -41,6 +42,10 @@ const TableRow = styled(Flex, {
   gap: '$gap4',
   alignItems: 'center',
 })
+
+function getTransactionChainId(transaction: PoolTransaction, fallbackChainId: UniverseChainId): UniverseChainId {
+  return fromGraphQLChain(transaction.chain) ?? fallbackChainId
+}
 
 const RecentTransactions = memo(function RecentTransactions() {
   const activeLocalCurrency = useAppFiatCurrency()
@@ -84,18 +89,22 @@ const RecentTransactions = memo(function RecentTransactions() {
                 </TableRow>
               </HeaderCell>
             ),
-            cell: (transaction) => (
-              <Cell loading={showLoadingSkeleton} justifyContent="flex-start">
-                <TimestampCell
-                  timestamp={Number(transaction.getValue?.().timestamp)}
-                  link={getExplorerLink({
-                    chainId: chainInfo.id,
-                    data: transaction.getValue?.().hash,
-                    type: ExplorerDataType.TRANSACTION,
-                  })}
-                />
-              </Cell>
-            ),
+            cell: (transaction) => {
+              const tx = transaction.getValue?.()
+              if (!tx) return null
+              return (
+                <Cell loading={showLoadingSkeleton} justifyContent="flex-start">
+                  <TimestampCell
+                    timestamp={Number(tx.timestamp)}
+                    link={getExplorerLink({
+                      chainId: getTransactionChainId(tx, chainInfo.id),
+                      data: tx.hash,
+                      type: ExplorerDataType.TRANSACTION,
+                    })}
+                  />
+                </Cell>
+              )
+            },
           })
         : null,
       columnHelper.accessor((transaction) => transaction, {
@@ -212,7 +221,7 @@ const RecentTransactions = memo(function RecentTransactions() {
           </Cell>
         ),
       }),
-      columnHelper.accessor((transaction) => transaction.account, {
+      columnHelper.accessor((transaction) => transaction, {
         id: 'maker-address',
         maxSize: 150,
         header: () => (
@@ -222,19 +231,23 @@ const RecentTransactions = memo(function RecentTransactions() {
             </Text>
           </HeaderCell>
         ),
-        cell: (makerAddress) => (
-          <Cell loading={showLoadingSkeleton}>
-            <StyledExternalLink
-              href={getExplorerLink({
-                chainId: chainInfo.id,
-                data: makerAddress.getValue?.(),
-                type: ExplorerDataType.ADDRESS,
-              })}
-            >
-              <TableText>{shortenAddress(makerAddress.getValue?.())}</TableText>
-            </StyledExternalLink>
-          </Cell>
-        ),
+        cell: (transaction) => {
+          const tx = transaction.getValue?.()
+          if (!tx) return null
+          return (
+            <Cell loading={showLoadingSkeleton}>
+              <StyledExternalLink
+                href={getExplorerLink({
+                  chainId: getTransactionChainId(tx, chainInfo.id),
+                  data: tx.account,
+                  type: ExplorerDataType.ADDRESS,
+                })}
+              >
+                <TableText>{shortenAddress(tx.account)}</TableText>
+              </StyledExternalLink>
+            </Cell>
+          )
+        },
       }),
     ]
     return filteredColumns.filter((column): column is NonNullable<(typeof filteredColumns)[number]> => Boolean(column))
