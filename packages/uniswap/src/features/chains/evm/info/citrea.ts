@@ -12,13 +12,14 @@ import {
 } from 'uniswap/src/features/chains/types'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
-import { buildCUSD, buildUSDC } from 'uniswap/src/features/tokens/stablecoin'
+import { buildCUSD, buildJUSD, buildUSDC } from 'uniswap/src/features/tokens/stablecoin'
 import { defineChain } from 'viem'
 
 const testnetTokens = buildChainTokens({
   stables: {
     USDC: buildUSDC('0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F', UniverseChainId.CitreaTestnet),
     CUSD: buildCUSD('0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0', UniverseChainId.CitreaTestnet),
+    JUSD: buildJUSD('0xFdB0a83d94CD65151148a131167Eb499Cb85d015', UniverseChainId.CitreaTestnet),
   },
 })
 

@@ -21,6 +21,7 @@ import { Route as V3Route } from '@juiceswapxyz/v3-sdk'
 import { PermitTransferFromData } from '@uniswap/permit2-sdk'
 import { ZERO_PERCENT } from 'constants/misc'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { BridgeTrade } from 'uniswap/src/features/transactions/swap/types/trade'
 
 export enum TradeState {
   LOADING = 'loading',
@@ -933,6 +934,7 @@ export type SubmittableTrade =
   | V3DutchOrderTrade
   | LimitOrderTrade
   | PriorityOrderTrade
+  | BridgeTrade
 export type InterfaceTrade = SubmittableTrade | PreviewTrade
 
 export enum QuoteState {

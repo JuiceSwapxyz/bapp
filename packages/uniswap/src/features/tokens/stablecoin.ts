@@ -33,3 +33,10 @@ export const buildCUSD = createTokenFactory({
   name: 'Citrus Dollar',
   symbol: 'cUSD',
 })
+
+/** Builds a metadata object representing JUSD with default values. */
+export const buildJUSD = createTokenFactory({
+  decimals: 6,
+  name: 'JuiceSwap USD',
+  symbol: 'JUSD',
+})

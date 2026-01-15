@@ -5,6 +5,11 @@ import { COIN_SWAP_ABI } from 'uniswap/src/abis/coin_swap'
 import { satoshiToWei } from 'uniswap/src/features/lds-bridge/utils/conversion'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 
+const ERC20_SWAP_ABI = [
+  'function lock(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
+  'function claim(bytes32 preimage, uint256 amount, address tokenAddress, address refundAddress, uint256 timelock)',
+]
+
 export type BuildEvmClaimTxParams = {
   signer: Signer
   contractAddress: string
@@ -40,4 +45,59 @@ export async function buildEvmLockupTx(params: BuildEvmClaimTxParams): Promise<E
     tx,
     hash: tx.hash,
   }
+}
+
+export async function buildErc20LockupTx(params: {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  preimageHash: string
+  amount: bigint
+  claimAddress: string
+  timelock: number
+}): Promise<{ hash: string }> {
+  const { signer, contractAddress, tokenAddress, preimageHash, amount, claimAddress, timelock } = params
+
+  const tokenContract = new EthersContract(tokenAddress, ['function approve(address,uint256)'], signer)
+  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
+
+  // Approve
+  const approveTx = await tokenContract.approve(contractAddress, amount)
+  await approveTx.wait()
+
+  // Lock
+  const lockTx = await swapContract.lock(
+    prefix0x(preimageHash),
+    amount,
+    tokenAddress,
+    claimAddress,
+    timelock
+  )
+
+  return { hash: lockTx.hash }
+}
+
+export async function claimErc20Swap(params: {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  preimage: string
+  amount: bigint
+  refundAddress: string
+  timelock: number
+}): Promise<string> {
+  const { signer, contractAddress, tokenAddress, preimage, amount, refundAddress, timelock } = params
+
+  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
+
+  const tx = await swapContract.claim(
+    prefix0x(preimage),
+    amount,
+    tokenAddress,
+    refundAddress,
+    timelock
+  )
+
+  const receipt = await tx.wait()
+  return receipt.hash
 }

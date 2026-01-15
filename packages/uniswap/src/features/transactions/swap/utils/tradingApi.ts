@@ -129,6 +129,21 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
     case Routing.LN_BRIDGE: {
       return new LightningBridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
     }
+    case Routing.ERC20_CHAIN_SWAP: {
+      const fixedCurrencyIn =
+        currencyIn.symbol === 'USDT' && currencyIn.decimals !== 6 && !currencyIn.isNative
+          ? new Token(currencyIn.chainId, currencyIn.address, 6, currencyIn.symbol, currencyIn.name)
+          : currencyIn
+
+      const fixedCurrencyOut =
+        currencyOut.symbol === 'JUSD' && currencyOut.decimals !== 6 && !currencyOut.isNative
+          ? new Token(currencyOut.chainId, currencyOut.address, 6, currencyOut.symbol, currencyOut.name)
+          : currencyOut.symbol === 'USDT' && currencyOut.decimals !== 6 && !currencyOut.isNative
+            ? new Token(currencyOut.chainId, currencyOut.address, 6, currencyOut.symbol, currencyOut.name)
+            : currencyOut
+
+      return new BridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn: fixedCurrencyIn, currencyOut: fixedCurrencyOut, tradeType })
+    }
     case Routing.WRAP: {
       return new WrapTrade({ quote: data, currencyIn, currencyOut, tradeType })
     }

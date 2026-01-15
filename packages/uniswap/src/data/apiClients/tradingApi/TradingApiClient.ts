@@ -8,7 +8,9 @@ import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
+  Erc20ChainSwapDirection,
   isBitcoinBridgeQuote,
+  isErc20ChainSwapQuote,
   isLnBitcoinBridgeQuote,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
@@ -107,7 +109,7 @@ export type ClassicQuoteResponse = QuoteResponse & {
 
 export type BridgeQuoteResponse = QuoteResponse & {
   quote: BridgeQuote
-  routing: Routing.BRIDGE | Routing.BITCOIN_BRIDGE | Routing.LN_BRIDGE
+  routing: Routing.BRIDGE | Routing.BITCOIN_BRIDGE | Routing.LN_BRIDGE | Routing.ERC20_CHAIN_SWAP
 }
 
 export type WrapQuoteResponse<T extends Routing.WRAP | Routing.UNWRAP> = QuoteResponse & {
@@ -421,6 +423,63 @@ const getLightningBridgeQuote = async (params: QuoteRequest): Promise<Discrimina
   return response
 }
 
+const getErc20ChainSwapQuote = async (params: QuoteRequest): Promise<BridgeQuoteResponse> => {
+  const ldsBridge = getLdsBridgeManager()
+  const direction =
+    params.tokenInChainId === ChainId._137
+      ? Erc20ChainSwapDirection.PolygonToCitrea
+      : Erc20ChainSwapDirection.CitreaToPolygon
+
+  const from = direction === Erc20ChainSwapDirection.PolygonToCitrea ? 'USDT_POLYGON' : 'JUSD_CITREA'
+  const to = direction === Erc20ChainSwapDirection.PolygonToCitrea ? 'JUSD_CITREA' : 'USDT_POLYGON'
+
+  const chainPairs = await ldsBridge.getChainPairs()
+  const pairInfo = chainPairs[from]?.[to]
+
+  if (!pairInfo) {
+    throw new Error(`Pair not found: ${from} -> ${to}`)
+  }
+
+  // Both USDT (Polygon) and JUSD (Citrea) use 6 decimals
+  const inputDecimals = 6
+  const outputDecimals = 6
+
+  // Use the same calculation as Bitcoin bridge
+  const outputAmount = calculateOutputAmountAfterFees({
+    inputAmount: params.amount,
+    inputDecimals,
+    outputDecimals,
+    percentage: pairInfo.fees.percentage,
+    minerFees: pairInfo.fees.minerFees.server + pairInfo.fees.minerFees.user.claim,
+  })
+
+  const bridgeQuote: BridgeQuote = {
+    quoteId: `erc20-chain-swap-${Date.now()}`,
+    chainId: params.tokenInChainId,
+    destinationChainId: params.tokenOutChainId,
+    swapper: params.swapper,
+    direction,
+    input: {
+      amount: params.amount,
+      token: params.tokenIn,
+    },
+    output: {
+      amount: outputAmount,
+      token: params.tokenOut,
+    },
+    tradeType: params.type,
+    gasUseEstimate: '100000',
+    estimatedFillTimeMs: 300000,
+  }
+
+  return {
+    requestId: `erc20-chain-swap-${Date.now()}`,
+    quote: bridgeQuote,
+    routing: Routing.ERC20_CHAIN_SWAP,
+    permitData: null,
+  }
+}
+
 export const swapQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
   return CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
     body: JSON.stringify({
@@ -447,6 +506,10 @@ export async function fetchQuote({
 
   if (isLnBitcoinBridgeQuote(params)) {
     return await getLightningBridgeQuote(params)
+  }
+
+  if (isErc20ChainSwapQuote(params)) {
+    return await getErc20ChainSwapQuote(params)
   }
 
   return await swapQuote(params)

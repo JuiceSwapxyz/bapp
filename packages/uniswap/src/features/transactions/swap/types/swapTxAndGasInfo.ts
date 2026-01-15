@@ -2,14 +2,14 @@ import { Routing, CreateSwapRequest } from "uniswap/src/data/tradingApi/__genera
 import { GasEstimate } from "uniswap/src/data/tradingApi/types"
 import { GasFeeResult, ValidatedGasFeeResult, validateGasFeeResult } from "uniswap/src/features/gas/types"
 import { BridgeTrade, BitcoinBridgeTrade, LightningBridgeTrade, ClassicTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
-import { isBridge, isBitcoinBridge, isLightningBridge, isClassic, isUniswapX, isWrap } from "uniswap/src/features/transactions/swap/utils/routing"
+import { isBridge, isBitcoinBridge, isErc20ChainSwap, isLightningBridge, isClassic, isUniswapX, isWrap } from "uniswap/src/features/transactions/swap/utils/routing"
 import { isInterface } from "utilities/src/platform"
 import { Prettify } from "viem"
 import { ValidatedPermit } from "uniswap/src/features/transactions/swap/utils/trade"
 import { PopulatedTransactionRequestArray, ValidatedTransactionRequest } from "uniswap/src/features/transactions/types/transactionRequests"
 
-export type SwapTxAndGasInfo = ClassicSwapTxAndGasInfo | UniswapXSwapTxAndGasInfo | BridgeSwapTxAndGasInfo | BitcoinBridgeSwapTxAndGasInfo | LightningBridgeSwapTxAndGasInfo | WrapSwapTxAndGasInfo
-export type ValidatedSwapTxContext = ValidatedClassicSwapTxAndGasInfo | ValidatedUniswapXSwapTxAndGasInfo | ValidatedBridgeSwapTxAndGasInfo | ValidatedBitcoinBridgeSwapTxAndGasInfo | ValidatedLightningBridgeSwapTxAndGasInfo | ValidatedWrapSwapTxAndGasInfo
+export type SwapTxAndGasInfo = ClassicSwapTxAndGasInfo | UniswapXSwapTxAndGasInfo | BridgeSwapTxAndGasInfo | BitcoinBridgeSwapTxAndGasInfo | LightningBridgeSwapTxAndGasInfo | Erc20ChainSwapTxAndGasInfo | WrapSwapTxAndGasInfo
+export type ValidatedSwapTxContext = ValidatedClassicSwapTxAndGasInfo | ValidatedUniswapXSwapTxAndGasInfo | ValidatedBridgeSwapTxAndGasInfo | ValidatedBitcoinBridgeSwapTxAndGasInfo | ValidatedLightningBridgeSwapTxAndGasInfo | ValidatedErc20ChainSwapTxAndGasInfo | ValidatedWrapSwapTxAndGasInfo
 
 export function isValidSwapTxContext(swapTxContext: SwapTxAndGasInfo): swapTxContext is ValidatedSwapTxContext {
   // Validation fn prevents/future-proofs typeguard against illicit casts
@@ -99,6 +99,12 @@ export interface LightningBridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
   destinationAddress?: string
 }
 
+export interface Erc20ChainSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
+  routing: Routing.ERC20_CHAIN_SWAP
+  trade: BridgeTrade
+  txRequests: PopulatedTransactionRequestArray | undefined
+}
+
 interface BaseRequiredSwapTxContextFields {
   gasFee: ValidatedGasFeeResult
 }
@@ -130,6 +136,10 @@ export type ValidatedLightningBridgeSwapTxAndGasInfo = Prettify<Required<Omit<Li
   txRequests: PopulatedTransactionRequestArray | undefined
   destinationAddress: string | undefined
 }) & Pick<LightningBridgeSwapTxAndGasInfo, 'includesDelegation'>>
+
+export type ValidatedErc20ChainSwapTxAndGasInfo = Prettify<Required<Omit<Erc20ChainSwapTxAndGasInfo, 'includesDelegation' | 'txRequests'>> & BaseRequiredSwapTxContextFields & ({
+  txRequests: PopulatedTransactionRequestArray | undefined
+}) & Pick<Erc20ChainSwapTxAndGasInfo, 'includesDelegation'>>
 
 export type ValidatedUniswapXSwapTxAndGasInfo =  Prettify<Required<Omit<UniswapXSwapTxAndGasInfo, 'includesDelegation'>> & BaseRequiredSwapTxContextFields & {
   // Permit should always be defined for UniswapX orders
@@ -169,6 +179,9 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
     } else if (isLightningBridge(swapTxContext)) {
       const { trade, txRequests, includesDelegation, destinationAddress } = swapTxContext
       return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }
+    } else if (isErc20ChainSwap(swapTxContext)) {
+      const { trade, txRequests, includesDelegation } = swapTxContext
+      return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation }
     } else if (isBridge(swapTxContext)) {
       const { trade, txRequests, includesDelegation } = swapTxContext
       if (txRequests) {

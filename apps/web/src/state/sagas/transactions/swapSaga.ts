@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
 import { handleBitcoinBridgeBitcoinToCitrea } from 'state/sagas/transactions/bitcoinBridgeBitcoinToCitrea'
 import { handleBitcoinBridgeCitreaToBitcoin } from 'state/sagas/transactions/bitcoinBridgeCitreaToBitcoin'
+import { handleErc20ChainSwap } from 'state/sagas/transactions/erc20ChainSwap'
 import { handleLightningBridgeReverse } from 'state/sagas/transactions/lightningBridgeReverse'
 import { handleLightningBridgeSubmarine } from 'state/sagas/transactions/lightningBridgeSubmarine'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
@@ -60,6 +61,7 @@ import {
   UNISWAPX_ROUTING_VARIANTS,
   isBitcoinBridge,
   isClassic,
+  isErc20ChainSwap,
   isLightningBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
@@ -250,7 +252,8 @@ function* swap(params: SwapParams) {
 
   const isLightningBridgeSwap = isLightningBridge(swapTxContext)
   const isBitcoinBridgeSwap = isBitcoinBridge(swapTxContext)
-  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap
+  const isErc20ChainSwapSwap = isErc20ChainSwap(swapTxContext)
+  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap
   if (changeChain) {
     const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
     if (chainSwitchFailed) {
@@ -364,6 +367,18 @@ function* swap(params: SwapParams) {
           })
           break
         }
+        case TransactionStepType.Erc20ChainSwapStep: {
+          requireRouting(swapTxContext, [Routing.ERC20_CHAIN_SWAP])
+          yield* call(handleErc20ChainSwap, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
         default: {
           throw new UnexpectedTransactionStateError(`Unexpected step type: ${step.type}`)
         }
@@ -379,8 +394,8 @@ function* swap(params: SwapParams) {
     return
   }
 
-  // For lightning bridge and bitcoin bridge, onSuccess is called earlier in the flow
-  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap) {
+  // For lightning bridge, bitcoin bridge, and ERC20 chain swap, onSuccess is called earlier in the flow
+  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap) {
     yield* call(onSuccess)
   }
 }

@@ -45,6 +45,7 @@ export const TokenLogo = memo(function _TokenLogo({
       cBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
       cUSD: 'https://docs.juiceswap.com/media/icons/cusd.png',
       NUSD: 'https://docs.juiceswap.com/media/icons/nusd.png',
+      JUSD: 'https://docs.juiceswap.com/media/icons/jusd.png',
       TFC: 'https://docs.juiceswap.com/media/icons/tfc.png',
       USDC: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
     }
