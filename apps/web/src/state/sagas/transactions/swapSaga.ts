@@ -27,8 +27,10 @@ import {
 } from 'state/sagas/transactions/utils'
 import { VitalTxFields } from 'state/transactions/types'
 import invariant from 'tiny-invariant'
-import { call } from 'typed-redux-saga'
+import { call, put, spawn, delay } from 'typed-redux-saga'
 import { Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
+import { LdsSwapStatus, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import { closeSwapModal } from 'state/application/reducer'
 import { isL2ChainId } from 'uniswap/src/features/chains/utils'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { SwapEventName } from 'uniswap/src/features/telemetry/constants'
@@ -78,7 +80,27 @@ interface HandleSwapStepParams extends Omit<HandleOnChainStepParams, 'step' | 'i
   trade: ClassicTrade | BridgeTrade
   analytics: SwapTradeBaseProperties
   onTransactionHash?: (hash: string) => void
+  swapTxContext?: ValidatedSwapTxContext
 }
+
+function* watchLdsBridgeSwapStatusForModalClose(txHash: string) {
+  const ldsBridgeManager = getLdsBridgeManager()
+
+  let swapId: string | undefined
+  while (!swapId) {
+    const swaps = yield* call([ldsBridgeManager, ldsBridgeManager.getSwaps])
+    const swap = Object.values(swaps).find((s) => s.lockupTx === txHash)
+    if (swap) {
+      swapId = swap.id
+      break
+    }
+    yield* delay(1000)
+  }
+
+  yield* call([ldsBridgeManager, ldsBridgeManager.waitForSwapUntilState], swapId, LdsSwapStatus.TransactionConfirmed)
+  yield* put(closeSwapModal())
+}
+
 function* handleSwapTransactionStep(params: HandleSwapStepParams) {
   const { trade, step, signature, analytics, onTransactionHash } = params
 
@@ -115,9 +137,12 @@ function* handleSwapTransactionStep(params: HandleSwapStepParams) {
     )
   }
 
-  // Update swap form store with actual transaction hash
   if (onTransactionHash) {
     onTransactionHash(hash)
+  }
+
+  if (params.swapTxContext && (isLightningBridge(params.swapTxContext) || isBitcoinBridge(params.swapTxContext))) {
+    yield* spawn(watchLdsBridgeSwapStatusForModalClose, hash)
   }
 
   return
@@ -292,6 +317,7 @@ function* swap(params: SwapParams) {
             trade,
             analytics,
             onTransactionHash: params.onTransactionHash,
+            swapTxContext,
           })
           break
         }
