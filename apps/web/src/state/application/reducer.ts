@@ -34,7 +34,6 @@ export interface ApplicationState {
   readonly suppressedPopups: PopupType[]
   /** List of addresses where the graduated wallet card has been dismissed for this session. The same property in the user reducer is if the card has been dismissed for 30 days. */
   readonly downloadGraduatedWalletCardsDismissed: string[]
-  readonly closeSwapModalTrigger: number
 }
 
 const initialState: ApplicationState = {
@@ -42,7 +41,6 @@ const initialState: ApplicationState = {
   openModal: null,
   suppressedPopups: [],
   downloadGraduatedWalletCardsDismissed: [],
-  closeSwapModalTrigger: 0,
 }
 
 const applicationSlice = createSlice({
@@ -76,9 +74,6 @@ const applicationSlice = createSlice({
     removeSuppressedPopups(state, { payload: { popupTypes } }) {
       state.suppressedPopups = state.suppressedPopups.filter((type) => !popupTypes.includes(type))
     },
-    closeSwapModal(state) {
-      state.closeSwapModalTrigger = Date.now()
-    },
   },
 })
 
@@ -89,6 +84,5 @@ export const {
   addSuppressedPopups,
   removeSuppressedPopups,
   updateDownloadGraduatedWalletCardsDismissed,
-  closeSwapModal,
 } = applicationSlice.actions
 export default applicationSlice.reducer

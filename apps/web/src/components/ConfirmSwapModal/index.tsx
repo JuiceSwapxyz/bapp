@@ -13,7 +13,6 @@ import { Allowance, AllowanceState } from 'hooks/usePermit2Allowance'
 import { SwapResult, useSwapTransactionStatus } from 'hooks/useSwapCallback'
 import styled from 'lib/styled-components'
 import { useCallback, useEffect, useMemo } from 'react'
-import { useAppSelector } from 'state/hooks'
 import { useSuppressPopups } from 'state/application/hooks'
 import { InterfaceTrade } from 'state/routing/types'
 import { isLimitTrade, isPreviewTrade, isUniswapXTradeType } from 'state/routing/utils'
@@ -171,15 +170,6 @@ export function ConfirmSwapModal({
       onCancel()
     }
   }, [onCancel, swapError, swapFailed])
-
-  const closeSwapModalTrigger = useAppSelector((state) => state.application.closeSwapModalTrigger)
-
-  useEffect(() => {
-    if (closeSwapModalTrigger > 0 && !swapConfirmed) {
-      onDismiss()
-      setTimeout(onCancel, ADAPTIVE_MODAL_ANIMATION_DURATION)
-    }
-  }, [closeSwapModalTrigger, swapConfirmed, onDismiss, onCancel])
 
   const { suppressPopups, unsuppressPopups } = useSuppressPopups([PopupType.Transaction, PopupType.Order])
 
