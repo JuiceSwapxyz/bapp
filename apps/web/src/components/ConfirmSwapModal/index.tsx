@@ -12,7 +12,7 @@ import { useConfirmModalState } from 'hooks/useConfirmModalState'
 import { Allowance, AllowanceState } from 'hooks/usePermit2Allowance'
 import { SwapResult, useSwapTransactionStatus } from 'hooks/useSwapCallback'
 import styled from 'lib/styled-components'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useAppSelector } from 'state/hooks'
 import { useSuppressPopups } from 'state/application/hooks'
 import { InterfaceTrade } from 'state/routing/types'
@@ -173,11 +173,9 @@ export function ConfirmSwapModal({
   }, [onCancel, swapError, swapFailed])
 
   const closeSwapModalTrigger = useAppSelector((state) => state.application.closeSwapModalTrigger)
-  const hasClosedRef = useRef(0)
 
   useEffect(() => {
-    if (closeSwapModalTrigger > 0 && closeSwapModalTrigger !== hasClosedRef.current && !swapConfirmed) {
-      hasClosedRef.current = closeSwapModalTrigger
+    if (closeSwapModalTrigger > 0 && !swapConfirmed) {
       onDismiss()
       setTimeout(onCancel, ADAPTIVE_MODAL_ANIMATION_DURATION)
     }
