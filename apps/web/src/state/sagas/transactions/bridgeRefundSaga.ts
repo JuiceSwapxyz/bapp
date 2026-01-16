@@ -1,5 +1,6 @@
 import { address, networks, Transaction } from 'bitcoinjs-lib'
 import { constructRefundTransaction, targetFee } from 'boltz-core'
+import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { call, takeEvery } from 'typed-redux-saga'
@@ -31,6 +32,16 @@ function* refundSwapSaga(action: RefundSwapAction) {
   const { swapId, refundAddress } = action.payload
   const ldsBridgeManager = getLdsBridgeManager()
 
+  popupRegistry.addPopup(
+    {
+      type: PopupType.RefundsInProgress,
+      count: 1,
+    },
+    `refund-in-progress-${swapId}`,
+    DEFAULT_TXN_DISMISS_MS,
+  )
+
+  try {
   const { hex, timeoutBlockHeight } = yield* call([ldsBridgeManager, ldsBridgeManager.getLockupTransactions], swapId)
 
   const swap = yield* call([ldsBridgeManager, ldsBridgeManager.getSwap], swapId)
@@ -65,6 +76,17 @@ function* refundSwapSaga(action: RefundSwapAction) {
 
   yield* call([ldsBridgeManager, ldsBridgeManager.updateSwapRefundTx], swapId, txId)
 
+    popupRegistry.removePopup(`refund-in-progress-${swapId}`)
+
+    popupRegistry.addPopup(
+      {
+        type: PopupType.RefundsCompleted,
+        count: 1,
+      },
+      `refund-completed-${swapId}`,
+      DEFAULT_TXN_DISMISS_MS,
+    )
+
   popupRegistry.addPopup(
     {
       type: PopupType.BitcoinBridge,
@@ -74,6 +96,10 @@ function* refundSwapSaga(action: RefundSwapAction) {
     },
     txId,
   )
+  } catch (error) {
+    popupRegistry.removePopup(`refund-in-progress-${swapId}`)
+    throw error
+  }
 }
 
 export function* watchRefundSwap() {
