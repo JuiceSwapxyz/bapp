@@ -1,5 +1,6 @@
 import { address, networks, Transaction } from 'bitcoinjs-lib'
 import { constructRefundTransaction, targetFee } from 'boltz-core'
+import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { call, takeEvery } from 'typed-redux-saga'
@@ -37,7 +38,7 @@ function* refundSwapSaga(action: RefundSwapAction) {
       count: 1,
     },
     `refund-in-progress-${swapId}`,
-    Infinity,
+    DEFAULT_TXN_DISMISS_MS,
   )
 
   try {
@@ -83,7 +84,7 @@ function* refundSwapSaga(action: RefundSwapAction) {
         count: 1,
       },
       `refund-completed-${swapId}`,
-      10000,
+      DEFAULT_TXN_DISMISS_MS,
     )
 
   popupRegistry.addPopup(
