@@ -141,6 +141,13 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
         }
       }
     }
+    if (isBridge) {
+      return {
+        action: ApprovalAction.None,
+        txRequest: null,
+        cancelTxRequest: null,
+      }
+    }
 
     // No valid approval type found
     return {
@@ -148,7 +155,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
       txRequest: null,
       cancelTxRequest: null,
     }
-  }, [address, approvalRequestArgs, data, error, isWrap])
+  }, [address, approvalRequestArgs, data, error, isWrap, isBridge])
 
   const result = useMemo(() => {
     const gasEstimate = data?.gasEstimates?.[0]

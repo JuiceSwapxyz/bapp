@@ -83,24 +83,33 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo, _v4Ena
         ((txContext.trade.quote.quote as BridgeQuote).direction as LightningBridgeDirection | undefined) ??
         LightningBridgeDirection.Submarine
       return [createLightningBridgeTransactionStep(direction)]
-    } else if (isErc20ChainSwap(txContext)) {
-      const direction =
-        ((trade.quote.quote as BridgeQuote).direction as Erc20ChainSwapDirection | undefined) ??
-        Erc20ChainSwapDirection.PolygonToCitrea
-      return [createErc20ChainSwapStep(direction)]
     } else if (isBridge(txContext)) {
-      if (txContext.txRequests.length > 1) {
+      // Check if this is an ERC20 chain swap by looking at the quote direction
+      // ERC20 chain swaps have routing BRIDGE but have Erc20ChainSwapDirection
+      const quoteDirection = (trade.quote.quote as BridgeQuote).direction
+      const isErc20ChainSwapDirection = quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || 
+                                         quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon
+      
+      if (isErc20ChainSwapDirection) {
+        const direction = quoteDirection as Erc20ChainSwapDirection
+        return [createErc20ChainSwapStep(direction)]
+      }
+      
+      // Regular bridge swaps require txRequests
+      if (txContext.txRequests && txContext.txRequests.length > 1) {
         return orderClassicSwapSteps({
           permit: undefined,
           swap: createSwapTransactionStepBatched(txContext.txRequests),
         })
       }
-      return orderClassicSwapSteps({
-        revocation,
-        approval,
-        permit: undefined,
-        swap: createSwapTransactionStep(txContext.txRequests[0]),
-      })
+      if (txContext.txRequests && txContext.txRequests.length > 0) {
+        return orderClassicSwapSteps({
+          revocation,
+          approval,
+          permit: undefined,
+          swap: createSwapTransactionStep(txContext.txRequests[0]),
+        })
+      }
     }
   }
 
