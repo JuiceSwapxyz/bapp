@@ -50,6 +50,24 @@ import { isMobileWeb } from 'utilities/src/platform'
 import noop from 'utilities/src/react/noop'
 import { isIFramed } from 'utils/isIFramed'
 
+const SwapBackground = styled(Flex, {
+  name: 'SwapBackground',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  zIndex: 0,
+  pointerEvents: 'none',
+
+  '$platform-web': {
+    backgroundImage: `url(/images/landing_page/LandingHero-bg.svg)`,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center bottom',
+  },
+} as const)
+
 export default function SwapPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -91,7 +109,9 @@ export default function SwapPage() {
 
   return (
     <Trace logImpression page={InterfacePageName.SwapPage}>
-      <PageWrapper>
+      <Flex position="relative" width="100%" flex={1} alignItems="center">
+        <SwapBackground />
+        <PageWrapper>
         <Swap
           chainId={initialChainId}
           initialInputCurrency={initialInputCurrency}
@@ -102,6 +122,7 @@ export default function SwapPage() {
           usePersistedFilteredChainIds
         />
       </PageWrapper>
+      </Flex>
     </Trace>
   )
 }
