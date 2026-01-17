@@ -52,7 +52,12 @@ export function useSwapTxAndGasInfo({
   const permitTxInfo = usePermitTxInfo({ quote: trade?.quote })
 
   return useMemo(() => {
-    switch (trade?.routing) {
+    // Early return if trade is null/undefined to avoid accessing properties on null
+    if (!trade) {
+      return getFallbackSwapTxAndGasInfo({ swapTxInfo, approvalTxInfo })
+    }
+
+    switch (trade.routing) {
       case Routing.DUTCH_V2:
       case Routing.DUTCH_V3:
       case Routing.PRIORITY:

@@ -3,7 +3,7 @@ import { ChainId, GetSwappableTokensResponse, SafetyLevel } from 'uniswap/src/da
 // Temporal mapping of swappable tokens for bridges (Citrea, Bitcoin, Lightning Network)
 // TODO: remove this once the backend API is updated
 
-const USE_SWAPPABLE_TOKENS_MAPPING = process.env.USE_SWAPPABLE_TOKENS_MAPPING === 'true'
+const USE_SWAPPABLE_TOKENS_MAPPING = true
 
 const JUSD_CITREA = '0xFdB0a83d94CD65151148a131167Eb499Cb85d015'
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
