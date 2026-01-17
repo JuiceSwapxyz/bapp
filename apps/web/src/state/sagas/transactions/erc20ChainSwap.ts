@@ -115,7 +115,8 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
-  setCurrentStep({ step, accepted: true })
+  // Update step to show swap creation is complete, now waiting for lockup
+  setCurrentStep({ step, accepted: false })
 
   // 2. Lock on source chain - switch chain first, then get signer
   console.error('[ERC20 Chain Swap] Switching to source chain:', { sourceChainId })
@@ -194,24 +195,44 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     onTransactionHash(lockResult.hash)
   }
 
+  // Update step to show lockup transaction is submitted, waiting for confirmation
+  setCurrentStep({ step, accepted: false })
+
   // 3. Wait for Boltz to lock on target chain
   console.error('[ERC20 Chain Swap] Waiting for Boltz lock:', { swapId: chainSwap.id })
+  
   try {
-    yield* call(
-      [ldsBridge, ldsBridge.waitForSwapUntilState],
-      chainSwap.id,
-      LdsSwapStatus.TransactionServerMempool,
-    )
+    // Wait for user's lockup transaction to be confirmed on source chain
     yield* call(
       [ldsBridge, ldsBridge.waitForSwapUntilState],
       chainSwap.id,
       LdsSwapStatus.TransactionConfirmed,
     )
-    console.error('[ERC20 Chain Swap] Boltz lock confirmed')
+    console.error('[ERC20 Chain Swap] User lockup confirmed on source chain')
+    
+    // Update step to show we're waiting for Boltz
+    setCurrentStep({ step, accepted: false })
+    
+    // Wait for Boltz's lockup transaction to be in mempool on target chain
+    yield* call(
+      [ldsBridge, ldsBridge.waitForSwapUntilState],
+      chainSwap.id,
+      LdsSwapStatus.TransactionServerMempool,
+    )
+    console.error('[ERC20 Chain Swap] Boltz lockup in mempool on target chain')
+    
+    // Wait for Boltz's lockup transaction to be confirmed on target chain
+    // (matching test script behavior: wait for transaction.server.confirmed before claiming)
+    yield* call(
+      [ldsBridge, ldsBridge.waitForSwapUntilState],
+      chainSwap.id,
+      LdsSwapStatus.TransactionServerConfirmed,
+    )
+    console.error('[ERC20 Chain Swap] Boltz lockup confirmed on target chain')
   } catch (error) {
     console.error('[ERC20 Chain Swap] Failed waiting for Boltz lock:', error)
     throw new TransactionStepFailedError({
-      message: `Failed waiting for Boltz lock: ${error instanceof Error ? error.message : String(error)}`,
+      message: `Failed waiting for Boltz lock: ${error instanceof Error ? error.message : String(error)}. The swap may still be processing. Please check the swap status.`,
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })
@@ -269,6 +290,9 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     tokenAddress: CONTRACTS[targetChain].token,
     amount: claimAmount.toString(),
   })
+  // Update step to show we're claiming (user may need to approve in wallet)
+  setCurrentStep({ step, accepted: false })
+  
   try {
     yield* call(claimErc20Swap, {
       signer: targetSigner,
@@ -280,10 +304,13 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       timelock: chainSwap.claimDetails.timeoutBlockHeight,
     })
     console.error('[ERC20 Chain Swap] Claim transaction submitted')
+    
+    // Update step to show claim is complete
+    setCurrentStep({ step, accepted: true })
   } catch (error) {
     console.error('[ERC20 Chain Swap] Failed to claim tokens:', error)
     throw new TransactionStepFailedError({
-      message: `Failed to claim tokens: ${error instanceof Error ? error.message : String(error)}`,
+      message: `Failed to claim tokens: ${error instanceof Error ? error.message : String(error)}. Please ensure Boltz has locked tokens on ${targetChain} and try again.`,
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })
