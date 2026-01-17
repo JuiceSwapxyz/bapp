@@ -233,7 +233,7 @@ const InitialPriceInput = () => {
           </Flex>
           <Flex row $sm={{ row: false, alignItems: 'flex-start' }} alignItems="center" justifyContent="space-between">
             <Text variant="body2" color="$neutral2" $md={{ variant: 'body3' }} flexShrink={0}>
-              {quoteCurrency?.symbol} = 1 {baseCurrency?.symbol}
+              {quoteCurrency?.symbol} per {baseCurrency?.symbol}
             </Text>
             <AnimatePresence>
               {priceDifference?.warning && (
@@ -422,7 +422,7 @@ function RangeInput({
           testID={`${TestID.RangeInput}-${input}`}
         />
         <Text variant="body3" color="$neutral2">
-          {quoteCurrency?.symbol} = 1 {baseCurrency?.symbol}
+          {quoteCurrency?.symbol} per {baseCurrency?.symbol}
         </Text>
       </Flex>
       {showIncrementButtons && (

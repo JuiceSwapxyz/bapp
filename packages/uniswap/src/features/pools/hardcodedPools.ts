@@ -1,4 +1,4 @@
-import { Currency } from '@juiceswapxyz/sdk-core'
+import { Currency, WETH9 } from '@juiceswapxyz/sdk-core'
 import { PoolStats } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
 import { ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
 import { OnchainItemListOptionType, PoolOption } from 'uniswap/src/components/lists/items/types'
@@ -6,6 +6,9 @@ import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/t
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
+
+// WcBTC address from SDK WETH9 - single source of truth
+const WCBTC_ADDRESS = WETH9[UniverseChainId.CitreaTestnet]?.address ?? ''
 
 // Create hardcoded CurrencyInfo objects for Citrea tokens
 const createCitreaCurrencyInfo = (params: {
@@ -35,7 +38,7 @@ export function getHardcodedCitreaPoolsOptions(): PoolOption[] {
       protocolVersion: ProtocolVersion.V3,
       feeTier: 3000,
       token0CurrencyInfo: createCitreaCurrencyInfo({
-        address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+        address: WCBTC_ADDRESS,
         symbol: 'WcBTC',
         name: 'Wrapped Citrea BTC',
         decimals: 18,
@@ -54,7 +57,7 @@ export function getHardcodedCitreaPoolsOptions(): PoolOption[] {
       protocolVersion: ProtocolVersion.V3,
       feeTier: 3000,
       token0CurrencyInfo: createCitreaCurrencyInfo({
-        address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+        address: WCBTC_ADDRESS,
         symbol: 'WcBTC',
         name: 'Wrapped Citrea BTC',
         decimals: 18,
@@ -73,7 +76,7 @@ export function getHardcodedCitreaPoolsOptions(): PoolOption[] {
       protocolVersion: ProtocolVersion.V3,
       feeTier: 3000,
       token0CurrencyInfo: createCitreaCurrencyInfo({
-        address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+        address: WCBTC_ADDRESS,
         symbol: 'WcBTC',
         name: 'Wrapped Citrea BTC',
         decimals: 18,
@@ -92,7 +95,7 @@ export function getHardcodedCitreaPoolsOptions(): PoolOption[] {
       protocolVersion: ProtocolVersion.V3,
       feeTier: 3000,
       token0CurrencyInfo: createCitreaCurrencyInfo({
-        address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+        address: WCBTC_ADDRESS,
         symbol: 'WcBTC',
         name: 'Wrapped Citrea BTC',
         decimals: 18,
@@ -119,7 +122,7 @@ function createCitreaPoolStats(): PoolStats[] {
       feeTier: 3000,
       token0: {
         chain: Chain.Ethereum,
-        address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+        address: WCBTC_ADDRESS,
         symbol: 'WcBTC',
         name: 'Wrapped Citrea BTC',
         decimals: 18,
@@ -141,7 +144,7 @@ function createCitreaPoolStats(): PoolStats[] {
       feeTier: 3000,
       token0: {
         chain: Chain.Ethereum,
-        address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+        address: WCBTC_ADDRESS,
         symbol: 'WcBTC',
         name: 'Wrapped Citrea BTC',
         decimals: 18,
@@ -163,7 +166,7 @@ function createCitreaPoolStats(): PoolStats[] {
       feeTier: 3000,
       token0: {
         chain: Chain.Ethereum,
-        address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+        address: WCBTC_ADDRESS,
         symbol: 'WcBTC',
         name: 'Wrapped Citrea BTC',
         decimals: 18,
@@ -185,7 +188,7 @@ function createCitreaPoolStats(): PoolStats[] {
       feeTier: 3000,
       token0: {
         chain: Chain.Ethereum,
-        address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+        address: WCBTC_ADDRESS,
         symbol: 'WcBTC',
         name: 'Wrapped Citrea BTC',
         decimals: 18,

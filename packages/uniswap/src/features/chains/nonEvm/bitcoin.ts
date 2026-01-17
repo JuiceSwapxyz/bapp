@@ -100,7 +100,7 @@ export const BITCOIN_CHAIN_INFO = {
     name: 'Wrapped Citrea BTC',
     symbol: 'WcBTC',
     decimals: 8,
-    address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+    address: '0x8d0c9d1c17aE5e40ffF9bE350f57840E9E66Cd93',
   },
   faucetUrl: 'https://no-faucet.com/',
   tradingApiPollingIntervalMs: 500,

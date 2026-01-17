@@ -5,7 +5,7 @@ import { UnsignedV2DutchOrderInfo, V2DutchOrderTrade, PriorityOrderTrade as IPri
 import { Route as V2RouteSDK } from '@juiceswapxyz/v2-sdk'
 import { Route as V3RouteSDK } from '@juiceswapxyz/v3-sdk'
 import { Route as V4RouteSDK } from '@juiceswapxyz/v4-sdk'
-import { BridgeQuoteResponse, ClassicQuoteResponse, DutchQuoteResponse, DutchV3QuoteResponse, PriorityQuoteResponse, WrapQuoteResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
+import { BridgeQuoteResponse, ClassicQuoteResponse, DutchQuoteResponse, DutchV3QuoteResponse, GatewayJusdQuoteResponse, PriorityQuoteResponse, WrapQuoteResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { BigNumber, providers } from 'ethers/lib/ethers'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import {
@@ -44,10 +44,10 @@ function getQuoteOutputAmount<T extends QuoteResponseWithAggregatedOutputs>(quot
   }
 
   // For Classic quotes without aggregatedOutputs, use the quote field directly
-  if (!quote.quote.aggregatedOutputs && quote.routing === 'CLASSIC') {
+  if (!quote.quote.aggregatedOutputs && quote.routing === Routing.CLASSIC) {
     const quoteData = quote.quote as Record<string, unknown>
     // The 'quote' field contains the raw amount in smallest unit (wei)
-    const outputAmount = quoteData.quote || quoteData.output || quoteData.outputAmount
+    const outputAmount = quoteData.quote || quoteData.outputAmount
 
     if (outputAmount) {
       // Ensure we use the integer value, not the decimal string
@@ -398,7 +398,7 @@ export type Trade<
   TInput extends Currency = Currency,
   TOutput extends Currency = Currency,
   TTradeType extends TradeType = TradeType,
-> = ClassicTrade<TInput, TOutput, TTradeType> | UniswapXTrade | BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade | WrapTrade | UnwrapTrade
+> = ClassicTrade<TInput, TOutput, TTradeType> | UniswapXTrade | BridgeTrade | GatewayJusdTrade | BitcoinBridgeTrade | LightningBridgeTrade | WrapTrade | UnwrapTrade
 
 export type TradeWithSlippage = Exclude<Trade, BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade>
 
@@ -656,6 +656,65 @@ export class BridgeTrade {
       return this.outputAmount.add(swapFeeAmount)
     }
 
+    return this.outputAmount
+  }
+}
+
+/**
+ * GatewayJusdTrade handles swaps that route through the JuiceSwap Gateway.
+ * Uses CLASSIC routing to avoid bridge-specific UI while parsing input/output amounts like BridgeTrade.
+ */
+export class GatewayJusdTrade {
+  readonly quote: GatewayJusdQuoteResponse
+  readonly inputAmount: CurrencyAmount<Currency>
+  readonly outputAmount: CurrencyAmount<Currency>
+  readonly maxAmountIn: CurrencyAmount<Currency>
+  readonly minAmountOut: CurrencyAmount<Currency>
+  readonly executionPrice: Price<Currency, Currency>
+
+  readonly tradeType: TradeType
+  // Use custom literal type to avoid being grouped with ClassicTrade in type discrimination
+  readonly routing = 'GATEWAY_JUSD' as const
+  readonly indicative = false
+  readonly swapFee?: SwapFee
+  readonly inputTax: Percent = ZERO_PERCENT
+  readonly outputTax: Percent = ZERO_PERCENT
+
+  readonly slippageTolerance: number
+  readonly priceImpact: undefined
+  readonly deadline: undefined
+
+  constructor({ quote, currencyIn, currencyOut, tradeType }: { quote: GatewayJusdQuoteResponse, currencyIn: Currency, currencyOut: Currency, tradeType: TradeType }) {
+    this.quote = quote
+
+    const quoteInputAmount = quote.quote.input.amount
+    const quoteOutputAmount = quote.quote.output.amount
+    if (!quoteInputAmount || !quoteOutputAmount) {
+      throw new Error('Error parsing Gateway JUSD quote currency amounts')
+    }
+
+    const inputAmount = getCurrencyAmount({ value: quoteInputAmount, valueType: ValueType.Raw, currency: currencyIn })
+    const outputAmount = getCurrencyAmount({ value: quoteOutputAmount, valueType: ValueType.Raw, currency: currencyOut })
+    if (!inputAmount || !outputAmount) {
+      throw new Error('Error parsing Gateway JUSD quote currency amounts')
+    }
+
+    this.inputAmount = inputAmount
+    this.outputAmount = outputAmount
+    this.executionPrice = new Price(currencyIn, currencyOut, quoteInputAmount, quoteOutputAmount)
+    this.tradeType = tradeType
+    this.slippageTolerance = quote.quote.slippage ?? 0
+
+    /* Gateway trades use slippage from the underlying swap */
+    this.maxAmountIn = this.inputAmount
+    this.minAmountOut = this.outputAmount
+  }
+
+  public get quoteOutputAmount(): CurrencyAmount<Currency> {
+    return this.outputAmount
+  }
+
+  public get quoteOutputAmountUserWillReceive(): CurrencyAmount<Currency> {
     return this.outputAmount
   }
 }

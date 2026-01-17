@@ -76,6 +76,8 @@ import { getSpenderAddress } from 'uniswap/src/utils/approvalCalldata'
 
 // TradingAPI team is looking into updating type generation to produce the following types for it's current QuoteResponse type:
 // See: https://linear.app/uniswap/issue/API-236/explore-changing-the-quote-schema-to-pull-out-a-basequoteresponse
+// Note: GatewayJusdQuoteResponse is intentionally NOT in this union because its routing type
+// is not in the Routing enum. It's handled specially in transformTradingApiResponseToTrade.
 export type DiscriminatedQuoteResponse =
   | ClassicQuoteResponse
   | DutchQuoteResponse
@@ -108,6 +110,33 @@ export type ClassicQuoteResponse = QuoteResponse & {
 export type BridgeQuoteResponse = QuoteResponse & {
   quote: BridgeQuote
   routing: Routing.BRIDGE | Routing.BITCOIN_BRIDGE | Routing.LN_BRIDGE
+}
+
+// GATEWAY_JUSD is a custom routing type for JuiceSwap Gateway (JUSD abstraction)
+// The routing string is not in the generated Routing enum, so we use a standalone type
+export type GatewayJusdQuote = {
+  chainId: number
+  swapper: string
+  input: { amount: string; token: string }
+  output: { amount: string; token: string; recipient: string }
+  tradeType: TradeType
+  amount: string
+  amountDecimals: string
+  quote: string
+  quoteDecimals: string
+  quoteGasAdjusted: string
+  gasUseEstimate: string
+  gasUseEstimateUSD: string
+  gasPriceWei: string
+  slippage?: number
+}
+
+// Standalone type - does not extend QuoteResponse to avoid type conflicts
+export type GatewayJusdQuoteResponse = {
+  requestId: string
+  quote: GatewayJusdQuote
+  routing: 'GATEWAY_JUSD'
+  permitData: null
 }
 
 export type WrapQuoteResponse<T extends Routing.WRAP | Routing.UNWRAP> = QuoteResponse & {
@@ -481,25 +510,51 @@ export async function fetchIndicativeQuote(params: IndicativeQuoteRequest): Prom
 
 export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<CreateSwapResponse> {
   const quote = params.quote
-  const route = (quote as ClassicQuote).route?.[0]
-  const tokenIn = route?.[0]?.tokenIn
-  const tokenOut = route?.[route.length - 1]?.tokenOut
   const connectedWallet = quote.swapper
 
+  // Check if this is a GATEWAY_JUSD quote (has input/output but no route)
+  const isGatewayJusd = 'input' in quote && 'output' in quote && !('route' in quote)
+  const gatewayQuote = isGatewayJusd ? (quote as GatewayJusdQuote) : null
+
+  let tokenInAddress: string | undefined
+  let tokenOutAddress: string | undefined
+  let tokenInChainId: number | undefined
+  let tokenOutChainId: number | undefined
+  let amount: string | undefined
+
+  if (isGatewayJusd && gatewayQuote) {
+    // For GATEWAY_JUSD, use input/output objects directly
+    tokenInAddress = gatewayQuote.input.token
+    tokenOutAddress = gatewayQuote.output.token
+    tokenInChainId = gatewayQuote.chainId
+    tokenOutChainId = gatewayQuote.chainId // Same chain for gateway swaps
+    amount = gatewayQuote.amount
+  } else {
+    // For classic quotes, parse from route
+    const route = (quote as ClassicQuote).route?.[0]
+    const tokenIn = route?.[0]?.tokenIn
+    const tokenOut = route?.[route.length - 1]?.tokenOut
+    tokenInAddress = tokenIn?.address
+    tokenOutAddress = tokenOut?.address
+    tokenInChainId = tokenIn?.chainId
+    tokenOutChainId = tokenOut?.chainId
+    amount = (quote as { amount: string }).amount
+  }
+
   const body = {
-    tokenOutAddress: tokenOut?.address,
-    tokenOutDecimals: parseInt(tokenOut?.decimals || '18', 10),
-    tokenInChainId: tokenIn?.chainId,
-    tokenInAddress: tokenIn?.address,
-    tokenInDecimals: parseInt(tokenIn?.decimals || '18', 10),
-    tokenOutChainId: tokenOut?.chainId,
-    amount: (quote as { amount: string }).amount,
+    tokenOutAddress,
+    tokenOutDecimals: 18, // Default to 18 decimals
+    tokenInChainId,
+    tokenInAddress,
+    tokenInDecimals: 18, // Default to 18 decimals
+    tokenOutChainId,
+    amount,
     type: 'exactIn',
     recipient: connectedWallet,
     from: connectedWallet,
     slippageTolerance: '5',
     deadline: params.deadline || '1800',
-    chainId: tokenIn?.chainId,
+    chainId: tokenInChainId,
     protocols: ['V3', 'V2'],
     ...params.customSwapData,
   }
@@ -533,7 +588,7 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
   return {
     requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
     swap: {
-      chainId: tokenIn?.chainId ?? ChainId._5115,
+      chainId: tokenInChainId ?? ChainId._5115,
       data: response.data,
       from: connectedWallet ?? '',
       to: response.to,

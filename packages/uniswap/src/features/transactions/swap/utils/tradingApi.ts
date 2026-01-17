@@ -8,7 +8,7 @@ import type { FeeAmount } from '@juiceswapxyz/v3-sdk'
 import { Pool as V3Pool, Route as V3Route } from '@juiceswapxyz/v3-sdk'
 import { Pool as V4Pool, Route as V4Route } from '@juiceswapxyz/v4-sdk'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
-import type { BridgeQuoteResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
+import type { BridgeQuoteResponse, GatewayJusdQuoteResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import {
   ClassicQuoteResponse,
   DiscriminatedQuoteResponse,
@@ -40,6 +40,7 @@ import {
   BitcoinBridgeTrade,
   BridgeTrade,
   ClassicTrade,
+  GatewayJusdTrade,
   LightningBridgeTrade,
   PriorityOrderTrade,
   UniswapXV2Trade,
@@ -136,6 +137,21 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
       return new UnwrapTrade({ quote: data, currencyIn, currencyOut, tradeType })
     }
     default: {
+      // Handle Gateway routing types (custom routing types not in generated enum)
+      // - GATEWAY_JUSD: Swaps involving JUSD (converted to svJUSD internally)
+      // - GATEWAY_JUICE_IN: Selling JUICE via Equity.redeem()
+      // - GATEWAY_JUICE_OUT: Buying JUICE via Equity.invest()
+      // Type assertion needed because TypeScript exhaustive checking narrows to 'never'
+      const unknownData = data as DiscriminatedQuoteResponse | undefined
+      const gatewayRoutingTypes = ['GATEWAY_JUSD', 'GATEWAY_JUICE_IN', 'GATEWAY_JUICE_OUT']
+      if (unknownData && gatewayRoutingTypes.includes(unknownData.routing as string)) {
+        return new GatewayJusdTrade({
+          quote: unknownData as unknown as GatewayJusdQuoteResponse,
+          currencyIn,
+          currencyOut,
+          tradeType,
+        })
+      }
       return null
     }
   }
@@ -405,7 +421,7 @@ export function toTradingApiSupportedChainId(chainId: Maybe<number>): TradingApi
 }
 
 export function getClassicQuoteFromResponse(
-  quote?: ClassicQuoteResponse | { routing: Exclude<Routing, Routing.CLASSIC> },
+  quote?: ClassicQuoteResponse | { routing: Exclude<Routing, Routing.CLASSIC> } | GatewayJusdQuoteResponse,
 ): ClassicQuote | undefined {
   if (quote && isClassic(quote)) {
     return quote.quote

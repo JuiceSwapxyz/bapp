@@ -3,6 +3,7 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { Routing } from 'uniswap/src/data/tradingApi/__generated__'
+import { GATEWAY_JUSD_ROUTING } from 'uniswap/src/features/transactions/swap/utils/routing'
 import type { GasStrategy } from 'uniswap/src/data/tradingApi/types'
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useActiveGasStrategy } from 'uniswap/src/features/gas/hooks'
@@ -143,6 +144,9 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [Routing.JUPITER]: createNoopService(),
       [Routing.BITCOIN_BRIDGE]: bitcoinBridgeSwapTxInfoService,
       [Routing.LN_BRIDGE]: lightningBridgeSwapTxInfoService,
+      // GATEWAY_JUSD uses classic swap service since it's a same-chain swap
+      // Type cast needed because GatewayJusdTrade has different structure than ClassicTrade
+      [GATEWAY_JUSD_ROUTING]: classicSwapTxInfoService as unknown as SwapTxAndGasInfoService,
     } satisfies RoutingServicesMap
   }, [
     classicSwapTxInfoService,

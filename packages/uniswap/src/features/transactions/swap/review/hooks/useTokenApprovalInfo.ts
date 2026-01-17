@@ -6,7 +6,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { convertGasFeeToDisplayValue, useActiveGasStrategy } from 'uniswap/src/features/gas/hooks'
 import { GasFeeResult } from 'uniswap/src/features/gas/types'
 import { ApprovalAction, TokenApprovalInfo } from 'uniswap/src/features/transactions/swap/types/trade'
-import { isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isUniswapX, TradeRouting } from 'uniswap/src/features/transactions/swap/utils/routing'
 import {
   getTokenAddressForApi,
   toTradingApiSupportedChainId,
@@ -21,7 +21,7 @@ export interface TokenApprovalInfoParams {
   wrapType: WrapType
   currencyInAmount: Maybe<CurrencyAmount<Currency>>
   currencyOutAmount?: Maybe<CurrencyAmount<Currency>>
-  routing: Routing | undefined
+  routing: TradeRouting | undefined
   account?: AccountDetails
 }
 

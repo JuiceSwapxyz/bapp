@@ -24,9 +24,11 @@ import {
   ApprovalAction,
   BridgeTrade,
   ClassicTrade,
+  GatewayJusdTrade,
   UnwrapTrade,
   WrapTrade,
 } from 'uniswap/src/features/transactions/swap/types/trade'
+import { isGatewayJusd } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { tradingApiToUniverseChainId } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 
 type SwapInstructions =
@@ -57,7 +59,7 @@ interface EVMSwapInstructionsServiceContext {
 }
 
 export const getCustomSwapTokenData = (
-  trade: ClassicTrade | BridgeTrade | WrapTrade | UnwrapTrade | undefined,
+  trade: ClassicTrade | BridgeTrade | WrapTrade | UnwrapTrade | GatewayJusdTrade | undefined,
   transactionSettings?: TransactionSettings,
 ): CustomSwapDataForRequest | undefined => {
   if (!trade) {
@@ -95,6 +97,22 @@ export const getCustomSwapTokenData = (
       tokenOutDecimals: currencyOut.decimals,
       amount: trade.quote.quote.input?.amount,
       type: trade.routing,
+    }
+  }
+
+  if (isGatewayJusd(trade)) {
+    const currencyIn = trade.inputAmount.currency
+    const currencyOut = trade.outputAmount.currency
+
+    return {
+      chainId: currencyIn.chainId,
+      tokenInChainId: currencyIn.chainId,
+      tokenInAddress: currencyIn.isNative ? ZERO_ADDRESS : currencyIn.address,
+      tokenInDecimals: currencyIn.decimals,
+      tokenOutChainId: currencyOut.chainId,
+      tokenOutAddress: currencyOut.isNative ? ZERO_ADDRESS : currencyOut.address,
+      tokenOutDecimals: currencyOut.decimals,
+      slippageTolerance: transactionSettings?.customSlippageTolerance?.toString() ?? '5',
     }
   }
 
