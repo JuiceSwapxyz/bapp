@@ -56,7 +56,7 @@ const SwapBackground = styled(Flex, {
   top: 200,
   left: 0,
   right: 0,
-  height: 'calc(100vh - 250px)',
+  height: '70vh',
   zIndex: 0,
   pointerEvents: 'none',
 
