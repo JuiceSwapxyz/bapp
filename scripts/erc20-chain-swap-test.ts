@@ -29,7 +29,9 @@
  */
 
 import { randomBytes, createHash } from 'crypto';
-import { Contract, JsonRpcProvider, Wallet, formatUnits, parseUnits } from 'ethers';
+import { Contract, Wallet } from 'ethers';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import WebSocket from 'ws';
 
 // =============================================================================
@@ -96,6 +98,28 @@ async function fetchJson(url: string, options?: RequestInit): Promise<any> {
     throw new Error(`HTTP ${response.status}: ${text}`);
   }
   return response.json();
+}
+
+async function getGasPrices(provider: JsonRpcProvider) {
+  const feeData = await provider.getFeeData();
+  
+  // Minimum priority fee for Polygon (25 gwei = 25000000000 wei)
+  const minPriorityFeePerGas = parseUnits('25', 'gwei');
+  const minMaxFeePerGas = parseUnits('100', 'gwei');
+  
+  // Ensure we meet minimums
+  const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas && feeData.maxPriorityFeePerGas.gt(minPriorityFeePerGas)
+    ? feeData.maxPriorityFeePerGas
+    : minPriorityFeePerGas;
+  
+  const maxFeePerGas = feeData.maxFeePerGas && feeData.maxFeePerGas.gt(minMaxFeePerGas)
+    ? feeData.maxFeePerGas
+    : minMaxFeePerGas;
+  
+  return {
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+  };
 }
 
 // =============================================================================
@@ -182,10 +206,19 @@ async function usdtPolygonToJusdSwap(privateKey: string) {
 
   if (currentAllowance < swapAmountRaw) {
     console.log(`Approving ${CONFIG.swapAmount} USDT for ERC20Swap...`);
-    const approveTx = await polygonUsdt.approve(CONFIG.polygon.erc20Swap, swapAmountRaw);
+    const gasPrices = await getGasPrices(polygonProvider);
+    console.log(`Gas prices: maxFeePerGas=${formatUnits(gasPrices.maxFeePerGas, 'gwei')} gwei, maxPriorityFeePerGas=${formatUnits(gasPrices.maxPriorityFeePerGas, 'gwei')} gwei`);
+    const approveTx = await polygonUsdt.approve(CONFIG.polygon.erc20Swap, swapAmountRaw, {
+      maxFeePerGas: gasPrices.maxFeePerGas,
+      maxPriorityFeePerGas: gasPrices.maxPriorityFeePerGas,
+    });
     console.log(`Approve TX: ${approveTx.hash}`);
     await approveTx.wait();
     console.log('Approved!');
+    
+    // Wait a bit to avoid rate limits
+    console.log('Waiting 2 seconds before next transaction...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
   } else {
     console.log('Already approved');
   }
@@ -196,12 +229,22 @@ async function usdtPolygonToJusdSwap(privateKey: string) {
   console.log('\n--- Step 3: Locking USDT on Polygon ---');
   const polygonErc20Swap = new Contract(CONFIG.polygon.erc20Swap, ERC20_SWAP_ABI, polygonWallet);
 
+  const gasPrices = await getGasPrices(polygonProvider);
+  console.log(`Gas prices: maxFeePerGas=${formatUnits(gasPrices.maxFeePerGas, 'gwei')} gwei, maxPriorityFeePerGas=${formatUnits(gasPrices.maxPriorityFeePerGas, 'gwei')} gwei`);
+
+  // Use manual gas limit to avoid gas estimation calls (which can hit rate limits)
+  // Typical lock transaction uses ~150k-200k gas
   const lockTx = await polygonErc20Swap.lock(
     '0x' + preimageHash.toString('hex'),
     swapAmountRaw, // Use 6 decimals for contract
     CONFIG.polygon.usdt,
     createSwapResponse.lockupDetails.claimAddress,
-    createSwapResponse.lockupDetails.timeoutBlockHeight
+    createSwapResponse.lockupDetails.timeoutBlockHeight,
+    {
+      maxFeePerGas: gasPrices.maxFeePerGas,
+      maxPriorityFeePerGas: gasPrices.maxPriorityFeePerGas,
+      gasLimit: 200000, // Manual gas limit to avoid estimation
+    }
   );
 
   console.log(`Lock TX: ${lockTx.hash}`);
@@ -323,12 +366,20 @@ async function claimJusdOnCitrea(
   console.log(`Refund Address: ${claimDetails.refundAddress}`);
   console.log(`Timelock: ${claimDetails.timeoutBlockHeight}`);
 
+  const provider = wallet.provider as JsonRpcProvider;
+  const gasPrices = await getGasPrices(provider);
+  console.log(`Gas prices: maxFeePerGas=${formatUnits(gasPrices.maxFeePerGas, 'gwei')} gwei, maxPriorityFeePerGas=${formatUnits(gasPrices.maxPriorityFeePerGas, 'gwei')} gwei`);
+
   const claimTx = await contract.claim(
     '0x' + preimage.toString('hex'),
     amount,
     CONFIG.citrea.jusd,
     claimDetails.refundAddress,
-    claimDetails.timeoutBlockHeight
+    claimDetails.timeoutBlockHeight,
+    {
+      maxFeePerGas: gasPrices.maxFeePerGas,
+      maxPriorityFeePerGas: gasPrices.maxPriorityFeePerGas,
+    }
   );
 
   console.log(`\nClaim TX: ${claimTx.hash}`);
