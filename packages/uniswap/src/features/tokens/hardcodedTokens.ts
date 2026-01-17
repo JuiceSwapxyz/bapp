@@ -63,12 +63,37 @@ const citreaNusdCurrency = {
   logoUrl: 'https://docs.juiceswap.com/media/icons/nusd.png',
 }
 
+const citreaJusdCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaTestnet,
+    address: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
+    decimals: 6,
+    symbol: 'JUSD',
+    name: 'JuiceSwap USD',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaTestnet}-0xFdB0a83d94CD65151148a131167Eb499Cb85d015`,
+  logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+}
+
+const polygonUsdtCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.Polygon,
+    address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+    decimals: 6,
+    symbol: 'USDT',
+    name: 'Tether USD',
+  }) as Currency,
+  currencyId: `${UniverseChainId.Polygon}-0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
+  logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+}
+
 export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaNativeCurrency,
   citreaWrappedNativeCurrency,
   citreaUsdcCurrency,
   citreaCusdCurrency,
   citreaNusdCurrency,
+  citreaJusdCurrency,
 ]
 
 export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
@@ -119,6 +144,17 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
     logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
+  },
+  {
+    currency: buildCurrency({
+      chainId: UniverseChainId.Polygon,
+      address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+      decimals: 6,
+      symbol: 'USDT',
+      name: 'Tether USD',
+    }) as Currency,
+    currencyId: `${UniverseChainId.Polygon}-0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
+    logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
   },
 ]
 
