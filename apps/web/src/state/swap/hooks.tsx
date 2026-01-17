@@ -1,4 +1,4 @@
-import { Currency } from '@juiceswapxyz/sdk-core'
+import { Currency, Token } from '@juiceswapxyz/sdk-core'
 import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import { useCurrency } from 'hooks/Tokens'
 import { ParsedQs } from 'qs'
@@ -66,6 +66,43 @@ function parseFromURLParameter(urlParam: ParsedQs[string]): string | undefined {
   return undefined
 }
 
+function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: string): string | undefined {
+  if (!chainId) return undefined
+
+  const chainInfo = getChainInfo(chainId)
+  const symbolUpper = symbol.toUpperCase()
+
+  if (symbolUpper === 'USDT') {
+    return chainInfo.tokens.USDT?.address
+  }
+
+  if (symbolUpper === 'JUSD') {
+    return (chainInfo.tokens as any).JUSD?.address
+  }
+
+  return undefined
+}
+
+function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Currency | undefined {
+  if (!isAddress(address)) {
+    return undefined
+  }
+
+  const chainInfo = getChainInfo(chainId)
+  const normalizedAddress = address.toLowerCase()
+
+  if (chainInfo.tokens.USDT?.address.toLowerCase() === normalizedAddress) {
+    return chainInfo.tokens.USDT
+  }
+
+  const jusdToken = (chainInfo.tokens as any).JUSD as Token | undefined
+  if (jusdToken?.address.toLowerCase() === normalizedAddress) {
+    return jusdToken
+  }
+
+  return undefined
+}
+
 export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): string | undefined {
   if (typeof urlParam === 'string') {
     const valid = isAddress(urlParam)
@@ -80,6 +117,10 @@ export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): strin
 
     if (urlParam === NATIVE_CHAIN_ID) {
       return NATIVE_CHAIN_ID
+    }
+
+    if (upper === 'USDT' || upper === 'JUSD' || upper === 'USDC' || upper === 'DAI') {
+      return upper
     }
   }
   return undefined
@@ -233,8 +274,11 @@ export function useInitialCurrencyState(): {
 
   const supportedChainId = useSupportedChainId(parsedCurrencyState.chainId ?? defaultChainId) ?? UniverseChainId.Mainnet
   const supportedChainInfo = getChainInfo(supportedChainId)
+  const isChainExplicitlySpecified = !!parsedCurrencyState.chainId
   const isSupportedChainCompatible =
-    isTestnetModeEnabled === !!supportedChainInfo.testnet || ALWAYS_ENABLED_CHAIN_IDS.includes(supportedChainId)
+    isChainExplicitlySpecified ||
+    isTestnetModeEnabled === !!supportedChainInfo.testnet ||
+    ALWAYS_ENABLED_CHAIN_IDS.includes(supportedChainId)
 
   const hasCurrencyQueryParams =
     parsedCurrencyState.inputCurrencyAddress || parsedCurrencyState.outputCurrencyAddress || parsedCurrencyState.chainId
@@ -256,8 +300,22 @@ export function useInitialCurrencyState(): {
     }
     // Handle query params or disconnected state
     if (parsedCurrencyState.inputCurrencyAddress) {
+      let resolvedAddress: string | undefined
+      if (
+        parsedCurrencyState.inputCurrencyAddress !== NATIVE_CHAIN_ID &&
+        parsedCurrencyState.inputCurrencyAddress !== 'ETH' &&
+        !isAddress(parsedCurrencyState.inputCurrencyAddress)
+      ) {
+        resolvedAddress = getTokenAddressBySymbol(supportedChainId, parsedCurrencyState.inputCurrencyAddress)
+        if (!resolvedAddress) {
+          resolvedAddress = parsedCurrencyState.inputCurrencyAddress
+        }
+      } else {
+        resolvedAddress = parsedCurrencyState.inputCurrencyAddress
+      }
+
       return {
-        initialInputCurrencyAddress: parsedCurrencyState.inputCurrencyAddress,
+        initialInputCurrencyAddress: resolvedAddress,
         initialChainId: supportedChainId,
       }
     }
@@ -282,11 +340,20 @@ export function useInitialCurrencyState(): {
   const initialOutputCurrencyAddress = useMemo(() => {
     // If there are parsed output currency params, use them
     if (parsedCurrencyState.outputCurrencyAddress) {
+      const outputChainId = parsedCurrencyState.outputChainId ?? supportedChainId
+      const resolvedAddress =
+        parsedCurrencyState.outputCurrencyAddress !== NATIVE_CHAIN_ID &&
+          parsedCurrencyState.outputCurrencyAddress !== 'ETH' &&
+          !isAddress(parsedCurrencyState.outputCurrencyAddress)
+          ? getTokenAddressBySymbol(outputChainId, parsedCurrencyState.outputCurrencyAddress) ??
+          parsedCurrencyState.outputCurrencyAddress
+          : parsedCurrencyState.outputCurrencyAddress
+
       // clear output if identical unless there's a supported outputChainId which means we're bridging
-      if (initialInputCurrencyAddress === parsedCurrencyState.outputCurrencyAddress && !outputChainIsSupported) {
+      if (initialInputCurrencyAddress === resolvedAddress && !outputChainIsSupported) {
         return undefined
       }
-      return parsedCurrencyState.outputCurrencyAddress
+      return resolvedAddress
     }
 
     // Default to cUSD when no output currency is specified
@@ -301,16 +368,49 @@ export function useInitialCurrencyState(): {
   }, [
     initialInputCurrencyAddress,
     parsedCurrencyState.outputCurrencyAddress,
+    parsedCurrencyState.outputChainId,
     outputChainIsSupported,
     hasCurrencyQueryParams,
     initialChainId,
+    supportedChainId,
   ])
 
-  const initialInputCurrency = useCurrency({ address: initialInputCurrencyAddress, chainId: initialChainId })
-  const initialOutputCurrency = useCurrency({
+  const currencyFromInputHook = useCurrency({ address: initialInputCurrencyAddress, chainId: initialChainId })
+  const currencyFromOutputHook = useCurrency({
     address: initialOutputCurrencyAddress,
     chainId: parsedCurrencyState.outputChainId ?? initialChainId,
   })
+
+  const initialInputCurrency = useMemo(() => {
+    if (currencyFromInputHook) {
+      return currencyFromInputHook
+    }
+    if (initialInputCurrencyAddress && initialChainId) {
+      const address = isAddress(initialInputCurrencyAddress)
+        ? initialInputCurrencyAddress
+        : getTokenAddressBySymbol(initialChainId, initialInputCurrencyAddress)
+      if (address) {
+        return getCurrencyFromChainInfo(initialChainId, address)
+      }
+    }
+    return undefined
+  }, [currencyFromInputHook, initialInputCurrencyAddress, initialChainId])
+
+  const initialOutputCurrency = useMemo(() => {
+    if (currencyFromOutputHook) {
+      return currencyFromOutputHook
+    }
+    const outputChainId = parsedCurrencyState.outputChainId ?? initialChainId
+    if (initialOutputCurrencyAddress && outputChainId) {
+      const address = isAddress(initialOutputCurrencyAddress)
+        ? initialOutputCurrencyAddress
+        : getTokenAddressBySymbol(outputChainId, initialOutputCurrencyAddress)
+      if (address) {
+        return getCurrencyFromChainInfo(outputChainId, address)
+      }
+    }
+    return undefined
+  }, [currencyFromOutputHook, initialOutputCurrencyAddress, parsedCurrencyState.outputChainId, initialChainId])
   const initialTypedValue = initialInputCurrency || initialOutputCurrency ? parsedCurrencyState.value : undefined
   const initialFieldUpper =
     parsedCurrencyState.field && typeof parsedCurrencyState.field === 'string'
