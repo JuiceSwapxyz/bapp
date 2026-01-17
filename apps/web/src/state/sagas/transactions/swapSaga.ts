@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
 import { handleBitcoinBridgeBitcoinToCitrea } from 'state/sagas/transactions/bitcoinBridgeBitcoinToCitrea'
 import { handleBitcoinBridgeCitreaToBitcoin } from 'state/sagas/transactions/bitcoinBridgeCitreaToBitcoin'
+import { handleErc20ChainSwap } from 'state/sagas/transactions/erc20ChainSwap'
 import { handleLightningBridgeReverse } from 'state/sagas/transactions/lightningBridgeReverse'
 import { handleLightningBridgeSubmarine } from 'state/sagas/transactions/lightningBridgeSubmarine'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
@@ -359,6 +360,17 @@ function* swap(params: SwapParams) {
             trade,
             account,
             destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
+        case TransactionStepType.Erc20ChainSwapStep: {
+          yield* call(handleErc20ChainSwap, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
             onTransactionHash: params.onTransactionHash,
             onSuccess: params.onSuccess,
           })
