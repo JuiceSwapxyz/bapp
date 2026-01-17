@@ -53,18 +53,18 @@ import { isIFramed } from 'utils/isIFramed'
 const SwapBackground = styled(Flex, {
   name: 'SwapBackground',
   position: 'fixed',
-  top: 0,
+  top: 200,
   left: 0,
   right: 0,
-  bottom: 0,
+  height: 'calc(100vh - 250px)',
   zIndex: 0,
   pointerEvents: 'none',
 
   '$platform-web': {
     backgroundImage: `url(/images/landing_page/LandingHero-bg.svg)`,
     backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center bottom',
+    backgroundSize: '100% 100%',
+    backgroundPosition: 'top center',
   },
 } as const)
 
