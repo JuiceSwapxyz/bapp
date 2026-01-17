@@ -20,13 +20,13 @@ export const isLnBitcoinBridgeQuote = (params: QuoteRequest): boolean => {
 export const isErc20ChainSwapQuote = (params: QuoteRequest): boolean => {
   const { tokenInChainId, tokenOutChainId, tokenIn, tokenOut } = params
 
-  // Polygon (137) ↔ Citrea (5115)
   const isPolygonToCitrea = tokenInChainId === ChainId._137 && tokenOutChainId === ChainId._5115
   const isCitreaToPolygon = tokenInChainId === ChainId._5115 && tokenOutChainId === ChainId._137
+  const isEthereumToCitrea = tokenInChainId === ChainId._1 && tokenOutChainId === ChainId._5115
+  const isCitreaToEthereum = tokenInChainId === ChainId._5115 && tokenOutChainId === ChainId._1
 
-  if (!isPolygonToCitrea && !isCitreaToPolygon) return false
+  if (!isPolygonToCitrea && !isCitreaToPolygon && !isEthereumToCitrea && !isCitreaToEthereum) return false
 
-  // Both must be ERC20 (not native)
   const isInputNative = !tokenIn || tokenIn === ZERO_ADDRESS
   const isOutputNative = !tokenOut || tokenOut === ZERO_ADDRESS
 
@@ -36,4 +36,6 @@ export const isErc20ChainSwapQuote = (params: QuoteRequest): boolean => {
 export enum Erc20ChainSwapDirection {
   PolygonToCitrea = 'PolygonToCitrea',
   CitreaToPolygon = 'CitreaToPolygon',
+  EthereumToCitrea = 'EthereumToCitrea',
+  CitreaToEthereum = 'CitreaToEthereum',
 }

@@ -174,7 +174,8 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
       const { trade, txRequests, includesDelegation } = swapTxContext
       // ERC20 chain swaps are converted to BridgeTrade with routing BRIDGE, but have Erc20ChainSwapDirection
       const quoteDirection = (trade.quote.quote as BridgeQuote).direction
-      const isErc20ChainSwapDirection = quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon
+      const isErc20ChainSwapDirection = quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon ||
+                                         quoteDirection === Erc20ChainSwapDirection.EthereumToCitrea || quoteDirection === Erc20ChainSwapDirection.CitreaToEthereum
       
       if (isErc20ChainSwapDirection) {
         return {

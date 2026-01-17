@@ -427,10 +427,17 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
   const ldsBridge = getLdsBridgeManager()
   const direction = params.tokenInChainId === ChainId._137
     ? Erc20ChainSwapDirection.PolygonToCitrea
-    : Erc20ChainSwapDirection.CitreaToPolygon
+    : params.tokenInChainId === ChainId._1
+    ? Erc20ChainSwapDirection.EthereumToCitrea
+    : params.tokenOutChainId === ChainId._137
+    ? Erc20ChainSwapDirection.CitreaToPolygon
+    : Erc20ChainSwapDirection.CitreaToEthereum
 
-  const from = direction === Erc20ChainSwapDirection.PolygonToCitrea ? 'USDT_POLYGON' : 'JUSD_CITREA'
-  const to = direction === Erc20ChainSwapDirection.PolygonToCitrea ? 'JUSD_CITREA' : 'USDT_POLYGON'
+  const from = direction === Erc20ChainSwapDirection.PolygonToCitrea ? 'USDT_POLYGON' :
+    direction === Erc20ChainSwapDirection.EthereumToCitrea ? 'USDT_ETHEREUM' : 'JUSD_CITREA'
+  const to = direction === Erc20ChainSwapDirection.PolygonToCitrea || direction === Erc20ChainSwapDirection.EthereumToCitrea
+    ? 'JUSD_CITREA'
+    : direction === Erc20ChainSwapDirection.CitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETHEREUM'
 
   const chainPairs = await ldsBridge.getChainPairs()
   const pairInfo = chainPairs[from]?.[to]

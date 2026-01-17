@@ -88,7 +88,9 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo, _v4Ena
       // ERC20 chain swaps have routing BRIDGE but have Erc20ChainSwapDirection
       const quoteDirection = (trade.quote.quote as BridgeQuote).direction
       const isErc20ChainSwapDirection = quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || 
-                                         quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon
+                                         quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon ||
+                                         quoteDirection === Erc20ChainSwapDirection.EthereumToCitrea ||
+                                         quoteDirection === Erc20ChainSwapDirection.CitreaToEthereum
       
       if (isErc20ChainSwapDirection) {
         const direction = quoteDirection as Erc20ChainSwapDirection

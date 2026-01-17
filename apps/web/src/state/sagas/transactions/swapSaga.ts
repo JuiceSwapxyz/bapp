@@ -247,7 +247,9 @@ async function handleSwitchChains(
       try {
         const quoteDirection = (swapTxContext.trade.quote.quote as BridgeQuote).direction
         const isErc20Direction = quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || 
-                                 quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon
+                                 quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon ||
+                                 quoteDirection === Erc20ChainSwapDirection.EthereumToCitrea ||
+                                 quoteDirection === Erc20ChainSwapDirection.CitreaToEthereum
         console.error('[Chain Switch] Checking if ERC20 chain swap:', {
           isBridge: isBridge(swapTxContext),
           quoteDirection,
@@ -296,7 +298,9 @@ function* swap(params: SwapParams) {
     try {
       const quoteDirection = (trade.quote.quote as BridgeQuote).direction
       return quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || 
-             quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon
+             quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon ||
+             quoteDirection === Erc20ChainSwapDirection.EthereumToCitrea ||
+             quoteDirection === Erc20ChainSwapDirection.CitreaToEthereum
     } catch {
       return false
     }

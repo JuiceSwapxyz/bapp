@@ -65,6 +65,10 @@ const CONTRACTS = {
     swap: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
     token: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
   },
+  ethereum: {
+    swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
+    token: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  },
 }
 
 interface HandleErc20ChainSwapParams {
@@ -80,13 +84,22 @@ interface HandleErc20ChainSwapParams {
 export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   const { step, setCurrentStep, trade, account, selectChain, onTransactionHash, onSuccess } = params
   const isPolygonToCitrea = step.direction === Erc20ChainSwapDirection.PolygonToCitrea
+  const isEthereumToCitrea = step.direction === Erc20ChainSwapDirection.EthereumToCitrea
+  const isCitreaToPolygon = step.direction === Erc20ChainSwapDirection.CitreaToPolygon
+  const isCitreaToEthereum = step.direction === Erc20ChainSwapDirection.CitreaToEthereum
 
-  const from = isPolygonToCitrea ? 'USDT_POLYGON' : 'JUSD_CITREA'
-  const to = isPolygonToCitrea ? 'JUSD_CITREA' : 'USDT_POLYGON'
-  const sourceChain = isPolygonToCitrea ? 'polygon' : 'citrea'
-  const targetChain = isPolygonToCitrea ? 'citrea' : 'polygon'
-  const sourceChainId = isPolygonToCitrea ? UniverseChainId.Polygon : UniverseChainId.CitreaTestnet
-  const targetChainId = isPolygonToCitrea ? UniverseChainId.CitreaTestnet : UniverseChainId.Polygon
+  const from = isPolygonToCitrea ? 'USDT_POLYGON' :
+    isEthereumToCitrea ? 'USDT_ETHEREUM' : 'JUSD_CITREA'
+  const to = isPolygonToCitrea || isEthereumToCitrea ? 'JUSD_CITREA' :
+    isCitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETHEREUM'
+  const sourceChain = isPolygonToCitrea ? 'polygon' :
+    isEthereumToCitrea ? 'ethereum' : 'citrea'
+  const targetChain = isPolygonToCitrea || isEthereumToCitrea ? 'citrea' :
+    isCitreaToPolygon ? 'polygon' : 'ethereum'
+  const sourceChainId = isPolygonToCitrea ? UniverseChainId.Polygon :
+    isEthereumToCitrea ? UniverseChainId.Mainnet : UniverseChainId.CitreaTestnet
+  const targetChainId = isPolygonToCitrea || isEthereumToCitrea ? UniverseChainId.CitreaTestnet :
+    isCitreaToPolygon ? UniverseChainId.Polygon : UniverseChainId.Mainnet
 
   const ldsBridge = getLdsBridgeManager()
 
