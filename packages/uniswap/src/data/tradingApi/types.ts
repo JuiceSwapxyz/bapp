@@ -62,6 +62,11 @@ export enum BitcoinBridgeDirection {
   CitreaToBitcoin = 'citrea-to-bitcoin',
 }
 
+export enum Erc20ChainSwapDirection {
+  PolygonToCitrea = 'PolygonToCitrea',
+  CitreaToPolygon = 'CitreaToPolygon',
+}
+
 export interface LightningInvoice {
   requestId: string
   invoice: {

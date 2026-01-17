@@ -60,7 +60,8 @@ function modifyType(
           })
           console.log(`Added property ${prop.name} to ${typeName}`)
         } else {
-          console.log(`Property ${prop.name} already exists in ${typeName}`)
+          existingProperty.setType(prop.type)
+          console.log(`Updated property ${prop.name} in ${typeName}`)
         }
       })
     } else {
@@ -158,14 +159,16 @@ responseFiles.forEach((file) => {
 
 addImport(bridgeQuoteFile, 'LightningBridgeDirection')
 addImport(bridgeQuoteFile, 'BitcoinBridgeDirection')
+addImport(bridgeQuoteFile, 'Erc20ChainSwapDirection')
 modifyType(bridgeQuoteFile, 'BridgeQuote', [
-  { name: 'direction', type: 'LightningBridgeDirection | BitcoinBridgeDirection', isOptional: true },
+  { name: 'direction', type: 'LightningBridgeDirection | BitcoinBridgeDirection | Erc20ChainSwapDirection', isOptional: true },
 ])
 
 // Add new enum members
 addEnumMember(routingFile, 'Routing', { name: 'JUPITER', value: 'JUPITER' })
 addEnumMember(routingFile, 'Routing', { name: 'BITCOIN_BRIDGE', value: 'BITCOIN_BRIDGE' })
 addEnumMember(routingFile, 'Routing', { name: 'LN_BRIDGE', value: 'LN_BRIDGE' })
+addEnumMember(routingFile, 'Routing', { name: 'ERC20_CHAIN_SWAP', value: 'ERC20_CHAIN_SWAP' })
 addEnumMember(chainIdFile, 'ChainId', { name: '_5115', value: 5115 })
 addEnumMember(chainIdFile, 'ChainId', { name: '_21_000_000', value: 21000000 })
 addEnumMember(chainIdFile, 'ChainId', { name: '_21_000_001', value: 21000001 })

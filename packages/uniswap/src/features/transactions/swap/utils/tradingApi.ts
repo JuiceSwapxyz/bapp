@@ -129,6 +129,9 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
     case Routing.LN_BRIDGE: {
       return new LightningBridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
     }
+    case Routing.ERC20_CHAIN_SWAP: {
+      return new BridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
+    }
     case Routing.WRAP: {
       return new WrapTrade({ quote: data, currencyIn, currencyOut, tradeType })
     }
