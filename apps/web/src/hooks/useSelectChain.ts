@@ -2,7 +2,7 @@ import { popupRegistry } from 'components/Popups/registry'
 import { PopupType } from 'components/Popups/types'
 import { useSwitchChain } from 'hooks/useSwitchChain'
 import { useCallback } from 'react'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { EVMUniverseChainId, UniverseChainId } from 'uniswap/src/features/chains/types'
 import { logger } from 'utilities/src/logger/logger'
 import { UserRejectedRequestError } from 'viem'
 
@@ -12,7 +12,7 @@ export default function useSelectChain() {
   return useCallback(
     async (targetChain: UniverseChainId) => {
       try {
-        await switchChain(targetChain)
+        await switchChain(targetChain as EVMUniverseChainId)
         return true
       } catch (error) {
         if (

@@ -1,6 +1,6 @@
 import { BONDING_CURVE_CONSTANTS, BONDING_CURVE_TOKEN_ABI } from 'constants/launchpad'
 import { useMemo } from 'react'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { EVMUniverseChainId, UniverseChainId } from 'uniswap/src/features/chains/types'
 import { assume0xAddress } from 'utils/wagmi'
 import { useReadContract, useReadContracts } from 'wagmi'
 
@@ -31,7 +31,7 @@ export interface BondingCurveTokenState {
  */
 export function useBondingCurveToken(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: EVMUniverseChainId = UniverseChainId.CitreaTestnet,
 ): BondingCurveTokenState {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
 
@@ -119,7 +119,7 @@ export function useBondingCurveToken(
 export function useCalculateBuy(
   tokenAddress: string | undefined,
   baseIn: bigint | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: EVMUniverseChainId = UniverseChainId.CitreaTestnet,
 ): { tokensOut: bigint | undefined; isLoading: boolean } {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
   const enabled = !!address && !!baseIn && baseIn > 0n
@@ -151,7 +151,7 @@ export function useCalculateBuy(
 export function useCalculateSell(
   tokenAddress: string | undefined,
   tokensIn: bigint | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: EVMUniverseChainId = UniverseChainId.CitreaTestnet,
 ): { baseOut: bigint | undefined; isLoading: boolean } {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
   const enabled = !!address && !!tokensIn && tokensIn > 0n
@@ -183,7 +183,7 @@ export function useCalculateSell(
 export function useBondingCurveBalance(
   tokenAddress: string | undefined,
   userAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: EVMUniverseChainId = UniverseChainId.CitreaTestnet,
 ): { balance: bigint | undefined; isLoading: boolean; refetch: () => void } {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
   const user = userAddress ? assume0xAddress(userAddress) : undefined

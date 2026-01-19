@@ -8,6 +8,7 @@ import { useCallback, useRef } from 'react'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { AssetType } from 'uniswap/src/entities/assets'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
+import type { EVMUniverseChainId } from 'uniswap/src/features/chains/types'
 import { InterfaceEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import type { SendTokenTransactionInfo } from 'uniswap/src/features/transactions/types/transactionDetails'
@@ -61,7 +62,7 @@ export function useSendCallback({
             throw new Error('wallet must be connected to send')
           }
           if (account.chainId !== supportedTransactionChainId) {
-            await switchChain(supportedTransactionChainId)
+            await switchChain(supportedTransactionChainId as EVMUniverseChainId)
             // We need to reassign the provider after switching chains
             // otherwise sendTransaction will use the provider that is
             // not connected to the correct chain

@@ -137,10 +137,9 @@ function callsV4PositionManagerContract(assetActivity: TransactionActivity) {
     return false
   }
 
+  // isEVMChain already excludes non-EVM chains like Bitcoin and LightningNetwork
   return (
     isEVMChain(supportedChain) &&
-    supportedChain !== UniverseChainId.Bitcoin &&
-    supportedChain !== UniverseChainId.LightningNetwork &&
     isSameAddress(assetActivity.details.to, CHAIN_TO_ADDRESSES_MAP[supportedChain].v4PositionManagerAddress)
   )
 }

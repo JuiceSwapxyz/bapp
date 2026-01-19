@@ -1,6 +1,6 @@
 import { LAUNCHPAD_ADDRESSES, TOKEN_FACTORY_ABI } from 'constants/launchpad'
 import { useMemo } from 'react'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { EVMUniverseChainId, UniverseChainId } from 'uniswap/src/features/chains/types'
 import { assume0xAddress } from 'utils/wagmi'
 import { useReadContract, useReadContracts } from 'wagmi'
 
@@ -24,7 +24,7 @@ export interface TokenFactoryState {
 /**
  * Get the factory address for a chain
  */
-export function useFactoryAddress(chainId: UniverseChainId = UniverseChainId.CitreaTestnet): string | undefined {
+export function useFactoryAddress(chainId: EVMUniverseChainId = UniverseChainId.CitreaTestnet): string | undefined {
   return useMemo(() => {
     const addresses = LAUNCHPAD_ADDRESSES[chainId]
     if (!addresses || addresses.factory === '0x0000000000000000000000000000000000000000') {
@@ -38,7 +38,7 @@ export function useFactoryAddress(chainId: UniverseChainId = UniverseChainId.Cit
  * Hook to read token factory state
  * @param chainId - Chain ID (defaults to CitreaTestnet)
  */
-export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.CitreaTestnet): TokenFactoryState {
+export function useTokenFactory(chainId: EVMUniverseChainId = UniverseChainId.CitreaTestnet): TokenFactoryState {
   const factoryAddress = useFactoryAddress(chainId)
   const address = factoryAddress ? assume0xAddress(factoryAddress) : undefined
 
@@ -93,7 +93,7 @@ export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.Citre
  */
 export function useTokenAtIndex(
   index: number | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: EVMUniverseChainId = UniverseChainId.CitreaTestnet,
 ): { tokenAddress: string | undefined; isLoading: boolean } {
   const factoryAddress = useFactoryAddress(chainId)
   const address = factoryAddress ? assume0xAddress(factoryAddress) : undefined
@@ -124,7 +124,7 @@ export function useTokenAtIndex(
  */
 export function useTokenInfo(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: EVMUniverseChainId = UniverseChainId.CitreaTestnet,
 ): { tokenInfo: TokenInfo | undefined; isLoading: boolean } {
   const factoryAddress = useFactoryAddress(chainId)
   const factory = factoryAddress ? assume0xAddress(factoryAddress) : undefined
@@ -145,7 +145,7 @@ export function useTokenInfo(
       return { tokenInfo: undefined, isLoading }
     }
 
-    const [creator, timestamp, name, symbol] = data as [string, bigint, string, string]
+    const [creator, timestamp, name, symbol] = data as unknown as [string, bigint, string, string]
 
     return {
       tokenInfo: {
@@ -169,7 +169,7 @@ export function useTokenInfo(
 export function useTokenList(
   startIndex: number,
   count: number,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: EVMUniverseChainId = UniverseChainId.CitreaTestnet,
 ): { tokens: string[]; isLoading: boolean } {
   const factoryAddress = useFactoryAddress(chainId)
   const address = factoryAddress ? assume0xAddress(factoryAddress) : undefined
