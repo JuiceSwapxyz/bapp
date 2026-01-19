@@ -21,7 +21,7 @@ export function setupWagmiAutoConnect() {
           features: {},
           accounts: [
             eagerlyConnectAddress && isAddress(eagerlyConnectAddress)
-              ? eagerlyConnectAddress
+              ? (eagerlyConnectAddress as `0x${string}`)
               : PLAYWRIGHT_CONNECT_ADDRESS,
           ],
         }),

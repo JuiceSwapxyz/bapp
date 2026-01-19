@@ -143,6 +143,7 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [Routing.JUPITER]: createNoopService(),
       [Routing.BITCOIN_BRIDGE]: bitcoinBridgeSwapTxInfoService,
       [Routing.LN_BRIDGE]: lightningBridgeSwapTxInfoService,
+      [Routing.ERC20_CHAIN_SWAP]: bridgeSwapTxInfoService,
     } satisfies RoutingServicesMap
   }, [
     classicSwapTxInfoService,
