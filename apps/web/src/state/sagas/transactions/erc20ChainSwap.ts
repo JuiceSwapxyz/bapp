@@ -27,16 +27,14 @@ async function getConnectorClientForChain(chainId: UniverseChainId): Promise<Cli
   }
 }
 
-async function waitForNetwork(targetChainId: number, timeout = 30000): Promise<void> {
+async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<void> {
   const startTime = Date.now()
   
-  // Check if already on correct network using wagmi
   const account = getAccount(wagmiConfig)
   if (account.chainId === targetChainId) {
     return
   }
 
-  // Wait for network change by polling wagmi's account
   return new Promise((resolve, reject) => {
     const pollInterval = setInterval(() => {
       try {
@@ -52,7 +50,7 @@ async function waitForNetwork(targetChainId: number, timeout = 30000): Promise<v
         clearInterval(pollInterval)
         reject(error)
       }
-    }, 500)
+    }, 200)
   })
 }
 
@@ -254,35 +252,46 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   console.error('[ERC20 Chain Swap] Waiting for Boltz lock:', { swapId: chainSwap.id })
   
   try {
-    // Wait for user's lockup transaction to be confirmed on source chain
+    console.error('[ERC20 Chain Swap] [1/3] Waiting for user lockup confirmation...', { 
+      swapId: chainSwap.id, 
+      waitingFor: LdsSwapStatus.TransactionConfirmed 
+    })
     yield* call(
       [ldsBridge, ldsBridge.waitForSwapUntilState],
       chainSwap.id,
       LdsSwapStatus.TransactionConfirmed,
     )
-    console.error('[ERC20 Chain Swap] User lockup confirmed on source chain')
+    console.error('[ERC20 Chain Swap] [1/3] ✓ User lockup confirmed on source chain')
     
-    // Update step to show we're waiting for Boltz
     setCurrentStep({ step, accepted: false })
     
-    // Wait for Boltz's lockup transaction to be in mempool on target chain
+    console.error('[ERC20 Chain Swap] [2/3] Waiting for Boltz lockup in mempool...', { 
+      swapId: chainSwap.id, 
+      waitingFor: LdsSwapStatus.TransactionServerMempool 
+    })
     yield* call(
       [ldsBridge, ldsBridge.waitForSwapUntilState],
       chainSwap.id,
       LdsSwapStatus.TransactionServerMempool,
     )
-    console.error('[ERC20 Chain Swap] Boltz lockup in mempool on target chain')
+    console.error('[ERC20 Chain Swap] [2/3] ✓ Boltz lockup in mempool on target chain')
     
-    // Wait for Boltz's lockup transaction to be confirmed on target chain
-    // (matching test script behavior: wait for transaction.server.confirmed before claiming)
+    console.error('[ERC20 Chain Swap] [3/3] Waiting for Boltz lockup confirmation...', { 
+      swapId: chainSwap.id, 
+      waitingFor: LdsSwapStatus.TransactionServerConfirmed 
+    })
     yield* call(
       [ldsBridge, ldsBridge.waitForSwapUntilState],
       chainSwap.id,
       LdsSwapStatus.TransactionServerConfirmed,
     )
-    console.error('[ERC20 Chain Swap] Boltz lockup confirmed on target chain via websocket')
+    console.error('[ERC20 Chain Swap] [3/3] ✓ Boltz lockup confirmed on target chain')
   } catch (error) {
-    console.error('[ERC20 Chain Swap] Failed waiting for Boltz lock:', error)
+    console.error('[ERC20 Chain Swap] ✗ Failed waiting for Boltz lock:', { 
+      swapId: chainSwap.id, 
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     throw new TransactionStepFailedError({
       message: `Failed waiting for Boltz lock: ${error instanceof Error ? error.message : String(error)}. The swap may still be processing. Please check the swap status.`,
       step,
@@ -291,23 +300,25 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   }
 
   console.error('[ERC20 Chain Swap] Switching to target chain:', { targetChainId })
-  try {
-    const chainSwitched = yield* call(selectChain, targetChainId)
-    if (chainSwitched) {
-      // Wait for network switch if successful
-      yield* call(waitForNetwork, targetChainId)
-      console.error('[ERC20 Chain Swap] Network switched to target chain')
-    } else {
-      // If switch failed, wait anyway - user may have manually switched
-      console.error('[ERC20 Chain Swap] Chain switch returned false, waiting for network switch anyway...')
+  const currentAccount = getAccount(wagmiConfig)
+  if (currentAccount.chainId !== targetChainId) {
+    try {
+      const chainSwitched = yield* call(selectChain, targetChainId)
+      if (chainSwitched) {
+        yield* call(waitForNetwork, targetChainId)
+        console.error('[ERC20 Chain Swap] Network switched to target chain')
+      } else {
+        console.error('[ERC20 Chain Swap] Chain switch returned false, waiting for network switch anyway...')
+        yield* call(waitForNetwork, targetChainId)
+        console.error('[ERC20 Chain Swap] Network switched to target chain')
+      }
+    } catch (error) {
+      console.error('[ERC20 Chain Swap] Chain switch error, waiting for network switch:', error)
       yield* call(waitForNetwork, targetChainId)
       console.error('[ERC20 Chain Swap] Network switched to target chain')
     }
-  } catch (error) {
-    console.error('[ERC20 Chain Swap] Chain switch error, waiting for network switch:', error)
-    // Wait for network switch even if selectChain threw
-    yield* call(waitForNetwork, targetChainId)
-    console.error('[ERC20 Chain Swap] Network switched to target chain')
+  } else {
+    console.error('[ERC20 Chain Swap] Already on target chain')
   }
 
   // Get signer for target chain (now that we're on the correct chain)
@@ -349,12 +360,14 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   }
 
   const targetSigner = targetProvider.getSigner(account.address)
-  const claimAmount = BigInt(chainSwap.claimDetails.amount) / 100n // 8 → 6 decimals
+  const boltzAmount8Decimals = BigInt(chainSwap.claimDetails.amount)
+  const claimAmount = boltzAmount8Decimals / 100n
 
   console.error('[ERC20 Chain Swap] Claiming tokens:', {
     contractAddress: CONTRACTS[targetChain].swap,
     tokenAddress: CONTRACTS[targetChain].token,
-    amount: claimAmount.toString(),
+    boltzAmount8Decimals: boltzAmount8Decimals.toString(),
+    claimAmount6Decimals: claimAmount.toString(),
   })
   // Update step to show we're claiming (user may need to approve in wallet)
   setCurrentStep({ step, accepted: false })
