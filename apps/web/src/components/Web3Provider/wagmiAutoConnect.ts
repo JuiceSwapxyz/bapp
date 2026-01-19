@@ -14,18 +14,22 @@ export function setupWagmiAutoConnect() {
   // Automatically connect if running under Playwright (used by E2E tests)
   // Skip mock auto-connect if REACT_APP_USE_REAL_WALLET is set
   if (isPlaywrightEnv() && isEagerlyConnect && process.env.REACT_APP_USE_REAL_WALLET !== 'true') {
-    // setTimeout avoids immediate disconnection caused by race condition in wagmi mock connector
-    setTimeout(() => {
-      connect(wagmiConfig, {
-        connector: mock({
-          features: {},
-          accounts: [
-            eagerlyConnectAddress && isAddress(eagerlyConnectAddress)
-              ? (eagerlyConnectAddress as `0x${string}`)
-              : PLAYWRIGHT_CONNECT_ADDRESS,
-          ],
-        }),
-      })
-    }, 1)
+    const connectAddress =
+      eagerlyConnectAddress && isAddress(eagerlyConnectAddress)
+        ? (eagerlyConnectAddress as `0x${string}`)
+        : PLAYWRIGHT_CONNECT_ADDRESS
+
+    // Only connect if we have a valid address
+    if (connectAddress && isAddress(connectAddress)) {
+      // setTimeout avoids immediate disconnection caused by race condition in wagmi mock connector
+      setTimeout(() => {
+        connect(wagmiConfig, {
+          connector: mock({
+            features: {},
+            accounts: [connectAddress],
+          }),
+        })
+      }, 1)
+    }
   }
 }

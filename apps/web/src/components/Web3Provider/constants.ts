@@ -20,5 +20,5 @@ export function useRecentConnectorId() {
   return useAtomValue(recentConnectorIdAtom)
 }
 
-export const PLAYWRIGHT_CONNECT_ADDRESS: `0x${string}` =
-  (process.env.REACT_APP_PLAYWRIGHT_WALLET_ADDRESS || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266') as `0x${string}`
+export const PLAYWRIGHT_CONNECT_ADDRESS: `0x${string}` | undefined =
+  process.env.REACT_APP_PLAYWRIGHT_WALLET_ADDRESS as `0x${string}` | undefined
