@@ -33,7 +33,7 @@
       "totalLiquidityUsd": "90225505.0016277558152105194470525",
       "currentLiquidity": "2370158813300581373",
       "apr": 11.195444126358728,
-      "owner": "0x0000000000000000000000000000000000000001"
+      "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
     },
     "status": "POSITION_STATUS_OUT_OF_RANGE"
   }
