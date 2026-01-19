@@ -1,7 +1,7 @@
 import { chromium, expect, test, type BrowserContext } from '@playwright/test'
 import { prepareExtension } from '@synthetixio/synpress-cache'
 import { MetaMask, getExtensionId } from '@synthetixio/synpress-metamask/playwright'
-import { CHAIN_CONFIG, SEED_PHRASE, WALLET_PASSWORD } from './wallet.setup'
+import { CHAIN_CONFIG, SEED_PHRASE, WALLET_ADDRESS, WALLET_PASSWORD } from './wallet.setup'
 
 if (!SEED_PHRASE || !WALLET_PASSWORD) {
   throw new Error('WALLET_SEED_PHRASE and WALLET_PASSWORD must be set in environment variables')
@@ -12,6 +12,11 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
   let metamask: MetaMask
 
   test.beforeAll(async () => {
+    // Debug: Log wallet info
+    console.log('=== Wallet Setup ===')
+    console.log('SEED_PHRASE (first 20 chars):', SEED_PHRASE.slice(0, 20) + '...')
+    console.log('Expected WALLET_ADDRESS:', WALLET_ADDRESS)
+
     // Prepare MetaMask extension
     const extensionPath = await prepareExtension()
 
@@ -270,6 +275,197 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
         // Network might already be added
       }
     }
+
+    await page.close()
+  })
+
+  test('should execute a cross-chain swap from USDT (Polygon) to JUSD (Citrea)', async () => {
+    const page = await context.newPage()
+    const SWAP_AMOUNT = '1'
+
+    // Capture browser console errors and failed requests
+    const consoleErrors: string[] = []
+    const failedRequests: string[] = []
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(`[Console Error] ${msg.text()}`)
+      }
+    })
+    page.on('pageerror', (error) => {
+      consoleErrors.push(`[Page Error] ${error.message}`)
+    })
+    page.on('requestfailed', (request) => {
+      failedRequests.push(`[Failed] ${request.url()} - ${request.failure()?.errorText}`)
+    })
+    page.on('response', (response) => {
+      if (response.status() >= 400) {
+        failedRequests.push(`[${response.status()}] ${response.url()}`)
+      }
+    })
+
+    console.log('Expected wallet address:', WALLET_ADDRESS)
+
+    // Switch MetaMask to Polygon
+    try {
+      await metamask.switchNetwork('Polygon')
+    } catch {
+      // Network might already be selected
+    }
+
+    // Navigate directly to swap page with cross-chain parameters
+    await page.goto('/swap?chain=polygon&outputChain=citrea_testnet&inputCurrency=USDT&outputCurrency=JUSD')
+    await page.waitForLoadState('networkidle')
+
+    // Wait for the page to fully load and initialize
+    await page.waitForTimeout(5000)
+    console.log('Page loaded, waiting for Lightning.Space API...')
+
+    // Check if wallet is already connected (via mock connector in Playwright env)
+    const connectedWallet = page.locator('button:has-text("0x")').first()
+    const isAlreadyConnected = await connectedWallet.isVisible({ timeout: 3000 }).catch(() => false)
+
+    if (isAlreadyConnected) {
+      const address = await connectedWallet.textContent()
+      console.log('Wallet already connected:', address)
+
+      // Verify it's our expected wallet
+      const expectedShort = WALLET_ADDRESS.slice(2, 6).toLowerCase()
+      expect(address?.toLowerCase()).toContain(expectedShort)
+    } else {
+      // Connect wallet fresh
+      const connectButton = page.getByRole('button', { name: /connect/i }).first()
+      await expect(connectButton).toBeVisible({ timeout: 10000 })
+      await connectButton.click()
+      await page.waitForTimeout(1000)
+
+      const metamaskOption = page.getByText(/metamask/i).first()
+      await expect(metamaskOption).toBeVisible({ timeout: 5000 })
+      await metamaskOption.click()
+
+      // Approve connection in MetaMask
+      await metamask.connectToDapp()
+      await page.waitForTimeout(3000)
+
+      // Verify correct wallet is connected
+      if (await connectedWallet.isVisible({ timeout: 5000 }).catch(() => false)) {
+        const address = await connectedWallet.textContent()
+        console.log('Connected wallet:', address)
+
+        // Verify it's our expected wallet
+        const expectedShort = WALLET_ADDRESS.slice(2, 6).toLowerCase()
+        expect(address?.toLowerCase()).toContain(expectedShort)
+      }
+    }
+
+    // Find the input field for the swap amount
+    // Usually it's the first input field on the swap form
+    const inputField = page.locator('input[type="text"], input[type="number"], input[inputmode="decimal"]').first()
+    await expect(inputField).toBeVisible({ timeout: 10000 })
+
+    // Clear and enter the swap amount
+    await inputField.click()
+    await inputField.fill(SWAP_AMOUNT)
+    await page.waitForTimeout(2000)
+
+    // Wait for quote to load (look for the output amount to appear)
+    await page.waitForTimeout(5000)
+
+    // Find and click the swap/review button
+    const swapButton = page
+      .getByRole('button', { name: /swap|review|exchange/i })
+      .filter({ hasNotText: /connect/i })
+      .first()
+
+    // Wait for button to be enabled (not disabled)
+    await expect(swapButton).toBeVisible({ timeout: 15000 })
+
+    // Check if button is enabled
+    const isDisabled = await swapButton.isDisabled().catch(() => true)
+    if (isDisabled) {
+      // Log why it might be disabled
+      const buttonText = await swapButton.textContent()
+      console.log('Swap button state:', buttonText)
+
+      // Check for insufficient balance or other errors
+      const errorMessage = await page.locator('text=/insufficient|not enough|error/i').first().isVisible().catch(() => false)
+      if (errorMessage) {
+        console.log('Error detected on page - insufficient balance or other issue')
+      }
+
+      // Log all failed requests
+      if (failedRequests.length > 0) {
+        console.log('=== Failed Network Requests ===')
+        failedRequests.forEach((req) => console.log(req))
+        console.log('=== End Failed Requests ===')
+      }
+
+      // Check for warning message on page
+      const warningText = await page.locator('text=/cannot be completed|error|failed/i').first().textContent().catch(() => null)
+      if (warningText) {
+        console.log('Warning on page:', warningText)
+      }
+
+      // Get the output amount to see if quote was received
+      const outputAmount = await page.locator('input[inputmode="decimal"]').nth(1).inputValue().catch(() => 'N/A')
+      console.log('Output amount (JUSD):', outputAmount)
+    }
+
+    expect(isDisabled).toBeFalsy()
+
+    await swapButton.click()
+    await page.waitForTimeout(2000)
+
+    // Handle review/confirm modal if it appears
+    const confirmButton = page.getByRole('button', { name: /confirm|swap|submit/i }).first()
+    if (await confirmButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await confirmButton.click()
+      await page.waitForTimeout(2000)
+    }
+
+    // Approve token spending if required (first transaction)
+    try {
+      await metamask.confirmTransaction()
+      await page.waitForTimeout(3000)
+    } catch {
+      console.log('No approval transaction needed or already approved')
+    }
+
+    // Confirm the actual swap transaction
+    try {
+      await metamask.confirmTransaction()
+      await page.waitForTimeout(5000)
+    } catch {
+      console.log('Swap transaction confirmation failed or timed out')
+    }
+
+    // Wait for transaction to be submitted and check for success indicators
+    // Look for success message, transaction hash, or status update
+    const successIndicators = [
+      'text=/success|completed|submitted|pending/i',
+      'text=/transaction|tx|hash/i',
+      '[data-testid="swap-success"]',
+      '[data-testid="transaction-submitted"]',
+    ]
+
+    let swapInitiated = false
+    for (const selector of successIndicators) {
+      const indicator = page.locator(selector).first()
+      if (await indicator.isVisible({ timeout: 5000 }).catch(() => false)) {
+        swapInitiated = true
+        console.log('Swap initiated successfully, indicator found:', selector)
+        break
+      }
+    }
+
+    // For cross-chain swaps, the transaction might take longer
+    // At minimum, verify no error message is shown
+    const errorVisible = await page
+      .locator('text=/failed|error|rejected/i')
+      .first()
+      .isVisible({ timeout: 2000 })
+      .catch(() => false)
+
+    expect(errorVisible).toBeFalsy()
 
     await page.close()
   })

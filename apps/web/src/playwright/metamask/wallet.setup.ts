@@ -1,3 +1,11 @@
+import dotenv from 'dotenv'
+import path from 'path'
+import { Wallet } from 'ethers'
+
+// Load environment variables from .env.local
+// Use process.cwd() since Playwright runs from apps/web directory
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
+
 /**
  * Wallet setup for MetaMask E2E tests
  *
@@ -13,6 +21,10 @@
 export const SEED_PHRASE =
   process.env.WALLET_SEED_PHRASE || 'test test test test test test test test test test test junk'
 export const WALLET_PASSWORD = process.env.WALLET_PASSWORD || 'TestPassword123!'
+
+// Derive wallet address from seed phrase
+const wallet = Wallet.fromMnemonic(SEED_PHRASE)
+export const WALLET_ADDRESS = wallet.address
 
 // Chain configurations
 export const CHAIN_CONFIG = {
