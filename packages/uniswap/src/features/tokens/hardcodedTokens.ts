@@ -72,7 +72,7 @@ const citreaJusdCurrency = {
     name: 'JuiceSwap USD',
   }) as Currency,
   currencyId: `${UniverseChainId.CitreaTestnet}-0xFdB0a83d94CD65151148a131167Eb499Cb85d015`,
-  logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+  logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
 }
 
 const polygonUsdtCurrency = {

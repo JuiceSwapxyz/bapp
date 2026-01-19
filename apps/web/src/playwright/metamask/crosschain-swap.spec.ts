@@ -176,26 +176,11 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
     // Wait for page to fully load
     await page.waitForTimeout(3000)
 
-    // Verify that the input chain is Citrea Testnet
-    // Check for Citrea chain indicator or token
-    const pageContent = await page.content()
-    expect(pageContent.toLowerCase()).toContain('citrea')
-
-    // Verify JUSD is selected as input
-    const jusdVisible = await page
-      .locator('text=JUSD')
-      .first()
-      .isVisible()
-      .catch(() => false)
-    expect(jusdVisible).toBeTruthy()
-
-    // Verify USDT is selected as output
-    const usdtVisible = await page
-      .locator('text=USDT')
-      .first()
-      .isVisible()
-      .catch(() => false)
-    expect(usdtVisible).toBeTruthy()
+    // Visual regression test - compare against baseline screenshot
+    await expect(page).toHaveScreenshot('citrea-jusd-to-polygon-usdt.png', {
+      fullPage: true,
+      maxDiffPixelRatio: 0.05,
+    })
 
     await page.close()
   })
@@ -211,21 +196,11 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
     // Wait for page to fully load
     await page.waitForTimeout(3000)
 
-    // Verify USDT is selected as input
-    const usdtVisible = await page
-      .locator('text=USDT')
-      .first()
-      .isVisible()
-      .catch(() => false)
-    expect(usdtVisible).toBeTruthy()
-
-    // Verify JUSD is selected as output
-    const jusdVisible = await page
-      .locator('text=JUSD')
-      .first()
-      .isVisible()
-      .catch(() => false)
-    expect(jusdVisible).toBeTruthy()
+    // Visual regression test - compare against baseline screenshot
+    await expect(page).toHaveScreenshot('polygon-usdt-to-citrea-jusd.png', {
+      fullPage: true,
+      maxDiffPixelRatio: 0.05,
+    })
 
     await page.close()
   })
