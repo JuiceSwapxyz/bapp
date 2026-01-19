@@ -111,7 +111,7 @@ const defaultOnFetchResponse = (response: Response, chain: Chain, url: string) =
 }
 
 const defaultConnectors = createWagmiConnectors({
-  includeMockConnector: isPlaywrightEnv(),
+  includeMockConnector: isPlaywrightEnv() && process.env.REACT_APP_USE_REAL_WALLET !== 'true',
 })
 
 export const wagmiConfig = createWagmiConfig({ connectors: defaultConnectors })

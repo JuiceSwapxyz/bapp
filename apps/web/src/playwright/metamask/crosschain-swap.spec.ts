@@ -59,12 +59,14 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
         try {
           // Wait for any of these buttons to appear
           const buttonSelectors = [
+            'button:has-text("Got it")',
             'button:has-text("Open wallet")',
             'button:has-text("Wallet öffnen")',
             'button:has-text("Done")',
             'button:has-text("Fertig")',
             '[data-testid="onboarding-complete-done"]',
             '[data-testid="pin-extension-done"]',
+            '[data-testid="whats-new-popup-close"]',
           ]
 
           for (const selector of buttonSelectors) {
@@ -125,6 +127,22 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
 
     await homePage.waitForLoadState('domcontentloaded')
     await new Promise((r) => setTimeout(r, 3000))
+
+    // Dismiss any "What's new" or other popups on home page
+    const popupDismissSelectors = [
+      'button:has-text("Got it")',
+      'button:has-text("Verstanden")',
+      '[data-testid="popover-close"]',
+      '[data-testid="whats-new-popup-close"]',
+      'button[aria-label="Close"]',
+    ]
+    for (const selector of popupDismissSelectors) {
+      const btn = homePage.locator(selector).first()
+      if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await btn.click()
+        await new Promise((r) => setTimeout(r, 1000))
+      }
+    }
 
     // Create fresh MetaMask instance with the home page
     metamask = new MetaMask(context, homePage, WALLET_PASSWORD, extensionId)
