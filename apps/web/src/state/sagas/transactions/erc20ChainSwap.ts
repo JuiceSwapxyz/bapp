@@ -56,6 +56,45 @@ async function waitForNetwork(targetChainId: number, timeout = 30000): Promise<v
   })
 }
 
+async function waitForProviderChain(
+  targetChainId: number,
+  provider: Web3Provider,
+  timeout = 30000,
+): Promise<void> {
+  const startTime = Date.now()
+  
+  try {
+    const network = await provider.getNetwork()
+    if (network.chainId === targetChainId) {
+      return
+    }
+  } catch (error) {
+    console.error('[ERC20 Chain Swap] Failed to get provider network:', error)
+  }
+
+  return new Promise((resolve, reject) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const network = await provider.getNetwork()
+        if (network.chainId === targetChainId) {
+          clearInterval(pollInterval)
+          resolve()
+        } else if (Date.now() - startTime > timeout) {
+          clearInterval(pollInterval)
+          reject(
+            new Error(
+              `Timeout waiting for provider to switch to chain ${targetChainId}. Current chain: ${network.chainId}`,
+            ),
+          )
+        }
+      } catch (error) {
+        clearInterval(pollInterval)
+        reject(error)
+      }
+    }, 500)
+  })
+}
+
 const CONTRACTS = {
   polygon: {
     swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
@@ -241,7 +280,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       chainSwap.id,
       LdsSwapStatus.TransactionServerConfirmed,
     )
-    console.error('[ERC20 Chain Swap] Boltz lockup confirmed on target chain')
+    console.error('[ERC20 Chain Swap] Boltz lockup confirmed on target chain via websocket')
   } catch (error) {
     console.error('[ERC20 Chain Swap] Failed waiting for Boltz lock:', error)
     throw new TransactionStepFailedError({
@@ -251,24 +290,11 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
-  // 4. Claim on target chain (convert 8→6 decimals for contract)
   console.error('[ERC20 Chain Swap] Switching to target chain:', { targetChainId })
   try {
-    const chainSwitched = yield* call(selectChain, targetChainId)
-    if (chainSwitched) {
-      yield* call(waitForNetwork, targetChainId)
-      console.error('[ERC20 Chain Swap] Network switched to target chain')
-    } else {
-      // If switch failed, wait anyway - user may have manually switched
-      console.error('[ERC20 Chain Swap] Chain switch returned false, waiting for network switch anyway...')
-      yield* call(waitForNetwork, targetChainId)
-      console.error('[ERC20 Chain Swap] Network switched to target chain')
-    }
+    yield* call(selectChain, targetChainId)
   } catch (error) {
-    console.error('[ERC20 Chain Swap] Chain switch error, waiting for network switch:', error)
-    // Wait for network switch even if selectChain threw
-    yield* call(waitForNetwork, targetChainId)
-    console.error('[ERC20 Chain Swap] Network switched to target chain')
+    console.error('[ERC20 Chain Swap] Chain switch error:', error)
   }
 
   // Get signer for target chain (now that we're on the correct chain)
@@ -292,6 +318,20 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     throw new TransactionStepFailedError({
       message: `Failed to get provider for chain ${targetChainId}`,
       step,
+    })
+  }
+
+  try {
+    yield* call(waitForProviderChain, targetChainId, targetProvider)
+    console.error('[ERC20 Chain Swap] Provider verified on target chain')
+  } catch (error) {
+    console.error('[ERC20 Chain Swap] Failed to verify provider chain:', error)
+    const chainName = targetChainId === UniverseChainId.CitreaTestnet ? 'Citrea Testnet' : 
+                     targetChainId === UniverseChainId.Polygon ? 'Polygon' : 'Ethereum'
+    throw new TransactionStepFailedError({
+      message: `Failed to switch to ${chainName} network. Please manually switch to ${chainName} in MetaMask and try again.`,
+      step,
+      originalError: error instanceof Error ? error : new Error(String(error)),
     })
   }
 
