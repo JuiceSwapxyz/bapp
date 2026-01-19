@@ -35,6 +35,9 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
   setCurrentStep({ step, accepted: true })
 
   yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwapResponse.id, LdsSwapStatus.TransactionMempool)
+  if (onSuccess) {
+    yield* call(onSuccess)
+  }
 
   popupRegistry.addPopup(
     {
@@ -47,9 +50,6 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
   )
 
   yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwapResponse.id, LdsSwapStatus.TransactionConfirmed)
-  if (onSuccess) {
-    yield* call(onSuccess)
-  }
   const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwapResponse.id)
 
   popupRegistry.addPopup(
