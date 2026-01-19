@@ -19,6 +19,7 @@
 /functions/coverage
 /.swc
 /test-results
+/test-results-metamask
 /src/playwright-report
 bundlemeta.json
 
