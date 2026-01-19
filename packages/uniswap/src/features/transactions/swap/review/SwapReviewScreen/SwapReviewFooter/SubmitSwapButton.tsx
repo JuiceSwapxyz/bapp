@@ -7,8 +7,12 @@ import type { Warning } from 'uniswap/src/components/modals/WarningModal/types'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
 import type { PasskeyAuthStatus } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
 import { useTransactionModalContext } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
+import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 import { FlashblocksConfirmButton } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/FlashblocksConfirmButton'
 import { useIsUnichainFlashblocksEnabled } from 'uniswap/src/features/transactions/swap/hooks/useIsUnichainFlashblocksEnabled'
+import { useSwapReviewStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewStore/useSwapReviewStore'
+import type { BitcoinBridgeBitcoinToCitreaStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
+import type { LightningBridgeReverseStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import {
   useSwapFormStore,
   useSwapFormStoreDerivedSwapInfo,
@@ -206,11 +210,28 @@ function DelayedSubmissionText(): JSX.Element {
   )
 }
 
+function useHasInvoiceDisplayed(): boolean {
+  const currentStep = useSwapReviewStore((s) => s.currentStep)
+
+  if (currentStep?.step.type === TransactionStepType.BitcoinBridgeBitcoinToCitreaStep) {
+    return Boolean((currentStep.step as BitcoinBridgeBitcoinToCitreaStep).bip21)
+  }
+
+  if (currentStep?.step.type === TransactionStepType.LightningBridgeReverseStep) {
+    return Boolean((currentStep.step as LightningBridgeReverseStep).invoice)
+  }
+
+  return false
+}
+
 function ConfirmInWalletText({ passkeyAuthStatus }: { passkeyAuthStatus?: PasskeyAuthStatus }): JSX.Element {
   const { t } = useTranslation()
+  const hasInvoice = useHasInvoiceDisplayed()
 
   let text = t('common.confirmWallet')
-  if (passkeyAuthStatus?.isSessionAuthenticated) {
+  if (hasInvoice) {
+    text = t('swap.button.payInvoice')
+  } else if (passkeyAuthStatus?.isSessionAuthenticated) {
     text = t('swap.button.submitting')
   } else if (passkeyAuthStatus?.isSignedInWithPasskey) {
     text = t('swap.button.submitting.passkey')

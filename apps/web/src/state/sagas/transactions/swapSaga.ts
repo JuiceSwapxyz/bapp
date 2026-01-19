@@ -78,7 +78,9 @@ interface HandleSwapStepParams extends Omit<HandleOnChainStepParams, 'step' | 'i
   trade: ClassicTrade | BridgeTrade
   analytics: SwapTradeBaseProperties
   onTransactionHash?: (hash: string) => void
+  swapTxContext?: ValidatedSwapTxContext
 }
+
 function* handleSwapTransactionStep(params: HandleSwapStepParams) {
   const { trade, step, signature, analytics, onTransactionHash } = params
 
@@ -115,7 +117,6 @@ function* handleSwapTransactionStep(params: HandleSwapStepParams) {
     )
   }
 
-  // Update swap form store with actual transaction hash
   if (onTransactionHash) {
     onTransactionHash(hash)
   }
@@ -292,6 +293,7 @@ function* swap(params: SwapParams) {
             trade,
             analytics,
             onTransactionHash: params.onTransactionHash,
+            swapTxContext,
           })
           break
         }
