@@ -26,9 +26,17 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
     const extensionId = await getExtensionId(context, 'MetaMask')
 
     // Wait for MetaMask to initialize
-    await new Promise((r) => setTimeout(r, 2000))
-    const pages = context.pages()
-    const metamaskPage = pages.find((p) => p.url().includes('chrome-extension://'))
+    await new Promise((r) => setTimeout(r, 3000))
+
+    // Find MetaMask page (might need to wait for it after extension loads)
+    let metamaskPage = context.pages().find((p) => p.url().includes('chrome-extension://'))
+
+    // If not found, wait and try again
+    if (!metamaskPage) {
+      await new Promise((r) => setTimeout(r, 3000))
+      metamaskPage = context.pages().find((p) => p.url().includes('chrome-extension://'))
+    }
+
     if (!metamaskPage) throw new Error('MetaMask not found')
 
     // Initialize MetaMask instance
@@ -37,14 +45,96 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
     // Import wallet using seed phrase
     await metamask.importWallet(SEED_PHRASE)
 
-    // Add Citrea Testnet network
-    await metamask.addNetwork(CHAIN_CONFIG.citreaTestnet)
+    // Wait for "Your wallet is ready" screen and click "Open wallet"
+    await new Promise((r) => setTimeout(r, 3000))
 
-    // Add Polygon network (might already be available)
+    // Find the MetaMask page showing "Wallet is ready" and click the button
+    for (const page of context.pages()) {
+      if (page.url().includes('chrome-extension://')) {
+        try {
+          // Wait for any of these buttons to appear
+          const buttonSelectors = [
+            'button:has-text("Open wallet")',
+            'button:has-text("Wallet öffnen")',
+            'button:has-text("Done")',
+            'button:has-text("Fertig")',
+            '[data-testid="onboarding-complete-done"]',
+            '[data-testid="pin-extension-done"]',
+          ]
+
+          for (const selector of buttonSelectors) {
+            const btn = page.locator(selector).first()
+            if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
+              await btn.click()
+              await new Promise((r) => setTimeout(r, 2000))
+              break
+            }
+          }
+        } catch {
+          // Continue to next page
+        }
+      }
+    }
+
+    // After clicking "Open wallet", MetaMask might show pin extension page
+    // Wait and click through any additional screens
+    await new Promise((r) => setTimeout(r, 2000))
+
+    for (const page of context.pages()) {
+      if (page.url().includes('chrome-extension://')) {
+        try {
+          // Skip pin extension step if shown
+          const nextBtn = page
+            .locator('[data-testid="pin-extension-next"], button:has-text("Next"), button:has-text("Weiter")')
+            .first()
+          if (await nextBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await nextBtn.click()
+            await new Promise((r) => setTimeout(r, 1000))
+          }
+
+          const doneBtn = page
+            .locator('[data-testid="pin-extension-done"], button:has-text("Done"), button:has-text("Fertig")')
+            .first()
+          if (await doneBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await doneBtn.click()
+            await new Promise((r) => setTimeout(r, 2000))
+          }
+        } catch {
+          // Continue
+        }
+      }
+    }
+
+    // Now navigate directly to MetaMask home page
+    await new Promise((r) => setTimeout(r, 2000))
+    const homeUrl = `chrome-extension://${extensionId}/home.html`
+
+    // Find or create page for MetaMask home
+    let homePage = context.pages().find((p) => p.url().includes(extensionId))
+    if (homePage) {
+      await homePage.goto(homeUrl)
+    } else {
+      homePage = await context.newPage()
+      await homePage.goto(homeUrl)
+    }
+
+    await homePage.waitForLoadState('domcontentloaded')
+    await new Promise((r) => setTimeout(r, 3000))
+
+    // Create fresh MetaMask instance with the home page
+    metamask = new MetaMask(context, homePage, WALLET_PASSWORD, extensionId)
+
+    // Add networks with error handling
+    try {
+      await metamask.addNetwork(CHAIN_CONFIG.citreaTestnet)
+    } catch (e) {
+      console.log('Could not add Citrea Testnet:', e)
+    }
+
     try {
       await metamask.addNetwork(CHAIN_CONFIG.polygon)
-    } catch {
-      // Polygon might already be available in MetaMask
+    } catch (e) {
+      console.log('Could not add Polygon (may already exist):', e)
     }
   })
 
