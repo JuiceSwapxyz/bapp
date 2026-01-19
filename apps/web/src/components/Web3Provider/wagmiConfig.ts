@@ -111,7 +111,7 @@ const defaultOnFetchResponse = (response: Response, chain: Chain, url: string) =
 }
 
 const defaultConnectors = createWagmiConnectors({
-  includeMockConnector: isPlaywrightEnv(),
+  includeMockConnector: false,
 })
 
 export const wagmiConfig = createWagmiConfig({ connectors: defaultConnectors })

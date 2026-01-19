@@ -17,10 +17,9 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
  * - WALLET_PASSWORD: Password for MetaMask (can be any password for testing)
  */
 
-// Default test wallet seed phrase (Hardhat default - DO NOT USE WITH REAL FUNDS)
-export const SEED_PHRASE =
-  process.env.WALLET_SEED_PHRASE || 'test test test test test test test test test test test junk'
-export const WALLET_PASSWORD = process.env.WALLET_PASSWORD || 'TestPassword123!'
+// Wallet credentials from environment - no hardcoded fallbacks
+export const SEED_PHRASE = process.env.WALLET_SEED_PHRASE || ''
+export const WALLET_PASSWORD = process.env.WALLET_PASSWORD || ''
 
 // Derive wallet address from seed phrase
 const wallet = Wallet.fromMnemonic(SEED_PHRASE)
