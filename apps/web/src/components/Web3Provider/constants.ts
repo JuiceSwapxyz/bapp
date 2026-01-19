@@ -20,4 +20,5 @@ export function useRecentConnectorId() {
   return useAtomValue(recentConnectorIdAtom)
 }
 
-export const PLAYWRIGHT_CONNECT_ADDRESS = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
+export const PLAYWRIGHT_CONNECT_ADDRESS =
+  process.env.REACT_APP_PLAYWRIGHT_WALLET_ADDRESS || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
