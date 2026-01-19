@@ -292,9 +292,22 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
   console.error('[ERC20 Chain Swap] Switching to target chain:', { targetChainId })
   try {
-    yield* call(selectChain, targetChainId)
+    const chainSwitched = yield* call(selectChain, targetChainId)
+    if (chainSwitched) {
+      // Wait for network switch if successful
+      yield* call(waitForNetwork, targetChainId)
+      console.error('[ERC20 Chain Swap] Network switched to target chain')
+    } else {
+      // If switch failed, wait anyway - user may have manually switched
+      console.error('[ERC20 Chain Swap] Chain switch returned false, waiting for network switch anyway...')
+      yield* call(waitForNetwork, targetChainId)
+      console.error('[ERC20 Chain Swap] Network switched to target chain')
+    }
   } catch (error) {
-    console.error('[ERC20 Chain Swap] Chain switch error:', error)
+    console.error('[ERC20 Chain Swap] Chain switch error, waiting for network switch:', error)
+    // Wait for network switch even if selectChain threw
+    yield* call(waitForNetwork, targetChainId)
+    console.error('[ERC20 Chain Swap] Network switched to target chain')
   }
 
   // Get signer for target chain (now that we're on the correct chain)
