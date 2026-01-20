@@ -77,6 +77,7 @@ export function useSwapTxAndGasInfo({
           destinationAddress: bitcoinDestinationAddress,
         })
       case Routing.BRIDGE:
+      case Routing.ERC20_CHAIN_SWAP:
         return getBridgeSwapTxAndGasInfo({ trade, swapTxInfo, approvalTxInfo })
       case Routing.CLASSIC:
         return getClassicSwapTxAndGasInfo({ trade, swapTxInfo, approvalTxInfo, permitTxInfo })

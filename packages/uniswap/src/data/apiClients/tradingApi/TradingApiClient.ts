@@ -434,15 +434,15 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
     : Erc20ChainSwapDirection.CitreaToEthereum
 
   const from = direction === Erc20ChainSwapDirection.PolygonToCitrea ? 'USDT_POLYGON' :
-    direction === Erc20ChainSwapDirection.EthereumToCitrea ? 'USDT_ETHEREUM' : 'JUSD_CITREA'
+    direction === Erc20ChainSwapDirection.EthereumToCitrea ? 'USDT_ETH' : 'JUSD_CITREA'
   const to = direction === Erc20ChainSwapDirection.PolygonToCitrea || direction === Erc20ChainSwapDirection.EthereumToCitrea
     ? 'JUSD_CITREA'
-    : direction === Erc20ChainSwapDirection.CitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETHEREUM'
+    : direction === Erc20ChainSwapDirection.CitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETH'
 
   const chainPairs = await ldsBridge.getChainPairs()
   const pairInfo = chainPairs[from]?.[to]
 
-  if (!pairInfo) throw new Error(`Pair not found: ${from} -> ${to}`)
+  if (!pairInfo) throw new Error(`Pair not found: ${from} -> ${to}. Available pairs: ${JSON.stringify(Object.keys(chainPairs))}`)
 
   // Boltz uses 8 decimals internally, USDT/JUSD use 6 decimals
   // Convert 6→8: multiply by 100 (e.g., 10 USDT → 1000000000)

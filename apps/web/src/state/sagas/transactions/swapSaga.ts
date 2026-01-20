@@ -29,8 +29,7 @@ import {
 import { VitalTxFields } from 'state/transactions/types'
 import invariant from 'tiny-invariant'
 import { call } from 'typed-redux-saga'
-import { BridgeQuote, Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
-import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
+import { Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
 import { isL2ChainId } from 'uniswap/src/features/chains/utils'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { SwapEventName } from 'uniswap/src/features/telemetry/constants'
@@ -63,6 +62,7 @@ import {
   isBitcoinBridge,
   isBridge,
   isClassic,
+  isErc20ChainSwap,
   isLightningBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
@@ -242,31 +242,10 @@ async function handleSwitchChains(
 
   // For ERC20 chain swaps, if chain switch fails, allow it to proceed anyway
   // The chain switch will happen during transaction execution
-  if (!chainSwitched) {
-    const isErc20ChainSwap = isBridge(swapTxContext) && (() => {
-      try {
-        const quoteDirection = (swapTxContext.trade.quote.quote as BridgeQuote).direction
-        const isErc20Direction = quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || 
-                                 quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon ||
-                                 quoteDirection === Erc20ChainSwapDirection.EthereumToCitrea ||
-                                 quoteDirection === Erc20ChainSwapDirection.CitreaToEthereum
-        console.error('[Chain Switch] Checking if ERC20 chain swap:', {
-          isBridge: isBridge(swapTxContext),
-          quoteDirection,
-          isErc20Direction,
-        })
-        return isErc20Direction
-      } catch (error) {
-        console.error('[Chain Switch] Error checking ERC20 chain swap direction:', error)
-        return false
-      }
-    })()
-
-    if (isErc20ChainSwap) {
-      console.error('[Chain Switch] ERC20 chain swap detected, allowing to proceed despite chain switch failure')
-      // Allow ERC20 chain swaps to proceed - chain will switch during transaction execution
-      return { chainSwitchFailed: false }
-    }
+  if (!chainSwitched && isErc20ChainSwap(swapTxContext)) {
+    console.error('[Chain Switch] ERC20 chain swap detected, allowing to proceed despite chain switch failure')
+    // Allow ERC20 chain swaps to proceed - chain will switch during transaction execution
+    return { chainSwitchFailed: false }
   }
 
   const result = { chainSwitchFailed: !chainSwitched }
@@ -290,21 +269,7 @@ function* swap(params: SwapParams) {
 
   const isLightningBridgeSwap = isLightningBridge(swapTxContext)
   const isBitcoinBridgeSwap = isBitcoinBridge(swapTxContext)
-  
-  // Check if this is an ERC20 chain swap by looking at the quote direction
-  // ERC20 chain swaps have routing BRIDGE but have Erc20ChainSwapDirection
-  // Note: ERC20 chain swaps DO need chain switching (to source chain), unlike lightning/bitcoin bridges
-  const isErc20ChainSwapSwap = isBridge(swapTxContext) && (() => {
-    try {
-      const quoteDirection = (trade.quote.quote as BridgeQuote).direction
-      return quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || 
-             quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon ||
-             quoteDirection === Erc20ChainSwapDirection.EthereumToCitrea ||
-             quoteDirection === Erc20ChainSwapDirection.CitreaToEthereum
-    } catch {
-      return false
-    }
-  })()
+  const isErc20ChainSwapSwap = isErc20ChainSwap(swapTxContext)
   
   // Skip chain switching only for lightning and bitcoin bridges
   // ERC20 chain swaps need to switch to source chain (input currency chainId) before locking
@@ -449,8 +414,8 @@ function* swap(params: SwapParams) {
     return
   }
 
-  // For lightning bridge and bitcoin bridge, onSuccess is called earlier in the flow
-  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap) {
+  // For lightning bridge, bitcoin bridge, and ERC20 chain swaps, onSuccess is called earlier in the flow
+  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap) {
     yield* call(onSuccess)
   }
 }

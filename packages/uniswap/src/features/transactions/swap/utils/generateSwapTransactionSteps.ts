@@ -83,20 +83,11 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo, _v4Ena
         ((txContext.trade.quote.quote as BridgeQuote).direction as LightningBridgeDirection | undefined) ??
         LightningBridgeDirection.Submarine
       return [createLightningBridgeTransactionStep(direction)]
+    } else if (isErc20ChainSwap(txContext)) {
+      // ERC20 chain swaps have routing ERC20_CHAIN_SWAP
+      const direction = (trade.quote.quote as BridgeQuote).direction as Erc20ChainSwapDirection
+      return [createErc20ChainSwapStep(direction)]
     } else if (isBridge(txContext)) {
-      // Check if this is an ERC20 chain swap by looking at the quote direction
-      // ERC20 chain swaps have routing BRIDGE but have Erc20ChainSwapDirection
-      const quoteDirection = (trade.quote.quote as BridgeQuote).direction
-      const isErc20ChainSwapDirection = quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || 
-                                         quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon ||
-                                         quoteDirection === Erc20ChainSwapDirection.EthereumToCitrea ||
-                                         quoteDirection === Erc20ChainSwapDirection.CitreaToEthereum
-      
-      if (isErc20ChainSwapDirection) {
-        const direction = quoteDirection as Erc20ChainSwapDirection
-        return [createErc20ChainSwapStep(direction)]
-      }
-      
       // Regular bridge swaps require txRequests
       if (txContext.txRequests && txContext.txRequests.length > 1) {
         return orderClassicSwapSteps({

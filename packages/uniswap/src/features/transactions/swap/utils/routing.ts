@@ -19,8 +19,8 @@ export function isClassic<T extends { routing: Routing }>(obj: T): obj is T & { 
   return obj.routing === Routing.CLASSIC
 }
 
-export function isBridge<T extends { routing: Routing }>(obj: T): obj is T & { routing: Routing.BRIDGE } {
-  return obj.routing === Routing.BRIDGE
+export function isBridge<T extends { routing: Routing }>(obj: T): obj is T & { routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP } {
+  return obj.routing === Routing.BRIDGE || obj.routing === Routing.ERC20_CHAIN_SWAP
 }
 
 export function isBitcoinBridge<T extends { routing: Routing }>(

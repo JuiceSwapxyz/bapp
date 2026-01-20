@@ -1,9 +1,8 @@
-import { Routing, CreateSwapRequest, BridgeQuote } from "uniswap/src/data/tradingApi/__generated__/index"
+import { Routing, CreateSwapRequest } from "uniswap/src/data/tradingApi/__generated__/index"
 import { GasEstimate } from "uniswap/src/data/tradingApi/types"
 import { GasFeeResult, ValidatedGasFeeResult, validateGasFeeResult } from "uniswap/src/features/gas/types"
 import { BridgeTrade, BitcoinBridgeTrade, LightningBridgeTrade, ClassicTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
 import { isBridge, isBitcoinBridge, isLightningBridge, isClassic, isUniswapX, isWrap, isErc20ChainSwap } from "uniswap/src/features/transactions/swap/utils/routing"
-import { Erc20ChainSwapDirection } from "uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge"
 import { isInterface } from "utilities/src/platform"
 import { Prettify } from "viem"
 import { ValidatedPermit } from "uniswap/src/features/transactions/swap/utils/trade"
@@ -81,7 +80,7 @@ export interface UniswapXSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
 }
 
 export interface BridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
-  routing: Routing.BRIDGE
+  routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP
   trade: BridgeTrade
   txRequests: PopulatedTransactionRequestArray | undefined
 }
@@ -172,12 +171,9 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
       return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }
     } else if (isBridge(swapTxContext)) {
       const { trade, txRequests, includesDelegation } = swapTxContext
-      // ERC20 chain swaps are converted to BridgeTrade with routing BRIDGE, but have Erc20ChainSwapDirection
-      const quoteDirection = (trade.quote.quote as BridgeQuote).direction
-      const isErc20ChainSwapDirection = quoteDirection === Erc20ChainSwapDirection.PolygonToCitrea || quoteDirection === Erc20ChainSwapDirection.CitreaToPolygon ||
-                                         quoteDirection === Erc20ChainSwapDirection.EthereumToCitrea || quoteDirection === Erc20ChainSwapDirection.CitreaToEthereum
       
-      if (isErc20ChainSwapDirection) {
+      // ERC20 chain swaps don't require txRequests since Boltz handles the swap
+      if (isErc20ChainSwap(swapTxContext)) {
         return {
           ...swapTxContext,
           trade,

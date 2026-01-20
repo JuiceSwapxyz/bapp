@@ -126,9 +126,9 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   const isCitreaToEthereum = step.direction === Erc20ChainSwapDirection.CitreaToEthereum
 
   const from = isPolygonToCitrea ? 'USDT_POLYGON' :
-    isEthereumToCitrea ? 'USDT_ETHEREUM' : 'JUSD_CITREA'
+    isEthereumToCitrea ? 'USDT_ETH' : 'JUSD_CITREA'
   const to = isPolygonToCitrea || isEthereumToCitrea ? 'JUSD_CITREA' :
-    isCitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETHEREUM'
+    isCitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETH'
   const sourceChain = isPolygonToCitrea ? 'polygon' :
     isEthereumToCitrea ? 'ethereum' : 'citrea'
   const targetChain = isPolygonToCitrea || isEthereumToCitrea ? 'citrea' :

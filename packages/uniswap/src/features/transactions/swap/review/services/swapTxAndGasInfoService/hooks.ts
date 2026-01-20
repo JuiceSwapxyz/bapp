@@ -19,6 +19,7 @@ import { FALLBACK_SWAP_REQUEST_POLL_INTERVAL_MS } from 'uniswap/src/features/tra
 import { createEVMSwapInstructionsService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/evmSwapInstructionsService'
 import { usePresignPermit } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/hooks'
 import { createDecorateSwapTxInfoServiceWithEVMLogging } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/logging'
+import { createErc20ChainSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/erc20ChainSwap/erc20ChainSwapTxAndGasInfoService'
 import { createLightningBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/lightning/lightningBridgeSwapTxAndGasInfoService'
 import type {
   RoutingServicesMap,
@@ -129,10 +130,15 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     return createLightningBridgeSwapTxAndGasInfoService({ gasStrategy: swapConfig.gasStrategy })
   }, [swapConfig.gasStrategy])
 
+  const erc20ChainSwapTxInfoService = useMemo(() => {
+    return createErc20ChainSwapTxAndGasInfoService({ gasStrategy: swapConfig.gasStrategy })
+  }, [swapConfig.gasStrategy])
+
   const services = useMemo(() => {
     return {
       [Routing.CLASSIC]: classicSwapTxInfoService,
       [Routing.BRIDGE]: bridgeSwapTxInfoService,
+      [Routing.ERC20_CHAIN_SWAP]: erc20ChainSwapTxInfoService,
       [Routing.PRIORITY]: uniswapXSwapTxInfoService,
       [Routing.DUTCH_V2]: uniswapXSwapTxInfoService,
       [Routing.DUTCH_V3]: uniswapXSwapTxInfoService,
@@ -151,6 +157,7 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     wrapTxInfoService,
     bitcoinBridgeSwapTxInfoService,
     lightningBridgeSwapTxInfoService,
+    erc20ChainSwapTxInfoService,
   ])
 
   return useMemo(() => {
