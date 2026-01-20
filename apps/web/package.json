@@ -26,7 +26,7 @@
     "playwright:metamask": "playwright test --config playwright.metamask.config.ts",
     "playwright:metamask:headed": "playwright test --config playwright.metamask.config.ts --headed",
     "playwright:metamask:debug": "playwright test --config playwright.metamask.config.ts --debug",
-    "setup:synpress": "bash scripts/setup-synpress.sh",
+    "setup:synpress": "bash e2e/scripts/setup-synpress.sh",
     "typecheck": "tsc && yarn typecheck:cloud",
     "typecheck:cloud": "tsc -p functions/tsconfig.json",
     "find:unused": "bash scripts/delete-unused-assets.sh",
