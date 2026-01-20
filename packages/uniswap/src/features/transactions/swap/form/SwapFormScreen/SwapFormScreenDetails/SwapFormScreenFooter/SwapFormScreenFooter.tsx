@@ -39,12 +39,15 @@ export function SwapFormScreenFooter(): JSX.Element | null {
    */
   const showGasAndWarningRows = isWeb ? exactAmountToken && !showWarning : !showWarning
 
+  if (isWeb && !showWarning && !showGasAndWarningRows) {
+    return null
+  }
+
   return (
-    <Flex minHeight="$spacing40" pt={isShortMobileDevice ? '$spacing8' : '$spacing12'}>
+    <Flex pt={isWeb ? undefined : isShortMobileDevice ? '$spacing8' : '$spacing12'}>
       <AnimatePresence>
         {showWarning && <FoTWarningRow currencies={currencies} outputTokenHasBuyTax={outputTokenHasBuyTax} />}
       </AnimatePresence>
-      {/* Accordion.Toggle is nested in GasAndWarningRows */}
       {showGasAndWarningRows && <GasAndWarningRows />}
     </Flex>
   )

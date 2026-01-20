@@ -8,51 +8,47 @@ import { useParsedSwapWarnings } from 'uniswap/src/features/transactions/swap/ho
 import { useIsBlocked } from 'uniswap/src/features/trm/hooks'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 
-export function GasAndWarningRows(): JSX.Element {
-  const account = useWallet().evmAccount
-
-  const { isBlocked } = useIsBlocked(account?.address)
-
+export function GasAndWarningRows(): JSX.Element | null {
+  const { evmAccount } = useWallet()
+  const { isBlocked } = useIsBlocked(evmAccount?.address)
   const { formScreenWarning, warnings } = useParsedSwapWarnings()
-  const inlineWarning =
-    formScreenWarning && formScreenWarning.displayedInline && !isBlocked ? formScreenWarning.warning : undefined
-
   const debouncedGasInfo = useDebouncedGasInfo()
 
-  const insufficientGasFundsWarning = warnings.find((w) => {
-    return w.type === WarningLabel.InsufficientFunds
-  })
+  const inlineWarning = formScreenWarning?.displayedInline && !isBlocked ? formScreenWarning.warning : undefined
+  const hasGasInfo = Boolean(debouncedGasInfo.fiatPriceFormatted)
+  const hasInsufficientFundsWarning = warnings.some((w) => w.type === WarningLabel.InsufficientFunds)
+  const hasInsufficientGasWarning = warnings.some(
+    (w) => w.type === WarningLabel.InsufficientGasFunds || (w.type === WarningLabel.InsufficientFunds && w.currency?.isNative)
+  )
+
+  // Don't render empty container
+  if (!isBlocked && !hasGasInfo && !hasInsufficientGasWarning) {
+    return null
+  }
 
   return (
-    <>
-      {/*
-        Do not add any margins directly to this container, as this component is used in 2 different places.
-        Adjust the margin in the parent component instead.
-      */}
-      <Flex gap="$spacing12">
-        {isBlocked && (
-          // TODO: review design of this warning.
-          <BlockedAddressWarning
-            row
-            alignItems="center"
-            alignSelf="stretch"
-            backgroundColor="$surface2"
-            borderBottomLeftRadius="$rounded16"
-            borderBottomRightRadius="$rounded16"
-            flexGrow={1}
-            px="$spacing16"
-            py="$spacing12"
-          />
-        )}
+    <Flex gap="$spacing12">
+      {isBlocked && (
+        <BlockedAddressWarning
+          row
+          alignItems="center"
+          alignSelf="stretch"
+          backgroundColor="$surface2"
+          borderBottomLeftRadius="$rounded16"
+          borderBottomRightRadius="$rounded16"
+          flexGrow={1}
+          px="$spacing16"
+          py="$spacing12"
+        />
+      )}
 
-        {!insufficientGasFundsWarning && (
-          <Flex gap="$spacing8" px="$spacing8" py="$spacing4">
-            <TradeInfoRow gasInfo={debouncedGasInfo} warning={inlineWarning} />
-          </Flex>
-        )}
+      {!hasInsufficientFundsWarning && hasGasInfo && (
+        <Flex gap="$spacing8" px="$spacing8" py="$spacing4">
+          <TradeInfoRow gasInfo={debouncedGasInfo} warning={inlineWarning} />
+        </Flex>
+      )}
 
-        <InsufficientNativeTokenWarning flow="swap" gasFee={debouncedGasInfo.gasFee} warnings={warnings} />
-      </Flex>
-    </>
+      <InsufficientNativeTokenWarning flow="swap" gasFee={debouncedGasInfo.gasFee} warnings={warnings} />
+    </Flex>
   )
 }
