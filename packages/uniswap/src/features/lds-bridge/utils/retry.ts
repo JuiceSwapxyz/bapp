@@ -35,7 +35,7 @@ export function retry<T>(
   const promise = new Promise<T>(async (resolve, reject) => {
     let currentAttempt = 0
     rejectCancelled = reject
-    // eslint-disable-next-line no-constant-condition
+
     while (true) {
       currentAttempt++
       let result: T
@@ -80,7 +80,7 @@ export function retry<T>(
   })
   return {
     promise,
-    cancel: () => {
+    cancel: (): void => {
       if (completed) {
         return
       }

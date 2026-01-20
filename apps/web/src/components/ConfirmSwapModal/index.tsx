@@ -21,7 +21,6 @@ import { ThemeProvider } from 'theme'
 import { FadePresence } from 'theme/components/FadePresence'
 import { UniswapXOrderStatus } from 'types/uniswapx'
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { TradeFillType } from 'state/routing/types'
 import { ADAPTIVE_MODAL_ANIMATION_DURATION } from 'ui/src/components/modal/AdaptiveWebModal'
 import { SwapEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'

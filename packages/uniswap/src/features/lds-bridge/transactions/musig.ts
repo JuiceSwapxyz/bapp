@@ -5,7 +5,13 @@ import { init } from 'boltz-core/dist/lib/liquid'
 import { hashForWitnessV1 } from 'boltz-core/dist/lib/swap/TaprootUtils'
 import { Buffer } from 'buffer'
 import type { ECPairInterface } from 'ecpair'
-import { SwapType, type ChainSwap, type ReverseSwap, type SomeSwap, type SubmarineSwap } from '../lds-types/storage'
+import {
+  SwapType,
+  type ChainSwap,
+  type ReverseSwap,
+  type SomeSwap,
+  type SubmarineSwap,
+} from 'uniswap/src/features/lds-bridge/lds-types/storage'
 
 type SecpZkp = Awaited<ReturnType<typeof import('@vulpemventures/secp256k1-zkp').default>>
 
@@ -53,8 +59,11 @@ export const prepareClaimMusig = async (
   tweakedKey: Buffer
   swapTree: ReturnType<typeof SwapTreeSerializer.deserializeSwapTree>
 }> => {
-  const swapTree = SwapTreeSerializer.deserializeSwapTree(chainSwap.claimDetails.swapTree!)
-  const serverPublicKey = Buffer.from(chainSwap.claimDetails.serverPublicKey!, 'hex')
+  if (!chainSwap.claimDetails.swapTree || !chainSwap.claimDetails.serverPublicKey) {
+    throw new Error('Missing required swap tree or server public key')
+  }
+  const swapTree = SwapTreeSerializer.deserializeSwapTree(chainSwap.claimDetails.swapTree)
+  const serverPublicKey = Buffer.from(chainSwap.claimDetails.serverPublicKey, 'hex')
   const musig = await createMusig(claimKeyPair, serverPublicKey)
   const tweakedKey = TaprootUtils.tweakMusig(musig, swapTree.tree)
 
@@ -75,8 +84,11 @@ export const prepareRefundMusig = async (
   tweakedKey: Buffer
   swapTree: ReturnType<typeof SwapTreeSerializer.deserializeSwapTree>
 }> => {
-  const swapTree = SwapTreeSerializer.deserializeSwapTree(chainSwap.lockupDetails.swapTree!)
-  const serverPublicKey = Buffer.from(chainSwap.lockupDetails.serverPublicKey!, 'hex')
+  if (!chainSwap.lockupDetails.swapTree || !chainSwap.lockupDetails.serverPublicKey) {
+    throw new Error('Missing required swap tree or server public key')
+  }
+  const swapTree = SwapTreeSerializer.deserializeSwapTree(chainSwap.lockupDetails.swapTree)
+  const serverPublicKey = Buffer.from(chainSwap.lockupDetails.serverPublicKey, 'hex')
   const musig = await createMusig(claimKeyPair, serverPublicKey)
   const tweakedKey = TaprootUtils.tweakMusig(musig, swapTree.tree)
 
@@ -97,7 +109,7 @@ export const buildClaimDetails = (params: {
   preimage: Buffer
 }): ClaimDetails => {
   const { tweakedKey, lockupTx, swapTree, claimKeyPair, musig, preimage } = params
-  const swapOutput = detectSwap(tweakedKey, lockupTx as any)
+  const swapOutput = detectSwap(tweakedKey, lockupTx as unknown as Transaction)
 
   return {
     ...swapOutput,
@@ -123,11 +135,11 @@ export const buildRefundDetails = (params: {
   claimKeyPair: ECPairInterface
   musig: Musig
   swap: ChainSwap
-}): any => {
+}): Omit<ClaimDetails, 'preimage'> & { blindingPrivateKey?: Buffer } => {
   const { tweakedKey, lockupTx, swapTree, claimKeyPair, musig, swap } = params
-  const swapOutput = detectSwap(tweakedKey, lockupTx as any)
+  const swapOutput = detectSwap(tweakedKey, lockupTx as unknown as Transaction)
 
-  if (!swapOutput || swapOutput.vout === undefined) {
+  if (!swapOutput) {
     throw new Error('Swap output not found in lockup transaction')
   }
 
@@ -166,7 +178,7 @@ export const completeCollaborativeSigning = (params: {
   return musig.aggregatePartials()
 }
 
-export const parseBlindingKey = (swap: SomeSwap, isRefund: boolean) => {
+export const parseBlindingKey = (swap: SomeSwap, isRefund: boolean): Buffer | undefined => {
   let blindingKey: string | undefined
 
   switch (swap.type) {

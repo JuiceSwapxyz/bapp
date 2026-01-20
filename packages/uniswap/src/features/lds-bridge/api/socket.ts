@@ -1,4 +1,4 @@
-import type { SwapUpdateEvent, WebSocketMessage } from '../lds-types/websocket'
+import type { SwapUpdateEvent, WebSocketMessage } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
 export const createLdsSocketClient = (): {
   disconnect: () => void
@@ -12,18 +12,6 @@ export const createLdsSocketClient = (): {
   const socket = new WebSocket(`${apiUrl.replace('https://', 'wss://')}/swap/v2/ws`)
   const suscribedSwaps = new Set<string>()
   const listeners = new Map<string, Set<(event: SwapUpdateEvent) => void>>()
-
-  const waitForConnection = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (socket.readyState === WebSocket.OPEN) {
-        resolve()
-        return
-      }
-
-      socket.addEventListener('open', () => resolve(), { once: true })
-      socket.addEventListener('error', (error) => reject(error), { once: true })
-    })
-  }
 
   const subscribeToSwapUpdates = (swapId: string, callback: (event: SwapUpdateEvent) => void): (() => void) => {
     if (!suscribedSwaps.has(swapId)) {
@@ -39,7 +27,10 @@ export const createLdsSocketClient = (): {
     if (!listeners.has(swapId)) {
       listeners.set(swapId, new Set())
     }
-    listeners.get(swapId)!.add(callback)
+    const swapListeners = listeners.get(swapId)
+    if (swapListeners) {
+      swapListeners.add(callback)
+    }
 
     // Return unsubscribe function
     return () => {

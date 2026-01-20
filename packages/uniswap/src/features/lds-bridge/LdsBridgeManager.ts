@@ -13,21 +13,27 @@ import {
   fetchSwapCurrentStatus,
   helpMeClaim,
 } from 'uniswap/src/features/lds-bridge/api/client'
+import { fetchBlockTipHeight } from 'uniswap/src/features/lds-bridge/api/mempool'
 import { createLdsSocketClient } from 'uniswap/src/features/lds-bridge/api/socket'
+import { ChainSwapKeys, generateChainSwapKeys } from 'uniswap/src/features/lds-bridge/keys/chainSwapKeys'
 import type {
   ChainPairsResponse,
   LightningBridgeReverseGetResponse,
   LightningBridgeSubmarineGetResponse,
 } from 'uniswap/src/features/lds-bridge/lds-types/api'
-import { fetchBlockTipHeight } from './api/mempool'
-import { ChainSwapKeys, generateChainSwapKeys } from './keys/chainSwapKeys'
-import { ChainSwap, ReverseSwap, SomeSwap, SubmarineSwap, SwapType } from './lds-types/storage'
-import type { SwapUpdateEvent } from './lds-types/websocket'
-import { LdsSwapStatus, swapStatusFinal } from './lds-types/websocket'
-import { StorageManager } from './storage/StorageManager'
-import { SwapEventEmitter } from './storage/SwapEventEmitter'
-import { prefix0x } from './utils/hex'
-import { pollForLockupConfirmation } from './utils/polling'
+import {
+  ChainSwap,
+  ReverseSwap,
+  SomeSwap,
+  SubmarineSwap,
+  SwapType,
+} from 'uniswap/src/features/lds-bridge/lds-types/storage'
+import type { SwapUpdateEvent } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { LdsSwapStatus, swapStatusFinal } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { StorageManager } from 'uniswap/src/features/lds-bridge/storage/StorageManager'
+import { SwapEventEmitter } from 'uniswap/src/features/lds-bridge/storage/SwapEventEmitter'
+import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
+import { pollForLockupConfirmation } from 'uniswap/src/features/lds-bridge/utils/polling'
 
 class LdsBridgeManager extends SwapEventEmitter {
   private socketClient: ReturnType<typeof createLdsSocketClient>
@@ -65,7 +71,7 @@ class LdsBridgeManager extends SwapEventEmitter {
 
   createReverseSwap = async (params: { invoiceAmount: number; claimAddress: string }): Promise<ReverseSwap> => {
     const reversePairs = await this.getReversePairs()
-    const pairHash = reversePairs?.BTC?.cBTC?.hash
+    const pairHash = reversePairs.BTC?.cBTC?.hash
     if (!pairHash) {
       throw new Error('Pair hash not found')
     }
@@ -109,10 +115,6 @@ class LdsBridgeManager extends SwapEventEmitter {
 
   createSubmarineSwap = async (params: { invoice: string }): Promise<SubmarineSwap> => {
     const submarinePairs = await this.getSubmarinePairs()
-    if (!submarinePairs) {
-      throw new Error('Submarine pairs not found')
-    }
-
     const pairHash = submarinePairs.cBTC?.BTC?.hash
     if (!pairHash) {
       throw new Error('Pair hash not found')
@@ -231,8 +233,12 @@ class LdsBridgeManager extends SwapEventEmitter {
     await ponderPromise
     cancelPonderPolling()
 
+    if (!swap.preimage) {
+      throw new Error('Swap preimage not found')
+    }
+
     const { txHash } = await helpMeClaim({
-      preimage: swap.preimage!,
+      preimage: swap.preimage,
       preimageHash: prefix0x(swap.preimageHash),
     })
 
@@ -253,7 +259,7 @@ class LdsBridgeManager extends SwapEventEmitter {
   }
 
   _subscribeToSwapUpdates = (swapId: string): void => {
-    const updateCallback = async (event: SwapUpdateEvent) => {
+    const updateCallback = async (event: SwapUpdateEvent): Promise<void> => {
       const swap = await this.storageManager.getSwap(swapId)
       if (!swap) {
         this.socketClient.unsubscribeFromSwapUpdates(updateCallback)
@@ -285,14 +291,14 @@ class LdsBridgeManager extends SwapEventEmitter {
       throw new Error('Swap not found')
     }
     if (swap.status === state) {
-      return
+      return Promise.resolve()
     }
-    if (swapStatusFinal.includes(swap.status!) && swap.status !== state) {
+    if (swap.status && swapStatusFinal.includes(swap.status) && swap.status !== state) {
       throw new Error('Swap is in final state')
     }
 
     return new Promise((resolve, reject) => {
-      const updateCallback = async (event: SwapUpdateEvent) => {
+      const updateCallback = async (event: SwapUpdateEvent): Promise<void> => {
         try {
           if (event.status === state) {
             this.socketClient.unsubscribeFromSwapUpdates(updateCallback)
@@ -316,12 +322,12 @@ class LdsBridgeManager extends SwapEventEmitter {
 
   getPendingSwaps = async (): Promise<SomeSwap[]> => {
     const swaps = await this.storageManager.getSwaps()
-    return Object.values(swaps).filter((swap) => !swapStatusFinal.includes(swap.status!))
+    return Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
   }
 
   updatePendingSwapsStatuses = async (): Promise<void> => {
     const swaps = await this.storageManager.getSwaps()
-    const pendingSwaps = Object.values(swaps).filter((swap) => !swapStatusFinal.includes(swap.status!))
+    const pendingSwaps = Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
     await Promise.all(
       pendingSwaps.map(async (swap) => {
         const status = await fetchSwapCurrentStatus(swap.id)
@@ -335,7 +341,7 @@ class LdsBridgeManager extends SwapEventEmitter {
   suscribeAllPendingSwaps = async (): Promise<void> => {
     await this.updatePendingSwapsStatuses()
     const swaps = await this.storageManager.getSwaps()
-    const pendingSwaps = Object.values(swaps).filter((swap) => !swapStatusFinal.includes(swap.status!))
+    const pendingSwaps = Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
     pendingSwaps.forEach((swap) => {
       this._subscribeToSwapUpdates(swap.id)
     })
@@ -350,14 +356,19 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
 
     switch (swap.type) {
-      case SwapType.Chain:
+      case SwapType.Chain: {
         const chainTransactionsResponse = await fetchChainTransactionsBySwapId(swapId)
-        return {
-          id: chainTransactionsResponse?.userLock?.transaction.id!,
-          hex: chainTransactionsResponse?.userLock?.transaction.hex!,
-          timeoutBlockHeight: chainTransactionsResponse?.userLock?.timeout.blockHeight!,
-          timeoutEta: chainTransactionsResponse?.userLock?.timeout.eta!,
+        const userLock = chainTransactionsResponse.userLock
+        if (!userLock?.transaction.id || !userLock.transaction.hex || !userLock.timeout.blockHeight) {
+          throw new Error('Missing required transaction data')
         }
+        return {
+          id: userLock.transaction.id,
+          hex: userLock.transaction.hex,
+          timeoutBlockHeight: userLock.timeout.blockHeight,
+          timeoutEta: userLock.timeout.eta,
+        }
+      }
       case SwapType.Submarine:
         return fetchSubmarineTransactionsBySwapId(swapId)
       default:

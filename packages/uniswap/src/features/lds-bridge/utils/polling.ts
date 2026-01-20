@@ -1,7 +1,10 @@
 import { getLockup } from 'uniswap/src/features/lds-bridge/api/client'
-import { RetryableError, retry } from './retry'
+import { RetryableError, retry } from 'uniswap/src/features/lds-bridge/utils/retry'
 
-export function pollForLockupConfirmation(preimageHash: string) {
+export function pollForLockupConfirmation(preimageHash: string): {
+  promise: Promise<NonNullable<Awaited<ReturnType<typeof getLockup>>['data']['lockups']>>
+  cancel: () => void
+} {
   return retry(
     async () => {
       const response = await getLockup(preimageHash)
@@ -21,7 +24,10 @@ export function pollForLockupConfirmation(preimageHash: string) {
   )
 }
 
-export function pollForClaimablePreimage(preimageHash: string) {
+export function pollForClaimablePreimage(preimageHash: string): {
+  promise: Promise<NonNullable<NonNullable<Awaited<ReturnType<typeof getLockup>>['data']['lockups']>['preimage']>>
+  cancel: () => void
+} {
   return retry(
     async () => {
       const response = await getLockup(preimageHash)
