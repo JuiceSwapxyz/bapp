@@ -141,10 +141,6 @@ const CustomQuoteApiClient = createApiClient({
   },
 })
 
-const LightningBridgeApiClient = createApiClient({
-  baseUrl: `${process.env.REACT_APP_LDS_API_URL}/swap/v2`,
-})
-
 const V4_HEADERS = {
   'x-universal-router-version': UniversalRouterVersion._2_0,
 }

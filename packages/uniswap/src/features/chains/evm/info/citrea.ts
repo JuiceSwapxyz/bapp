@@ -1,3 +1,4 @@
+import { ChainId, WETH9 } from '@juiceswapxyz/sdk-core'
 import { CurrencyAmount } from '@uniswap/sdk-core'
 import { CITREA_LOGO } from 'ui/src/assets'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
@@ -106,7 +107,8 @@ export const CITREA_TESTNET_CHAIN_INFO = {
     name: 'Wrapped Citrea BTC',
     symbol: 'WcBTC',
     decimals: 18,
-    address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    address: WETH9[ChainId.CITREA_TESTNET]!.address,
   },
   faucetUrl: 'https://citrea.xyz/faucet',
   tradingApiPollingIntervalMs: 500,

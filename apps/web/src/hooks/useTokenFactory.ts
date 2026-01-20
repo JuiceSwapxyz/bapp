@@ -27,7 +27,7 @@ export interface TokenFactoryState {
 export function useFactoryAddress(chainId: UniverseChainId = UniverseChainId.CitreaTestnet): string | undefined {
   return useMemo(() => {
     const addresses = LAUNCHPAD_ADDRESSES[chainId]
-    if (!addresses || addresses.factory === '0x0000000000000000000000000000000000000000') {
+    if (addresses.factory === '0x0000000000000000000000000000000000000000') {
       return undefined
     }
     return addresses.factory
@@ -46,7 +46,7 @@ export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.Citre
     if (!address) {
       return undefined
     }
-    const baseContract = { address, chainId, abi: TOKEN_FACTORY_ABI }
+    const baseContract = { address, chainId: chainId as number, abi: TOKEN_FACTORY_ABI }
     return [
       { ...baseContract, functionName: 'baseAsset' },
       { ...baseContract, functionName: 'feeRecipient' },
@@ -101,7 +101,7 @@ export function useTokenAtIndex(
 
   const { data, isLoading } = useReadContract({
     address,
-    chainId,
+    chainId: chainId as number,
     abi: TOKEN_FACTORY_ABI,
     functionName: 'getToken',
     args: enabled ? [BigInt(index)] : undefined,
@@ -133,7 +133,7 @@ export function useTokenInfo(
 
   const { data, isLoading } = useReadContract({
     address: factory,
-    chainId,
+    chainId: chainId as number,
     abi: TOKEN_FACTORY_ABI,
     functionName: 'getTokenInfo',
     args: enabled ? [token] : undefined,
@@ -145,7 +145,7 @@ export function useTokenInfo(
       return { tokenInfo: undefined, isLoading }
     }
 
-    const [creator, timestamp, name, symbol] = data as [string, bigint, string, string]
+    const [creator, timestamp, name, symbol] = data as readonly [string, bigint, string, string, string]
 
     return {
       tokenInfo: {
@@ -180,7 +180,7 @@ export function useTokenList(
     }
     return Array.from({ length: count }, (_, i) => ({
       address,
-      chainId,
+      chainId: chainId as number,
       abi: TOKEN_FACTORY_ABI,
       functionName: 'getToken' as const,
       args: [BigInt(startIndex + i)],

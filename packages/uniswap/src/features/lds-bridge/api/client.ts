@@ -15,8 +15,8 @@ import type {
   LightningBridgeSubmarineGetResponse,
   LightningBridgeSubmarineLockResponse,
   LockupCheckResponse,
-} from '../lds-types/api'
-import { LdsSwapStatus } from '../lds-types/websocket'
+} from 'uniswap/src/features/lds-bridge/lds-types/api'
+import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
 export type {
   ChainPairsResponse,

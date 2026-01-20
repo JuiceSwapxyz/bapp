@@ -4,16 +4,16 @@ import { Contract } from 'ethers/lib/ethers'
 import { useMemo } from 'react'
 import ERC20_ABI from 'uniswap/src/abis/erc20.json'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
+import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getPollingIntervalByBlocktime } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, SyncTransactionSubmissionChainIdsConfigKey } from 'uniswap/src/features/gating/configs'
 import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
+import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { createEthersProvider } from 'uniswap/src/features/providers/createEthersProvider'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
 import { currencyAddress as getCurrencyAddress } from 'uniswap/src/utils/currencyId'
 import { ReactQueryCacheKey } from 'utilities/src/reactQuery/cache'
-import { getChainInfo } from '../chains/chainInfo'
-import { Platform } from '../platforms/types/Platform'
 
 export type BalanceLookupParams = {
   currencyAddress: Address

@@ -1,6 +1,8 @@
+import { ChainId, WETH9 } from '@juiceswapxyz/sdk-core'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 
-const WCBTC_ADDRESS = '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0'
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const WCBTC_ADDRESS = WETH9[ChainId.CITREA_TESTNET]!.address
 const TFC_ADDRESS = '0x14ADf6B87096Ef750a956756BA191fc6BE94e473'
 const cUSD_ADDRESS = '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0'
 const NUSD_ADDRESS = '0x9B28B690550522608890C3C7e63c0b4A7eBab9AA'

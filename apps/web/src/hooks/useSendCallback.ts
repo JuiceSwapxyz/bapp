@@ -61,7 +61,7 @@ export function useSendCallback({
             throw new Error('wallet must be connected to send')
           }
           if (account.chainId !== supportedTransactionChainId) {
-            await switchChain(supportedTransactionChainId)
+            await switchChain(supportedTransactionChainId as any)
             // We need to reassign the provider after switching chains
             // otherwise sendTransaction will use the provider that is
             // not connected to the correct chain

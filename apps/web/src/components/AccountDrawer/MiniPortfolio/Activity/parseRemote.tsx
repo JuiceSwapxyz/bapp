@@ -137,12 +137,19 @@ function callsV4PositionManagerContract(assetActivity: TransactionActivity) {
     return false
   }
 
-  return (
-    isEVMChain(supportedChain) &&
-    supportedChain !== UniverseChainId.Bitcoin &&
-    supportedChain !== UniverseChainId.LightningNetwork &&
-    isSameAddress(assetActivity.details.to, CHAIN_TO_ADDRESSES_MAP[supportedChain].v4PositionManagerAddress)
-  )
+  // Type guard to check if it's an EVM chain that has v4PositionManagerAddress
+  if (
+    supportedChain === (UniverseChainId.Bitcoin as UniverseChainId) ||
+    supportedChain === (UniverseChainId.LightningNetwork as UniverseChainId)
+  ) {
+    return false
+  }
+
+  if (!isEVMChain(supportedChain)) {
+    return false
+  }
+
+  return isSameAddress(assetActivity.details.to, CHAIN_TO_ADDRESSES_MAP[supportedChain].v4PositionManagerAddress)
 }
 function callsPositionManagerContract(assetActivity: TransactionActivity) {
   return callsV3PositionManagerContract(assetActivity) || callsV4PositionManagerContract(assetActivity)
