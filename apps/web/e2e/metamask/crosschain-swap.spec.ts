@@ -19,6 +19,7 @@ async function screenshot(page: Page, name: string) {
 test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
   let context: BrowserContext
   let metamask: MetaMask
+  let metamaskExtensionId: string
 
   test.beforeAll(async () => {
     console.log('=== Wallet Setup ===')
@@ -34,6 +35,7 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
     })
 
     const extensionId = await getExtensionId(context, 'MetaMask')
+    metamaskExtensionId = extensionId
     await new Promise((r) => setTimeout(r, 3000))
 
     let metamaskPage = context.pages().find((p) => p.url().includes('chrome-extension://'))
@@ -270,7 +272,7 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
   // TEST 5: Execute cross-chain swap
   // ===================
   test('Test 5: Execute cross-chain swap USDT (Polygon) -> JUSD (Citrea)', async () => {
-    test.setTimeout(180000) // 3 minutes for this longer test
+    test.setTimeout(300000) // 5 minutes - need extra time for approval mining + swap tx
     const page = await context.newPage()
     const SWAP_AMOUNT = '1'
 
@@ -348,36 +350,198 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
       await page.waitForTimeout(2000)
       await screenshot(page, 'test5-step13-after-swap-click.png')
 
-      // Step 15: Handle confirm modal
+      // Step 15: Handle warning popups (JUSD research warning + cross-chain bridging warning)
+      // These popups appear sequentially, so we need to handle them in a loop
+      for (let popupCount = 0; popupCount < 3; popupCount++) {
+        const continueButton = page.getByRole('button', { name: /continue/i }).first()
+        if (await continueButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+          const popupText = await page.locator('text=/research|swapping across|bridging/i').first().textContent().catch(() => 'unknown')
+          console.log(`Found popup #${popupCount + 1}: "${popupText?.slice(0, 50)}...", clicking Continue...`)
+          await screenshot(page, `test5-step14-popup-${popupCount + 1}.png`)
+          await continueButton.click()
+          await page.waitForTimeout(1500)
+        } else {
+          console.log(`No more popups found after ${popupCount} popup(s)`)
+          break
+        }
+      }
+      await screenshot(page, 'test5-step15-after-popups.png')
+
+      // Step 16: Handle confirm modal
       const confirmButton = page.getByRole('button', { name: /confirm|swap|submit/i }).first()
       if (await confirmButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await screenshot(page, 'test5-step14-confirm-modal.png')
+        await screenshot(page, 'test5-step16-confirm-modal.png')
         await confirmButton.click()
         await page.waitForTimeout(2000)
-        await screenshot(page, 'test5-step15-after-confirm.png')
+        await screenshot(page, 'test5-step17-after-confirm.png')
       }
 
-      // Step 16: Approve token spending
-      try {
-        await metamask.confirmTransaction()
+      // Step 18: Handle MetaMask transaction confirmation directly
+      // MetaMask v12+ doesn't always open notification.html popup
+      // Instead, we interact directly with the extension page
+      const confirmMetaMaskTransaction = async (stepName: string): Promise<boolean> => {
+        console.log(`[${stepName}] Looking for MetaMask transaction to confirm...`)
+
+        // Give MetaMask time to receive the transaction request
+        await page.waitForTimeout(2000)
+
+        // Find all pages and look for MetaMask
+        const allPages = context.pages()
+        console.log(`[${stepName}] Found ${allPages.length} pages`)
+
+        // Try to find MetaMask extension page with pending transaction
+        let mmPage = allPages.find(
+          (p) => p.url().includes(metamaskExtensionId) && p.url().includes('notification')
+        )
+
+        // If no notification page, try the home page
+        if (!mmPage) {
+          mmPage = allPages.find((p) => p.url().includes(metamaskExtensionId))
+        }
+
+        if (!mmPage) {
+          // Open MetaMask extension page directly
+          console.log(`[${stepName}] Opening MetaMask extension page directly...`)
+          mmPage = await context.newPage()
+          await mmPage.goto(`chrome-extension://${metamaskExtensionId}/home.html`)
+          await mmPage.waitForLoadState('domcontentloaded')
+          await mmPage.waitForTimeout(2000)
+        }
+
+        // Bring MetaMask to front
+        await mmPage.bringToFront()
+        await mmPage.waitForTimeout(1000)
+
+        // Look for confirm button with various selectors
+        const confirmSelectors = [
+          '[data-testid="confirm-footer-button"]',
+          '[data-testid="page-container-footer-next"]',
+          '[data-testid="confirmation-submit-button"]',
+          'button.btn-primary:has-text("Confirm")',
+          'button:has-text("Confirm")',
+          'button:has-text("Approve")',
+          'button:has-text("Sign")',
+        ]
+
+        for (const selector of confirmSelectors) {
+          const btn = mmPage.locator(selector).first()
+          if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
+            console.log(`[${stepName}] Found confirm button with selector: ${selector}`)
+            await btn.click()
+            // MetaMask may close the page after confirmation, so wrap waitForTimeout in try-catch
+            try {
+              await mmPage.waitForTimeout(2000)
+            } catch (e) {
+              console.log(`[${stepName}] MetaMask page closed after confirmation (expected behavior)`)
+            }
+            console.log(`[${stepName}] Clicked confirm button`)
+            return true
+          }
+        }
+
+        // Check if there's a pending transaction indicator
+        const pendingIndicator = mmPage.locator('text=/pending|confirm|approve|sign/i').first()
+        if (await pendingIndicator.isVisible({ timeout: 1000 }).catch(() => false)) {
+          console.log(`[${stepName}] Found pending transaction indicator but no confirm button`)
+        } else {
+          console.log(`[${stepName}] No pending transaction found in MetaMask`)
+        }
+
+        return false
+      }
+
+      // Try to confirm approval transaction
+      const approvalConfirmed = await confirmMetaMaskTransaction('Approval')
+      if (approvalConfirmed) {
+        await page.bringToFront()
         await page.waitForTimeout(3000)
-        await screenshot(page, 'test5-step16-after-approval.png')
-      } catch {
-        console.log('No approval needed')
-      }
+        await screenshot(page, 'test5-step18-after-approval.png')
 
-      // Step 17: Confirm swap transaction
-      try {
-        await metamask.confirmTransaction()
+        // Wait for the approval to be mined and the dapp to send the swap transaction
+        // The dapp needs time to detect the approval and submit the actual swap
+        console.log('Waiting for approval to be mined and swap transaction to be submitted...')
+
+        // Check if dapp is still showing "Confirm in wallet" - meaning more tx pending
+        // Cross-chain swaps may require multiple confirmations: Approve(s) + Lock transaction
+        let swapConfirmed = false
+        let confirmedCount = 0
+        for (let attempt = 1; attempt <= 10; attempt++) {
+          console.log(`[Swap] Attempt ${attempt}/10 - checking for pending transactions...`)
+
+          // Wait for the blockchain to confirm previous transaction and dapp to send next one
+          // Polygon block time is ~2 seconds, so 8 seconds should be enough for 4 confirmations
+          await page.waitForTimeout(8000)
+
+          // Check if the dapp is still waiting for confirmation
+          const confirmInWallet = page.locator('text=/confirm in wallet/i').first()
+          const isWaiting = await confirmInWallet.isVisible({ timeout: 2000 }).catch(() => false)
+
+          if (isWaiting) {
+            console.log(`[Swap] Dapp is waiting for wallet confirmation, looking for MetaMask transaction...`)
+
+            // First, check if MetaMask has a new page/notification open
+            const allPages = context.pages()
+            const mmNotificationPage = allPages.find(
+              (p) => p.url().includes(metamaskExtensionId) && p.url().includes('notification')
+            )
+
+            if (mmNotificationPage) {
+              console.log(`[Swap] Found MetaMask notification page, attempting to confirm...`)
+              await mmNotificationPage.bringToFront()
+              await mmNotificationPage.waitForTimeout(1000)
+
+              // Take a screenshot of MetaMask to see what it's showing
+              try {
+                await mmNotificationPage.screenshot({
+                  path: `e2e/metamask/snapshots/crosschain-swap.spec.ts/metamask-attempt-${attempt}.png`,
+                })
+              } catch (e) {
+                console.log(`[Swap] Could not take MetaMask screenshot: ${e}`)
+              }
+            }
+
+            const confirmed = await confirmMetaMaskTransaction(`Swap-Attempt-${attempt}`)
+            if (confirmed) {
+              confirmedCount++
+              console.log(`[Swap] Confirmed transaction #${confirmedCount}, continuing to check for more...`)
+              // Don't break - continue to check if more transactions are needed
+              continue
+            } else {
+              // If no transaction found but dapp is waiting, the approval might still be mining
+              console.log(`[Swap] No MetaMask transaction found, waiting for dapp to send next transaction...`)
+            }
+          } else {
+            console.log(`[Swap] Dapp no longer waiting for wallet confirmation`)
+            // Check if swap succeeded or failed
+            const successIndicator = page.locator('text=/success|submitted|pending|swapping/i').first()
+            if (await successIndicator.isVisible({ timeout: 2000 }).catch(() => false)) {
+              console.log('[Swap] Swap appears to be processing')
+              swapConfirmed = true
+            }
+            break
+          }
+        }
+
+        swapConfirmed = confirmedCount > 0
+        console.log(`[Swap] Total transactions confirmed after approval: ${confirmedCount}`)
+
+        await page.bringToFront()
         await page.waitForTimeout(5000)
-        await screenshot(page, 'test5-step17-after-swap-confirm.png')
-      } catch {
-        console.log('Swap confirmation failed')
+        if (swapConfirmed) {
+          await screenshot(page, 'test5-step19-after-swap-confirm.png')
+        } else {
+          console.log('No additional transactions confirmed after approval')
+          await screenshot(page, 'test5-step19-no-swap-confirm.png')
+        }
+      } else {
+        console.log('No approval transaction found - may already be approved or transaction not sent')
+        await page.bringToFront()
+        await screenshot(page, 'test5-step18-no-approval.png')
       }
     }
 
-    // Step 18: Final state
-    await screenshot(page, 'test5-step18-final-state.png')
+    // Step 20: Final state
+    await screenshot(page, 'test5-step20-final-state.png')
 
     // Verify no error
     const errorVisible = await page
