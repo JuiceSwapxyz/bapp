@@ -97,15 +97,54 @@ const CONTRACTS = {
   polygon: {
     swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
     token: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    decimals: 6, // USDT on Polygon has 6 decimals
   },
   citrea: {
     swap: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
     token: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
+    decimals: 18, // JUSD on Citrea has 18 decimals
   },
   ethereum: {
     swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
     token: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    decimals: 6, // USDT on Ethereum has 6 decimals
   },
+}
+
+const BOLTZ_DECIMALS = 8 // Boltz uses 8 decimals internally
+
+/**
+ * Convert from token decimals to Boltz 8-decimal format
+ */
+function tokenToBoltzDecimals(amount: bigint, tokenDecimals: number): number {
+  if (tokenDecimals === BOLTZ_DECIMALS) {
+    return Number(amount)
+  } else if (tokenDecimals > BOLTZ_DECIMALS) {
+    // e.g., 18 decimals -> 8 decimals: divide by 10^10
+    const divisor = 10n ** BigInt(tokenDecimals - BOLTZ_DECIMALS)
+    return Number(amount / divisor)
+  } else {
+    // e.g., 6 decimals -> 8 decimals: multiply by 10^2
+    const multiplier = 10n ** BigInt(BOLTZ_DECIMALS - tokenDecimals)
+    return Number(amount * multiplier)
+  }
+}
+
+/**
+ * Convert from Boltz 8-decimal format to token decimals
+ */
+function boltzToTokenDecimals(boltzAmount: bigint, tokenDecimals: number): bigint {
+  if (tokenDecimals === BOLTZ_DECIMALS) {
+    return boltzAmount
+  } else if (tokenDecimals > BOLTZ_DECIMALS) {
+    // e.g., 8 decimals -> 18 decimals: multiply by 10^10
+    const multiplier = 10n ** BigInt(tokenDecimals - BOLTZ_DECIMALS)
+    return boltzAmount * multiplier
+  } else {
+    // e.g., 8 decimals -> 6 decimals: divide by 10^2
+    const divisor = 10n ** BigInt(BOLTZ_DECIMALS - tokenDecimals)
+    return boltzAmount / divisor
+  }
 }
 
 interface HandleErc20ChainSwapParams {
@@ -140,9 +179,21 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
   const ldsBridge = getLdsBridgeManager()
 
-  // 1. Create swap (convert 6→8 decimals for API)
+  // Get token decimals for source and target chains
+  const sourceDecimals = CONTRACTS[sourceChain].decimals
+  const targetDecimals = CONTRACTS[targetChain].decimals
+
+  // 1. Create swap (convert source token decimals → Boltz 8 decimals for API)
   const inputAmount = trade.inputAmount.quotient.toString()
-  const userLockAmount = Number(inputAmount) * 100 // 6 → 8 decimals
+  const userLockAmount = tokenToBoltzDecimals(BigInt(inputAmount), sourceDecimals)
+
+  console.error('[ERC20 Chain Swap] Decimal conversion:', {
+    inputAmount,
+    sourceDecimals,
+    targetDecimals,
+    userLockAmount,
+    conversionNote: `${sourceDecimals} decimals → ${BOLTZ_DECIMALS} decimals (Boltz)`,
+  })
 
   const createChainSwapParams = {
     from,
@@ -360,14 +411,18 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   }
 
   const targetSigner = targetProvider.getSigner(account.address)
+
+  // Convert from Boltz 8 decimals to target token decimals
   const boltzAmount8Decimals = BigInt(chainSwap.claimDetails.amount)
-  const claimAmount = boltzAmount8Decimals / 100n
+  const claimAmount = boltzToTokenDecimals(boltzAmount8Decimals, targetDecimals)
 
   console.error('[ERC20 Chain Swap] Claiming tokens:', {
     contractAddress: CONTRACTS[targetChain].swap,
     tokenAddress: CONTRACTS[targetChain].token,
     boltzAmount8Decimals: boltzAmount8Decimals.toString(),
-    claimAmount6Decimals: claimAmount.toString(),
+    targetDecimals,
+    claimAmount: claimAmount.toString(),
+    conversionNote: `${BOLTZ_DECIMALS} decimals (Boltz) → ${targetDecimals} decimals (${targetChain})`,
   })
   // Update step to show we're claiming (user may need to approve in wallet)
   setCurrentStep({ step, accepted: false })
