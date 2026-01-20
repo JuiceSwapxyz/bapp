@@ -26,7 +26,7 @@ export default defineConfig({
   // Single worker for wallet consistency
   workers: 1,
 
-  reporter: [['html', { outputFolder: 'playwright-metamask-report' }], ['list']],
+  reporter: [['html', { outputFolder: 'playwright-metamask-report', open: 'never' }], ['list']],
 
   use: {
     baseURL: BASE_URL,
