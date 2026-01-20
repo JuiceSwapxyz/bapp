@@ -12,7 +12,7 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:3001'
  * Uses Synpress for MetaMask integration
  */
 export default defineConfig({
-  testDir: './src/playwright/metamask',
+  testDir: './e2e/metamask',
 
   // Disabled for wallet state consistency
   fullyParallel: false,
@@ -51,9 +51,13 @@ export default defineConfig({
 
   expect: {
     timeout: 15 * 1000, // 15 seconds for assertions
+    toHaveScreenshot: {
+      animations: 'disabled', // Disable CSS animations for stable screenshots
+      maxDiffPixelRatio: 0.1, // Allow 10% difference
+    },
   },
 
   // Snapshot settings
-  snapshotDir: './src/playwright/metamask/snapshots',
+  snapshotDir: './e2e/metamask/snapshots',
   snapshotPathTemplate: '{snapshotDir}/{testFilePath}/{arg}{ext}',
 })

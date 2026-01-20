@@ -20,7 +20,7 @@ Module._load = function (...args: any[]) {
 }
 
 export default defineConfig({
-  testDir: './src',
+  testDir: './e2e',
   testMatch: '**/*.e2e.test.ts',
   // TODO: WEB-7311 - Increase number of workers
   workers: 1,

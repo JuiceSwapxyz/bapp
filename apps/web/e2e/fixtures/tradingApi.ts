@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { test as base } from '@playwright/test'
-import { Page } from 'playwright/test'
+import { Page } from '@playwright/test'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 
 export const DEFAULT_TEST_GAS_LIMIT = '20000000'
