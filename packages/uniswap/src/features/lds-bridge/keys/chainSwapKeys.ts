@@ -41,7 +41,7 @@ const getLastKeyIndex = (): number => {
     return 0
   }
   const keyIndex = localStorage.getItem('keyIndex')
-  return keyIndex ? parseInt(keyIndex) : 0
+  return keyIndex ? parseInt(keyIndex, 10) : 0
 }
 
 const saveKeyIndex = (keyIndex: number): void => {

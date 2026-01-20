@@ -2,8 +2,7 @@ import { Token, WETH9 } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 // Export tokens for Citrea testnet
-// WcBTC from SDK WETH9 - single source of truth
-export const WCBTC = WETH9[UniverseChainId.CitreaTestnet]!
+export const WCBTC = WETH9[UniverseChainId.CitreaTestnet]
 
 export const TFC = new Token(
   UniverseChainId.CitreaTestnet,

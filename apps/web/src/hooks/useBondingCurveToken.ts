@@ -39,7 +39,7 @@ export function useBondingCurveToken(
     if (!address) {
       return undefined
     }
-    const baseContract = { address, chainId, abi: BONDING_CURVE_TOKEN_ABI }
+    const baseContract = { address, chainId: chainId as number, abi: BONDING_CURVE_TOKEN_ABI }
     return [
       { ...baseContract, functionName: 'name' },
       { ...baseContract, functionName: 'symbol' },
@@ -116,6 +116,7 @@ export function useBondingCurveToken(
  * @param baseIn - Amount of base asset to spend (in wei)
  * @param chainId - Chain ID
  */
+// eslint-disable-next-line max-params
 export function useCalculateBuy(
   tokenAddress: string | undefined,
   baseIn: bigint | undefined,
@@ -126,7 +127,7 @@ export function useCalculateBuy(
 
   const { data, isLoading } = useReadContract({
     address,
-    chainId,
+    chainId: chainId as number,
     abi: BONDING_CURVE_TOKEN_ABI,
     functionName: 'calculateBuy',
     args: enabled ? [baseIn] : undefined,
@@ -148,6 +149,7 @@ export function useCalculateBuy(
  * @param tokensIn - Amount of tokens to sell (in wei)
  * @param chainId - Chain ID
  */
+// eslint-disable-next-line max-params
 export function useCalculateSell(
   tokenAddress: string | undefined,
   tokensIn: bigint | undefined,
@@ -158,7 +160,7 @@ export function useCalculateSell(
 
   const { data, isLoading } = useReadContract({
     address,
-    chainId,
+    chainId: chainId as number,
     abi: BONDING_CURVE_TOKEN_ABI,
     functionName: 'calculateSell',
     args: enabled ? [tokensIn] : undefined,
@@ -180,6 +182,7 @@ export function useCalculateSell(
  * @param userAddress - User's wallet address
  * @param chainId - Chain ID
  */
+// eslint-disable-next-line max-params
 export function useBondingCurveBalance(
   tokenAddress: string | undefined,
   userAddress: string | undefined,
@@ -191,7 +194,7 @@ export function useBondingCurveBalance(
 
   const { data, isLoading, refetch } = useReadContract({
     address,
-    chainId,
+    chainId: chainId as number,
     abi: BONDING_CURVE_TOKEN_ABI,
     functionName: 'balanceOf',
     args: enabled ? [user] : undefined,

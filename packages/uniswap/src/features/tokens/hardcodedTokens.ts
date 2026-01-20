@@ -1,4 +1,4 @@
-import { Currency, WETH9 } from '@juiceswapxyz/sdk-core'
+import { ChainId, Currency, WETH9 } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
@@ -25,12 +25,14 @@ const citreaNativeCurrency = {
 const citreaWrappedNativeCurrency = {
   currency: buildCurrency({
     chainId: UniverseChainId.CitreaTestnet,
-    address: WCBTC_ADDRESS,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    address: WETH9[ChainId.CITREA_TESTNET]!.address,
     decimals: 18,
     symbol: 'WcBTC',
     name: 'Wrapped Citrea BTC',
   }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-${WCBTC_ADDRESS}`,
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  currencyId: `${UniverseChainId.CitreaTestnet}-${WETH9[ChainId.CITREA_TESTNET]!.address}`,
   logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
 }
 

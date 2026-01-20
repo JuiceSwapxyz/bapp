@@ -1,11 +1,11 @@
 import { providers as ethersProviders } from 'ethers/lib/ethers'
+import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { RPCType, UniverseChainId } from 'uniswap/src/features/chains/types'
+import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { SignerInfo } from 'uniswap/src/features/providers/FlashbotsCommon'
 import { FlashbotsRpcProvider } from 'uniswap/src/features/providers/FlashbotsRpcProvider'
 import { selectRpcUrl } from 'uniswap/src/features/providers/rpcUrlSelector'
 import { logger } from 'utilities/src/logger/logger'
-import { getChainInfo } from '../chains/chainInfo'
-import { Platform } from '../platforms/types/Platform'
 
 // Should use ProviderManager for provider access unless being accessed outside of ProviderManagerContext (e.g., Apollo initialization)
 export function createEthersProvider({
@@ -19,9 +19,6 @@ export function createEthersProvider({
 }): ethersProviders.JsonRpcProvider | null {
   try {
     const chainInfo = getChainInfo(chainId)
-    if (!chainInfo) {
-      return null
-    }
 
     if (chainInfo.platform !== Platform.EVM) {
       return null

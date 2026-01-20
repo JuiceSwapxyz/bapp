@@ -12,7 +12,7 @@ export default function useSelectChain() {
   return useCallback(
     async (targetChain: UniverseChainId) => {
       try {
-        await switchChain(targetChain)
+        await switchChain(targetChain as any)
         return true
       } catch (error) {
         if (
