@@ -540,18 +540,25 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
     amount = (quote as { amount: string }).amount
   }
 
+  // Extract decimals from route tokens (Gateway tokens are all 18 decimals)
+  const classicRoute = (quote as ClassicQuote).route?.[0]
+  const tokenInDecimals = isGatewayJusd ? 18 : (classicRoute?.[0]?.tokenIn?.decimals ?? 18)
+  const tokenOutDecimals = isGatewayJusd
+    ? 18
+    : (classicRoute?.[classicRoute.length - 1]?.tokenOut?.decimals ?? 18)
+
   const body = {
     tokenOutAddress,
-    tokenOutDecimals: 18, // Default to 18 decimals
+    tokenOutDecimals,
     tokenInChainId,
     tokenInAddress,
-    tokenInDecimals: 18, // Default to 18 decimals
+    tokenInDecimals,
     tokenOutChainId,
     amount,
     type: 'exactIn',
     recipient: connectedWallet,
     from: connectedWallet,
-    slippageTolerance: '5',
+    slippageTolerance: params.customSwapData?.slippageTolerance ?? '5',
     deadline: params.deadline || '1800',
     chainId: tokenInChainId,
     protocols: ['V3', 'V2'],
