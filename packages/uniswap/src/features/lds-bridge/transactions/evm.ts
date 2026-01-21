@@ -41,3 +41,74 @@ export async function buildEvmLockupTx(params: BuildEvmClaimTxParams): Promise<E
     hash: tx.hash,
   }
 }
+
+const ERC20_SWAP_ABI = [
+  'function lock(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
+  'function claim(bytes32 preimage, uint256 amount, address tokenAddress, address refundAddress, uint256 timelock)',
+]
+
+const ERC20_TOKEN_ABI = [
+  'function approve(address spender, uint256 amount) returns (bool)',
+  'function allowance(address owner, address spender) view returns (uint256)',
+]
+
+export async function buildErc20LockupTx(params: {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  preimageHash: string
+  amount: bigint
+  claimAddress: string
+  timelock: number
+}): Promise<{ hash: string }> {
+  const { signer, contractAddress, tokenAddress, preimageHash, amount, claimAddress, timelock } = params
+
+  const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
+  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
+
+  // Check current allowance and only approve if needed
+  const ownerAddress = await signer.getAddress()
+  const currentAllowance = await tokenContract.allowance(ownerAddress, contractAddress)
+
+  if (currentAllowance.toBigInt() < amount) {
+    // eslint-disable-next-line no-console
+    console.log('[ERC20 Lock] Allowance insufficient, approving...', {
+      currentAllowance: currentAllowance.toString(),
+      requiredAmount: amount.toString(),
+    })
+    const approveTx = await tokenContract.approve(contractAddress, amount)
+    await approveTx.wait()
+    // eslint-disable-next-line no-console
+    console.log('[ERC20 Lock] Approval confirmed')
+  } else {
+    // eslint-disable-next-line no-console
+    console.log('[ERC20 Lock] Allowance sufficient, skipping approval', {
+      currentAllowance: currentAllowance.toString(),
+      requiredAmount: amount.toString(),
+    })
+  }
+
+  // Lock
+  const lockTx = await swapContract.lock(prefix0x(preimageHash), amount, tokenAddress, claimAddress, timelock)
+
+  return { hash: lockTx.hash }
+}
+
+export async function claimErc20Swap(params: {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  preimage: string
+  amount: bigint
+  refundAddress: string
+  timelock: number
+}): Promise<string> {
+  const { signer, contractAddress, tokenAddress, preimage, amount, refundAddress, timelock } = params
+
+  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
+
+  const tx = await swapContract.claim(prefix0x(preimage), amount, tokenAddress, refundAddress, timelock)
+
+  const receipt = await tx.wait()
+  return receipt.hash
+}

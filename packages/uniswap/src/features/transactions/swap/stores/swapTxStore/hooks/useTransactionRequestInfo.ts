@@ -129,10 +129,12 @@ function useSwapTransactionRequestInfo({
   const permitsDontNeedSignature = !!canBatchTransactions
   const isBitcoinBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.BITCOIN_BRIDGE
   const isLightningBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.LN_BRIDGE
+  const isErc20ChainSwapTrade = derivedSwapInfo.trade.trade?.routing === Routing.ERC20_CHAIN_SWAP
   // Gateway JUSD trades now use the standard swap flow (fetchSwap handles Gateway quotes)
   const shouldSkipSwapRequest =
     isBitcoinBridgeSwap ||
     isLightningBridgeSwap ||
+    isErc20ChainSwapTrade ||
     getShouldSkipSwapRequest({
       derivedSwapInfo,
       tokenApprovalInfo,
@@ -168,8 +170,8 @@ function useSwapTransactionRequestInfo({
   const processSwapResponse = useMemo(() => createProcessSwapResponse({ gasStrategy }), [gasStrategy])
 
   const result = useMemo(() => {
-    // Bitcoin and Lightning bridges don't use Trading API swap endpoint, return mock gas fee
-    if (isBitcoinBridgeSwap || isLightningBridgeSwap) {
+    // Bitcoin, Lightning bridges and ERC20 chain swaps don't use Trading API swap endpoint, return mock gas fee
+    if (isBitcoinBridgeSwap || isLightningBridgeSwap || isErc20ChainSwapTrade) {
       return {
         gasFeeResult: {
           value: '0',
@@ -200,6 +202,7 @@ function useSwapTransactionRequestInfo({
   }, [
     isBitcoinBridgeSwap,
     isLightningBridgeSwap,
+    isErc20ChainSwapTrade,
     data,
     error,
     isSwapLoading,

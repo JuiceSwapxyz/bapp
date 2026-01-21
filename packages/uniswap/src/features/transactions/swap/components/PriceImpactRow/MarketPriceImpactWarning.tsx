@@ -10,7 +10,15 @@ import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { isUniswapX, TradeRouting } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { isWeb } from 'utilities/src/platform'
 
-function getPriceImpactCaption({ t, routing, missing }: { t: TFunction; routing: TradeRouting; missing: boolean }): string {
+function getPriceImpactCaption({
+  t,
+  routing,
+  missing,
+}: {
+  t: TFunction
+  routing: TradeRouting
+  missing: boolean
+}): string {
   if (isUniswapX({ routing })) {
     if (missing) {
       return t('swap.impactOfTrade.uniswapx.missing')

@@ -18,7 +18,9 @@ export function GasAndWarningRows(): JSX.Element | null {
   const hasGasInfo = Boolean(debouncedGasInfo.fiatPriceFormatted)
   const hasInsufficientFundsWarning = warnings.some((w) => w.type === WarningLabel.InsufficientFunds)
   const hasInsufficientGasWarning = warnings.some(
-    (w) => w.type === WarningLabel.InsufficientGasFunds || (w.type === WarningLabel.InsufficientFunds && w.currency?.isNative)
+    (w) =>
+      w.type === WarningLabel.InsufficientGasFunds ||
+      (w.type === WarningLabel.InsufficientFunds && w.currency?.isNative),
   )
 
   // Don't render empty container

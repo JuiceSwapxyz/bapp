@@ -1,4 +1,4 @@
-import { Page } from 'playwright/test'
+import { Page } from '@playwright/test'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
 
 // eslint-disable-next-line multiline-comment-style

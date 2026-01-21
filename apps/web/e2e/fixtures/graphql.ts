@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { test as base } from '@playwright/test'
 import path from 'path'
-import { Mocks } from 'playwright/mocks/mocks'
+import { Mocks } from '../mocks/mocks'
 
 type GraphqlFixture = {
   graphql: {

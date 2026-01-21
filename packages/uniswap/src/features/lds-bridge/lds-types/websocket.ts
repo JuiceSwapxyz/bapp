@@ -60,6 +60,31 @@ export const swapStatusFinal = [
   swapStatusPending.TransactionClaimPending,
 ].concat(Object.values(swapStatusSuccess))
 
+// Chain swap status progression order (for ERC20 chain swaps)
+export const chainSwapStatusOrder: LdsSwapStatus[] = [
+  LdsSwapStatus.SwapCreated,
+  LdsSwapStatus.TransactionMempool,
+  LdsSwapStatus.TransactionConfirmed,
+  LdsSwapStatus.TransactionServerMempool,
+  LdsSwapStatus.TransactionServerConfirmed,
+  LdsSwapStatus.TransactionClaimed,
+]
+
+/**
+ * Check if currentStatus has reached or passed targetStatus in the chain swap flow
+ */
+export function hasReachedStatus(currentStatus: LdsSwapStatus, targetStatus: LdsSwapStatus): boolean {
+  const currentIndex = chainSwapStatusOrder.indexOf(currentStatus)
+  const targetIndex = chainSwapStatusOrder.indexOf(targetStatus)
+
+  // If either status is not in the progression, fall back to exact match
+  if (currentIndex === -1 || targetIndex === -1) {
+    return currentStatus === targetStatus
+  }
+
+  return currentIndex >= targetIndex
+}
+
 export interface SwapUpdateEvent {
   id?: string
   status: LdsSwapStatus

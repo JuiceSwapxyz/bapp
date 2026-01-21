@@ -20,7 +20,7 @@ Module._load = function (...args: any[]) {
 }
 
 export default defineConfig({
-  testDir: './src',
+  testDir: './e2e',
   testMatch: '**/*.e2e.test.ts',
   // TODO: WEB-7311 - Increase number of workers
   workers: 1,
@@ -29,14 +29,15 @@ export default defineConfig({
   expect: {
     timeout: ms('10s'),
   },
+  timeout: ms('2m'),
   use: {
     screenshot: 'off',
     video: 'retain-on-failure',
     trace: 'retain-on-failure',
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3001',
     headless: true,
     extraHTTPHeaders: {
-      origin: 'http://localhost:3000',
+      origin: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3001',
     },
   },
   projects: [

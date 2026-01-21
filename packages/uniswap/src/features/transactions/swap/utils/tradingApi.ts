@@ -8,7 +8,10 @@ import type { FeeAmount } from '@juiceswapxyz/v3-sdk'
 import { Pool as V3Pool, Route as V3Route } from '@juiceswapxyz/v3-sdk'
 import { Pool as V4Pool, Route as V4Route } from '@juiceswapxyz/v4-sdk'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
-import type { BridgeQuoteResponse, GatewayJusdQuoteResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
+import type {
+  BridgeQuoteResponse,
+  GatewayJusdQuoteResponse,
+} from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import {
   ClassicQuoteResponse,
   DiscriminatedQuoteResponse,
@@ -35,7 +38,7 @@ import { isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, SwapConfigKey } from 'uniswap/src/features/gating/configs'
 import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
-import { isJusdAddress, getSvJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { getSvJusdAddress, isJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import type { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import {
   BitcoinBridgeTrade,
@@ -130,6 +133,9 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
     }
     case Routing.LN_BRIDGE: {
       return new LightningBridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
+    }
+    case Routing.ERC20_CHAIN_SWAP: {
+      return new BridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
     }
     case Routing.WRAP: {
       return new WrapTrade({ quote: data, currencyIn, currencyOut, tradeType })

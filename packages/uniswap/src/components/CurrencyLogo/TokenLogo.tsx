@@ -18,6 +18,7 @@ interface TokenLogoProps {
   loading?: boolean
   webFontSize?: number
   lineHeight?: TextProps['lineHeight']
+  alwaysShowNetworkLogo?: boolean
 }
 
 const TESTNET_BORDER_DIVISOR = 15
@@ -34,6 +35,7 @@ export const TokenLogo = memo(function _TokenLogo({
   loading,
   webFontSize = 10,
   lineHeight = 14,
+  alwaysShowNetworkLogo = false,
 }: TokenLogoProps): JSX.Element {
   const isTestnetToken = !!chainId && isTestnetChain(chainId)
 
@@ -61,7 +63,7 @@ export const TokenLogo = memo(function _TokenLogo({
 
   const borderWidth = isTestnetToken ? size / TESTNET_BORDER_DIVISOR : 0
 
-  const showNetworkLogo = !hideNetworkLogo && chainId && chainId !== UniverseChainId.Mainnet
+  const showNetworkLogo = !hideNetworkLogo && chainId && (alwaysShowNetworkLogo || chainId !== UniverseChainId.Mainnet)
   const networkLogoSize = Math.round(size * STATUS_RATIO)
 
   const borderOffset = isTestnetToken ? BORDER_OFFSET : 0

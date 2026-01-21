@@ -7,7 +7,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { convertGasFeeToDisplayValue, useActiveGasStrategy } from 'uniswap/src/features/gas/hooks'
 import { GasFeeResult } from 'uniswap/src/features/gas/types'
 import { ApprovalAction, TokenApprovalInfo } from 'uniswap/src/features/transactions/swap/types/trade'
-import { isUniswapX, TradeRouting } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { TradeRouting, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 import {
   getTokenAddressForApi,
   toTradingApiSupportedChainId,
@@ -45,8 +45,8 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
 
   const tokenInAddress = getTokenAddressForApi(currencyIn)
 
-  // Only used for bridging
-  const isBridge = routing === Routing.BRIDGE
+  // Only used for bridging (includes ERC20 chain swaps via Boltz)
+  const isBridge = routing === Routing.BRIDGE || routing === Routing.ERC20_CHAIN_SWAP
   const currencyOut = currencyOutAmount?.currency
   const tokenOutAddress = getTokenAddressForApi(currencyOut)
 
@@ -144,6 +144,13 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
         }
       }
     }
+    if (isBridge) {
+      return {
+        action: ApprovalAction.None,
+        txRequest: null,
+        cancelTxRequest: null,
+      }
+    }
 
     // No valid approval type found
     return {
@@ -151,7 +158,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
       txRequest: null,
       cancelTxRequest: null,
     }
-  }, [address, approvalRequestArgs, data, error, isWrap])
+  }, [address, approvalRequestArgs, data, error, isWrap, isBridge])
 
   const result = useMemo(() => {
     const gasEstimate = data?.gasEstimates?.[0]

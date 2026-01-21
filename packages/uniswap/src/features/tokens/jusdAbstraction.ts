@@ -21,7 +21,7 @@ const CHAIN_ID_MAP: Partial<Record<UniverseChainId, number>> = {
 
 // Build address maps from canonical packages
 function buildAddressMap(
-  getter: (chainAddresses: (typeof ADDRESS)[number]) => string
+  getter: (chainAddresses: (typeof ADDRESS)[number]) => string,
 ): Partial<Record<UniverseChainId, string>> {
   const result: Partial<Record<UniverseChainId, string>> = {}
   for (const [universeChainId, numericChainId] of Object.entries(CHAIN_ID_MAP)) {

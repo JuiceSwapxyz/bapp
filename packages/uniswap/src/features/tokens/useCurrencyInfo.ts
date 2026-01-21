@@ -12,7 +12,7 @@ import {
   currencyIdToContractInput,
 } from 'uniswap/src/features/dataApi/utils/currencyIdToContractInput'
 import { gqlTokenToCurrencyInfo } from 'uniswap/src/features/dataApi/utils/gqlTokenToCurrencyInfo'
-import { isSvJusdAddress, getJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { getJusdAddress, isSvJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { useLocalCurrencyInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/hooks/useLocalCurrencyInfo'
 import {
   buildNativeCurrencyId,

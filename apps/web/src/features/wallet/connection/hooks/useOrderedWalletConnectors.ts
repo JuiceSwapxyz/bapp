@@ -1,7 +1,11 @@
 import { useRecentConnectorId } from 'components/Web3Provider/constants'
 import { useWalletConnectors } from 'features/wallet/connection/hooks/useWalletConnectors'
 import { WalletConnectorMeta } from 'features/wallet/connection/types/WalletConnectorMeta'
-import { getConnectorWithIdWithThrow, isEqualWalletConnectorMetaId } from 'features/wallet/connection/utils'
+import {
+  getConnectorWithId,
+  getConnectorWithIdWithThrow,
+  isEqualWalletConnectorMetaId,
+} from 'features/wallet/connection/utils'
 import { useCallback, useMemo } from 'react'
 import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { isPlaywrightEnv } from 'utilities/src/environment/env'
@@ -124,11 +128,16 @@ export function useOrderedWalletConnectors({
     })
 
     if (isPlaywrightEnv()) {
-      const mockConnector = getConnectorWithIdWithThrow({
+      // Try to get mock connector for Playwright tests, but fallback to normal connectors
+      // if mock is not available (e.g., when using real MetaMask with Synpress)
+      const mockConnector = getConnectorWithId({
         connectors,
         id: CONNECTION_PROVIDER_IDS.MOCK_CONNECTOR_ID,
       })
-      return [mockConnector]
+      if (mockConnector) {
+        return [mockConnector]
+      }
+      // Fall through to normal connector logic when mock not available
     }
 
     // Special-case: Only display the Coinbase connector in the Coinbase Wallet.

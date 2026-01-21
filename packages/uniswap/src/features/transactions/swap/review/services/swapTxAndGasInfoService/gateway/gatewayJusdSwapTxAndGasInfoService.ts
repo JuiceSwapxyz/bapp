@@ -1,17 +1,27 @@
-import type { GasStrategy } from 'uniswap/src/data/tradingApi/types'
-import type { TransactionSettings } from 'uniswap/src/features/transactions/components/settings/types'
-import type { SwapTxAndGasInfoService, SwapTxAndGasInfoParameters } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/swapTxAndGasInfoService'
-import type { SwapTxAndGasInfo, ClassicSwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
-import type { GatewayJusdTrade, ClassicTrade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { fetchSwap } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
-import type { CreateSwapRequest } from 'uniswap/src/data/tradingApi/__generated__'
-import { validateTransactionRequests } from 'uniswap/src/features/transactions/swap/utils/trade'
-import { convertGasFeeToDisplayValue } from 'uniswap/src/features/gas/hooks'
-import { Routing } from 'uniswap/src/data/tradingApi/__generated__'
-import { GATEWAY_JUSD_ROUTING } from 'uniswap/src/features/transactions/swap/utils/routing'
-import { createApprovalFields, createGasFields, type TransactionRequestInfo } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/utils'
 import { getTradeSettingsDeadline } from 'uniswap/src/data/apiClients/tradingApi/utils/getTradeSettingsDeadline'
+import type { CreateSwapRequest } from 'uniswap/src/data/tradingApi/__generated__'
+import { Routing } from 'uniswap/src/data/tradingApi/__generated__'
+import type { GasStrategy } from 'uniswap/src/data/tradingApi/types'
+import { convertGasFeeToDisplayValue } from 'uniswap/src/features/gas/hooks'
+import type { TransactionSettings } from 'uniswap/src/features/transactions/components/settings/types'
 import { getCustomSwapTokenData } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/evmSwapInstructionsService'
+import type {
+  SwapTxAndGasInfoParameters,
+  SwapTxAndGasInfoService,
+} from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/swapTxAndGasInfoService'
+import {
+  createApprovalFields,
+  createGasFields,
+  type TransactionRequestInfo,
+} from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/utils'
+import type {
+  ClassicSwapTxAndGasInfo,
+  SwapTxAndGasInfo,
+} from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
+import type { ClassicTrade, GatewayJusdTrade } from 'uniswap/src/features/transactions/swap/types/trade'
+import { GATEWAY_JUSD_ROUTING } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { validateTransactionRequests } from 'uniswap/src/features/transactions/swap/utils/trade'
 
 /**
  * Gateway JUSD swap service - handles JUSD/svJUSD abstraction swaps through JuiceSwapGateway

@@ -1,5 +1,5 @@
 import { ChainId, WETH9 } from '@juiceswapxyz/sdk-core'
-import { CurrencyAmount } from '@uniswap/sdk-core'
+import { CurrencyAmount, Token } from '@uniswap/sdk-core'
 import { CITREA_LOGO } from 'ui/src/assets'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { DEFAULT_NATIVE_ADDRESS_LEGACY } from 'uniswap/src/features/chains/evm/rpc'
@@ -20,6 +20,13 @@ const testnetTokens = buildChainTokens({
   stables: {
     USDC: buildUSDC('0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F', UniverseChainId.CitreaTestnet),
     CUSD: buildCUSD('0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0', UniverseChainId.CitreaTestnet),
+    JUSD: new Token(
+      UniverseChainId.CitreaTestnet,
+      '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
+      6,
+      'JUSD',
+      'JuiceSwap USD',
+    ),
   },
 })
 

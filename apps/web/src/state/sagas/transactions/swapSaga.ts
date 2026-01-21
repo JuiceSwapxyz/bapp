@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
 import { handleBitcoinBridgeBitcoinToCitrea } from 'state/sagas/transactions/bitcoinBridgeBitcoinToCitrea'
 import { handleBitcoinBridgeCitreaToBitcoin } from 'state/sagas/transactions/bitcoinBridgeCitreaToBitcoin'
+import { handleErc20ChainSwap } from 'state/sagas/transactions/erc20ChainSwap'
 import { handleLightningBridgeReverse } from 'state/sagas/transactions/lightningBridgeReverse'
 import { handleLightningBridgeSubmarine } from 'state/sagas/transactions/lightningBridgeSubmarine'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
@@ -61,6 +62,7 @@ import {
   UNISWAPX_ROUTING_VARIANTS,
   isBitcoinBridge,
   isClassic,
+  isErc20ChainSwap,
   isGatewayJusd,
   isLightningBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -234,7 +236,23 @@ async function handleSwitchChains(
   }
 
   const chainSwitched = await selectChain(swapChainId)
-  return { chainSwitchFailed: !chainSwitched }
+  console.error('[Chain Switch] selectChain result:', {
+    chainSwitched,
+    swapChainId,
+    startChainId,
+  })
+
+  // For ERC20 chain swaps, if chain switch fails, allow it to proceed anyway
+  // The chain switch will happen during transaction execution
+  if (!chainSwitched && isErc20ChainSwap(swapTxContext)) {
+    console.error('[Chain Switch] ERC20 chain swap detected, allowing to proceed despite chain switch failure')
+    // Allow ERC20 chain swaps to proceed - chain will switch during transaction execution
+    return { chainSwitchFailed: false }
+  }
+
+  const result = { chainSwitchFailed: !chainSwitched }
+  console.error('[Chain Switch] Returning result:', result)
+  return result
 }
 
 function* swap(params: SwapParams) {
@@ -253,6 +271,10 @@ function* swap(params: SwapParams) {
 
   const isLightningBridgeSwap = isLightningBridge(swapTxContext)
   const isBitcoinBridgeSwap = isBitcoinBridge(swapTxContext)
+  const isErc20ChainSwapSwap = isErc20ChainSwap(swapTxContext)
+
+  // Skip chain switching only for lightning and bitcoin bridges
+  // ERC20 chain swaps need to switch to source chain (input currency chainId) before locking
   const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap
   if (changeChain) {
     const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
@@ -374,6 +396,18 @@ function* swap(params: SwapParams) {
           })
           break
         }
+        case TransactionStepType.Erc20ChainSwapStep: {
+          yield* call(handleErc20ChainSwap, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            selectChain: params.selectChain,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
         default: {
           throw new UnexpectedTransactionStateError(`Unexpected step type: ${step.type}`)
         }
@@ -389,8 +423,8 @@ function* swap(params: SwapParams) {
     return
   }
 
-  // For lightning bridge and bitcoin bridge, onSuccess is called earlier in the flow
-  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap) {
+  // For lightning bridge, bitcoin bridge, and ERC20 chain swaps, onSuccess is called earlier in the flow
+  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap) {
     yield* call(onSuccess)
   }
 }

@@ -2,7 +2,7 @@ import { ChainId, Currency, WETH9 } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
-import { JUSD_ADDRESSES, JUICE_ADDRESSES, SV_JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { JUICE_ADDRESSES, JUSD_ADDRESSES, SV_JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 
 // Addresses from canonical packages - single source of truth
 const WCBTC_ADDRESS = WETH9[UniverseChainId.CitreaTestnet]?.address ?? ''
@@ -109,6 +109,18 @@ const citreaJuiceCurrency = {
   logoUrl: 'https://docs.juiceswap.com/media/icons/juice.png',
 }
 
+const polygonUsdtCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.Polygon,
+    address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+    decimals: 6,
+    symbol: 'USDT',
+    name: 'Tether USD',
+  }) as Currency,
+  currencyId: `${UniverseChainId.Polygon}-0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
+  logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+}
+
 export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaNativeCurrency,
   citreaWrappedNativeCurrency,
@@ -118,6 +130,7 @@ export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaUsdcCurrency,
   citreaCusdCurrency,
   citreaNusdCurrency,
+  citreaJusdCurrency,
 ]
 
 export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
@@ -171,6 +184,17 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
     }) as Currency,
     currencyId: `${UniverseChainId.CitreaTestnet}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
     logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
+  },
+  {
+    currency: buildCurrency({
+      chainId: UniverseChainId.Polygon,
+      address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+      decimals: 6,
+      symbol: 'USDT',
+      name: 'Tether USD',
+    }) as Currency,
+    currencyId: `${UniverseChainId.Polygon}-0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
+    logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
   },
 ]
 

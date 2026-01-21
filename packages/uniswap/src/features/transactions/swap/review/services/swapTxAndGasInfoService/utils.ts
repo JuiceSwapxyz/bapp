@@ -323,8 +323,14 @@ export function createGasFields({
 }): Pick<BaseSwapTxAndGasInfo, 'gasFee' | 'gasFeeEstimation'> {
   const { approvalGasFeeResult, revokeGasFeeResult } = approvalTxInfo
   // Gas fees for: swap from quote response directly, wrap from Gas Fee API, approvals from checkApprovalQuery
+  // For bridge swaps, if swap gas fee is undefined, use '0' as fallback since mergeGasFeeResults requires all values to be defined
+  const swapGasFeeResult =
+    swapTxInfo.gasFeeResult.value === undefined && !swapTxInfo.gasFeeResult.error
+      ? { ...swapTxInfo.gasFeeResult, value: '0', displayValue: '0' }
+      : swapTxInfo.gasFeeResult
+
   const gasFee = mergeGasFeeResults(
-    swapTxInfo.gasFeeResult,
+    swapGasFeeResult,
     approvalGasFeeResult,
     revokeGasFeeResult,
     permitTxInfo.gasFeeResult,
@@ -407,7 +413,11 @@ const EMPTY_PERMIT_TX_INFO: PermitTxInfo = {
   },
 }
 
-export function usePermitTxInfo({ quote }: { quote?: DiscriminatedQuoteResponse | GatewayJusdQuoteResponse }): PermitTxInfo {
+export function usePermitTxInfo({
+  quote,
+}: {
+  quote?: DiscriminatedQuoteResponse | GatewayJusdQuoteResponse
+}): PermitTxInfo {
   const classicQuote = quote && isClassic(quote) ? quote : undefined
   const gasStrategy = useActiveGasStrategy(classicQuote?.quote.chainId, 'swap')
 

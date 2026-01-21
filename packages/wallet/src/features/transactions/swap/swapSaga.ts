@@ -171,12 +171,15 @@ export function* approveAndSwap(params: SwapParams) {
       }
       yield* call(submitUniswapXOrder, submitOrderParams)
     } else if (swapTxContext.routing === Routing.BRIDGE) {
+      // Skip if no txRequests (e.g., ERC20 chain swaps handle tx differently)
+      if (!swapTxContext.txRequests?.[0]) {
+        throw new Error('Bridge swap requires txRequests')
+      }
       const options: TransactionOptions = {
         request: { ...swapTxContext.txRequests[0], nonce },
         submitViaPrivateRpc,
         userSubmissionTimestampMs,
         includesDelegation: swapTxContext.includesDelegation,
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         isSmartWalletTransaction: swapTxContext.txRequests[0]?.to === account.address,
       }
       const executeTransactionParams: ExecuteTransactionParams = {

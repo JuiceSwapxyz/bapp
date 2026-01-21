@@ -7,7 +7,10 @@ export const GATEWAY_JUSD_ROUTING = 'GATEWAY_JUSD' as const
 export const GATEWAY_JUICE_IN_ROUTING = 'GATEWAY_JUICE_IN' as const
 export const GATEWAY_JUICE_OUT_ROUTING = 'GATEWAY_JUICE_OUT' as const
 
-export type GatewayJusdRouting = typeof GATEWAY_JUSD_ROUTING | typeof GATEWAY_JUICE_IN_ROUTING | typeof GATEWAY_JUICE_OUT_ROUTING
+export type GatewayJusdRouting =
+  | typeof GATEWAY_JUSD_ROUTING
+  | typeof GATEWAY_JUICE_IN_ROUTING
+  | typeof GATEWAY_JUICE_OUT_ROUTING
 
 // All Gateway routing variants
 export const GATEWAY_ROUTING_VARIANTS = [
@@ -39,8 +42,10 @@ export function isGatewayJusd<T extends { routing: TradeRouting }>(obj: T): obj 
   return GATEWAY_ROUTING_VARIANTS.includes(obj.routing as GatewayJusdRouting)
 }
 
-export function isBridge<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: Routing.BRIDGE } {
-  return obj.routing === Routing.BRIDGE
+export function isBridge<T extends { routing: TradeRouting }>(
+  obj: T,
+): obj is T & { routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP } {
+  return obj.routing === Routing.BRIDGE || obj.routing === Routing.ERC20_CHAIN_SWAP
 }
 
 export function isBitcoinBridge<T extends { routing: TradeRouting }>(
@@ -49,11 +54,21 @@ export function isBitcoinBridge<T extends { routing: TradeRouting }>(
   return obj.routing === Routing.BITCOIN_BRIDGE
 }
 
-export function isLightningBridge<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: Routing.LN_BRIDGE } {
+export function isLightningBridge<T extends { routing: TradeRouting }>(
+  obj: T,
+): obj is T & { routing: Routing.LN_BRIDGE } {
   return obj.routing === Routing.LN_BRIDGE
 }
 
-export function isWrap<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: Routing.WRAP | Routing.UNWRAP } {
+export function isErc20ChainSwap<T extends { routing: TradeRouting }>(
+  obj: T,
+): obj is T & { routing: Routing.ERC20_CHAIN_SWAP } {
+  return obj.routing === Routing.ERC20_CHAIN_SWAP
+}
+
+export function isWrap<T extends { routing: TradeRouting }>(
+  obj: T,
+): obj is T & { routing: Routing.WRAP | Routing.UNWRAP } {
   return obj.routing === Routing.WRAP || obj.routing === Routing.UNWRAP
 }
 

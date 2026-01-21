@@ -52,7 +52,7 @@ import { isIFramed } from 'utils/isIFramed'
 
 const SwapBackground = styled(Flex, {
   name: 'SwapBackground',
-  position: 'fixed',
+  position: 'absolute' as const,
   top: 200,
   left: 0,
   right: 0,
@@ -61,12 +61,13 @@ const SwapBackground = styled(Flex, {
   pointerEvents: 'none',
 
   '$platform-web': {
+    position: 'fixed' as const,
     backgroundImage: `url(/images/landing_page/LandingHero-bg.svg)`,
     backgroundRepeat: 'no-repeat',
     backgroundSize: '100% 100%',
     backgroundPosition: 'top center',
   },
-} as const)
+})
 
 export default function SwapPage() {
   const navigate = useNavigate()
@@ -112,16 +113,16 @@ export default function SwapPage() {
       <Flex position="relative" width="100%" flex={1} alignItems="center">
         <SwapBackground />
         <PageWrapper>
-        <Swap
-          chainId={initialChainId}
-          initialInputCurrency={initialInputCurrency}
-          initialOutputCurrency={initialOutputCurrency}
-          initialTypedValue={initialTypedValue}
-          initialIndependentField={initialField}
-          syncTabToUrl={true}
-          usePersistedFilteredChainIds
-        />
-      </PageWrapper>
+          <Swap
+            chainId={initialChainId}
+            initialInputCurrency={initialInputCurrency}
+            initialOutputCurrency={initialOutputCurrency}
+            initialTypedValue={initialTypedValue}
+            initialIndependentField={initialField}
+            syncTabToUrl={true}
+            usePersistedFilteredChainIds
+          />
+        </PageWrapper>
       </Flex>
     </Trace>
   )

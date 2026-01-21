@@ -21,7 +21,12 @@ import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/typ
 import type { ClassicTrade, Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { SwapEventType, timestampTracker } from 'uniswap/src/features/transactions/swap/utils/SwapEventTimestampTracker'
 import { getSwapFeeUsd } from 'uniswap/src/features/transactions/swap/utils/getSwapFeeUsd'
-import { GATEWAY_JUSD_ROUTING, isClassic, isUniswapX, TradeRouting } from 'uniswap/src/features/transactions/swap/utils/routing'
+import {
+  GATEWAY_JUSD_ROUTING,
+  TradeRouting,
+  isClassic,
+  isUniswapX,
+} from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { TransactionOriginType } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'

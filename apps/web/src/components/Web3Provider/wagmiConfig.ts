@@ -47,10 +47,14 @@ function createWagmiConnectors(params: {
   return includeMockConnector
     ? [
         ...baseConnectors,
-        mock({
-          features: {},
-          accounts: [PLAYWRIGHT_CONNECT_ADDRESS],
-        }),
+        ...(PLAYWRIGHT_CONNECT_ADDRESS
+          ? [
+              mock({
+                features: {},
+                accounts: [PLAYWRIGHT_CONNECT_ADDRESS],
+              }),
+            ]
+          : []),
       ]
     : baseConnectors
 }
@@ -111,7 +115,7 @@ const defaultOnFetchResponse = (response: Response, chain: Chain, url: string) =
 }
 
 const defaultConnectors = createWagmiConnectors({
-  includeMockConnector: isPlaywrightEnv(),
+  includeMockConnector: false,
 })
 
 export const wagmiConfig = createWagmiConfig({ connectors: defaultConnectors })

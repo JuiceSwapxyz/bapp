@@ -2,7 +2,7 @@ import { Routing, CreateSwapRequest } from "uniswap/src/data/tradingApi/__genera
 import { GasEstimate } from "uniswap/src/data/tradingApi/types"
 import { GasFeeResult, ValidatedGasFeeResult, validateGasFeeResult } from "uniswap/src/features/gas/types"
 import { BridgeTrade, BitcoinBridgeTrade, LightningBridgeTrade, ClassicTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
-import { isBridge, isBitcoinBridge, isLightningBridge, isClassic, isGatewayJusd, isUniswapX, isWrap, GatewayJusdRouting } from "uniswap/src/features/transactions/swap/utils/routing"
+import { isBridge, isBitcoinBridge, isLightningBridge, isClassic, isErc20ChainSwap, isGatewayJusd, isUniswapX, isWrap, GatewayJusdRouting } from "uniswap/src/features/transactions/swap/utils/routing"
 import { isInterface } from "utilities/src/platform"
 import { Prettify } from "viem"
 import { ValidatedPermit } from "uniswap/src/features/transactions/swap/utils/trade"
@@ -93,7 +93,7 @@ export interface UniswapXSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
 }
 
 export interface BridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
-  routing: Routing.BRIDGE
+  routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP
   trade: BridgeTrade
   txRequests: PopulatedTransactionRequestArray | undefined
 }
@@ -140,8 +140,8 @@ export type ValidatedWrapSwapTxAndGasInfo =  Prettify<Required<Omit<WrapSwapTxAn
   txRequests: PopulatedTransactionRequestArray
 } & Pick<WrapSwapTxAndGasInfo, 'includesDelegation'>>
 
-export type ValidatedBridgeSwapTxAndGasInfo =  Prettify<Required<Omit<BridgeSwapTxAndGasInfo, 'includesDelegation'>> & BaseRequiredSwapTxContextFields & ({
-  txRequests: PopulatedTransactionRequestArray
+export type ValidatedBridgeSwapTxAndGasInfo =  Prettify<Required<Omit<BridgeSwapTxAndGasInfo, 'includesDelegation' | 'txRequests'>> & BaseRequiredSwapTxContextFields & ({
+  txRequests: PopulatedTransactionRequestArray | undefined
 }) & Pick<BridgeSwapTxAndGasInfo, 'includesDelegation'>>
 
 export type ValidatedBitcoinBridgeSwapTxAndGasInfo = Prettify<Required<Omit<BitcoinBridgeSwapTxAndGasInfo, 'includesDelegation' | 'txRequests' | 'destinationAddress'>> & BaseRequiredSwapTxContextFields & ({
@@ -208,6 +208,18 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
       return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }
     } else if (isBridge(swapTxContext)) {
       const { trade, txRequests, includesDelegation } = swapTxContext
+      
+      // ERC20 chain swaps don't require txRequests since Boltz handles the swap
+      if (isErc20ChainSwap(swapTxContext)) {
+        return {
+          ...swapTxContext,
+          trade,
+          gasFee,
+          txRequests: txRequests as PopulatedTransactionRequestArray | undefined,
+          includesDelegation,
+        } as ValidatedBridgeSwapTxAndGasInfo
+      }
+      
       if (txRequests) {
         return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation }
       }

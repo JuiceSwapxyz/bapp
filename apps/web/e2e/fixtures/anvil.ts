@@ -3,14 +3,14 @@ import { WETH_ADDRESS } from '@juiceswapxyz/universal-router-sdk'
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { test as base } from '@playwright/test'
 import { MaxUint160, MaxUint256, permit2Address } from '@uniswap/permit2-sdk'
-import { anvilClient, setErc20BalanceWithMultipleSlots } from 'playwright/anvil/utils'
-import { TEST_WALLET_ADDRESS } from 'playwright/fixtures/wallets'
 import PERMIT2_ABI from 'uniswap/src/abis/permit2'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { DAI, USDT } from 'uniswap/src/constants/tokens'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { assume0xAddress } from 'utils/wagmi'
 import { Address, erc20Abi, publicActions, walletActions } from 'viem'
+import { anvilClient, setErc20BalanceWithMultipleSlots } from '../anvil/utils'
+import { TEST_WALLET_ADDRESS } from './wallets'
 
 class WalletError extends Error {
   code?: number

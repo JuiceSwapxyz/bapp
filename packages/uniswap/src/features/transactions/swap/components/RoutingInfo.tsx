@@ -42,7 +42,10 @@ export function RoutingInfo({
 
   // Gateway swaps also use ClassicTrade underneath
   const isClassicOrGateway = trade && (isClassic(trade) || isGatewayJusd(trade))
-  const routes = useMemo(() => (isClassicOrGateway ? getRoutingDiagramEntries(trade as ClassicTrade) : []), [isClassicOrGateway, trade])
+  const routes = useMemo(
+    () => (isClassicOrGateway ? getRoutingDiagramEntries(trade as ClassicTrade) : []),
+    [isClassicOrGateway, trade],
+  )
 
   const caption = useMemo(() => {
     if (!trade) {
