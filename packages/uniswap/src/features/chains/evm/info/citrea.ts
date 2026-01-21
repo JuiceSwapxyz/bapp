@@ -23,7 +23,7 @@ const testnetTokens = buildChainTokens({
     JUSD: new Token(
       UniverseChainId.CitreaTestnet,
       '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
-      6,
+      18,
       'JUSD',
       'JuiceSwap USD',
     ),

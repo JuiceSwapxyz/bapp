@@ -481,16 +481,49 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
   if (!pairInfo)
     throw new Error(`Pair not found: ${from} -> ${to}. Available pairs: ${JSON.stringify(Object.keys(chainPairs))}`)
 
-  // Boltz uses 8 decimals internally, USDT/JUSD use 6 decimals
-  // Convert 6→8: multiply by 100 (e.g., 10 USDT → 1000000000)
-  // Calculate fees in 8-decimal format
-  // Convert 8→6: divide by 100 (e.g., 997500000 → 997500)
+  // Boltz uses 8 decimals internally
+  // USDT has 6 decimals, JUSD has 18 decimals
+  // Conversion factors:
+  // - USDT (6) → Boltz (8): * 10^2 = * 100
+  // - Boltz (8) → JUSD (18): * 10^10
+  // - JUSD (18) → Boltz (8): / 10^10
+  // - Boltz (8) → USDT (6): / 10^2 = / 100
+  const BOLTZ_DECIMALS = 8
+  const USDT_DECIMALS = 6
+  const JUSD_DECIMALS = 18
+
+  const isInputUsdt = from === 'USDT_POLYGON' || from === 'USDT_ETH'
+  const isOutputUsdt = to === 'USDT_POLYGON' || to === 'USDT_ETH'
+
+  const inputDecimals = isInputUsdt ? USDT_DECIMALS : JUSD_DECIMALS
+  const outputDecimals = isOutputUsdt ? USDT_DECIMALS : JUSD_DECIMALS
+
   const inputAmount = BigInt(params.amount)
-  const inputAmountBoltz = inputAmount * BigInt(100)
+
+  // Convert input to Boltz 8-decimal format
+  let inputAmountBoltz: bigint
+  if (inputDecimals < BOLTZ_DECIMALS) {
+    // e.g., USDT 6 → Boltz 8: multiply by 10^2
+    inputAmountBoltz = inputAmount * BigInt(10 ** (BOLTZ_DECIMALS - inputDecimals))
+  } else {
+    // e.g., JUSD 18 → Boltz 8: divide by 10^10
+    inputAmountBoltz = inputAmount / BigInt(10 ** (inputDecimals - BOLTZ_DECIMALS))
+  }
+
+  // Calculate fees in Boltz 8-decimal format
   const feePercent = pairInfo.fees.percentage / 100
   const minerFee = BigInt(pairInfo.fees.minerFees.server + pairInfo.fees.minerFees.user.claim)
   const outputAmountBoltz = inputAmountBoltz - BigInt(Math.floor(Number(inputAmountBoltz) * feePercent)) - minerFee
-  const outputAmount = outputAmountBoltz / BigInt(100)
+
+  // Convert output from Boltz 8-decimal to output token decimals
+  let outputAmount: bigint
+  if (outputDecimals < BOLTZ_DECIMALS) {
+    // e.g., Boltz 8 → USDT 6: divide by 10^2
+    outputAmount = outputAmountBoltz / BigInt(10 ** (BOLTZ_DECIMALS - outputDecimals))
+  } else {
+    // e.g., Boltz 8 → JUSD 18: multiply by 10^10
+    outputAmount = outputAmountBoltz * BigInt(10 ** (outputDecimals - BOLTZ_DECIMALS))
+  }
 
   const bridgeQuote: BridgeQuote = {
     quoteId: `erc20-chain-swap-${Date.now()}`,
