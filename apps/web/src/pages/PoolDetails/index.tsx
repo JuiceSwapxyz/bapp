@@ -267,7 +267,9 @@ export default function PoolDetailsPage() {
             {showRewardsDistribution && (
               <LpIncentivesPoolDetailsRewardsDistribution rewardsCampaign={poolData?.rewardsCampaign} />
             )}
-            <PoolDetailsStats poolData={poolData} isReversed={isReversed} chainId={chainInfo.id} loading={loading} />
+            {poolData && !!poolData.token0Price && (
+              <PoolDetailsStats poolData={poolData} isReversed={isReversed} chainId={chainInfo.id} loading={loading} />
+            )}
             <TokenDetailsWrapper>
               <TokenDetailsHeader>
                 <Trans i18nKey="common.links" />

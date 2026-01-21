@@ -69,6 +69,7 @@ import {
   GasStrategy,
   LightningBridgeDirection,
   LightningInvoice,
+  PoolDetailsResponse,
 } from 'uniswap/src/data/tradingApi/types'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
@@ -478,8 +479,9 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
   const chainPairs = await ldsBridge.getChainPairs()
   const pairInfo = chainPairs[from]?.[to]
 
-  if (!pairInfo)
+  if (!pairInfo) {
     throw new Error(`Pair not found: ${from} -> ${to}. Available pairs: ${JSON.stringify(Object.keys(chainPairs))}`)
+  }
 
   // Boltz uses 8 decimals internally, USDT/JUSD use 6 decimals
   // Convert 6→8: multiply by 100 (e.g., 10 USDT → 1000000000)
@@ -1094,6 +1096,14 @@ export async function checkWalletDelegation(
 
 export async function validateLightningAddress(params: { lnLikeAddress: string }): Promise<{ validated: boolean }> {
   return await TradingApiClient.post<{ validated: boolean }>('/v1/lightning/validate', {
+    body: JSON.stringify({
+      ...params,
+    }),
+  })
+}
+
+export async function fetchV3PoolDetails(params: { address: string; chainId: number }): Promise<PoolDetailsResponse> {
+  return await TradingApiClient.post<PoolDetailsResponse>('/v1/pools/v3/details', {
     body: JSON.stringify({
       ...params,
     }),

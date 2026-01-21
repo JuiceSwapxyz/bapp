@@ -7,7 +7,6 @@ import { SwapBottomCard } from 'components/SwapBottomCard'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
-import { PageType, useIsPage } from 'hooks/useIsPage'
 import { useModalState } from 'hooks/useModalState'
 import { useRefundableSwaps } from 'hooks/useRefundableSwaps'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
@@ -26,7 +25,6 @@ import type { CurrencyState } from 'state/swap/types'
 import { Flex, Text, Tooltip, styled } from 'ui/src'
 import { zIndexes } from 'ui/src/theme'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
-import { useIsModeMismatch } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
@@ -163,10 +161,6 @@ export function Swap({
   usePersistedFilteredChainIds?: boolean
   passkeyAuthStatus?: PasskeyAuthStatus
 }) {
-  const isExplorePage = useIsPage(PageType.EXPLORE)
-  const isModeMismatch = useIsModeMismatch(chainId)
-  const isSharedSwapDisabled = isModeMismatch && isExplorePage
-
   const input = currencyToAsset(initialInputCurrency)
   const output = currencyToAsset(initialOutputCurrency)
 
@@ -197,8 +191,7 @@ export function Swap({
               hideSettings={hideHeader}
               hideFooter={hideFooter}
             >
-              <Flex position="relative" gap="$spacing16" opacity={isSharedSwapDisabled ? 0.6 : 1}>
-                {isSharedSwapDisabled && <DisabledSwapOverlay />}
+              <Flex position="relative" gap="$spacing16" opacity={1}>
                 <UniversalSwapFlow
                   hideHeader={hideHeader}
                   hideFooter={hideFooter}

@@ -81,3 +81,70 @@ export interface LightningInvoice {
     expiryDate: string
   }
 }
+
+export interface PoolDetailsRequestBody {
+  address: string
+  chain: string
+}
+
+interface TokenInfo {
+  id: string
+  address: string
+  chain: string
+  decimals: number
+  name: string
+  standard: string
+  symbol: string
+  isBridged: null | unknown
+  bridgedWithdrawalInfo: null | unknown
+  project: {
+    id: string
+    isSpam: boolean
+    logoUrl: string | null
+    name: string
+    safetyLevel: string
+    markets: unknown[]
+    logo: {
+      id: string
+      url: string
+    } | null
+  }
+  feeData: null | unknown
+  protectionInfo: null | unknown
+  market: {
+    id: string
+    price: {
+      id: string
+      value: number
+    }
+  }
+}
+
+export interface PoolDetailsResponse {
+  data: {
+    v3Pool: {
+      id: string
+      protocolVersion: string
+      address: string
+      feeTier: number
+      token0: TokenInfo
+      token0Supply: number
+      token1: TokenInfo
+      token1Supply: number
+      txCount: number
+      volume24h: {
+        value: number
+      }
+      historicalVolume: Array<{
+        value: number
+        timestamp: number
+      }>
+      totalLiquidity: {
+        value: number
+      }
+      totalLiquidityPercentChange24h: {
+        value: number
+      }
+    }
+  }
+}
