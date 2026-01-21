@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import { TransactionFailureReason } from 'uniswap/src/data/tradingApi/__generated__'
 import { getRelevantTokenWarningSeverity } from 'uniswap/src/features/transactions/TransactionDetails/utils/getRelevantTokenWarningSeverity'
 import { useFeeOnTransferAmounts } from 'uniswap/src/features/transactions/swap/hooks/useFeeOnTransferAmount'
 import { useParsedSwapWarnings } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/useSwapWarnings'
@@ -9,6 +10,7 @@ import { createSwapReviewTransactionStore } from 'uniswap/src/features/transacti
 import {
   isBitcoinBridge,
   isClassic,
+  isGatewayJusd,
   isLightningBridge,
   isUniswapX,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -46,10 +48,10 @@ export const SwapReviewTransactionStoreContextProvider = ({
   const tokenWarningProps = getRelevantTokenWarningSeverity(acceptedDerivedSwapInfo)
 
   const txSimulationErrors = useMemo(() => {
-    if (!trade || !isClassic(trade)) {
+    if (!trade || (!isClassic(trade) && !isGatewayJusd(trade))) {
       return undefined
     }
-    return trade.quote.quote.txFailureReasons
+    return (trade.quote.quote as { txFailureReasons?: TransactionFailureReason[] }).txFailureReasons
   }, [trade])
 
   const derivedUpdatedState: SwapReviewTransactionState = useMemo(

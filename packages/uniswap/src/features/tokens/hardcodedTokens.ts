@@ -2,6 +2,13 @@ import { ChainId, Currency, WETH9 } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
+import { JUSD_ADDRESSES, JUICE_ADDRESSES, SV_JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
+
+// Addresses from canonical packages - single source of truth
+const WCBTC_ADDRESS = WETH9[UniverseChainId.CitreaTestnet]?.address ?? ''
+const JUSD_ADDRESS = JUSD_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
+const SV_JUSD_ADDRESS = SV_JUSD_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
+const JUICE_ADDRESS = JUICE_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
 
 const citreaNativeCurrency = {
   currency: buildCurrency({
@@ -65,9 +72,49 @@ const citreaNusdCurrency = {
   logoUrl: 'https://docs.juiceswap.com/media/icons/nusd.png',
 }
 
+// JuiceDollar tokens - addresses from @juicedollar/jusd package
+const citreaJusdCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaTestnet,
+    address: JUSD_ADDRESS,
+    decimals: 18,
+    symbol: 'JUSD',
+    name: 'Juice Dollar',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaTestnet}-${JUSD_ADDRESS}`,
+  logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
+}
+
+const citreaSvJusdCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaTestnet,
+    address: SV_JUSD_ADDRESS,
+    decimals: 18,
+    symbol: 'svJUSD',
+    name: 'Savings Vault JUSD',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaTestnet}-${SV_JUSD_ADDRESS}`,
+  logoUrl: 'https://docs.juiceswap.com/media/icons/svjusd.png',
+}
+
+const citreaJuiceCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaTestnet,
+    address: JUICE_ADDRESS,
+    decimals: 18,
+    symbol: 'JUICE',
+    name: 'JUICE Equity',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaTestnet}-${JUICE_ADDRESS}`,
+  logoUrl: 'https://docs.juiceswap.com/media/icons/juice.png',
+}
+
 export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaNativeCurrency,
   citreaWrappedNativeCurrency,
+  citreaJusdCurrency,
+  citreaSvJusdCurrency,
+  citreaJuiceCurrency,
   citreaUsdcCurrency,
   citreaCusdCurrency,
   citreaNusdCurrency,
@@ -108,6 +155,9 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
     logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
   },
   citreaWrappedNativeCurrency,
+  citreaJusdCurrency,
+  citreaSvJusdCurrency,
+  citreaJuiceCurrency,
   citreaUsdcCurrency,
   citreaCusdCurrency,
   citreaNusdCurrency,

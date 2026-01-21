@@ -3,6 +3,7 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { Routing } from 'uniswap/src/data/tradingApi/__generated__'
+import { GATEWAY_JUSD_ROUTING, GATEWAY_JUICE_IN_ROUTING, GATEWAY_JUICE_OUT_ROUTING } from 'uniswap/src/features/transactions/swap/utils/routing'
 import type { GasStrategy } from 'uniswap/src/data/tradingApi/types'
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useActiveGasStrategy } from 'uniswap/src/features/gas/hooks'
@@ -20,6 +21,7 @@ import { createEVMSwapInstructionsService } from 'uniswap/src/features/transacti
 import { usePresignPermit } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/hooks'
 import { createDecorateSwapTxInfoServiceWithEVMLogging } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/logging'
 import { createLightningBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/lightning/lightningBridgeSwapTxAndGasInfoService'
+import { createGatewayJusdSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/gateway/gatewayJusdSwapTxAndGasInfoService'
 import type {
   RoutingServicesMap,
   SwapTxAndGasInfoParameters,
@@ -129,6 +131,13 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     return createLightningBridgeSwapTxAndGasInfoService({ gasStrategy: swapConfig.gasStrategy })
   }, [swapConfig.gasStrategy])
 
+  const gatewayJusdSwapTxInfoService = useMemo(() => {
+    return createGatewayJusdSwapTxAndGasInfoService({
+      gasStrategy: swapConfig.gasStrategy,
+      transactionSettings,
+    })
+  }, [swapConfig.gasStrategy, transactionSettings])
+
   const services = useMemo(() => {
     return {
       [Routing.CLASSIC]: classicSwapTxInfoService,
@@ -143,6 +152,10 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [Routing.JUPITER]: createNoopService(),
       [Routing.BITCOIN_BRIDGE]: bitcoinBridgeSwapTxInfoService,
       [Routing.LN_BRIDGE]: lightningBridgeSwapTxInfoService,
+      // Gateway routing variants use dedicated service for JuiceSwap Gateway (JUSD abstraction and JUICE equity swaps)
+      [GATEWAY_JUSD_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
+      [GATEWAY_JUICE_IN_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
+      [GATEWAY_JUICE_OUT_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
     } satisfies RoutingServicesMap
   }, [
     classicSwapTxInfoService,
@@ -151,6 +164,7 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     wrapTxInfoService,
     bitcoinBridgeSwapTxInfoService,
     lightningBridgeSwapTxInfoService,
+    gatewayJusdSwapTxInfoService,
   ])
 
   return useMemo(() => {

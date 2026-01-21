@@ -19,7 +19,8 @@ import {
 } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormTooltips/BestRouteTooltip'
 import { usePriceUXEnabled } from 'uniswap/src/features/transactions/swap/hooks/usePriceUXEnabled'
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
-import { isClassic, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { ClassicTrade } from 'uniswap/src/features/transactions/swap/types/trade'
+import { isClassic, isGatewayJusd, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 import getRoutingDiagramEntries from 'uniswap/src/utils/getRoutingDiagramEntries'
 import { NumberType } from 'utilities/src/format/types'
 import { isWeb } from 'utilities/src/platform'
@@ -39,7 +40,9 @@ export function RoutingInfo({
   const gasFeeFormatted =
     gasFeeUSD !== undefined ? convertFiatAmountFormatted(gasFeeUSD, NumberType.FiatGasPrice) : undefined
 
-  const routes = useMemo(() => (trade && isClassic(trade) ? getRoutingDiagramEntries(trade) : []), [trade])
+  // Gateway swaps also use ClassicTrade underneath
+  const isClassicOrGateway = trade && (isClassic(trade) || isGatewayJusd(trade))
+  const routes = useMemo(() => (isClassicOrGateway ? getRoutingDiagramEntries(trade as ClassicTrade) : []), [isClassicOrGateway, trade])
 
   const caption = useMemo(() => {
     if (!trade) {
@@ -66,7 +69,7 @@ export function RoutingInfo({
       )
     }
 
-    if (isClassic(trade)) {
+    if (isClassic(trade) || isGatewayJusd(trade)) {
       return (
         <Flex gap="$spacing12">
           {isWeb && (
@@ -107,7 +110,7 @@ export function RoutingInfo({
           text:
             priceUxEnabled && trade ? isUniswapX(trade) ? <BestRouteUniswapXTooltip /> : <BestRouteTooltip /> : caption,
           placement: 'top',
-          maxWidth: priceUxEnabled ? 300 : trade && isClassic(trade) ? 400 : undefined,
+          maxWidth: priceUxEnabled ? 300 : isClassicOrGateway ? 400 : undefined,
         }}
         analyticsTitle="Order routing"
       >

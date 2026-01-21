@@ -57,9 +57,11 @@ import { BridgeTrade, ClassicTrade } from 'uniswap/src/features/transactions/swa
 import { slippageToleranceToPercent } from 'uniswap/src/features/transactions/swap/utils/format'
 import { generateSwapTransactionSteps } from 'uniswap/src/features/transactions/swap/utils/generateSwapTransactionSteps'
 import {
+  TradeRouting,
   UNISWAPX_ROUTING_VARIANTS,
   isBitcoinBridge,
   isClassic,
+  isGatewayJusd,
   isLightningBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
@@ -211,7 +213,7 @@ type SwapParams = {
 }
 
 /** Asserts that a given object fits a given routing variant. */
-function requireRouting<T extends Routing, V extends { routing: Routing }>(
+function requireRouting<T extends TradeRouting, V extends { routing: TradeRouting }>(
   val: V,
   routing: readonly T[],
 ): asserts val is V & { routing: T } {
@@ -284,13 +286,16 @@ function* swap(params: SwapParams) {
         }
         case TransactionStepType.SwapTransaction:
         case TransactionStepType.SwapTransactionAsync: {
-          requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
+          // Gateway trades execute like Classic trades but have different routing type
+          if (!isGatewayJusd(swapTxContext)) {
+            requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
+          }
           yield* call(handleSwapTransactionStep, {
             account,
             signature,
             step,
             setCurrentStep,
-            trade,
+            trade: trade as ClassicTrade | BridgeTrade,
             analytics,
             onTransactionHash: params.onTransactionHash,
             swapTxContext,
@@ -298,12 +303,15 @@ function* swap(params: SwapParams) {
           break
         }
         case TransactionStepType.SwapTransactionBatched: {
-          requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
+          // Gateway trades execute like Classic trades but have different routing type
+          if (!isGatewayJusd(swapTxContext)) {
+            requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
+          }
           yield* call(handleSwapTransactionBatchedStep, {
             account,
             step,
             setCurrentStep,
-            trade,
+            trade: trade as ClassicTrade | BridgeTrade,
             analytics,
             disableOneClickSwap,
           })
