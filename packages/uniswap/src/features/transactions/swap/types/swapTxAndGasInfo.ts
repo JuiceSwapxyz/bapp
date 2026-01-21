@@ -1,8 +1,8 @@
 import { Routing, CreateSwapRequest } from "uniswap/src/data/tradingApi/__generated__/index"
 import { GasEstimate } from "uniswap/src/data/tradingApi/types"
 import { GasFeeResult, ValidatedGasFeeResult, validateGasFeeResult } from "uniswap/src/features/gas/types"
-import { BridgeTrade, BitcoinBridgeTrade, LightningBridgeTrade, ClassicTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
-import { isBridge, isBitcoinBridge, isLightningBridge, isClassic, isErc20ChainSwap, isGatewayJusd, isUniswapX, isWrap, GatewayJusdRouting } from "uniswap/src/features/transactions/swap/utils/routing"
+import { BridgeTrade, BitcoinBridgeTrade, LightningBridgeTrade, ClassicTrade, GatewayJusdTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
+import { isBridge, isBitcoinBridge, isErc20ChainSwap, isLightningBridge, isClassic, isGatewayJusd, isUniswapX, isWrap, GatewayJusdRouting } from "uniswap/src/features/transactions/swap/utils/routing"
 import { isInterface } from "utilities/src/platform"
 import { Prettify } from "viem"
 import { ValidatedPermit } from "uniswap/src/features/transactions/swap/utils/trade"
@@ -30,7 +30,7 @@ export type UniswapXGasBreakdown = {
 
 export interface BaseSwapTxAndGasInfo {
   routing: Routing
-  trade?: ClassicTrade | UniswapXTrade | BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade | WrapTrade | UnwrapTrade
+  trade?: ClassicTrade | GatewayJusdTrade | UniswapXTrade | BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade | WrapTrade | UnwrapTrade
   approveTxRequest: ValidatedTransactionRequest | undefined
   revocationTxRequest: ValidatedTransactionRequest | undefined
   gasFee: GasFeeResult
@@ -72,7 +72,7 @@ export interface ClassicSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
  */
 export interface GatewayJusdSwapTxAndGasInfo extends Omit<BaseSwapTxAndGasInfo, 'routing'> {
   routing: GatewayJusdRouting
-  trade?: ClassicTrade
+  trade?: GatewayJusdTrade
   permit: PermitTransaction | PermitTypedData | undefined
   swapRequestArgs: CreateSwapRequest | undefined
   unsigned: boolean

@@ -16,6 +16,7 @@ import { PositionInfo } from 'components/Liquidity/types'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { DEFAULT_TICK_SPACING } from 'uniswap/src/constants/pools'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
+import { transformSvJusdToken } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { logger } from 'utilities/src/logger/logger'
 
 function parseV3FeeTier(feeTier: string | undefined): FeeData | undefined {
@@ -134,7 +135,9 @@ function parseRestToken<T extends Currency>(token: RestToken | undefined): T | u
     return nativeOnChain(token.chainId) as T
   }
 
-  return new Token(token.chainId, token.address, token.decimals, token.symbol, token.name) as T
+  const parsedToken = new Token(token.chainId, token.address, token.decimals, token.symbol, token.name)
+  // Transform svJUSD to JUSD for display - users should only see JUSD
+  return transformSvJusdToken(parsedToken) as T
 }
 
 function getPairFromRest({
