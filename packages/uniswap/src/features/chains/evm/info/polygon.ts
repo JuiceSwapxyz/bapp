@@ -60,7 +60,8 @@ export const POLYGON_CHAIN_INFO = {
     [RPCType.Public]: { http: [getQuicknodeEndpointUrl(UniverseChainId.Polygon)] },
     [RPCType.PublicAlt]: { http: ['https://polygon-rpc.com/'] },
     [RPCType.Default]: { http: ['https://polygon-rpc.com/'] },
-    [RPCType.Interface]: { http: [`https://polygon-mainnet.infura.io/v3/${config.infuraKey}`] },
+    // Use public RPC instead of Infura to avoid API key issues
+    [RPCType.Interface]: { http: ['https://polygon-rpc.com/'] },
   },
   tokens,
   statusPage: undefined,

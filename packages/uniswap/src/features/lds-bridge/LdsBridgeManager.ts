@@ -23,7 +23,7 @@ import { fetchBlockTipHeight } from './api/mempool'
 import { ChainSwapKeys, generateChainSwapKeys } from './keys/chainSwapKeys'
 import { ChainSwap, ReverseSwap, SomeSwap, SubmarineSwap, SwapType } from './lds-types/storage'
 import type { SwapUpdateEvent } from './lds-types/websocket'
-import { LdsSwapStatus, swapStatusFinal } from './lds-types/websocket'
+import { hasReachedStatus, LdsSwapStatus, swapStatusFinal } from './lds-types/websocket'
 import { StorageManager } from './storage/StorageManager'
 import { SwapEventEmitter } from './storage/SwapEventEmitter'
 import { prefix0x } from './utils/hex'
@@ -279,30 +279,109 @@ class LdsBridgeManager extends SwapEventEmitter {
     return generateChainSwapKeys(swap.mnemonic, swap.keyIndex)
   }
 
-  waitForSwapUntilState = async (swapId: string, state: LdsSwapStatus): Promise<void> => {
+  waitForSwapUntilState = async (swapId: string, state: LdsSwapStatus, timeoutMs = 120000): Promise<void> => {
+    // eslint-disable-next-line no-console
+    console.error(`[LdsBridgeManager] waitForSwapUntilState called: swapId=${swapId}, targetState=${state}`)
+
     const swap = await this.storageManager.getSwap(swapId)
     if (!swap) {
       throw new Error('Swap not found')
     }
-    if (swap.status === state) {
+
+    // eslint-disable-next-line no-console
+    console.error(`[LdsBridgeManager] Current swap status from storage: ${swap.status}`)
+
+    // Check if we've already reached or passed the target state
+    if (swap.status && hasReachedStatus(swap.status, state)) {
+      // eslint-disable-next-line no-console
+      console.error(`[LdsBridgeManager] Already at or past target state: current=${swap.status}, target=${state}`)
       return
     }
-    if (swapStatusFinal.includes(swap.status!) && swap.status !== state) {
-      throw new Error('Swap is in final state')
+
+    if (swapStatusFinal.includes(swap.status!) && !hasReachedStatus(swap.status!, state)) {
+      throw new Error(`Swap is in final state: ${swap.status}`)
     }
 
+    // eslint-disable-next-line no-console
+    console.error(`[LdsBridgeManager] Starting to wait for state: ${state}`)
+
     return new Promise((resolve, reject) => {
-      const updateCallback = async (event: SwapUpdateEvent) => {
-        try {
-          if (event.status === state) {
-            this.socketClient.unsubscribeFromSwapUpdates(updateCallback)
-            resolve()
-          }
-        } catch (error) {
-          reject(error)
+      let resolved = false
+      let pollInterval: ReturnType<typeof setInterval> | null = null
+      let timeoutId: ReturnType<typeof setTimeout> | null = null
+      let pollCount = 0
+
+      const cleanup = () => {
+        if (pollInterval) {
+          clearInterval(pollInterval)
+        }
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
+        this.socketClient.unsubscribeFromSwapUpdates(updateCallback)
+      }
+
+      const checkAndResolve = (currentStatus: LdsSwapStatus) => {
+        if (resolved) {
+          return
+        }
+        // eslint-disable-next-line no-console
+        console.error(`[LdsBridgeManager] checkAndResolve: current=${currentStatus}, target=${state}, hasReached=${hasReachedStatus(currentStatus, state)}`)
+        if (hasReachedStatus(currentStatus, state)) {
+          resolved = true
+          cleanup()
+          // eslint-disable-next-line no-console
+          console.error(`[LdsBridgeManager] ✓ Reached target state: current=${currentStatus}, target=${state}`)
+          resolve()
+        } else if (swapStatusFinal.includes(currentStatus)) {
+          resolved = true
+          cleanup()
+          reject(new Error(`Swap reached final state ${currentStatus} before reaching ${state}`))
         }
       }
+
+      const updateCallback = async (event: SwapUpdateEvent) => {
+        // eslint-disable-next-line no-console
+        console.error(`[LdsBridgeManager] WebSocket update received: ${event.status}, waiting for: ${state}`)
+        checkAndResolve(event.status)
+      }
+
+      // Subscribe to WebSocket updates
+      // eslint-disable-next-line no-console
+      console.error(`[LdsBridgeManager] Subscribing to WebSocket updates for swap: ${swapId}`)
       this.socketClient.subscribeToSwapUpdates(swapId, updateCallback)
+
+      // Also poll the API periodically in case WebSocket updates are missed
+      // eslint-disable-next-line no-console
+      console.error(`[LdsBridgeManager] Starting API polling every 3 seconds`)
+      pollInterval = setInterval(async () => {
+        if (resolved) {
+          return
+        }
+        pollCount++
+        try {
+          // eslint-disable-next-line no-console
+          console.error(`[LdsBridgeManager] API poll #${pollCount} for swap: ${swapId}`)
+          const status = await fetchSwapCurrentStatus(swapId)
+          // eslint-disable-next-line no-console
+          console.error(`[LdsBridgeManager] API poll #${pollCount} result: ${status.status}, waiting for: ${state}`)
+          checkAndResolve(status.status)
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('[LdsBridgeManager] Error polling status:', error)
+        }
+      }, 3000) // Poll every 3 seconds
+
+      // Set timeout
+      timeoutId = setTimeout(() => {
+        if (!resolved) {
+          resolved = true
+          cleanup()
+          // eslint-disable-next-line no-console
+          console.error(`[LdsBridgeManager] ✗ Timeout after ${timeoutMs}ms waiting for state ${state}`)
+          reject(new Error(`Timeout waiting for swap ${swapId} to reach state ${state} (waited ${timeoutMs}ms)`))
+        }
+      }, timeoutMs)
     })
   }
 

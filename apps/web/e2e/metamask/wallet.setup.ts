@@ -49,7 +49,7 @@ export const TOKENS = {
   JUSD: {
     address: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
     symbol: 'JUSD',
-    decimals: 6,
+    decimals: 18, // JUSD has 18 decimals - DO NOT CHANGE
     chainId: 5115,
   },
   // USDT on Polygon
