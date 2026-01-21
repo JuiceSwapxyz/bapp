@@ -161,7 +161,11 @@ addImport(bridgeQuoteFile, 'LightningBridgeDirection')
 addImport(bridgeQuoteFile, 'BitcoinBridgeDirection')
 addImport(bridgeQuoteFile, 'Erc20ChainSwapDirection')
 modifyType(bridgeQuoteFile, 'BridgeQuote', [
-  { name: 'direction', type: 'LightningBridgeDirection | BitcoinBridgeDirection | Erc20ChainSwapDirection', isOptional: true },
+  {
+    name: 'direction',
+    type: 'LightningBridgeDirection | BitcoinBridgeDirection | Erc20ChainSwapDirection',
+    isOptional: true,
+  },
 ])
 
 // Add new enum members

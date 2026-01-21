@@ -16,10 +16,11 @@ import { createBitcoinBridgeSwapTxAndGasInfoService } from 'uniswap/src/features
 import { createBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/bridge/bridgeSwapTxAndGasInfoService'
 import { createClassicSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/classic/classicSwapTxAndGasInfoService'
 import { FALLBACK_SWAP_REQUEST_POLL_INTERVAL_MS } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/constants'
+import { createErc20ChainSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/erc20ChainSwap/erc20ChainSwapTxAndGasInfoService'
 import { createEVMSwapInstructionsService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/evmSwapInstructionsService'
 import { usePresignPermit } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/hooks'
 import { createDecorateSwapTxInfoServiceWithEVMLogging } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/logging'
-import { createErc20ChainSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/erc20ChainSwap/erc20ChainSwapTxAndGasInfoService'
+import { createGatewayJusdSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/gateway/gatewayJusdSwapTxAndGasInfoService'
 import { createLightningBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/lightning/lightningBridgeSwapTxAndGasInfoService'
 import type {
   RoutingServicesMap,
@@ -36,6 +37,11 @@ import {
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import type { SwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import type { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
+import {
+  GATEWAY_JUICE_IN_ROUTING,
+  GATEWAY_JUICE_OUT_ROUTING,
+  GATEWAY_JUSD_ROUTING,
+} from 'uniswap/src/features/transactions/swap/utils/routing'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { useEvent, usePrevious } from 'utilities/src/react/hooks'
@@ -134,6 +140,13 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     return createErc20ChainSwapTxAndGasInfoService({ gasStrategy: swapConfig.gasStrategy })
   }, [swapConfig.gasStrategy])
 
+  const gatewayJusdSwapTxInfoService = useMemo(() => {
+    return createGatewayJusdSwapTxAndGasInfoService({
+      gasStrategy: swapConfig.gasStrategy,
+      transactionSettings,
+    })
+  }, [swapConfig.gasStrategy, transactionSettings])
+
   const services = useMemo(() => {
     return {
       [Routing.CLASSIC]: classicSwapTxInfoService,
@@ -149,6 +162,10 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [Routing.JUPITER]: createNoopService(),
       [Routing.BITCOIN_BRIDGE]: bitcoinBridgeSwapTxInfoService,
       [Routing.LN_BRIDGE]: lightningBridgeSwapTxInfoService,
+      // Gateway routing variants use dedicated service for JuiceSwap Gateway (JUSD abstraction and JUICE equity swaps)
+      [GATEWAY_JUSD_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
+      [GATEWAY_JUICE_IN_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
+      [GATEWAY_JUICE_OUT_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
     } satisfies RoutingServicesMap
   }, [
     classicSwapTxInfoService,
@@ -158,6 +175,7 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     bitcoinBridgeSwapTxInfoService,
     lightningBridgeSwapTxInfoService,
     erc20ChainSwapTxInfoService,
+    gatewayJusdSwapTxInfoService,
   ])
 
   return useMemo(() => {

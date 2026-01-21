@@ -343,10 +343,10 @@ export function useInitialCurrencyState(): {
       const outputChainId = parsedCurrencyState.outputChainId ?? supportedChainId
       const resolvedAddress =
         parsedCurrencyState.outputCurrencyAddress !== NATIVE_CHAIN_ID &&
-          parsedCurrencyState.outputCurrencyAddress !== 'ETH' &&
-          !isAddress(parsedCurrencyState.outputCurrencyAddress)
+        parsedCurrencyState.outputCurrencyAddress !== 'ETH' &&
+        !isAddress(parsedCurrencyState.outputCurrencyAddress)
           ? getTokenAddressBySymbol(outputChainId, parsedCurrencyState.outputCurrencyAddress) ??
-          parsedCurrencyState.outputCurrencyAddress
+            parsedCurrencyState.outputCurrencyAddress
           : parsedCurrencyState.outputCurrencyAddress
 
       // clear output if identical unless there's a supported outputChainId which means we're bridging

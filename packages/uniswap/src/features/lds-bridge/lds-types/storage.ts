@@ -1,6 +1,6 @@
 import type { LightningBridgeSubmarineLockResponse } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { CreateChainSwapResponse, CreateReverseSwapResponse } from 'uniswap/src/features/lds-bridge/lds-types/api'
-import type { LdsSwapStatus } from './websocket'
+import type { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
 export enum SwapType {
   Submarine = 'submarine',

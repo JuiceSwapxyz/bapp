@@ -89,13 +89,7 @@ export async function buildErc20LockupTx(params: {
   }
 
   // Lock
-  const lockTx = await swapContract.lock(
-    prefix0x(preimageHash),
-    amount,
-    tokenAddress,
-    claimAddress,
-    timelock
-  )
+  const lockTx = await swapContract.lock(prefix0x(preimageHash), amount, tokenAddress, claimAddress, timelock)
 
   return { hash: lockTx.hash }
 }
@@ -113,13 +107,7 @@ export async function claimErc20Swap(params: {
 
   const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
 
-  const tx = await swapContract.claim(
-    prefix0x(preimage),
-    amount,
-    tokenAddress,
-    refundAddress,
-    timelock
-  )
+  const tx = await swapContract.claim(prefix0x(preimage), amount, tokenAddress, refundAddress, timelock)
 
   const receipt = await tx.wait()
   return receipt.hash

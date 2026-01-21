@@ -8,7 +8,10 @@ import type { FeeAmount } from '@juiceswapxyz/v3-sdk'
 import { Pool as V3Pool, Route as V3Route } from '@juiceswapxyz/v3-sdk'
 import { Pool as V4Pool, Route as V4Route } from '@juiceswapxyz/v4-sdk'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
-import type { BridgeQuoteResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
+import type {
+  BridgeQuoteResponse,
+  GatewayJusdQuoteResponse,
+} from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import {
   ClassicQuoteResponse,
   DiscriminatedQuoteResponse,
@@ -35,11 +38,13 @@ import { isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, SwapConfigKey } from 'uniswap/src/features/gating/configs'
 import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
+import { getSvJusdAddress, isJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import type { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import {
   BitcoinBridgeTrade,
   BridgeTrade,
   ClassicTrade,
+  GatewayJusdTrade,
   LightningBridgeTrade,
   PriorityOrderTrade,
   UniswapXV2Trade,
@@ -139,6 +144,21 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
       return new UnwrapTrade({ quote: data, currencyIn, currencyOut, tradeType })
     }
     default: {
+      // Handle Gateway routing types (custom routing types not in generated enum)
+      // - GATEWAY_JUSD: Swaps involving JUSD (converted to svJUSD internally)
+      // - GATEWAY_JUICE_IN: Selling JUICE via Equity.redeem()
+      // - GATEWAY_JUICE_OUT: Buying JUICE via Equity.invest()
+      // Type assertion needed because TypeScript exhaustive checking narrows to 'never'
+      const unknownData = data as DiscriminatedQuoteResponse | undefined
+      const gatewayRoutingTypes = ['GATEWAY_JUSD', 'GATEWAY_JUICE_IN', 'GATEWAY_JUICE_OUT']
+      if (unknownData && gatewayRoutingTypes.includes(unknownData.routing as string)) {
+        return new GatewayJusdTrade({
+          quote: unknownData as unknown as GatewayJusdQuoteResponse,
+          currencyIn,
+          currencyOut,
+          tradeType,
+        })
+      }
       return null
     }
   }
@@ -385,7 +405,14 @@ export function getTokenAddressForApi(currency: Maybe<Currency>): string | undef
   if (!currency) {
     return undefined
   }
-  return currency.isNative ? NATIVE_ADDRESS_FOR_TRADING_API : currency.address
+  if (currency.isNative) {
+    return NATIVE_ADDRESS_FOR_TRADING_API
+  }
+
+  // NOTE: Do NOT convert JUSD to svJUSD here!
+  // The API needs to see JUSD to detect and trigger GATEWAY_JUSD routing.
+  // The Gateway handles the JUSD→svJUSD conversion internally.
+  return currency.address
 }
 
 const SUPPORTED_TRADING_API_CHAIN_IDS: number[] = Object.values(TradingApiChainId).filter(
@@ -408,7 +435,7 @@ export function toTradingApiSupportedChainId(chainId: Maybe<number>): TradingApi
 }
 
 export function getClassicQuoteFromResponse(
-  quote?: ClassicQuoteResponse | { routing: Exclude<Routing, Routing.CLASSIC> },
+  quote?: ClassicQuoteResponse | { routing: Exclude<Routing, Routing.CLASSIC> } | GatewayJusdQuoteResponse,
 ): ClassicQuote | undefined {
   if (quote && isClassic(quote)) {
     return quote.quote
@@ -438,14 +465,34 @@ export function validateTrade({
     return null
   }
 
+  // Helper to normalize JUSD ↔ svJUSD addresses for comparison
+  // Users see JUSD in the UI, but the API returns routes using svJUSD
+  const normalizeAddress = (address: string, chainId: number): string => {
+    const universeChainId = chainId as UniverseChainId
+    // If this is JUSD, normalize to svJUSD for comparison
+    if (isJusdAddress(universeChainId, address)) {
+      return getSvJusdAddress(universeChainId) ?? address
+    }
+    return address
+  }
+
   const inputsMatch = areAddressesEqual({
-    addressInput1: { address: currencyIn.wrapped.address, chainId: currencyIn.chainId },
-    addressInput2: { address: trade.inputAmount.currency.wrapped.address, chainId: trade.inputAmount.currency.chainId },
+    addressInput1: {
+      address: normalizeAddress(currencyIn.wrapped.address, currencyIn.chainId),
+      chainId: currencyIn.chainId,
+    },
+    addressInput2: {
+      address: normalizeAddress(trade.inputAmount.currency.wrapped.address, trade.inputAmount.currency.chainId),
+      chainId: trade.inputAmount.currency.chainId,
+    },
   })
   const outputsMatch = areAddressesEqual({
-    addressInput1: { address: currencyOut.wrapped.address, chainId: currencyOut.chainId },
+    addressInput1: {
+      address: normalizeAddress(currencyOut.wrapped.address, currencyOut.chainId),
+      chainId: currencyOut.chainId,
+    },
     addressInput2: {
-      address: trade.outputAmount.currency.wrapped.address,
+      address: normalizeAddress(trade.outputAmount.currency.wrapped.address, trade.outputAmount.currency.chainId),
       chainId: trade.outputAmount.currency.chainId,
     },
   })

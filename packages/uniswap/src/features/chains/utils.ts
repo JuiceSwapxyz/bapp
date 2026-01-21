@@ -190,7 +190,13 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
   })
 }
 
-export const ALWAYS_ENABLED_CHAIN_IDS = [UniverseChainId.Bitcoin, UniverseChainId.LightningNetwork, UniverseChainId.CitreaTestnet, UniverseChainId.Polygon, UniverseChainId.Mainnet]
+export const ALWAYS_ENABLED_CHAIN_IDS = [
+  UniverseChainId.Bitcoin,
+  UniverseChainId.LightningNetwork,
+  UniverseChainId.CitreaTestnet,
+  UniverseChainId.Polygon,
+  UniverseChainId.Mainnet,
+]
 
 export function getEnabledChains({
   platform,

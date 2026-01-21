@@ -9,8 +9,8 @@ import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
   isBitcoinBridgeQuote,
-  isLnBitcoinBridgeQuote,
   isErc20ChainSwapQuote,
+  isLnBitcoinBridgeQuote,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
 import {
@@ -78,6 +78,8 @@ import { getSpenderAddress } from 'uniswap/src/utils/approvalCalldata'
 
 // TradingAPI team is looking into updating type generation to produce the following types for it's current QuoteResponse type:
 // See: https://linear.app/uniswap/issue/API-236/explore-changing-the-quote-schema-to-pull-out-a-basequoteresponse
+// Note: GatewayJusdQuoteResponse is intentionally NOT in this union because its routing type
+// is not in the Routing enum. It's handled specially in transformTradingApiResponseToTrade.
 export type DiscriminatedQuoteResponse =
   | ClassicQuoteResponse
   | DutchQuoteResponse
@@ -112,6 +114,36 @@ export type BridgeQuoteResponse = QuoteResponse & {
   routing: Routing.BRIDGE | Routing.BITCOIN_BRIDGE | Routing.LN_BRIDGE | Routing.ERC20_CHAIN_SWAP
 }
 
+// GATEWAY_JUSD is a custom routing type for JuiceSwap Gateway (JUSD abstraction)
+// The routing string is not in the generated Routing enum, so we use a standalone type
+export type GatewayJusdQuote = {
+  chainId: number
+  swapper: string
+  input: { amount: string; token: string }
+  output: { amount: string; token: string; recipient: string }
+  tradeType: TradeType
+  amount: string
+  amountDecimals: string
+  quote: string
+  quoteDecimals: string
+  quoteGasAdjusted: string
+  gasUseEstimate: string
+  gasUseEstimateUSD: string
+  gasPriceWei: string
+  slippage?: number
+}
+
+// Gateway routing types for JuiceSwap Gateway (JUSD abstraction and JUICE equity swaps)
+export type GatewayJusdRoutingType = 'GATEWAY_JUSD' | 'GATEWAY_JUICE_IN' | 'GATEWAY_JUICE_OUT'
+
+// Standalone type - does not extend QuoteResponse to avoid type conflicts
+export type GatewayJusdQuoteResponse = {
+  requestId: string
+  quote: GatewayJusdQuote
+  routing: GatewayJusdRoutingType
+  permitData: null
+}
+
 export type WrapQuoteResponse<T extends Routing.WRAP | Routing.UNWRAP> = QuoteResponse & {
   quote: WrapUnwrapQuote
   routing: T
@@ -141,10 +173,6 @@ const CustomQuoteApiClient = createApiClient({
   additionalHeaders: {
     'x-api-key': config.tradingApiKey,
   },
-})
-
-const LightningBridgeApiClient = createApiClient({
-  baseUrl: `${process.env.REACT_APP_LDS_API_URL}/swap/v2`,
 })
 
 const V4_HEADERS = {
@@ -425,24 +453,33 @@ const getLightningBridgeQuote = async (params: QuoteRequest): Promise<Discrimina
 
 async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuoteResponse> {
   const ldsBridge = getLdsBridgeManager()
-  const direction = params.tokenInChainId === ChainId._137
-    ? Erc20ChainSwapDirection.PolygonToCitrea
-    : params.tokenInChainId === ChainId._1
-    ? Erc20ChainSwapDirection.EthereumToCitrea
-    : params.tokenOutChainId === ChainId._137
-    ? Erc20ChainSwapDirection.CitreaToPolygon
-    : Erc20ChainSwapDirection.CitreaToEthereum
+  const direction =
+    params.tokenInChainId === ChainId._137
+      ? Erc20ChainSwapDirection.PolygonToCitrea
+      : params.tokenInChainId === ChainId._1
+        ? Erc20ChainSwapDirection.EthereumToCitrea
+        : params.tokenOutChainId === ChainId._137
+          ? Erc20ChainSwapDirection.CitreaToPolygon
+          : Erc20ChainSwapDirection.CitreaToEthereum
 
-  const from = direction === Erc20ChainSwapDirection.PolygonToCitrea ? 'USDT_POLYGON' :
-    direction === Erc20ChainSwapDirection.EthereumToCitrea ? 'USDT_ETH' : 'JUSD_CITREA'
-  const to = direction === Erc20ChainSwapDirection.PolygonToCitrea || direction === Erc20ChainSwapDirection.EthereumToCitrea
-    ? 'JUSD_CITREA'
-    : direction === Erc20ChainSwapDirection.CitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETH'
+  const from =
+    direction === Erc20ChainSwapDirection.PolygonToCitrea
+      ? 'USDT_POLYGON'
+      : direction === Erc20ChainSwapDirection.EthereumToCitrea
+        ? 'USDT_ETH'
+        : 'JUSD_CITREA'
+  const to =
+    direction === Erc20ChainSwapDirection.PolygonToCitrea || direction === Erc20ChainSwapDirection.EthereumToCitrea
+      ? 'JUSD_CITREA'
+      : direction === Erc20ChainSwapDirection.CitreaToPolygon
+        ? 'USDT_POLYGON'
+        : 'USDT_ETH'
 
   const chainPairs = await ldsBridge.getChainPairs()
   const pairInfo = chainPairs[from]?.[to]
 
-  if (!pairInfo) throw new Error(`Pair not found: ${from} -> ${to}. Available pairs: ${JSON.stringify(Object.keys(chainPairs))}`)
+  if (!pairInfo)
+    throw new Error(`Pair not found: ${from} -> ${to}. Available pairs: ${JSON.stringify(Object.keys(chainPairs))}`)
 
   // Boltz uses 8 decimals internally, USDT/JUSD use 6 decimals
   // Convert 6→8: multiply by 100 (e.g., 10 USDT → 1000000000)
@@ -550,25 +587,56 @@ export async function fetchIndicativeQuote(params: IndicativeQuoteRequest): Prom
 
 export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<CreateSwapResponse> {
   const quote = params.quote
-  const route = (quote as ClassicQuote).route?.[0]
-  const tokenIn = route?.[0]?.tokenIn
-  const tokenOut = route?.[route.length - 1]?.tokenOut
   const connectedWallet = quote.swapper
 
+  // Check if this is a GATEWAY_JUSD quote (has input/output but no route)
+  const isGatewayJusd = 'input' in quote && 'output' in quote && !('route' in quote)
+  const gatewayQuote = isGatewayJusd ? (quote as GatewayJusdQuote) : null
+
+  let tokenInAddress: string | undefined
+  let tokenOutAddress: string | undefined
+  let tokenInChainId: number | undefined
+  let tokenOutChainId: number | undefined
+  let amount: string | undefined
+
+  if (isGatewayJusd && gatewayQuote) {
+    // For GATEWAY_JUSD, use input/output objects directly
+    tokenInAddress = gatewayQuote.input.token
+    tokenOutAddress = gatewayQuote.output.token
+    tokenInChainId = gatewayQuote.chainId
+    tokenOutChainId = gatewayQuote.chainId // Same chain for gateway swaps
+    amount = gatewayQuote.amount
+  } else {
+    // For classic quotes, parse from route
+    const route = (quote as ClassicQuote).route?.[0]
+    const tokenIn = route?.[0]?.tokenIn
+    const tokenOut = route?.[route.length - 1]?.tokenOut
+    tokenInAddress = tokenIn?.address
+    tokenOutAddress = tokenOut?.address
+    tokenInChainId = tokenIn?.chainId
+    tokenOutChainId = tokenOut?.chainId
+    amount = (quote as { amount: string }).amount
+  }
+
+  // Extract decimals from route tokens (Gateway tokens are all 18 decimals)
+  const classicRoute = (quote as ClassicQuote).route?.[0]
+  const tokenInDecimals = isGatewayJusd ? 18 : classicRoute?.[0]?.tokenIn?.decimals ?? 18
+  const tokenOutDecimals = isGatewayJusd ? 18 : classicRoute?.[classicRoute.length - 1]?.tokenOut?.decimals ?? 18
+
   const body = {
-    tokenOutAddress: tokenOut?.address,
-    tokenOutDecimals: parseInt(tokenOut?.decimals || '18', 10),
-    tokenInChainId: tokenIn?.chainId,
-    tokenInAddress: tokenIn?.address,
-    tokenInDecimals: parseInt(tokenIn?.decimals || '18', 10),
-    tokenOutChainId: tokenOut?.chainId,
-    amount: (quote as { amount: string }).amount,
+    tokenOutAddress,
+    tokenOutDecimals,
+    tokenInChainId,
+    tokenInAddress,
+    tokenInDecimals,
+    tokenOutChainId,
+    amount,
     type: 'exactIn',
     recipient: connectedWallet,
     from: connectedWallet,
-    slippageTolerance: '5',
+    slippageTolerance: params.customSwapData?.slippageTolerance ?? '5',
     deadline: params.deadline || '1800',
-    chainId: tokenIn?.chainId,
+    chainId: tokenInChainId,
     protocols: ['V3', 'V2'],
     ...params.customSwapData,
   }
@@ -602,7 +670,7 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
   return {
     requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
     swap: {
-      chainId: tokenIn?.chainId ?? ChainId._5115,
+      chainId: tokenInChainId ?? ChainId._5115,
       data: response.data,
       from: connectedWallet ?? '',
       to: response.to,
@@ -631,11 +699,15 @@ export async function fetchSwap7702({ ...params }: CreateSwap7702Request): Promi
   })
 }
 
+// Extended approval request type that includes routing for correct spender address resolution
+// Uses string type to avoid circular dependency with routing.ts
+export type ApprovalRequestWithRouting = ApprovalRequest & { routing?: string }
+
 /**
  * Computes approval transaction locally using our calldata construction utilities
  * and proper gas estimation
  */
-async function computeApprovalTransaction(params: ApprovalRequest): Promise<ApprovalResponse> {
+async function computeApprovalTransaction(params: ApprovalRequestWithRouting): Promise<ApprovalResponse> {
   if (params.token === ZERO_ADDRESS) {
     return {
       requestId: '',
@@ -649,7 +721,8 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
   const { createEthersProvider } = require('uniswap/src/features/providers/createEthersProvider')
   const { tradingApiToUniverseChainId } = require('uniswap/src/features/transactions/swap/utils/tradingApi')
 
-  const spenderAddress = getSpenderAddress(tradingApiToUniverseChainId(params.chainId))
+  // Pass routing to get correct spender address (Gateway vs SwapRouter02)
+  const spenderAddress = getSpenderAddress(tradingApiToUniverseChainId(params.chainId), params.routing)
 
   try {
     const universeChainId = tradingApiToUniverseChainId(params.chainId)
@@ -729,7 +802,7 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
   return response
 }
 
-export async function fetchCheckApproval(params: ApprovalRequest): Promise<ApprovalResponse> {
+export async function fetchCheckApproval(params: ApprovalRequestWithRouting): Promise<ApprovalResponse> {
   const computedResponse = await computeApprovalTransaction(params)
   return computedResponse
 }

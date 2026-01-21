@@ -7,16 +7,22 @@ import { UniswapX } from 'ui/src/components/icons/UniswapX'
 import RoutingDiagram from 'uniswap/src/components/RoutingDiagram/RoutingDiagram'
 import { TransactionDetailsTooltip as Tooltip } from 'uniswap/src/components/TransactionDetailsTooltip'
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
-import { isClassic } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { ClassicTrade } from 'uniswap/src/features/transactions/swap/types/trade'
+import { isClassic, isGatewayJusd } from 'uniswap/src/features/transactions/swap/utils/routing'
 import getRoutingDiagramEntries from 'uniswap/src/utils/getRoutingDiagramEntries'
 
 export function BestRouteTooltip(): JSX.Element | null {
   const { t } = useTranslation()
   const trade = useSwapTxStore((s) => s.trade)
 
-  const routes = useMemo(() => (trade && isClassic(trade) ? getRoutingDiagramEntries(trade) : []), [trade])
+  // Gateway swaps also use ClassicTrade underneath
+  const isClassicOrGateway = trade && (isClassic(trade) || isGatewayJusd(trade))
+  const routes = useMemo(
+    () => (isClassicOrGateway ? getRoutingDiagramEntries(trade as ClassicTrade) : []),
+    [isClassicOrGateway, trade],
+  )
 
-  if (!trade || !isClassic(trade)) {
+  if (!trade || !isClassicOrGateway) {
     return null
   }
 

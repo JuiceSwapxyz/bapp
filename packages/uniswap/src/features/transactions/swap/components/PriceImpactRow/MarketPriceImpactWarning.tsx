@@ -6,12 +6,19 @@ import { ChartBar } from 'ui/src/components/icons/ChartBar'
 import { zIndexes } from 'ui/src/theme'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
 import { WarningInfo } from 'uniswap/src/components/modals/WarningModal/WarningInfo'
-import { Routing } from 'uniswap/src/data/tradingApi/__generated__'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
-import { isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isUniswapX, TradeRouting } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { isWeb } from 'utilities/src/platform'
 
-function getPriceImpactCaption({ t, routing, missing }: { t: TFunction; routing: Routing; missing: boolean }): string {
+function getPriceImpactCaption({
+  t,
+  routing,
+  missing,
+}: {
+  t: TFunction
+  routing: TradeRouting
+  missing: boolean
+}): string {
   if (isUniswapX({ routing })) {
     if (missing) {
       return t('swap.impactOfTrade.uniswapx.missing')
@@ -27,7 +34,7 @@ export function MarketPriceImpactWarningModal({
   children,
   routing,
   missing,
-}: PropsWithChildren<{ routing: Routing; missing: boolean }>): JSX.Element {
+}: PropsWithChildren<{ routing: TradeRouting; missing: boolean }>): JSX.Element {
   const colors = useSporeColors()
   const { t } = useTranslation()
 

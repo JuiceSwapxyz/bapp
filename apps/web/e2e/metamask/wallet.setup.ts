@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
-import path from 'path'
 import { Wallet } from 'ethers'
+import path from 'path'
 
 // Load environment variables from .env.local
 // Use process.cwd() since Playwright runs from apps/web directory

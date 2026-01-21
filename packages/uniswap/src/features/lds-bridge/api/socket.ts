@@ -1,4 +1,4 @@
-import type { SwapUpdateEvent, WebSocketMessage } from '../lds-types/websocket'
+import type { SwapUpdateEvent, WebSocketMessage } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
 export const createLdsSocketClient = (): {
   disconnect: () => void
@@ -65,7 +65,10 @@ export const createLdsSocketClient = (): {
     if (!listeners.has(swapId)) {
       listeners.set(swapId, new Set())
     }
-    listeners.get(swapId)!.add(callback)
+    const swapListeners = listeners.get(swapId)
+    if (swapListeners) {
+      swapListeners.add(callback)
+    }
 
     // Return unsubscribe function
     return () => {

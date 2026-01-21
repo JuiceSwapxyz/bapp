@@ -1,7 +1,11 @@
 import { useRecentConnectorId } from 'components/Web3Provider/constants'
 import { useWalletConnectors } from 'features/wallet/connection/hooks/useWalletConnectors'
 import { WalletConnectorMeta } from 'features/wallet/connection/types/WalletConnectorMeta'
-import { getConnectorWithId, getConnectorWithIdWithThrow, isEqualWalletConnectorMetaId } from 'features/wallet/connection/utils'
+import {
+  getConnectorWithId,
+  getConnectorWithIdWithThrow,
+  isEqualWalletConnectorMetaId,
+} from 'features/wallet/connection/utils'
 import { useCallback, useMemo } from 'react'
 import { CONNECTION_PROVIDER_IDS } from 'uniswap/src/constants/web3'
 import { isPlaywrightEnv } from 'utilities/src/environment/env'

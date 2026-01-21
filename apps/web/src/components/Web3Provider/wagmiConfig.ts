@@ -47,10 +47,14 @@ function createWagmiConnectors(params: {
   return includeMockConnector
     ? [
         ...baseConnectors,
-        mock({
-          features: {},
-          accounts: [PLAYWRIGHT_CONNECT_ADDRESS],
-        }),
+        ...(PLAYWRIGHT_CONNECT_ADDRESS
+          ? [
+              mock({
+                features: {},
+                accounts: [PLAYWRIGHT_CONNECT_ADDRESS],
+              }),
+            ]
+          : []),
       ]
     : baseConnectors
 }

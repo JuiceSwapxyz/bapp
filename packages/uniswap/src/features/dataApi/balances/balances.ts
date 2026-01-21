@@ -21,7 +21,6 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { useJuiceSwapPortfolioData } from 'uniswap/src/features/dataApi/balances/balancesJuiceSwap'
 import {
-  useRESTPortfolioData,
   useRESTPortfolioTotalValue,
   useRestPortfolioCacheUpdater,
 } from 'uniswap/src/features/dataApi/balances/balancesRest'

@@ -1,22 +1,17 @@
 import { Web3Provider } from '@ethersproject/providers'
-import { getAccount, getConnectorClient } from 'wagmi/actions'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { clientToProvider } from 'hooks/useEthersProvider'
-import type { Chain, Client, Transport } from 'viem'
 import { call } from 'typed-redux-saga'
-import {
-  buildErc20LockupTx,
-  claimErc20Swap,
-  getLdsBridgeManager,
-  LdsSwapStatus,
-} from 'uniswap/src/features/lds-bridge'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
-import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { LdsSwapStatus, buildErc20LockupTx, claimErc20Swap, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
 import { Erc20ChainSwapStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
+import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
+import type { Chain, Client, Transport } from 'viem'
+import { getAccount, getConnectorClient } from 'wagmi/actions'
 
 async function getConnectorClientForChain(chainId: UniverseChainId): Promise<Client<Transport, Chain> | undefined> {
   try {
@@ -29,7 +24,7 @@ async function getConnectorClientForChain(chainId: UniverseChainId): Promise<Cli
 
 async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<void> {
   const startTime = Date.now()
-  
+
   const account = getAccount(wagmiConfig)
   if (account.chainId === targetChainId) {
     return
@@ -44,7 +39,11 @@ async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<v
           resolve()
         } else if (Date.now() - startTime > timeout) {
           clearInterval(pollInterval)
-          reject(new Error(`Timeout waiting for network switch to chain ${targetChainId}. Current chain: ${currentAccount.chainId}`))
+          reject(
+            new Error(
+              `Timeout waiting for network switch to chain ${targetChainId}. Current chain: ${currentAccount.chainId}`,
+            ),
+          )
         }
       } catch (error) {
         clearInterval(pollInterval)
@@ -54,13 +53,9 @@ async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<v
   })
 }
 
-async function waitForProviderChain(
-  targetChainId: number,
-  provider: Web3Provider,
-  timeout = 30000,
-): Promise<void> {
+async function waitForProviderChain(targetChainId: number, provider: Web3Provider, timeout = 30000): Promise<void> {
   const startTime = Date.now()
-  
+
   try {
     const network = await provider.getNetwork()
     if (network.chainId === targetChainId) {
@@ -164,18 +159,21 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   const isCitreaToPolygon = step.direction === Erc20ChainSwapDirection.CitreaToPolygon
   const isCitreaToEthereum = step.direction === Erc20ChainSwapDirection.CitreaToEthereum
 
-  const from = isPolygonToCitrea ? 'USDT_POLYGON' :
-    isEthereumToCitrea ? 'USDT_ETH' : 'JUSD_CITREA'
-  const to = isPolygonToCitrea || isEthereumToCitrea ? 'JUSD_CITREA' :
-    isCitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETH'
-  const sourceChain = isPolygonToCitrea ? 'polygon' :
-    isEthereumToCitrea ? 'ethereum' : 'citrea'
-  const targetChain = isPolygonToCitrea || isEthereumToCitrea ? 'citrea' :
-    isCitreaToPolygon ? 'polygon' : 'ethereum'
-  const sourceChainId = isPolygonToCitrea ? UniverseChainId.Polygon :
-    isEthereumToCitrea ? UniverseChainId.Mainnet : UniverseChainId.CitreaTestnet
-  const targetChainId = isPolygonToCitrea || isEthereumToCitrea ? UniverseChainId.CitreaTestnet :
-    isCitreaToPolygon ? UniverseChainId.Polygon : UniverseChainId.Mainnet
+  const from = isPolygonToCitrea ? 'USDT_POLYGON' : isEthereumToCitrea ? 'USDT_ETH' : 'JUSD_CITREA'
+  const to = isPolygonToCitrea || isEthereumToCitrea ? 'JUSD_CITREA' : isCitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETH'
+  const sourceChain = isPolygonToCitrea ? 'polygon' : isEthereumToCitrea ? 'ethereum' : 'citrea'
+  const targetChain = isPolygonToCitrea || isEthereumToCitrea ? 'citrea' : isCitreaToPolygon ? 'polygon' : 'ethereum'
+  const sourceChainId = isPolygonToCitrea
+    ? UniverseChainId.Polygon
+    : isEthereumToCitrea
+      ? UniverseChainId.Mainnet
+      : UniverseChainId.CitreaTestnet
+  const targetChainId =
+    isPolygonToCitrea || isEthereumToCitrea
+      ? UniverseChainId.CitreaTestnet
+      : isCitreaToPolygon
+        ? UniverseChainId.Polygon
+        : UniverseChainId.Mainnet
 
   const ldsBridge = getLdsBridgeManager()
 
@@ -301,47 +299,35 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
   // 3. Wait for Boltz to lock on target chain
   console.error('[ERC20 Chain Swap] Waiting for Boltz lock:', { swapId: chainSwap.id })
-  
+
   try {
-    console.error('[ERC20 Chain Swap] [1/3] Waiting for user lockup confirmation...', { 
-      swapId: chainSwap.id, 
-      waitingFor: LdsSwapStatus.TransactionConfirmed 
+    console.error('[ERC20 Chain Swap] [1/3] Waiting for user lockup confirmation...', {
+      swapId: chainSwap.id,
+      waitingFor: LdsSwapStatus.TransactionConfirmed,
     })
-    yield* call(
-      [ldsBridge, ldsBridge.waitForSwapUntilState],
-      chainSwap.id,
-      LdsSwapStatus.TransactionConfirmed,
-    )
+    yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionConfirmed)
     console.error('[ERC20 Chain Swap] [1/3] ✓ User lockup confirmed on source chain')
-    
+
     setCurrentStep({ step, accepted: false })
-    
-    console.error('[ERC20 Chain Swap] [2/3] Waiting for Boltz lockup in mempool...', { 
-      swapId: chainSwap.id, 
-      waitingFor: LdsSwapStatus.TransactionServerMempool 
+
+    console.error('[ERC20 Chain Swap] [2/3] Waiting for Boltz lockup in mempool...', {
+      swapId: chainSwap.id,
+      waitingFor: LdsSwapStatus.TransactionServerMempool,
     })
-    yield* call(
-      [ldsBridge, ldsBridge.waitForSwapUntilState],
-      chainSwap.id,
-      LdsSwapStatus.TransactionServerMempool,
-    )
+    yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
     console.error('[ERC20 Chain Swap] [2/3] ✓ Boltz lockup in mempool on target chain')
-    
-    console.error('[ERC20 Chain Swap] [3/3] Waiting for Boltz lockup confirmation...', { 
-      swapId: chainSwap.id, 
-      waitingFor: LdsSwapStatus.TransactionServerConfirmed 
+
+    console.error('[ERC20 Chain Swap] [3/3] Waiting for Boltz lockup confirmation...', {
+      swapId: chainSwap.id,
+      waitingFor: LdsSwapStatus.TransactionServerConfirmed,
     })
-    yield* call(
-      [ldsBridge, ldsBridge.waitForSwapUntilState],
-      chainSwap.id,
-      LdsSwapStatus.TransactionServerConfirmed,
-    )
+    yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerConfirmed)
     console.error('[ERC20 Chain Swap] [3/3] ✓ Boltz lockup confirmed on target chain')
   } catch (error) {
-    console.error('[ERC20 Chain Swap] ✗ Failed waiting for Boltz lock:', { 
-      swapId: chainSwap.id, 
+    console.error('[ERC20 Chain Swap] ✗ Failed waiting for Boltz lock:', {
+      swapId: chainSwap.id,
       error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
     })
     throw new TransactionStepFailedError({
       message: `Failed waiting for Boltz lock: ${error instanceof Error ? error.message : String(error)}. The swap may still be processing. Please check the swap status.`,
@@ -401,8 +387,12 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     console.error('[ERC20 Chain Swap] Provider verified on target chain')
   } catch (error) {
     console.error('[ERC20 Chain Swap] Failed to verify provider chain:', error)
-    const chainName = targetChainId === UniverseChainId.CitreaTestnet ? 'Citrea Testnet' : 
-                     targetChainId === UniverseChainId.Polygon ? 'Polygon' : 'Ethereum'
+    const chainName =
+      targetChainId === UniverseChainId.CitreaTestnet
+        ? 'Citrea Testnet'
+        : targetChainId === UniverseChainId.Polygon
+          ? 'Polygon'
+          : 'Ethereum'
     throw new TransactionStepFailedError({
       message: `Failed to switch to ${chainName} network. Please manually switch to ${chainName} in MetaMask and try again.`,
       step,
@@ -426,7 +416,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   })
   // Update step to show we're claiming (user may need to approve in wallet)
   setCurrentStep({ step, accepted: false })
-  
+
   try {
     yield* call(claimErc20Swap, {
       signer: targetSigner,
@@ -438,7 +428,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       timelock: chainSwap.claimDetails.timeoutBlockHeight,
     })
     console.error('[ERC20 Chain Swap] Claim transaction submitted')
-    
+
     // Update step to show claim is complete
     setCurrentStep({ step, accepted: true })
   } catch (error) {

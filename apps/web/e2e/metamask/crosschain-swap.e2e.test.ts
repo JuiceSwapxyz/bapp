@@ -83,12 +83,16 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
     // Skip pin extension step (supports English and German)
     for (const page of context.pages()) {
       if (page.url().includes('chrome-extension://')) {
-        const nextBtn = page.locator('[data-testid="pin-extension-next"], button:has-text("Next"), button:has-text("Weiter")').first()
+        const nextBtn = page
+          .locator('[data-testid="pin-extension-next"], button:has-text("Next"), button:has-text("Weiter")')
+          .first()
         if (await nextBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
           await nextBtn.click()
           await new Promise((r) => setTimeout(r, 1000))
         }
-        const doneBtn = page.locator('[data-testid="pin-extension-done"], button:has-text("Done"), button:has-text("Fertig")').first()
+        const doneBtn = page
+          .locator('[data-testid="pin-extension-done"], button:has-text("Done"), button:has-text("Fertig")')
+          .first()
         if (await doneBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
           await doneBtn.click()
           await new Promise((r) => setTimeout(r, 2000))
@@ -289,9 +293,13 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
     page.on('console', (msg) => {
       const text = msg.text()
       // Filter for our swap logs and errors
-      if (text.includes('[ERC20 Chain Swap]') || text.includes('[LdsBridgeManager]') ||
-          text.includes('[WebSocket]') || text.includes('[ERC20 Lock]') ||
-          msg.type() === 'error') {
+      if (
+        text.includes('[ERC20 Chain Swap]') ||
+        text.includes('[LdsBridgeManager]') ||
+        text.includes('[WebSocket]') ||
+        text.includes('[ERC20 Lock]') ||
+        msg.type() === 'error'
+      ) {
         console.log(`[Browser ${msg.type()}] ${text}`)
       }
     })
@@ -380,7 +388,11 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
       for (let popupCount = 0; popupCount < 3; popupCount++) {
         const continueButton = page.getByRole('button', { name: /continue/i }).first()
         if (await continueButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-          const popupText = await page.locator('text=/research|swapping across|bridging/i').first().textContent().catch(() => 'unknown')
+          const popupText = await page
+            .locator('text=/research|swapping across|bridging/i')
+            .first()
+            .textContent()
+            .catch(() => 'unknown')
           console.log(`Found popup #${popupCount + 1}: "${popupText?.slice(0, 50)}...", clicking Continue...`)
           await screenshot(page, `test5-step14-popup-${popupCount + 1}.png`)
           await continueButton.click()
@@ -410,9 +422,7 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
         console.log(`[${stepName}] Found ${allPages.length} pages`)
 
         // Try to find MetaMask extension page with pending transaction
-        let mmPage = allPages.find(
-          (p) => p.url().includes(metamaskExtensionId) && p.url().includes('notification')
-        )
+        let mmPage = allPages.find((p) => p.url().includes(metamaskExtensionId) && p.url().includes('notification'))
 
         // If no notification page, try the home page
         if (!mmPage) {
@@ -466,8 +476,11 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
           const btn = mmPage.locator(selector).first()
           if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
             // Check if this is a network switch request by looking for network-related text
-            const hasNetworkText = await mmPage.locator('text=/switch.*network|netzwerk.*wechseln|allow.*switch|add.*network|citrea/i')
-              .first().isVisible({ timeout: 1000 }).catch(() => false)
+            const hasNetworkText = await mmPage
+              .locator('text=/switch.*network|netzwerk.*wechseln|allow.*switch|add.*network|citrea/i')
+              .first()
+              .isVisible({ timeout: 1000 })
+              .catch(() => false)
 
             if (hasNetworkText) {
               console.log(`[${stepName}] Found network switch request, clicking: ${selector}`)
@@ -533,7 +546,9 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
         }
 
         // Check if there's a pending transaction indicator (English and German)
-        const pendingIndicator = mmPage.locator('text=/pending|confirm|approve|sign|ausstehend|bestätigen|genehmigen|signieren/i').first()
+        const pendingIndicator = mmPage
+          .locator('text=/pending|confirm|approve|sign|ausstehend|bestätigen|genehmigen|signieren/i')
+          .first()
         if (await pendingIndicator.isVisible({ timeout: 1000 }).catch(() => false)) {
           console.log(`[${stepName}] Found pending transaction indicator but no confirm button`)
         } else {
@@ -585,12 +600,14 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
           const isProcessing = await processingIndicator.isVisible({ timeout: 1000 }).catch(() => false)
 
           if (isWaiting || isSwitchingNetwork) {
-            console.log(`[Swap] Dapp is waiting (wallet: ${isWaiting}, network: ${isSwitchingNetwork}), checking MetaMask...`)
+            console.log(
+              `[Swap] Dapp is waiting (wallet: ${isWaiting}, network: ${isSwitchingNetwork}), checking MetaMask...`,
+            )
 
             // First, check if MetaMask has a new page/notification open
             const allPages = context.pages()
             const mmNotificationPage = allPages.find(
-              (p) => p.url().includes(metamaskExtensionId) && p.url().includes('notification')
+              (p) => p.url().includes(metamaskExtensionId) && p.url().includes('notification'),
             )
 
             if (mmNotificationPage) {
@@ -654,7 +671,9 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
         }
 
         swapConfirmed = confirmedCount > 0 || networkSwitchCount > 0
-        console.log(`[Swap] Total transactions confirmed after approval: ${confirmedCount}, network switches: ${networkSwitchCount}`)
+        console.log(
+          `[Swap] Total transactions confirmed after approval: ${confirmedCount}, network switches: ${networkSwitchCount}`,
+        )
 
         await page.bringToFront()
         await page.waitForTimeout(5000)

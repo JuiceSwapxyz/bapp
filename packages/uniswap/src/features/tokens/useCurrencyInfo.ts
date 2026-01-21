@@ -12,6 +12,7 @@ import {
   currencyIdToContractInput,
 } from 'uniswap/src/features/dataApi/utils/currencyIdToContractInput'
 import { gqlTokenToCurrencyInfo } from 'uniswap/src/features/dataApi/utils/gqlTokenToCurrencyInfo'
+import { getJusdAddress, isSvJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { useLocalCurrencyInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/hooks/useLocalCurrencyInfo'
 import {
   buildNativeCurrencyId,
@@ -21,6 +22,35 @@ import {
 } from 'uniswap/src/utils/currencyId'
 
 const PonderApiClient = createPonderApiClient()
+
+/**
+ * Transform svJUSD CurrencyInfo to JUSD for user-facing display.
+ * Internally pools use svJUSD, but users see JUSD.
+ */
+function transformSvJusdToJusd(currencyInfo: CurrencyInfo, chainId: UniverseChainId): CurrencyInfo {
+  const jusdAddress = getJusdAddress(chainId)
+  if (!jusdAddress) {
+    return currencyInfo
+  }
+
+  const jusdCurrency = buildCurrency({
+    chainId,
+    address: jusdAddress,
+    decimals: 18,
+    symbol: 'JUSD',
+    name: 'Juice Dollar',
+  })
+
+  if (!jusdCurrency) {
+    return currencyInfo
+  }
+
+  return buildCurrencyInfo({
+    currency: jusdCurrency,
+    currencyId: `${chainId}-${jusdAddress}`,
+    logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
+  })
+}
 
 function useCurrencyInfoQuery(
   _currencyId?: string,
@@ -117,7 +147,18 @@ export function useCurrencyInfo(
 ): Maybe<CurrencyInfo> {
   const localCurrencyInfo = useLocalCurrencyInfo(currencyId)
   const { currencyInfo } = useCurrencyInfoQuery(currencyId, options)
-  return localCurrencyInfo || currencyInfo
+
+  // Transform svJUSD to JUSD for user-facing display
+  const result = localCurrencyInfo || currencyInfo
+  if (result && currencyId) {
+    const chainId = currencyIdToChain(currencyId) as UniverseChainId
+    const address = currencyIdToAddress(currencyId)
+    if (address && isSvJusdAddress(chainId, address)) {
+      return transformSvJusdToJusd(result, chainId)
+    }
+  }
+
+  return result
 }
 
 export function useCurrencyInfoWithLoading(

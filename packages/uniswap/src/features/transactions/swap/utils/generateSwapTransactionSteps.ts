@@ -1,6 +1,6 @@
+import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { BridgeQuote } from 'uniswap/src/data/tradingApi/__generated__'
 import { BitcoinBridgeDirection, LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
-import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { createApprovalTransactionStep } from 'uniswap/src/features/transactions/steps/approve'
 import { createPermit2SignatureStep } from 'uniswap/src/features/transactions/steps/permit2Signature'
 import { createPermit2TransactionStep } from 'uniswap/src/features/transactions/steps/permit2Transaction'
@@ -17,12 +17,18 @@ import {
   createSwapTransactionStepBatched,
 } from 'uniswap/src/features/transactions/swap/steps/swap'
 import { orderUniswapXSteps } from 'uniswap/src/features/transactions/swap/steps/uniswapxSteps'
-import { SwapTxAndGasInfo, isValidSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
+import {
+  ClassicSwapTxAndGasInfo,
+  GatewayJusdSwapTxAndGasInfo,
+  SwapTxAndGasInfo,
+  isValidSwapTxContext,
+} from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import {
   isBitcoinBridge,
   isBridge,
   isClassic,
   isErc20ChainSwap,
+  isGatewayJusd,
   isLightningBridge,
   isUniswapX,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -36,36 +42,44 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo, _v4Ena
     const revocation = createRevocationTransactionStep(revocationTxRequest, trade.inputAmount.currency.wrapped)
     const approval = createApprovalTransactionStep({ txRequest: approveTxRequest, amountIn: trade.inputAmount })
 
-    if (isClassic(txContext)) {
-      const { swapRequestArgs } = txContext
+    if (isClassic(txContext) || isGatewayJusd(txContext)) {
+      // Cast to the union type since TypeScript has trouble narrowing with || on complex unions
+      const classicContext = txContext as ClassicSwapTxAndGasInfo | GatewayJusdSwapTxAndGasInfo
+      const { swapRequestArgs } = classicContext
 
-      if (txContext.unsigned) {
+      if (classicContext.unsigned && classicContext.permit && 'typedData' in classicContext.permit) {
         return orderClassicSwapSteps({
           revocation,
           approval,
-          permit: createPermit2SignatureStep(txContext.permit.typedData, trade.inputAmount.currency),
+          permit: createPermit2SignatureStep(classicContext.permit.typedData, trade.inputAmount.currency),
           swap: createSwapTransactionAsyncStep(swapRequestArgs),
         })
       }
-      if (txContext.txRequests.length > 1) {
+      if (classicContext.txRequests && classicContext.txRequests.length > 1) {
         return orderClassicSwapSteps({
           permit: undefined,
-          swap: createSwapTransactionStepBatched(txContext.txRequests),
+          swap: createSwapTransactionStepBatched(classicContext.txRequests),
         })
       }
 
-      const permit = txContext.permit
-        ? createPermit2TransactionStep({
-            txRequest: txContext.permit.txRequest,
-            amountIn: trade.inputAmount,
-          })
-        : undefined
+      const permit =
+        classicContext.permit && 'txRequest' in classicContext.permit
+          ? createPermit2TransactionStep({
+              txRequest: classicContext.permit.txRequest,
+              amountIn: trade.inputAmount,
+            })
+          : undefined
+
+      // At this point txRequests should exist since we're past the unsigned check
+      if (!classicContext.txRequests) {
+        return []
+      }
 
       return orderClassicSwapSteps({
         revocation,
         approval,
         permit,
-        swap: createSwapTransactionStep(txContext.txRequests[0]),
+        swap: createSwapTransactionStep(classicContext.txRequests[0]),
       })
     } else if (isUniswapX(txContext)) {
       return orderUniswapXSteps({

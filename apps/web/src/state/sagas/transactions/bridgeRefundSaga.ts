@@ -1,8 +1,8 @@
 import { address, networks, Transaction } from 'bitcoinjs-lib'
 import { constructRefundTransaction, targetFee } from 'boltz-core'
-import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
+import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { call, takeEvery } from 'typed-redux-saga'
 import { BitcoinBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import {
@@ -42,39 +42,39 @@ function* refundSwapSaga(action: RefundSwapAction) {
   )
 
   try {
-  const { hex, timeoutBlockHeight } = yield* call([ldsBridgeManager, ldsBridgeManager.getLockupTransactions], swapId)
+    const { hex, timeoutBlockHeight } = yield* call([ldsBridgeManager, ldsBridgeManager.getLockupTransactions], swapId)
 
-  const swap = yield* call([ldsBridgeManager, ldsBridgeManager.getSwap], swapId)
-  if (!swap || swap.type !== SwapType.Chain) {
-    throw new Error('Swap not found')
-  }
+    const swap = yield* call([ldsBridgeManager, ldsBridgeManager.getSwap], swapId)
+    if (!swap || swap.type !== SwapType.Chain) {
+      throw new Error('Swap not found')
+    }
 
-  const chainSwap = swap as ChainSwap
-  const { claimKeyPair } = yield* call([ldsBridgeManager, ldsBridgeManager.getKeysForSwap], swapId)
+    const chainSwap = swap as ChainSwap
+    const { claimKeyPair } = yield* call([ldsBridgeManager, ldsBridgeManager.getKeysForSwap], swapId)
 
-  const { musig, tweakedKey, swapTree } = yield* call(prepareRefundMusig, claimKeyPair, chainSwap)
-  const lockupTx = Transaction.fromHex(hex)
+    const { musig, tweakedKey, swapTree } = yield* call(prepareRefundMusig, claimKeyPair, chainSwap)
+    const lockupTx = Transaction.fromHex(hex)
 
-  const details = buildRefundDetails({
-    tweakedKey,
-    lockupTx,
-    swapTree,
-    claimKeyPair,
-    musig,
-    swap: chainSwap,
-  })
+    const details = buildRefundDetails({
+      tweakedKey,
+      lockupTx,
+      swapTree,
+      claimKeyPair,
+      musig,
+      swap: chainSwap,
+    })
 
-  const decodedAddress = Buffer.from(address.toOutputScript(refundAddress, networks.bitcoin))
+    const decodedAddress = Buffer.from(address.toOutputScript(refundAddress, networks.bitcoin))
 
-  const { BTC: serverFeePerVbyte } = yield* call(fetchChainFee)
+    const { BTC: serverFeePerVbyte } = yield* call(fetchChainFee)
 
-  const refundTx = targetFee(serverFeePerVbyte, (fee) =>
-    constructRefundTransaction([details] as any, decodedAddress, timeoutBlockHeight, fee, true),
-  )
+    const refundTx = targetFee(serverFeePerVbyte, (fee) =>
+      constructRefundTransaction([details] as any, decodedAddress, timeoutBlockHeight, fee, true),
+    )
 
-  const { id: txId } = yield* call(broadcastChainSwap, refundTx.toHex())
+    const { id: txId } = yield* call(broadcastChainSwap, refundTx.toHex())
 
-  yield* call([ldsBridgeManager, ldsBridgeManager.updateSwapRefundTx], swapId, txId)
+    yield* call([ldsBridgeManager, ldsBridgeManager.updateSwapRefundTx], swapId, txId)
 
     popupRegistry.removePopup(`refund-in-progress-${swapId}`)
 
@@ -87,15 +87,15 @@ function* refundSwapSaga(action: RefundSwapAction) {
       DEFAULT_TXN_DISMISS_MS,
     )
 
-  popupRegistry.addPopup(
-    {
-      type: PopupType.BitcoinBridge,
-      id: txId,
-      status: LdsBridgeStatus.Confirmed,
-      direction: BitcoinBridgeDirection.CitreaToBitcoin,
-    },
-    txId,
-  )
+    popupRegistry.addPopup(
+      {
+        type: PopupType.BitcoinBridge,
+        id: txId,
+        status: LdsBridgeStatus.Confirmed,
+        direction: BitcoinBridgeDirection.CitreaToBitcoin,
+      },
+      txId,
+    )
   } catch (error) {
     popupRegistry.removePopup(`refund-in-progress-${swapId}`)
     throw error
