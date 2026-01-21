@@ -1,7 +1,8 @@
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useMemo } from 'react'
+import { ApprovalRequestWithRouting } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { useCheckApprovalQuery } from 'uniswap/src/data/apiClients/tradingApi/useCheckApprovalQuery'
-import { ApprovalRequest, Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
+import { Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { convertGasFeeToDisplayValue, useActiveGasStrategy } from 'uniswap/src/features/gas/hooks'
 import { GasFeeResult } from 'uniswap/src/features/gas/types'
@@ -51,7 +52,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
 
   const gasStrategy = useActiveGasStrategy(chainId, 'general')
 
-  const approvalRequestArgs: ApprovalRequest | undefined = useMemo(() => {
+  const approvalRequestArgs: ApprovalRequestWithRouting | undefined = useMemo(() => {
     const tokenInChainId = toTradingApiSupportedChainId(chainId)
     const tokenOutChainId = toTradingApiSupportedChainId(currencyOut?.chainId)
 
@@ -71,6 +72,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
       tokenOut: tokenOutAddress,
       tokenOutChainId,
       gasStrategies: [gasStrategy],
+      routing, // Pass routing to determine correct spender (Gateway vs SwapRouter02)
     }
   }, [
     gasStrategy,
@@ -82,6 +84,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
     isBridge,
     tokenInAddress,
     tokenOutAddress,
+    routing,
   ])
 
   const shouldSkip = !approvalRequestArgs || isWrap || !address

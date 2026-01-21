@@ -1,11 +1,20 @@
 import { ADDRESS_ZERO } from '@juiceswapxyz/v3-sdk'
 import { Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
-import { SwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
-import { ValidatedTransactionRequest } from 'uniswap/src/features/transactions/types/transactionRequests'
 
-// GATEWAY_JUSD is a custom routing type for JuiceSwap Gateway that's not in the generated Routing enum
+// Gateway routing types for JuiceSwap Gateway (JUSD abstraction and JUICE equity swaps)
+// These are custom routing types not in the generated Routing enum
 export const GATEWAY_JUSD_ROUTING = 'GATEWAY_JUSD' as const
-export type GatewayJusdRouting = typeof GATEWAY_JUSD_ROUTING
+export const GATEWAY_JUICE_IN_ROUTING = 'GATEWAY_JUICE_IN' as const
+export const GATEWAY_JUICE_OUT_ROUTING = 'GATEWAY_JUICE_OUT' as const
+
+export type GatewayJusdRouting = typeof GATEWAY_JUSD_ROUTING | typeof GATEWAY_JUICE_IN_ROUTING | typeof GATEWAY_JUICE_OUT_ROUTING
+
+// All Gateway routing variants
+export const GATEWAY_ROUTING_VARIANTS = [
+  GATEWAY_JUSD_ROUTING,
+  GATEWAY_JUICE_IN_ROUTING,
+  GATEWAY_JUICE_OUT_ROUTING,
+] as const
 
 // TradeRouting encompasses all routing types including custom ones not in the Routing enum
 export type TradeRouting = Routing | GatewayJusdRouting
@@ -27,7 +36,7 @@ export function isClassic<T extends { routing: TradeRouting }>(obj: T): obj is T
 }
 
 export function isGatewayJusd<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: GatewayJusdRouting } {
-  return obj.routing === GATEWAY_JUSD_ROUTING
+  return GATEWAY_ROUTING_VARIANTS.includes(obj.routing as GatewayJusdRouting)
 }
 
 export function isBridge<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: Routing.BRIDGE } {
@@ -46,14 +55,6 @@ export function isLightningBridge<T extends { routing: TradeRouting }>(obj: T): 
 
 export function isWrap<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: Routing.WRAP | Routing.UNWRAP } {
   return obj.routing === Routing.WRAP || obj.routing === Routing.UNWRAP
-}
-
-// Returns the first EVM txRequest in a SwapTxAndGasInfo object if it exists, otherwise undefined
-export function getEVMTxRequest(swapTxContext: SwapTxAndGasInfo): ValidatedTransactionRequest | undefined {
-  if (isUniswapX(swapTxContext)) {
-    return undefined
-  }
-  return swapTxContext.txRequests?.[0]
 }
 
 export const ACROSS_DAPP_INFO = {

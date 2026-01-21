@@ -35,6 +35,7 @@ import { isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, SwapConfigKey } from 'uniswap/src/features/gating/configs'
 import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
+import { isJusdAddress, getSvJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import type { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import {
   BitcoinBridgeTrade,
@@ -398,7 +399,14 @@ export function getTokenAddressForApi(currency: Maybe<Currency>): string | undef
   if (!currency) {
     return undefined
   }
-  return currency.isNative ? NATIVE_ADDRESS_FOR_TRADING_API : currency.address
+  if (currency.isNative) {
+    return NATIVE_ADDRESS_FOR_TRADING_API
+  }
+
+  // NOTE: Do NOT convert JUSD to svJUSD here!
+  // The API needs to see JUSD to detect and trigger GATEWAY_JUSD routing.
+  // The Gateway handles the JUSD→svJUSD conversion internally.
+  return currency.address
 }
 
 const SUPPORTED_TRADING_API_CHAIN_IDS: number[] = Object.values(TradingApiChainId).filter(
@@ -451,14 +459,34 @@ export function validateTrade({
     return null
   }
 
+  // Helper to normalize JUSD ↔ svJUSD addresses for comparison
+  // Users see JUSD in the UI, but the API returns routes using svJUSD
+  const normalizeAddress = (address: string, chainId: number): string => {
+    const universeChainId = chainId as UniverseChainId
+    // If this is JUSD, normalize to svJUSD for comparison
+    if (isJusdAddress(universeChainId, address)) {
+      return getSvJusdAddress(universeChainId) ?? address
+    }
+    return address
+  }
+
   const inputsMatch = areAddressesEqual({
-    addressInput1: { address: currencyIn.wrapped.address, chainId: currencyIn.chainId },
-    addressInput2: { address: trade.inputAmount.currency.wrapped.address, chainId: trade.inputAmount.currency.chainId },
+    addressInput1: {
+      address: normalizeAddress(currencyIn.wrapped.address, currencyIn.chainId),
+      chainId: currencyIn.chainId,
+    },
+    addressInput2: {
+      address: normalizeAddress(trade.inputAmount.currency.wrapped.address, trade.inputAmount.currency.chainId),
+      chainId: trade.inputAmount.currency.chainId,
+    },
   })
   const outputsMatch = areAddressesEqual({
-    addressInput1: { address: currencyOut.wrapped.address, chainId: currencyOut.chainId },
+    addressInput1: {
+      address: normalizeAddress(currencyOut.wrapped.address, currencyOut.chainId),
+      chainId: currencyOut.chainId,
+    },
     addressInput2: {
-      address: trade.outputAmount.currency.wrapped.address,
+      address: normalizeAddress(trade.outputAmount.currency.wrapped.address, trade.outputAmount.currency.chainId),
       chainId: trade.outputAmount.currency.chainId,
     },
   })

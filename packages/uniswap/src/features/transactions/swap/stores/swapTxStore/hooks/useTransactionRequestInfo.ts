@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useUniswapContextSelector } from 'uniswap/src/contexts/UniswapContext'
 import { useTradingApiSwapQuery } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwapQuery'
+import { getTradeSettingsDeadline } from 'uniswap/src/data/apiClients/tradingApi/utils/getTradeSettingsDeadline'
 import { Routing, type NullablePermit } from 'uniswap/src/data/tradingApi/__generated__'
 import { useActiveGasStrategy } from 'uniswap/src/features/gas/hooks'
 import { DynamicConfigs, SwapConfigKey } from 'uniswap/src/features/gating/configs'
@@ -24,6 +25,7 @@ import {
   isBitcoinBridge,
   isBridge,
   isClassic,
+  isGatewayJusd,
   isUniswapX,
   isWrap,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -48,7 +50,17 @@ function useSwapTransactionRequestInfo({
 
   const swapQuoteResponse = useMemo(() => {
     const quote = derivedSwapInfo.trade.trade?.quote
+    // Gateway JUSD quotes use a separate request params path (see gatewaySwapRequestParams below)
     if (quote && (isClassic(quote) || isBridge(quote) || isBitcoinBridge(quote) || isWrap(quote))) {
+      return quote
+    }
+    return undefined
+  }, [derivedSwapInfo.trade.trade?.quote])
+
+  // Separate handling for Gateway JUSD quotes which have a different structure
+  const gatewayQuoteResponse = useMemo(() => {
+    const quote = derivedSwapInfo.trade.trade?.quote
+    if (quote && isGatewayJusd(quote)) {
       return quote
     }
     return undefined
@@ -61,7 +73,7 @@ function useSwapTransactionRequestInfo({
 
   const prepareSwapRequestParams = useMemo(() => createPrepareSwapRequestParams({ gasStrategy }), [gasStrategy])
 
-  const swapRequestParams = useMemo(() => {
+  const standardSwapRequestParams = useMemo(() => {
     if (!swapQuoteResponse) {
       return undefined
     }
@@ -88,6 +100,28 @@ function useSwapTransactionRequestInfo({
     derivedSwapInfo.trade.trade,
   ])
 
+  // Gateway JUSD quotes use a simpler request params structure
+  // fetchSwap detects Gateway quotes by checking for input/output without route
+  const gatewaySwapRequestParams = useMemo(() => {
+    if (!gatewayQuoteResponse) {
+      return undefined
+    }
+
+    const deadline = getTradeSettingsDeadline(transactionSettings.customDeadline)
+
+    return {
+      quote: gatewayQuoteResponse.quote,
+      deadline,
+      simulateTransaction: false,
+      refreshGasPrice: true,
+      gasStrategies: [gasStrategy],
+      customSwapData: getCustomSwapTokenData(derivedSwapInfo.trade.trade as ClassicTrade, transactionSettings),
+    }
+  }, [gatewayQuoteResponse, transactionSettings, gasStrategy, derivedSwapInfo.trade.trade])
+
+  // Use either standard or gateway swap request params
+  const swapRequestParams = standardSwapRequestParams || gatewaySwapRequestParams
+
   const canBatchTransactions = useUniswapContextSelector((ctx) =>
     ctx.getCanBatchTransactions?.(derivedSwapInfo.chainId),
   )
@@ -95,6 +129,7 @@ function useSwapTransactionRequestInfo({
   const permitsDontNeedSignature = !!canBatchTransactions
   const isBitcoinBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.BITCOIN_BRIDGE
   const isLightningBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.LN_BRIDGE
+  // Gateway JUSD trades now use the standard swap flow (fetchSwap handles Gateway quotes)
   const shouldSkipSwapRequest =
     isBitcoinBridgeSwap ||
     isLightningBridgeSwap ||

@@ -131,11 +131,14 @@ export type GatewayJusdQuote = {
   slippage?: number
 }
 
+// Gateway routing types for JuiceSwap Gateway (JUSD abstraction and JUICE equity swaps)
+export type GatewayJusdRoutingType = 'GATEWAY_JUSD' | 'GATEWAY_JUICE_IN' | 'GATEWAY_JUICE_OUT'
+
 // Standalone type - does not extend QuoteResponse to avoid type conflicts
 export type GatewayJusdQuoteResponse = {
   requestId: string
   quote: GatewayJusdQuote
-  routing: 'GATEWAY_JUSD'
+  routing: GatewayJusdRoutingType
   permitData: null
 }
 
@@ -613,11 +616,15 @@ export async function fetchSwap7702({ ...params }: CreateSwap7702Request): Promi
   })
 }
 
+// Extended approval request type that includes routing for correct spender address resolution
+// Uses string type to avoid circular dependency with routing.ts
+export type ApprovalRequestWithRouting = ApprovalRequest & { routing?: string }
+
 /**
  * Computes approval transaction locally using our calldata construction utilities
  * and proper gas estimation
  */
-async function computeApprovalTransaction(params: ApprovalRequest): Promise<ApprovalResponse> {
+async function computeApprovalTransaction(params: ApprovalRequestWithRouting): Promise<ApprovalResponse> {
   if (params.token === ZERO_ADDRESS) {
     return {
       requestId: '',
@@ -631,7 +638,8 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
   const { createEthersProvider } = require('uniswap/src/features/providers/createEthersProvider')
   const { tradingApiToUniverseChainId } = require('uniswap/src/features/transactions/swap/utils/tradingApi')
 
-  const spenderAddress = getSpenderAddress(tradingApiToUniverseChainId(params.chainId))
+  // Pass routing to get correct spender address (Gateway vs SwapRouter02)
+  const spenderAddress = getSpenderAddress(tradingApiToUniverseChainId(params.chainId), params.routing)
 
   try {
     const universeChainId = tradingApiToUniverseChainId(params.chainId)
@@ -711,7 +719,7 @@ async function computeApprovalTransaction(params: ApprovalRequest): Promise<Appr
   return response
 }
 
-export async function fetchCheckApproval(params: ApprovalRequest): Promise<ApprovalResponse> {
+export async function fetchCheckApproval(params: ApprovalRequestWithRouting): Promise<ApprovalResponse> {
   const computedResponse = await computeApprovalTransaction(params)
   return computedResponse
 }

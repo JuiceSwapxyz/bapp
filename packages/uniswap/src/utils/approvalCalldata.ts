@@ -1,17 +1,28 @@
 import { MaxUint256, SWAP_ROUTER_02_ADDRESSES } from '@juiceswapxyz/sdk-core'
 import { PERMIT2_ADDRESS } from '@uniswap/permit2-sdk'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { JUICE_SWAP_GATEWAY_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 
 const ERC20_APPROVE_SELECTOR = '0x095ea7b3'
 
-// SwapRouter02 addresses are imported from @juiceswapxyz/sdk-core
-// Source of truth: sdk-core/src/addresses.ts
+// Gateway routing constants (defined locally to avoid circular dependency with routing.ts)
+const GATEWAY_ROUTING_VARIANTS = ['GATEWAY_JUSD', 'GATEWAY_JUICE_IN', 'GATEWAY_JUICE_OUT'] as const
+type GatewayRoutingVariant = (typeof GATEWAY_ROUTING_VARIANTS)[number]
 
 /**
- * Determines the appropriate spender address for classic swaps
+ * Determines the appropriate spender address for swaps
  * Uses sdk-core as single source of truth for router addresses
+ * For Gateway swaps, returns JuiceSwapGateway address instead
  */
-export function getSpenderAddress(chainId: UniverseChainId): string {
+export function getSpenderAddress(chainId: UniverseChainId, routing?: string): string {
+  // For Gateway swaps (JUSD abstraction, JUICE equity), use JuiceSwapGateway as spender
+  if (routing && GATEWAY_ROUTING_VARIANTS.includes(routing as GatewayRoutingVariant)) {
+    const gatewayAddress = JUICE_SWAP_GATEWAY_ADDRESSES[chainId]
+    if (!gatewayAddress) {
+      throw new Error(`No JuiceSwapGateway address for chainId ${chainId}`)
+    }
+    return gatewayAddress
+  }
   return SWAP_ROUTER_02_ADDRESSES(chainId)
 }
 
