@@ -9,6 +9,7 @@ const approvalRequestFile = project.addSourceFileAtPath(`${path}/ApprovalRequest
 const createSendRequestFile = project.addSourceFileAtPath(`${path}/CreateSendRequest.ts`)
 const createSwapRequestFile = project.addSourceFileAtPath(`${path}/CreateSwapRequest.ts`)
 const quoteRequestFile = project.addSourceFileAtPath(`${path}/QuoteRequest.ts`)
+const checkApprovalLPRequestFile = project.addSourceFileAtPath(`${path}/CheckApprovalLPRequest.ts`)
 const requestFiles = [approvalRequestFile, createSendRequestFile, createSwapRequestFile, quoteRequestFile]
 
 // Response types
@@ -149,6 +150,11 @@ modifyType(createSwapRequestFile, 'CreateSwapRequest', [
   { name: 'customSwapData', type: 'CustomSwapDataForRequest', isOptional: true },
 ])
 
+// Add tokenId to CheckApprovalLPRequest for NFT approval during increase/decrease liquidity
+modifyType(checkApprovalLPRequestFile, 'CheckApprovalLPRequest', [
+  { name: 'tokenId', type: 'number', isOptional: true },
+])
+
 // Modify the response interfaces
 responseFiles.forEach((file) => {
   addImport(file, 'GasEstimate')
@@ -188,6 +194,7 @@ requestFiles.forEach((file) => {
 responseFiles.forEach((file) => {
   file.saveSync()
 })
+checkApprovalLPRequestFile.saveSync()
 bridgeQuoteFile.saveSync()
 routingFile.saveSync()
 chainIdFile.saveSync()

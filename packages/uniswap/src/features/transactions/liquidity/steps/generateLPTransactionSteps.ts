@@ -64,7 +64,11 @@ export function generateLPTransactionSteps(txContext: LiquidityTxAndGasInfo): Tr
     })
     const approvalPositionToken = createApprovalTransactionStep({
       txRequest: approvePositionTokenRequest,
-      amountIn: action.liquidityToken ? CurrencyAmount.fromRawAmount(action.liquidityToken, 1) : undefined,
+      // For V3/V4 NFT approvals, liquidityToken may be undefined
+      // Use currency0.wrapped as a stand-in for display purposes
+      amountIn: action.liquidityToken
+        ? CurrencyAmount.fromRawAmount(action.liquidityToken, 1)
+        : CurrencyAmount.fromRawAmount(action.currency0Amount.currency.wrapped, 1),
       pair: [action.currency0Amount.currency, action.currency1Amount.currency],
     })
 

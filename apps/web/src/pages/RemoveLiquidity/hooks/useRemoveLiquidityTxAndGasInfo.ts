@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useCheckLpApprovalQuery } from 'uniswap/src/data/apiClients/tradingApi/useCheckLpApprovalQuery'
 import { useDecreaseLpPositionCalldataQuery } from 'uniswap/src/data/apiClients/tradingApi/useDecreaseLpPositionCalldataQuery'
 import type { CheckApprovalLPRequest, DecreaseLPPositionRequest } from 'uniswap/src/data/tradingApi/__generated__'
-import { ProtocolItems } from 'uniswap/src/data/tradingApi/__generated__'
 import { toSupportedChainId } from 'uniswap/src/features/chains/utils'
 import { useTransactionGasFee, useUSDCurrencyAmountOfGasFee } from 'uniswap/src/features/gas/hooks'
 import { InterfaceEventName } from 'uniswap/src/features/telemetry/constants'
@@ -31,30 +30,50 @@ export function useRemoveLiquidityTxAndGasInfo({ account }: { account?: string }
   const currency0 = currencies?.TOKEN0
   const currency1 = currencies?.TOKEN1
 
-  const v2LpTokenApprovalQueryParams: CheckApprovalLPRequest | undefined = useMemo(() => {
-    if (!positionInfo || !positionInfo.liquidityToken || percentInvalid || !positionInfo.liquidityAmount) {
+  const lpApprovalQueryParams: CheckApprovalLPRequest | undefined = useMemo(() => {
+    const apiProtocolItems = getProtocolItems(positionInfo?.version)
+    if (!positionInfo || !apiProtocolItems || !account || percentInvalid) {
       return undefined
     }
+
+    // V2 uses ERC-20 LP token approval
+    if (positionInfo.version === ProtocolVersion.V2) {
+      if (!positionInfo.liquidityToken || !positionInfo.liquidityAmount) {
+        return undefined
+      }
+      return {
+        protocol: apiProtocolItems,
+        walletAddress: account,
+        chainId: positionInfo.liquidityToken.chainId,
+        positionToken: positionInfo.liquidityToken.address,
+        positionAmount: positionInfo.liquidityAmount
+          .multiply(JSBI.BigInt(percent))
+          .divide(JSBI.BigInt(100))
+          .quotient.toString(),
+      }
+    }
+
+    // V3/V4 uses NFT approval via tokenId - include tokens for Gateway routing detection
     return {
-      protocol: ProtocolItems.V2,
+      simulateTransaction: true,
+      protocol: apiProtocolItems,
       walletAddress: account,
-      chainId: positionInfo.liquidityToken.chainId,
-      positionToken: positionInfo.liquidityToken.address,
-      positionAmount: positionInfo.liquidityAmount
-        .multiply(JSBI.BigInt(percent))
-        .divide(JSBI.BigInt(100))
-        .quotient.toString(),
+      chainId: positionInfo.currency0Amount.currency.chainId,
+      token0: getTokenOrZeroAddress(positionInfo.currency0Amount.currency),
+      token1: getTokenOrZeroAddress(positionInfo.currency1Amount.currency),
+      // Omit amount0/amount1 - not depositing tokens, only need NFT approval
+      tokenId: positionInfo.tokenId ? Number(positionInfo.tokenId) : undefined,
     }
   }, [positionInfo, percent, account, percentInvalid])
   const {
-    data: v2LpTokenApproval,
-    isLoading: v2ApprovalLoading,
+    data: lpApproval,
+    isLoading: approvalLoading,
     error: approvalError,
     refetch: approvalRefetch,
   } = useCheckLpApprovalQuery({
-    params: v2LpTokenApprovalQueryParams,
+    params: lpApprovalQueryParams,
     staleTime: 5 * ONE_SECOND_MS,
-    enabled: Boolean(v2LpTokenApprovalQueryParams),
+    enabled: Boolean(lpApprovalQueryParams),
   })
 
   if (approvalError) {
@@ -64,18 +83,18 @@ export function useRemoveLiquidityTxAndGasInfo({ account }: { account?: string }
       parseErrorMessageTitle(approvalError, { defaultTitle: 'unkown CheckLpApprovalQuery' }),
       {
         error: JSON.stringify(approvalError),
-        v2LpTokenApprovalQueryParams: JSON.stringify(v2LpTokenApprovalQueryParams),
+        lpApprovalQueryParams: JSON.stringify(lpApprovalQueryParams),
       },
     )
   }
 
-  const v2ApprovalGasFeeUSD =
+  const approvalGasFeeUSD =
     useUSDCurrencyAmountOfGasFee(
-      positionInfo?.liquidityToken?.chainId,
-      v2LpTokenApproval?.gasFeePositionTokenApproval,
+      positionInfo?.currency0Amount.currency.chainId,
+      lpApproval?.gasFeePositionTokenApproval,
     ) ?? undefined
 
-  const approvalsNeeded = Boolean(v2LpTokenApproval)
+  const approvalsNeeded = Boolean(lpApproval?.positionTokenApproval)
 
   const { token0UncollectedFees, token1UncollectedFees } = positionInfo ?? {}
 
@@ -144,8 +163,8 @@ export function useRemoveLiquidityTxAndGasInfo({ account }: { account?: string }
     enabled:
       !isUserCommittedToDecrease &&
       !!decreaseCalldataQueryParams &&
-      ((!percentInvalid && !v2LpTokenApprovalQueryParams) ||
-        (!v2ApprovalLoading && !approvalError && Boolean(v2LpTokenApproval))),
+      !approvalLoading &&
+      !approvalError,
   })
 
   useEffect(() => {
@@ -175,14 +194,14 @@ export function useRemoveLiquidityTxAndGasInfo({ account }: { account?: string }
       decreaseCalldata?.gasFee || estimatedGasFee,
     ) ?? undefined
 
-  const totalGasFeeEstimate = v2ApprovalGasFeeUSD ? decreaseGasFeeUsd?.add(v2ApprovalGasFeeUSD) : decreaseGasFeeUsd
+  const totalGasFeeEstimate = approvalGasFeeUSD ? decreaseGasFeeUsd?.add(approvalGasFeeUSD) : decreaseGasFeeUsd
 
   return {
     gasFeeEstimateUSD: totalGasFeeEstimate,
     decreaseCalldataLoading,
     decreaseCalldata,
-    v2LpTokenApproval,
-    approvalLoading: v2ApprovalLoading,
+    v2LpTokenApproval: lpApproval,
+    approvalLoading,
     error: getErrorMessageToDisplay({ approvalError, calldataError }),
     refetch: approvalError ? approvalRefetch : calldataError ? calldataRefetch : undefined,
   }
