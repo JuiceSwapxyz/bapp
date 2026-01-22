@@ -22,6 +22,7 @@ export enum TransactionStepType {
   Permit2Signature = 'Permit2Signature',
   Permit2Transaction = 'Permit2Transaction',
   UniswapXSignature = 'UniswapXSignature',
+  CreatePoolTransaction = 'CreatePoolTransaction',
   IncreasePositionTransaction = 'IncreasePositionTransaction',
   IncreasePositionTransactionAsync = 'IncreasePositionTransactionAsync',
   DecreasePositionTransaction = 'DecreasePositionTransaction',

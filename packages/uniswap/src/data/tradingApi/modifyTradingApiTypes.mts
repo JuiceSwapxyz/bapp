@@ -18,6 +18,7 @@ const createSwapResponseFile = project.addSourceFileAtPath(`${path}/CreateSwapRe
 const createSendResponseFile = project.addSourceFileAtPath(`${path}/CreateSendResponse.ts`)
 const classicQuoteFile = project.addSourceFileAtPath(`${path}/ClassicQuote.ts`)
 const bridgeQuoteFile = project.addSourceFileAtPath(`${path}/BridgeQuote.ts`)
+const createLPPositionResponseFile = project.addSourceFileAtPath(`${path}/CreateLPPositionResponse.ts`)
 const responseFiles = [approvalResponseFile, createSwapResponseFile, createSendResponseFile, classicQuoteFile]
 
 // Enums
@@ -174,6 +175,11 @@ modifyType(bridgeQuoteFile, 'BridgeQuote', [
   },
 ])
 
+// Add createPool field to CreateLPPositionResponse for Gateway pool creation
+modifyType(createLPPositionResponseFile, 'CreateLPPositionResponse', [
+  { name: 'createPool', type: 'TransactionRequest', isOptional: true },
+])
+
 // Add new enum members
 addEnumMember(routingFile, 'Routing', { name: 'JUPITER', value: 'JUPITER' })
 addEnumMember(routingFile, 'Routing', { name: 'BITCOIN_BRIDGE', value: 'BITCOIN_BRIDGE' })
@@ -196,6 +202,7 @@ responseFiles.forEach((file) => {
 })
 checkApprovalLPRequestFile.saveSync()
 bridgeQuoteFile.saveSync()
+createLPPositionResponseFile.saveSync()
 routingFile.saveSync()
 chainIdFile.saveSync()
 err404File.saveSync()
