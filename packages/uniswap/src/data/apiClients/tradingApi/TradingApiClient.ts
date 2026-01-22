@@ -483,16 +483,23 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
     throw new Error(`Pair not found: ${from} -> ${to}. Available pairs: ${JSON.stringify(Object.keys(chainPairs))}`)
   }
 
-  // Boltz uses 8 decimals internally, USDT/JUSD use 6 decimals
-  // Convert 6→8: multiply by 100 (e.g., 10 USDT → 1000000000)
-  // Calculate fees in 8-decimal format
-  // Convert 8→6: divide by 100 (e.g., 997500000 → 997500)
+  const USDT_DECIMALS = 6
+  const JUSD_DECIMALS = 18
+  const inputDecimals = from === 'JUSD_CITREA' ? JUSD_DECIMALS : USDT_DECIMALS
+  const outputDecimals = to === 'JUSD_CITREA' ? JUSD_DECIMALS : USDT_DECIMALS
+
   const inputAmount = BigInt(params.amount)
-  const inputAmountBoltz = inputAmount * BigInt(100)
+  const inputNormalized = inputDecimals === JUSD_DECIMALS
+    ? inputAmount / BigInt(10 ** (JUSD_DECIMALS - USDT_DECIMALS))
+    : inputAmount
+
   const feePercent = pairInfo.fees.percentage / 100
   const minerFee = BigInt(pairInfo.fees.minerFees.server + pairInfo.fees.minerFees.user.claim)
-  const outputAmountBoltz = inputAmountBoltz - BigInt(Math.floor(Number(inputAmountBoltz) * feePercent)) - minerFee
-  const outputAmount = outputAmountBoltz / BigInt(100)
+  const outputNormalized = inputNormalized - BigInt(Math.floor(Number(inputNormalized) * feePercent)) - minerFee
+
+  const outputAmount = outputDecimals === JUSD_DECIMALS
+    ? outputNormalized * BigInt(10 ** (JUSD_DECIMALS - USDT_DECIMALS))
+    : outputNormalized
 
   const bridgeQuote: BridgeQuote = {
     quoteId: `erc20-chain-swap-${Date.now()}`,

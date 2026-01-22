@@ -29,7 +29,7 @@ export const WALLET_ADDRESS = wallet.address
 export const CHAIN_CONFIG = {
   citreaTestnet: {
     name: 'Citrea Testnet',
-    rpcUrl: 'https://rpc.testnet.juiceswap.com',
+    rpcUrl: 'https://rpc.testnet.citrea.xyz',
     chainId: 5115,
     symbol: 'cBTC',
     blockExplorerUrl: 'https://testnet.citreascan.com',

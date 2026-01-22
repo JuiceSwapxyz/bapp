@@ -23,7 +23,7 @@ const testnetTokens = buildChainTokens({
     JUSD: new Token(
       UniverseChainId.CitreaTestnet,
       '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
-      6,
+      18,
       'JUSD',
       'JuiceSwap USD',
     ),
@@ -41,10 +41,10 @@ const citreaTestnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://rpc.testnet.citrea.xyz'],
     },
     public: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://rpc.testnet.citrea.xyz'],
     },
   },
   blockExplorers: {
@@ -93,16 +93,16 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   pendingTransactionsRetryOptions: undefined,
   rpcUrls: {
     [RPCType.Public]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://rpc.testnet.citrea.xyz'],
     },
     [RPCType.Default]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://rpc.testnet.citrea.xyz'],
     },
     [RPCType.Fallback]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://rpc.testnet.citrea.xyz'],
     },
     [RPCType.Interface]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://rpc.testnet.citrea.xyz'],
     },
   },
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(testnetTokens.USDC, 100e6),

@@ -40,7 +40,7 @@ const localCurrencyInfo: CurrencyInfo[] = [
     currency: buildCurrency({
       chainId: UniverseChainId.CitreaTestnet,
       address: JUSD_CITREA,
-      decimals: 6,
+      decimals: 18,
       symbol: 'JUSD',
       name: 'JuiceSwap USD',
     }) as Currency,

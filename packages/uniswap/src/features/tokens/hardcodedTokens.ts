@@ -130,7 +130,6 @@ export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaUsdcCurrency,
   citreaCusdCurrency,
   citreaNusdCurrency,
-  citreaJusdCurrency,
 ]
 
 export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
