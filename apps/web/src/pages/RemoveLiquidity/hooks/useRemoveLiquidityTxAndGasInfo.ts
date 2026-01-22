@@ -200,7 +200,7 @@ export function useRemoveLiquidityTxAndGasInfo({ account }: { account?: string }
     gasFeeEstimateUSD: totalGasFeeEstimate,
     decreaseCalldataLoading,
     decreaseCalldata,
-    v2LpTokenApproval: lpApproval,
+    lpApproval,
     approvalLoading,
     error: getErrorMessageToDisplay({ approvalError, calldataError }),
     refetch: approvalError ? approvalRefetch : calldataError ? calldataRefetch : undefined,
