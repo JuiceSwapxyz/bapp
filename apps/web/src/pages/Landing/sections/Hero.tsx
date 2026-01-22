@@ -1,4 +1,5 @@
 import { ColumnCenter } from 'components/deprecated/Column'
+import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import { useCurrency } from 'hooks/Tokens'
 import { useScroll } from 'hooks/useScroll'
 import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
@@ -11,7 +12,6 @@ import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { serializeSwapStateToURLParameters } from 'state/swap/hooks'
 import { Flex, Text, styled, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
-import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SwapRedirectFn } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
 
@@ -76,23 +76,12 @@ const HeroBackground = styled(Flex, {
 export function Hero({ scrollToRef, transition }: HeroProps) {
   const media = useMedia()
   const { height: scrollPosition } = useScroll({ enabled: !media.sm })
-  const { defaultChainId } = useEnabledChains()
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const showBAppsContent = useIsBAppsCampaignVisible()
 
-  // Use native token (cBTC on Citrea) as default input currency
   const initialInputCurrency = useCurrency({
-    address: 'ETH', // This will get the native token for any chain
-    chainId: defaultChainId,
-  })
-
-  // Use cUSD as default output currency for Citrea and Sepolia
-  const initialOutputCurrency = useCurrency({
-    address:
-      defaultChainId === UniverseChainId.CitreaTestnet || defaultChainId === UniverseChainId.Sepolia
-        ? '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0' // cUSD
-        : undefined,
-    chainId: defaultChainId,
+    address: NATIVE_CHAIN_ID,
+    chainId: UniverseChainId.CitreaTestnet,
   })
 
   const navigate = useNavigate()
@@ -214,9 +203,8 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
               hideHeader
               hideFooter
               syncTabToUrl={false}
-              chainId={defaultChainId}
+              chainId={UniverseChainId.CitreaTestnet}
               initialInputCurrency={initialInputCurrency}
-              initialOutputCurrency={initialOutputCurrency}
               swapRedirectCallback={swapRedirectCallback}
               usePersistedFilteredChainIds
             />
