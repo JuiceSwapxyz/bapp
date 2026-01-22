@@ -115,7 +115,7 @@
     "https://api.juiceswap.com",
     "https://ponder.juiceswap.com",
     "https://dev.ponder.juiceswap.com",
-    "https://rpc.testnet.juiceswap.com",
+    "https://dev.rpc.testnet.juiceswap.com",
     "https://dev.lightning.space",
     "https://*.lightning.space",
     "wss://*.lightning.space",
