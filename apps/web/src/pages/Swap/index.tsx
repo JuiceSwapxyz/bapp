@@ -13,7 +13,7 @@ import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { useResetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap'
 import { useWebSwapSettings } from 'pages/Swap/settings/useWebSwapSettings'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router'
 import { MultichainContextProvider } from 'state/multichain/MultichainContext'
@@ -120,6 +120,12 @@ export default function SwapPage() {
             syncTabToUrl={true}
             usePersistedFilteredChainIds
           />
+          <Flex flexDirection="column" alignItems="center" gap="$gap4" mt="$spacing16">
+            <Text variant="body2" color="$neutral2">
+              <Trans i18nKey="hero.subtitle" />
+            </Text>
+            <img src="/images/logos/Citrea_Full_Logo.svg" alt="Citrea Logo" width={200} height="auto" />
+          </Flex>
         </PageWrapper>
       </Flex>
     </Trace>
