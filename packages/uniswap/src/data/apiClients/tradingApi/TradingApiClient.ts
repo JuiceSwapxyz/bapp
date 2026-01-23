@@ -455,17 +455,12 @@ const getLightningBridgeQuote = async (params: QuoteRequest): Promise<Discrimina
 function getTokenDecimals(chainId: ChainId, address: string): number {
   const normalizedAddress = address.toLowerCase()
 
-  for (const [sourceChainId, sourceTokens] of Object.entries(swappableTokensData)) {
-    for (const targets of Object.values(sourceTokens)) {
-      const match = targets.find(
-        (target) => target.chainId === chainId && target.address.toLowerCase() === normalizedAddress
-      )
-      if (match) {
-        return match.decimals
-      }
-    }
-  }
-  return 18
+  const match = Object.values(swappableTokensData)
+    .flatMap(sourceTokens => Object.values(sourceTokens))
+    .flat()
+    .find((target) => target.chainId === chainId && target.address.toLowerCase() === normalizedAddress)
+
+  return match?.decimals ?? 18
 }
 
 async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuoteResponse> {
