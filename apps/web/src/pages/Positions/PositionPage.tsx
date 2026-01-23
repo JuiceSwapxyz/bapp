@@ -223,7 +223,7 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
     }
   }, [selectedHistoryDuration, t])
 
-  const [mainView, setMainView] = useState<'chart' | 'nft'>('chart')
+  const [mainView, setMainView] = useState<'chart' | 'nft'>('nft')
   const mainViewOptions = useMemo(() => {
     return [
       {
