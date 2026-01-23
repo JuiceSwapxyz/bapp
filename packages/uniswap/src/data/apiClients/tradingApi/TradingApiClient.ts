@@ -494,12 +494,6 @@ const ERC20_CHAIN_SWAP_TOKEN_METADATA: Record<string, { decimals: number; symbol
   },
 }
 
-/**
- * Get token decimals by chain ID and address
- * @param chainId - The chain ID
- * @param address - The token address
- * @returns Token decimals, defaults to 18 if not found
- */
 function getTokenDecimals(chainId: ChainId, address: string): number {
   const key = `${chainId}:${address.toLowerCase()}`
   const metadata = ERC20_CHAIN_SWAP_TOKEN_METADATA[key]
