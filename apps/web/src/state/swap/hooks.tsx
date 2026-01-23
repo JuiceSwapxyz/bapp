@@ -290,8 +290,9 @@ export function useInitialCurrencyState(): {
   }, [parsedCurrencyState.inputCurrencyAddress, parsedCurrencyState.outputCurrencyAddress, setIsUserSelectedToken])
 
   const { initialInputCurrencyAddress, initialChainId } = useMemo(() => {
+    // Default to native token if no query params or chain is not compatible with testnet or mainnet mode
     if (!hasCurrencyQueryParams || !isSupportedChainCompatible) {
-      const initialChainId = UniverseChainId.CitreaTestnet
+      const initialChainId = persistedFilteredChainIds?.input ?? defaultChainId
       return {
         initialInputCurrencyAddress: getNativeAddress(initialChainId),
         initialChainId,
