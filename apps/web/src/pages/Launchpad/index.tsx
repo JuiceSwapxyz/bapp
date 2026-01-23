@@ -32,6 +32,11 @@ const HeaderSection = styled(Flex, {
   paddingBottom: '$spacing24',
   borderBottomWidth: 1,
   borderBottomColor: '$surface3',
+  animation: 'quick',
+  enterStyle: {
+    opacity: 0,
+    y: 20,
+  },
 })
 
 const TitleSection = styled(Flex, {
@@ -73,6 +78,11 @@ const FilterTabs = styled(Flex, {
   flexDirection: 'row',
   gap: '$spacing8',
   flexWrap: 'wrap',
+  animation: 'quick',
+  enterStyle: {
+    opacity: 0,
+    y: 20,
+  },
 })
 
 const FilterTab = styled(Flex, {
@@ -100,6 +110,11 @@ const TokenGrid = styled(Flex, {
   flexDirection: 'row',
   flexWrap: 'wrap',
   gap: '$spacing16',
+  animation: 'quick',
+  enterStyle: {
+    opacity: 0,
+    y: 20,
+  },
 })
 
 const TokenCardWrapper = styled(Flex, {
@@ -141,6 +156,11 @@ const StatsBar = styled(Flex, {
   flexDirection: 'row',
   gap: '$spacing24',
   flexWrap: 'wrap',
+  animation: 'quick',
+  enterStyle: {
+    opacity: 0,
+    y: 20,
+  },
 })
 
 const StatItem = styled(Flex, {
