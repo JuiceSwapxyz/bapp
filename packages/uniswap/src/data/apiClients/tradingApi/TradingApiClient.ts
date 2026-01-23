@@ -461,13 +461,10 @@ function getTokenDecimals(chainId: ChainId, address: string): number {
         (target) => target.chainId === chainId && target.address.toLowerCase() === normalizedAddress
       )
       if (match) {
-        console.error(`[getTokenDecimals] Found token: ${chainId}:${address} = ${match.decimals} decimals`)
         return match.decimals
       }
     }
   }
-
-  console.error(`[getTokenDecimals] Unknown token: ${chainId}:${address}, using default 18 decimals`)
   return 18
 }
 
