@@ -37,7 +37,6 @@ export const RiseIn = styled.span<{ delay?: number }>`
   width: 100%;
   flex: none;
   justify-content: center;
-  pointer-events: none;
   ${RiseInStyles}
 `
 

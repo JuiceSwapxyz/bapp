@@ -9,6 +9,7 @@ const approvalRequestFile = project.addSourceFileAtPath(`${path}/ApprovalRequest
 const createSendRequestFile = project.addSourceFileAtPath(`${path}/CreateSendRequest.ts`)
 const createSwapRequestFile = project.addSourceFileAtPath(`${path}/CreateSwapRequest.ts`)
 const quoteRequestFile = project.addSourceFileAtPath(`${path}/QuoteRequest.ts`)
+const checkApprovalLPRequestFile = project.addSourceFileAtPath(`${path}/CheckApprovalLPRequest.ts`)
 const requestFiles = [approvalRequestFile, createSendRequestFile, createSwapRequestFile, quoteRequestFile]
 
 // Response types
@@ -17,6 +18,7 @@ const createSwapResponseFile = project.addSourceFileAtPath(`${path}/CreateSwapRe
 const createSendResponseFile = project.addSourceFileAtPath(`${path}/CreateSendResponse.ts`)
 const classicQuoteFile = project.addSourceFileAtPath(`${path}/ClassicQuote.ts`)
 const bridgeQuoteFile = project.addSourceFileAtPath(`${path}/BridgeQuote.ts`)
+const createLPPositionResponseFile = project.addSourceFileAtPath(`${path}/CreateLPPositionResponse.ts`)
 const responseFiles = [approvalResponseFile, createSwapResponseFile, createSendResponseFile, classicQuoteFile]
 
 // Enums
@@ -149,6 +151,11 @@ modifyType(createSwapRequestFile, 'CreateSwapRequest', [
   { name: 'customSwapData', type: 'CustomSwapDataForRequest', isOptional: true },
 ])
 
+// Add tokenId to CheckApprovalLPRequest for NFT approval during increase/decrease liquidity
+modifyType(checkApprovalLPRequestFile, 'CheckApprovalLPRequest', [
+  { name: 'tokenId', type: 'number', isOptional: true },
+])
+
 // Modify the response interfaces
 responseFiles.forEach((file) => {
   addImport(file, 'GasEstimate')
@@ -166,6 +173,11 @@ modifyType(bridgeQuoteFile, 'BridgeQuote', [
     type: 'LightningBridgeDirection | BitcoinBridgeDirection | Erc20ChainSwapDirection',
     isOptional: true,
   },
+])
+
+// Add createPool field to CreateLPPositionResponse for Gateway pool creation
+modifyType(createLPPositionResponseFile, 'CreateLPPositionResponse', [
+  { name: 'createPool', type: 'TransactionRequest', isOptional: true },
 ])
 
 // Add new enum members
@@ -188,7 +200,9 @@ requestFiles.forEach((file) => {
 responseFiles.forEach((file) => {
   file.saveSync()
 })
+checkApprovalLPRequestFile.saveSync()
 bridgeQuoteFile.saveSync()
+createLPPositionResponseFile.saveSync()
 routingFile.saveSync()
 chainIdFile.saveSync()
 err404File.saveSync()

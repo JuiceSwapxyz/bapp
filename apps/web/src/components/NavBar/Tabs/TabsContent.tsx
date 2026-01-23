@@ -69,6 +69,12 @@ export const useTabsContent = (): TabsSection[] => {
         },
       ],
     },
+    {
+      title: t('common.launchpad'),
+      href: '/launchpad',
+      isActive: pathname.startsWith('/launchpad'),
+      icon: <Text fontSize={16}>🚀</Text>,
+    },
   ]
 
   // Collect conditional tabs

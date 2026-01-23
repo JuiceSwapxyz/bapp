@@ -3,6 +3,7 @@ import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
 import { getCurrencySafetyInfo } from 'uniswap/src/features/dataApi/utils/getCurrencySafetyInfo'
+import { transformSvJusdCurrencyInfo } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { currencyId } from 'uniswap/src/utils/currencyId'
 
 // Type for the token parameter that gqlTokenToCurrencyInfo expects
@@ -28,7 +29,7 @@ export function gqlTokenToCurrencyInfo(token: GqlTokenToCurrencyInfoToken): Curr
     return null
   }
 
-  return buildCurrencyInfo({
+  const currencyInfo = buildCurrencyInfo({
     currency,
     currencyId: currencyId(currency),
     logoUrl: project?.logoUrl,
@@ -37,4 +38,6 @@ export function gqlTokenToCurrencyInfo(token: GqlTokenToCurrencyInfoToken): Curr
     // for a token, in which case the user probably doesn't expect the token to be spam
     isSpam: project?.isSpam ?? false,
   })
+
+  return transformSvJusdCurrencyInfo(currencyInfo)
 }

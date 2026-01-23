@@ -13,6 +13,7 @@ import {
   isLnBitcoinBridgeQuote,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { swappableTokensData, swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
+import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 import {
   ApprovalRequest,
   ApprovalResponse,
@@ -554,15 +555,17 @@ export async function fetchQuote({
   isUSDQuote: _isUSDQuote,
   ...params
 }: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  if (isBitcoinBridgeQuote(params)) {
+  const crossChainSwapsEnabled = isCrossChainSwapsEnabled()
+
+  if (crossChainSwapsEnabled && isBitcoinBridgeQuote(params)) {
     return await getBitcoinCrossChainQuote(params)
   }
 
-  if (isLnBitcoinBridgeQuote(params)) {
+  if (crossChainSwapsEnabled && isLnBitcoinBridgeQuote(params)) {
     return await getLightningBridgeQuote(params)
   }
 
-  if (isErc20ChainSwapQuote(params)) {
+  if (crossChainSwapsEnabled && isErc20ChainSwapQuote(params)) {
     return await getErc20ChainSwapQuote(params)
   }
 
@@ -857,6 +860,14 @@ export async function fetchOrdersWithoutIds({
 }
 
 export async function fetchSwappableTokens(params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
+  // Only return bridge tokens if cross-chain swaps are enabled
+  if (!isCrossChainSwapsEnabled()) {
+    return {
+      requestId: Math.random().toString(36).substring(2, 15),
+      tokens: [],
+    }
+  }
+
   const { tokenIn, tokenInChainId } = params
   const tokens = swappableTokensMappping[tokenInChainId]?.[tokenIn] ?? []
 

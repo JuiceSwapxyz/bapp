@@ -1,3 +1,4 @@
+import { CreatePoolTransactionStep } from 'uniswap/src/features/transactions/liquidity/steps/createPool'
 import {
   IncreasePositionTransactionStep,
   IncreasePositionTransactionStepAsync,
@@ -13,6 +14,7 @@ export type IncreaseLiquiditySteps =
   | TokenRevocationTransactionStep
   | Permit2SignatureStep
   | Permit2TransactionStep
+  | CreatePoolTransactionStep
   | IncreasePositionTransactionStep
   | IncreasePositionTransactionStepAsync
 
@@ -27,6 +29,7 @@ export type IncreaseLiquidityFlow =
       permit: undefined
       token0PermitTransaction: undefined
       token1PermitTransaction: undefined
+      createPool?: CreatePoolTransactionStep
       increasePosition: IncreasePositionTransactionStep
     }
   | {
@@ -39,6 +42,7 @@ export type IncreaseLiquidityFlow =
       permit: Permit2SignatureStep
       token0PermitTransaction: undefined
       token1PermitTransaction: undefined
+      createPool?: CreatePoolTransactionStep
       increasePosition: IncreasePositionTransactionStepAsync
     }
   | {
@@ -51,6 +55,7 @@ export type IncreaseLiquidityFlow =
       permit: undefined
       token0PermitTransaction: Permit2TransactionStep | undefined
       token1PermitTransaction: Permit2TransactionStep | undefined
+      createPool?: CreatePoolTransactionStep
       increasePosition: IncreasePositionTransactionStep
     }
 
@@ -87,6 +92,11 @@ export function orderIncreaseLiquiditySteps(flow: IncreaseLiquidityFlow): Increa
 
   if (flow.token1PermitTransaction) {
     steps.push(flow.token1PermitTransaction)
+  }
+
+  // createPool must run before increasePosition for new Gateway pools
+  if (flow.createPool) {
+    steps.push(flow.createPool)
   }
 
   steps.push(flow.increasePosition)

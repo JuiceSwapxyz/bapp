@@ -2,12 +2,10 @@ import { ChainId, Currency, WETH9 } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
-import { JUICE_ADDRESSES, JUSD_ADDRESSES, SV_JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { JUSD_ADDRESSES, JUICE_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 
 // Addresses from canonical packages - single source of truth
-const WCBTC_ADDRESS = WETH9[UniverseChainId.CitreaTestnet]?.address ?? ''
 const JUSD_ADDRESS = JUSD_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
-const SV_JUSD_ADDRESS = SV_JUSD_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
 const JUICE_ADDRESS = JUICE_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
 
 const citreaNativeCurrency = {
@@ -85,17 +83,8 @@ const citreaJusdCurrency = {
   logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
 }
 
-const citreaSvJusdCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: SV_JUSD_ADDRESS,
-    decimals: 18,
-    symbol: 'svJUSD',
-    name: 'Savings Vault JUSD',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-${SV_JUSD_ADDRESS}`,
-  logoUrl: 'https://docs.juiceswap.com/media/icons/svjusd.png',
-}
+// svJUSD is intentionally NOT exposed to users - they only see JUSD
+// The Gateway handles JUSD <-> svJUSD conversions internally for LP yields
 
 const citreaJuiceCurrency = {
   currency: buildCurrency({
@@ -125,7 +114,8 @@ export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaNativeCurrency,
   citreaWrappedNativeCurrency,
   citreaJusdCurrency,
-  citreaSvJusdCurrency,
+  // svJUSD intentionally excluded - users should only see JUSD
+  // The Gateway handles JUSD <-> svJUSD conversions internally
   citreaJuiceCurrency,
   citreaUsdcCurrency,
   citreaCusdCurrency,
@@ -168,7 +158,6 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
   },
   citreaWrappedNativeCurrency,
   citreaJusdCurrency,
-  citreaSvJusdCurrency,
   citreaJuiceCurrency,
   citreaUsdcCurrency,
   citreaCusdCurrency,

@@ -21,6 +21,7 @@ import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/u
 import { getCurrencySafetyInfo } from 'uniswap/src/features/dataApi/utils/getCurrencySafetyInfo'
 import { createEthersProvider } from 'uniswap/src/features/providers/createEthersProvider'
 import { PoolSearchResult, SearchResultType } from 'uniswap/src/features/search/SearchResult'
+import { transformSvJusdCurrencyInfo } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { buildCurrencyId, currencyId, isNativeCurrencyAddress } from 'uniswap/src/utils/currencyId'
 
 export function useSearchTokensAndPoolsQuery<TSelectType>({
@@ -61,7 +62,10 @@ export function searchTokenToCurrencyInfo(token: SearchToken): CurrencyInfo | nu
     return null
   }
 
-  return buildCurrencyInfo({ currency, currencyId: currencyId(currency), logoUrl, safetyInfo })
+  const currencyInfo = buildCurrencyInfo({ currency, currencyId: currencyId(currency), logoUrl, safetyInfo })
+
+  // Transform svJUSD to JUSD for display - users should only see JUSD
+  return transformSvJusdCurrencyInfo(currencyInfo)
 }
 
 export function searchPoolToPoolSearchResult(pool: Pool): PoolSearchResult | undefined {

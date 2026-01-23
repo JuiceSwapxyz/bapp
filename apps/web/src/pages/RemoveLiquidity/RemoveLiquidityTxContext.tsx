@@ -13,7 +13,7 @@ import { logContextUpdate } from 'utilities/src/logger/contextEnhancer'
 
 export type RemoveLiquidityTxInfo = {
   gasFeeEstimateUSD?: CurrencyAmount<Currency>
-  v2LpTokenApproval?: CheckApprovalLPResponse
+  lpApproval?: CheckApprovalLPResponse
   decreaseCalldata?: DecreaseLPPositionResponse
   decreaseCalldataLoading: boolean
   approvalLoading: boolean
@@ -43,7 +43,7 @@ export function RemoveLiquidityTxContextProvider({ children }: PropsWithChildren
       return undefined
     }
     const approvePositionTokenRequest = validateTransactionRequest(
-      removeLiquidityTxInfo.v2LpTokenApproval?.positionTokenApproval,
+      removeLiquidityTxInfo.lpApproval?.positionTokenApproval,
     )
     const txRequest = validateTransactionRequest(decreaseCalldata.decrease)
     if (!txRequest) {
@@ -83,7 +83,7 @@ export function RemoveLiquidityTxContextProvider({ children }: PropsWithChildren
     decreaseCalldata,
     currency0,
     currency1,
-    removeLiquidityTxInfo.v2LpTokenApproval?.positionTokenApproval,
+    removeLiquidityTxInfo.lpApproval?.positionTokenApproval,
     percent,
   ])
 
