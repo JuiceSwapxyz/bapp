@@ -1,19 +1,27 @@
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
-import { type PropsWithChildren } from 'react'
+import { type PropsWithChildren, useMemo } from 'react'
 import { SharedQueryClient } from 'uniswap/src/data/apiClients/SharedQueryClient'
 import { sharedDehydrateOptions } from 'uniswap/src/data/apiClients/sharedDehydrateOptions'
 import { MAX_REACT_QUERY_CACHE_TIME_MS } from 'utilities/src/time/time'
 
-const persistOptions: React.ComponentProps<typeof PersistQueryClientProvider>['persistOptions'] = {
-  // Change this unique string whenever we want to bust the entire cache.
-  buster: 'v0',
-  maxAge: MAX_REACT_QUERY_CACHE_TIME_MS,
-  persister: createSyncStoragePersister({ storage: localStorage }),
-  dehydrateOptions: sharedDehydrateOptions,
+// Include cross-chain swaps flag in cache buster so cache is invalidated when flag changes
+function getCacheBuster(): string {
+  const crossChainEnabled = localStorage.getItem('crossChainSwapsOverride') === 'true'
+  return `v0-crosschain-${crossChainEnabled}`
 }
 
 export function QueryClientPersistProvider({ children }: PropsWithChildren): JSX.Element {
+  const persistOptions = useMemo(() => {
+    return {
+      // Cache buster includes flag status so entire cache is invalidated when flag changes
+      buster: getCacheBuster(),
+      maxAge: MAX_REACT_QUERY_CACHE_TIME_MS,
+      persister: createSyncStoragePersister({ storage: localStorage }),
+      dehydrateOptions: sharedDehydrateOptions,
+    }
+  }, [])
+
   return (
     <PersistQueryClientProvider client={SharedQueryClient} persistOptions={persistOptions}>
       {children}
