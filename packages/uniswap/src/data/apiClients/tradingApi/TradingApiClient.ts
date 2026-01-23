@@ -3,7 +3,9 @@ import { Protocol } from '@juiceswapxyz/router-sdk'
 import { parseUnits } from 'ethers/lib/utils'
 import { config } from 'uniswap/src/config'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
+import { USDC_MAINNET, USDC_POLYGON, USDT, USDT_POLYGON } from 'uniswap/src/constants/tokens'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
+import { CITREA_TESTNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/citrea'
 import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
@@ -452,6 +454,65 @@ const getLightningBridgeQuote = async (params: QuoteRequest): Promise<Discrimina
   return response
 }
 
+// Token metadata for ERC20 chain swaps - maps chainId:address to decimals
+const ERC20_CHAIN_SWAP_TOKEN_METADATA: Record<string, { decimals: number; symbol: string }> = {
+  // Polygon tokens
+  [`${ChainId._137}:${USDT_POLYGON.address.toLowerCase()}`]: {
+    decimals: USDT_POLYGON.decimals,
+    symbol: 'USDT',
+  },
+  [`${ChainId._137}:${USDC_POLYGON.address.toLowerCase()}`]: {
+    decimals: USDC_POLYGON.decimals,
+    symbol: 'USDC',
+  },
+  // Ethereum tokens
+  [`${ChainId._1}:${USDT.address.toLowerCase()}`]: {
+    decimals: USDT.decimals,
+    symbol: 'USDT',
+  },
+  [`${ChainId._1}:${USDC_MAINNET.address.toLowerCase()}`]: {
+    decimals: USDC_MAINNET.decimals,
+    symbol: 'USDC',
+  },
+  // Citrea tokens - from CITREA_TESTNET_CHAIN_INFO.tokens
+  [`${ChainId._5115}:${CITREA_TESTNET_CHAIN_INFO.tokens.JUSD.address.toLowerCase()}`]: {
+    decimals: CITREA_TESTNET_CHAIN_INFO.tokens.JUSD.decimals,
+    symbol: 'JUSD',
+  },
+  [`${ChainId._5115}:${CITREA_TESTNET_CHAIN_INFO.tokens.USDC.address.toLowerCase()}`]: {
+    decimals: CITREA_TESTNET_CHAIN_INFO.tokens.USDC.decimals,
+    symbol: 'USDC',
+  },
+  [`${ChainId._5115}:${CITREA_TESTNET_CHAIN_INFO.tokens.CUSD.address.toLowerCase()}`]: {
+    decimals: CITREA_TESTNET_CHAIN_INFO.tokens.CUSD.decimals,
+    symbol: 'cUSD',
+  },
+  // NUSD from hardcodedTokens.ts (citreaNusdCurrency) - not in CITREA_TESTNET_CHAIN_INFO yet
+  [`${ChainId._5115}:0x9b28b690550522608890c3c7e63c0b4a7ebab9aa`]: {
+    decimals: 18,
+    symbol: 'NUSD',
+  },
+}
+
+/**
+ * Get token decimals by chain ID and address
+ * @param chainId - The chain ID
+ * @param address - The token address
+ * @returns Token decimals, defaults to 18 if not found
+ */
+function getTokenDecimals(chainId: ChainId, address: string): number {
+  const key = `${chainId}:${address.toLowerCase()}`
+  const metadata = ERC20_CHAIN_SWAP_TOKEN_METADATA[key]
+  
+  if (!metadata) {
+    // Fallback to 18 decimals (standard ERC20)
+    console.warn(`[getErc20ChainSwapQuote] Unknown token: ${chainId}:${address}, using default 18 decimals`)
+    return 18
+  }
+  
+  return metadata.decimals
+}
+
 async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuoteResponse> {
   const ldsBridge = getLdsBridgeManager()
   const direction =
@@ -483,23 +544,30 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
     throw new Error(`Pair not found: ${from} -> ${to}. Available pairs: ${JSON.stringify(Object.keys(chainPairs))}`)
   }
 
-  const USDT_DECIMALS = 6
-  const JUSD_DECIMALS = 18
-  const inputDecimals = from === 'JUSD_CITREA' ? JUSD_DECIMALS : USDT_DECIMALS
-  const outputDecimals = to === 'JUSD_CITREA' ? JUSD_DECIMALS : USDT_DECIMALS
+  // Get token decimals by address lookup instead of hardcoding
+  const inputDecimals = getTokenDecimals(params.tokenInChainId, params.tokenIn)
+  const outputDecimals = getTokenDecimals(params.tokenOutChainId, params.tokenOut)
 
   const inputAmount = BigInt(params.amount)
-  const inputNormalized = inputDecimals === JUSD_DECIMALS
-    ? inputAmount / BigInt(10 ** (JUSD_DECIMALS - USDT_DECIMALS))
-    : inputAmount
+  
+  // Normalize to common base (6 decimals for calculations)
+  const CALCULATION_DECIMALS = 6
+  const inputNormalized = inputDecimals > CALCULATION_DECIMALS
+    ? inputAmount / BigInt(10 ** (inputDecimals - CALCULATION_DECIMALS))
+    : inputDecimals < CALCULATION_DECIMALS
+      ? inputAmount * BigInt(10 ** (CALCULATION_DECIMALS - inputDecimals))
+      : inputAmount
 
   const feePercent = pairInfo.fees.percentage / 100
   const minerFee = BigInt(pairInfo.fees.minerFees.server + pairInfo.fees.minerFees.user.claim)
   const outputNormalized = inputNormalized - BigInt(Math.floor(Number(inputNormalized) * feePercent)) - minerFee
 
-  const outputAmount = outputDecimals === JUSD_DECIMALS
-    ? outputNormalized * BigInt(10 ** (JUSD_DECIMALS - USDT_DECIMALS))
-    : outputNormalized
+  // Convert back to output token decimals
+  const outputAmount = outputDecimals > CALCULATION_DECIMALS
+    ? outputNormalized * BigInt(10 ** (outputDecimals - CALCULATION_DECIMALS))
+    : outputDecimals < CALCULATION_DECIMALS
+      ? outputNormalized / BigInt(10 ** (CALCULATION_DECIMALS - outputDecimals))
+      : outputNormalized
 
   const bridgeQuote: BridgeQuote = {
     quoteId: `erc20-chain-swap-${Date.now()}`,
