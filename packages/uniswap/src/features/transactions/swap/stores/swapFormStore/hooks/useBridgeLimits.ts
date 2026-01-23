@@ -1,8 +1,6 @@
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useQuery } from '@tanstack/react-query'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { ChainPairsResponse, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
 import type {
   LightningBridgeReverseGetResponse,
@@ -78,6 +76,17 @@ const symbolMap = {
   BTC: 'BTC',
 }
 
+function isCrossChainSwapsEnabled(): boolean {
+  const envEnabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
+  if (typeof window !== 'undefined') {
+    const localStorageOverride = localStorage.getItem('crossChainSwapsOverride') === 'true'
+    if (localStorageOverride) {
+      return true
+    }
+  }
+  return envEnabled
+}
+
 const usePairInfo = (
   params: BridgeLimitsQueryParams,
 ): ChainPairsResponse | LightningBridgeReverseGetResponse | LightningBridgeSubmarineGetResponse | undefined => {
@@ -101,7 +110,7 @@ const usePairInfo = (
 }
 
 export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsInfo | undefined {
-  const crossChainSwapsEnabled = useFeatureFlag(FeatureFlags.CrossChainSwaps)
+  const crossChainSwapsEnabled = isCrossChainSwapsEnabled()
   const pairInfo = usePairInfo(params)
   const { currencyIn, currencyOut } = params
 

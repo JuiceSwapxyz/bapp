@@ -7,8 +7,6 @@ import type { ChainId, GetSwappableTokensResponse } from 'uniswap/src/data/tradi
 import type { TradeableAsset } from 'uniswap/src/entities/assets'
 import { AssetType } from 'uniswap/src/entities/assets'
 import { useTokenProjects } from 'uniswap/src/features/dataApi/tokenProjects/tokenProjects'
-import { FeatureFlags } from 'uniswap/src/features/gating/flags'
-import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useTransactionModalContext } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
 import { getShouldResetExactAmountToken } from 'uniswap/src/features/transactions/swap/form/utils'
 import type { SwapFormState } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/types'
@@ -176,9 +174,11 @@ function checkIsBridgePair({
   input: TradeableAsset
   output: TradeableAsset
 }): boolean {
-  // Check if cross-chain swaps are enabled via feature flag
-  const crossChainSwapsEnabled = getFeatureFlag(FeatureFlags.CrossChainSwaps)
-  if (!crossChainSwapsEnabled) {
+  // Check if cross-chain swaps are enabled via env variable or localStorage override
+  const envEnabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
+  const localStorageOverride =
+    typeof window !== 'undefined' && localStorage.getItem('crossChainSwapsOverride') === 'true'
+  if (!envEnabled && !localStorageOverride) {
     return false
   }
 
