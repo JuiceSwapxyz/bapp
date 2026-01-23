@@ -7,6 +7,7 @@ import { SwapBottomCard } from 'components/SwapBottomCard'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
+import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { useModalState } from 'hooks/useModalState'
 import { useRefundableSwaps } from 'hooks/useRefundableSwaps'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
@@ -84,7 +85,8 @@ export default function SwapPage() {
     triggerConnect,
   } = useInitialCurrencyState()
 
-  const { data: refundableSwaps = [] } = useRefundableSwaps()
+  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
+  const { data: refundableSwaps = [] } = useRefundableSwaps(crossChainSwapsEnabled)
 
   useEffect(() => {
     if (triggerConnect) {
