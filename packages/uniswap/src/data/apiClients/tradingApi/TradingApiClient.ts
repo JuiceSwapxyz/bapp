@@ -861,6 +861,14 @@ export async function fetchOrdersWithoutIds({
 }
 
 export async function fetchSwappableTokens(params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
+  // Only return bridge tokens if cross-chain swaps are enabled
+  if (!isCrossChainSwapsEnabled()) {
+    return {
+      requestId: Math.random().toString(36).substring(2, 15),
+      tokens: [],
+    }
+  }
+
   const { tokenIn, tokenInChainId } = params
   const tokens = swappableTokensMappping[tokenInChainId]?.[tokenIn] ?? []
 
