@@ -76,17 +76,6 @@ const symbolMap = {
   BTC: 'BTC',
 }
 
-function isCrossChainSwapsEnabled(): boolean {
-  const envEnabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
-  if (typeof window !== 'undefined') {
-    const localStorageOverride = localStorage.getItem('crossChainSwapsOverride') === 'true'
-    if (localStorageOverride) {
-      return true
-    }
-  }
-  return envEnabled
-}
-
 const usePairInfo = (
   params: BridgeLimitsQueryParams,
 ): ChainPairsResponse | LightningBridgeReverseGetResponse | LightningBridgeSubmarineGetResponse | undefined => {
@@ -110,11 +99,10 @@ const usePairInfo = (
 }
 
 export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsInfo | undefined {
-  const crossChainSwapsEnabled = isCrossChainSwapsEnabled()
   const pairInfo = usePairInfo(params)
   const { currencyIn, currencyOut } = params
 
-  if (!crossChainSwapsEnabled || !currencyIn || !currencyOut || !pairInfo) {
+  if (!currencyIn || !currencyOut || !pairInfo) {
     return undefined
   }
 

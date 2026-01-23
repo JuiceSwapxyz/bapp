@@ -91,21 +91,8 @@ export function usePrefetchSwappableTokens(input: Maybe<TradeableAsset>): void {
   }, [input, queryClient])
 }
 
-function isCrossChainSwapsEnabled(): boolean {
-  const envEnabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
-  if (typeof window !== 'undefined') {
-    const localStorageOverride = localStorage.getItem('crossChainSwapsOverride') === 'true'
-    if (localStorageOverride) {
-      return true
-    }
-  }
-  return envEnabled
-}
-
 const swappableTokensQueryKey = (params?: SwappableTokensParams): QueryKey => {
-  // Include flag status in key so cache is invalidated when flag changes
-  const crossChainEnabled = isCrossChainSwapsEnabled()
-  return [ReactQueryCacheKey.TradingApi, uniswapUrls.tradingApiPaths.swappableTokens, params, { crossChainEnabled }]
+  return [ReactQueryCacheKey.TradingApi, uniswapUrls.tradingApiPaths.swappableTokens, params]
 }
 
 const swappableTokensQueryFn = (

@@ -174,14 +174,6 @@ function checkIsBridgePair({
   input: TradeableAsset
   output: TradeableAsset
 }): boolean {
-  // Check if cross-chain swaps are enabled via env variable or localStorage override
-  const envEnabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
-  const localStorageOverride =
-    typeof window !== 'undefined' && localStorage.getItem('crossChainSwapsOverride') === 'true'
-  if (!envEnabled && !localStorageOverride) {
-    return false
-  }
-
   if (input.chainId === output.chainId) {
     return false
   }
