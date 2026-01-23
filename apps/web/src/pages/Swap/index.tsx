@@ -9,6 +9,7 @@ import { PageWrapper } from 'components/swap/styled'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { useModalState } from 'hooks/useModalState'
 import { useRefundableSwaps } from 'hooks/useRefundableSwaps'
+import { RiseIn } from 'pages/Landing/components/animations'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { useResetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap'
 import { useWebSwapSettings } from 'pages/Swap/settings/useWebSwapSettings'
@@ -111,21 +112,25 @@ export default function SwapPage() {
       <Flex position="relative" width="100%" flex={1} alignItems="center">
         <SwapBackground />
         <PageWrapper>
-          <Swap
-            chainId={initialChainId}
-            initialInputCurrency={initialInputCurrency}
-            initialOutputCurrency={initialOutputCurrency}
-            initialTypedValue={initialTypedValue}
-            initialIndependentField={initialField}
-            syncTabToUrl={true}
-            usePersistedFilteredChainIds
-          />
-          <Flex flexDirection="column" alignItems="center" gap="$gap4" mt="$spacing16">
-            <Text variant="body2" color="$neutral2">
-              <Trans i18nKey="hero.subtitle" />
-            </Text>
-            <img src="/images/logos/Citrea_Full_Logo.svg" alt="Citrea Logo" width={200} height="auto" />
-          </Flex>
+          <RiseIn delay={0.2}>
+            <Swap
+              chainId={initialChainId}
+              initialInputCurrency={initialInputCurrency}
+              initialOutputCurrency={initialOutputCurrency}
+              initialTypedValue={initialTypedValue}
+              initialIndependentField={initialField}
+              syncTabToUrl={true}
+              usePersistedFilteredChainIds
+            />
+          </RiseIn>
+          <RiseIn delay={0.4}>
+            <Flex flexDirection="column" alignItems="center" gap="$gap4" mt="$spacing16">
+              <Text variant="body2" color="$neutral2">
+                <Trans i18nKey="hero.subtitle" />
+              </Text>
+              <img src="/images/logos/Citrea_Full_Logo.svg" alt="Citrea Logo" width={200} height="auto" />
+            </Flex>
+          </RiseIn>
         </PageWrapper>
       </Flex>
     </Trace>
