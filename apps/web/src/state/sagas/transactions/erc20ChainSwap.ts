@@ -336,108 +336,123 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
-  console.error('[ERC20 Chain Swap] Switching to target chain:', { targetChainId })
-  const currentAccount = getAccount(wagmiConfig)
-  if (currentAccount.chainId !== targetChainId) {
+  // 4. Claim - auto for USDT → JUSD, manual for JUSD → USDT
+  if (isPolygonToCitrea || isEthereumToCitrea) {
+    // Auto-claim for USDT → JUSD
+    console.error('[ERC20 Chain Swap] Using auto-claim for USDT → JUSD')
+    setCurrentStep({ step, accepted: false })
+
     try {
-      const chainSwitched = yield* call(selectChain, targetChainId)
-      if (chainSwitched) {
-        yield* call(waitForNetwork, targetChainId)
-        console.error('[ERC20 Chain Swap] Network switched to target chain')
-      } else {
-        console.error('[ERC20 Chain Swap] Chain switch returned false, waiting for network switch anyway...')
+      const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
+      console.error('[ERC20 Chain Swap] Auto-claim complete:', { txHash })
+      setCurrentStep({ step, accepted: true })
+    } catch (error) {
+      console.error('[ERC20 Chain Swap] Auto-claim failed:', error)
+      throw new TransactionStepFailedError({
+        message: `Auto-claim failed: ${error instanceof Error ? error.message : String(error)}`,
+        step,
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
+    }
+  } else {
+    // Manual claim for JUSD → USDT
+    console.error('[ERC20 Chain Swap] Switching to target chain:', { targetChainId })
+    const currentAccount = getAccount(wagmiConfig)
+    if (currentAccount.chainId !== targetChainId) {
+      try {
+        const chainSwitched = yield* call(selectChain, targetChainId)
+        if (chainSwitched) {
+          yield* call(waitForNetwork, targetChainId)
+          console.error('[ERC20 Chain Swap] Network switched to target chain')
+        } else {
+          console.error('[ERC20 Chain Swap] Chain switch returned false, waiting for network switch anyway...')
+          yield* call(waitForNetwork, targetChainId)
+          console.error('[ERC20 Chain Swap] Network switched to target chain')
+        }
+      } catch (error) {
+        console.error('[ERC20 Chain Swap] Chain switch error, waiting for network switch:', error)
         yield* call(waitForNetwork, targetChainId)
         console.error('[ERC20 Chain Swap] Network switched to target chain')
       }
-    } catch (error) {
-      console.error('[ERC20 Chain Swap] Chain switch error, waiting for network switch:', error)
-      yield* call(waitForNetwork, targetChainId)
-      console.error('[ERC20 Chain Swap] Network switched to target chain')
+    } else {
+      console.error('[ERC20 Chain Swap] Already on target chain')
     }
-  } else {
-    console.error('[ERC20 Chain Swap] Already on target chain')
-  }
 
-  // Get signer for target chain (now that we're on the correct chain)
-  console.error('[ERC20 Chain Swap] Getting signer for target chain:', { targetChainId, targetChain })
-  let targetClient
-  try {
-    // Get client for the target chain now that we've switched
-    targetClient = yield* call(getConnectorClientForChain, targetChainId)
-  } catch (error) {
-    console.error('[ERC20 Chain Swap] Failed to get target client:', error)
-    throw new TransactionStepFailedError({
-      message: `Failed to get connector client for chain ${targetChainId}: ${error instanceof Error ? error.message : String(error)}`,
-      step,
-      originalError: error instanceof Error ? error : new Error(String(error)),
-    })
-  }
+    console.error('[ERC20 Chain Swap] Getting signer for target chain:', { targetChainId, targetChain })
+    let targetClient
+    try {
+      targetClient = yield* call(getConnectorClientForChain, targetChainId)
+    } catch (error) {
+      console.error('[ERC20 Chain Swap] Failed to get target client:', error)
+      throw new TransactionStepFailedError({
+        message: `Failed to get connector client for chain ${targetChainId}: ${error instanceof Error ? error.message : String(error)}`,
+        step,
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
+    }
 
-  const targetProvider = clientToProvider(targetClient, targetChainId)
-  if (!targetProvider) {
-    console.error('[ERC20 Chain Swap] Failed to create target provider:', { targetChainId, targetClient })
-    throw new TransactionStepFailedError({
-      message: `Failed to get provider for chain ${targetChainId}`,
-      step,
-    })
-  }
+    const targetProvider = clientToProvider(targetClient, targetChainId)
+    if (!targetProvider) {
+      console.error('[ERC20 Chain Swap] Failed to create target provider:', { targetChainId, targetClient })
+      throw new TransactionStepFailedError({
+        message: `Failed to get provider for chain ${targetChainId}`,
+        step,
+      })
+    }
 
-  try {
-    yield* call(waitForProviderChain, targetChainId, targetProvider)
-    console.error('[ERC20 Chain Swap] Provider verified on target chain')
-  } catch (error) {
-    console.error('[ERC20 Chain Swap] Failed to verify provider chain:', error)
-    const chainName =
-      targetChainId === UniverseChainId.CitreaTestnet
-        ? 'Citrea Testnet'
-        : targetChainId === UniverseChainId.Polygon
-          ? 'Polygon'
-          : 'Ethereum'
-    throw new TransactionStepFailedError({
-      message: `Failed to switch to ${chainName} network. Please manually switch to ${chainName} in MetaMask and try again.`,
-      step,
-      originalError: error instanceof Error ? error : new Error(String(error)),
-    })
-  }
+    try {
+      yield* call(waitForProviderChain, targetChainId, targetProvider)
+      console.error('[ERC20 Chain Swap] Provider verified on target chain')
+    } catch (error) {
+      console.error('[ERC20 Chain Swap] Failed to verify provider chain:', error)
+      const chainName =
+        targetChainId === UniverseChainId.CitreaTestnet
+          ? 'Citrea Testnet'
+          : targetChainId === UniverseChainId.Polygon
+            ? 'Polygon'
+            : 'Ethereum'
+      throw new TransactionStepFailedError({
+        message: `Failed to switch to ${chainName} network. Please manually switch to ${chainName} in MetaMask and try again.`,
+        step,
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
+    }
 
-  const targetSigner = targetProvider.getSigner(account.address)
+    const targetSigner = targetProvider.getSigner(account.address)
 
-  // Convert from Boltz 8 decimals to target token decimals
-  const boltzAmount8Decimals = BigInt(chainSwap.claimDetails.amount)
-  const claimAmount = boltzToTokenDecimals(boltzAmount8Decimals, targetDecimals)
+    const boltzAmount8Decimals = BigInt(chainSwap.claimDetails.amount)
+    const claimAmount = boltzToTokenDecimals(boltzAmount8Decimals, targetDecimals)
 
-  console.error('[ERC20 Chain Swap] Claiming tokens:', {
-    contractAddress: CONTRACTS[targetChain].swap,
-    tokenAddress: CONTRACTS[targetChain].token,
-    boltzAmount8Decimals: boltzAmount8Decimals.toString(),
-    targetDecimals,
-    claimAmount: claimAmount.toString(),
-    conversionNote: `${BOLTZ_DECIMALS} decimals (Boltz) → ${targetDecimals} decimals (${targetChain})`,
-  })
-  // Update step to show we're claiming (user may need to approve in wallet)
-  setCurrentStep({ step, accepted: false })
-
-  try {
-    yield* call(claimErc20Swap, {
-      signer: targetSigner,
+    console.error('[ERC20 Chain Swap] Claiming tokens:', {
       contractAddress: CONTRACTS[targetChain].swap,
       tokenAddress: CONTRACTS[targetChain].token,
-      preimage: chainSwap.preimage,
-      amount: claimAmount,
-      refundAddress: chainSwap.claimDetails.refundAddress!,
-      timelock: chainSwap.claimDetails.timeoutBlockHeight,
+      boltzAmount8Decimals: boltzAmount8Decimals.toString(),
+      targetDecimals,
+      claimAmount: claimAmount.toString(),
+      conversionNote: `${BOLTZ_DECIMALS} decimals (Boltz) → ${targetDecimals} decimals (${targetChain})`,
     })
-    console.error('[ERC20 Chain Swap] Claim transaction submitted')
+    setCurrentStep({ step, accepted: false })
 
-    // Update step to show claim is complete
-    setCurrentStep({ step, accepted: true })
-  } catch (error) {
-    console.error('[ERC20 Chain Swap] Failed to claim tokens:', error)
-    throw new TransactionStepFailedError({
-      message: `Failed to claim tokens: ${error instanceof Error ? error.message : String(error)}. Please ensure Boltz has locked tokens on ${targetChain} and try again.`,
-      step,
-      originalError: error instanceof Error ? error : new Error(String(error)),
-    })
+    try {
+      yield* call(claimErc20Swap, {
+        signer: targetSigner,
+        contractAddress: CONTRACTS[targetChain].swap,
+        tokenAddress: CONTRACTS[targetChain].token,
+        preimage: chainSwap.preimage,
+        amount: claimAmount,
+        refundAddress: chainSwap.claimDetails.refundAddress!,
+        timelock: chainSwap.claimDetails.timeoutBlockHeight,
+      })
+      console.error('[ERC20 Chain Swap] Claim transaction submitted')
+      setCurrentStep({ step, accepted: true })
+    } catch (error) {
+      console.error('[ERC20 Chain Swap] Failed to claim tokens:', error)
+      throw new TransactionStepFailedError({
+        message: `Failed to claim tokens: ${error instanceof Error ? error.message : String(error)}. Please ensure Boltz has locked tokens on ${targetChain} and try again.`,
+        step,
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
+    }
   }
 
   if (onSuccess) {
