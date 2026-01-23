@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { FeatureFlags } from 'constants/featureFlags'
 
 const STORAGE_KEY = 'crossChainSwapsOverride'
+// Default key used by @tanstack/query-sync-storage-persister
+const REACT_QUERY_CACHE_KEY = 'REACT_QUERY_OFFLINE_CACHE'
 
 /**
  * Hook to handle URL-based cross-chain swaps override
@@ -21,6 +23,8 @@ function useUrlCrossChainSwapsOverride(): boolean {
 
       if (param === 'true') {
         localStorage.setItem(STORAGE_KEY, 'true')
+        // Clear React Query cache to ensure fresh data with new flag status
+        localStorage.removeItem(REACT_QUERY_CACHE_KEY)
         // Hard refresh to ensure all components re-render with new state
         window.location.href = window.location.pathname
         return
@@ -28,6 +32,8 @@ function useUrlCrossChainSwapsOverride(): boolean {
 
       if (param === 'false') {
         localStorage.removeItem(STORAGE_KEY)
+        // Clear React Query cache to ensure fresh data with new flag status
+        localStorage.removeItem(REACT_QUERY_CACHE_KEY)
         // Hard refresh to ensure all components re-render with new state
         window.location.href = window.location.pathname
         return
