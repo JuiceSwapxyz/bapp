@@ -504,7 +504,7 @@ export default function TokenDetail() {
 
           <Flex gap="$spacing8">
             <Text variant="body3" color="$neutral2">
-              • 1% fee on all trades
+              • 1% of all trade volume flows to JUICE governance token holders
             </Text>
             <Text variant="body3" color="$neutral2">
               • ~79.31% sold on bonding curve
