@@ -541,19 +541,32 @@ export const swapQuote = async (params: QuoteRequest): Promise<DiscriminatedQuot
 
 export type FetchQuote = (params: QuoteRequest & { isUSDQuote?: boolean }) => Promise<DiscriminatedQuoteResponse>
 
+function isCrossChainSwapsEnabled(): boolean {
+  const envEnabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
+  if (typeof window !== 'undefined') {
+    const localStorageOverride = localStorage.getItem('crossChainSwapsOverride') === 'true'
+    if (localStorageOverride) {
+      return true
+    }
+  }
+  return envEnabled
+}
+
 export async function fetchQuote({
   isUSDQuote: _isUSDQuote,
   ...params
 }: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  if (isBitcoinBridgeQuote(params)) {
+  const crossChainSwapsEnabled = isCrossChainSwapsEnabled()
+
+  if (crossChainSwapsEnabled && isBitcoinBridgeQuote(params)) {
     return await getBitcoinCrossChainQuote(params)
   }
 
-  if (isLnBitcoinBridgeQuote(params)) {
+  if (crossChainSwapsEnabled && isLnBitcoinBridgeQuote(params)) {
     return await getLightningBridgeQuote(params)
   }
 
-  if (isErc20ChainSwapQuote(params)) {
+  if (crossChainSwapsEnabled && isErc20ChainSwapQuote(params)) {
     return await getErc20ChainSwapQuote(params)
   }
 
