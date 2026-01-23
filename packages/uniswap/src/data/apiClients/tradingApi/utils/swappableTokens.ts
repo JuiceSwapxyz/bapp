@@ -9,7 +9,7 @@ const JUSD_CITREA = '0xFdB0a83d94CD65151148a131167Eb499Cb85d015'
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
 const USDT_ETHEREUM = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 
-const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = {
+export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = {
   [ChainId._5115]: {
     '0x0000000000000000000000000000000000000000': [
       {
