@@ -568,7 +568,7 @@ export function BuySellPanel({
       </ActionButton>
 
       <Text variant="body4" color="$neutral3" textAlign="center">
-        1% fee on all trades. Slippage tolerance: 1%
+        1% of all trade volume flows to JUICE governance token holders. Slippage tolerance: 1%
       </Text>
     </PanelContainer>
   )
