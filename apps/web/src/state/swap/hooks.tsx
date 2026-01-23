@@ -103,6 +103,24 @@ function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Cu
   return undefined
 }
 
+function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: string): string | undefined {
+  if (!chainId || !isAddress(address)) return undefined
+
+  const chainInfo = getChainInfo(chainId)
+  const normalizedAddress = address.toLowerCase()
+
+  if (chainInfo.tokens.USDT?.address.toLowerCase() === normalizedAddress) {
+    return 'USDT'
+  }
+
+  const jusdToken = (chainInfo.tokens as any).JUSD as Token | undefined
+  if (jusdToken?.address.toLowerCase() === normalizedAddress) {
+    return 'JUSD'
+  }
+
+  return undefined
+}
+
 export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): string | undefined {
   if (typeof urlParam === 'string') {
     const valid = isAddress(urlParam)
@@ -178,13 +196,20 @@ export function serializeSwapStateToURLParameters(
   const { inputCurrency, outputCurrency, typedValue, independentField, chainId } = state
   const hasValidInput = (inputCurrency || outputCurrency) && typedValue
 
+  const getCurrencyParam = (currency: Currency | undefined, currencyChainId: UniverseChainId): string | undefined => {
+    if (!currency) return undefined
+    if (currency.isNative) return NATIVE_CHAIN_ID
+    const symbol = getTokenSymbolByAddress(currencyChainId, currency.address)
+    return symbol ?? currency.address
+  }
+
   return (
     '?' +
     createBaseSwapURLParams({
       chainId,
       outputChainId: outputCurrency?.chainId !== inputCurrency?.chainId ? outputCurrency?.chainId : undefined,
-      inputCurrency: inputCurrency ? (inputCurrency.isNative ? NATIVE_CHAIN_ID : inputCurrency.address) : undefined,
-      outputCurrency: outputCurrency ? (outputCurrency.isNative ? NATIVE_CHAIN_ID : outputCurrency.address) : undefined,
+      inputCurrency: getCurrencyParam(inputCurrency, chainId),
+      outputCurrency: getCurrencyParam(outputCurrency, outputCurrency?.chainId ?? chainId),
       typedValue: hasValidInput ? typedValue : undefined,
       independentField: hasValidInput ? independentField : undefined,
     }).toString()
@@ -203,22 +228,22 @@ export function serializeSwapAddressesToURLParameters({
   outputChainId?: UniverseChainId | null
 }): string {
   const chainIdOrDefault = chainId ?? UniverseChainId.Mainnet
+  const outputChainIdOrDefault = outputChainId ?? chainIdOrDefault
+
+  const getAddressParam = (address: string | undefined, currencyChainId: UniverseChainId): string | undefined => {
+    if (!address) return undefined
+    if (address === getNativeAddress(currencyChainId)) return NATIVE_CHAIN_ID
+    const symbol = getTokenSymbolByAddress(currencyChainId, address)
+    return symbol ?? address
+  }
 
   return (
     '?' +
     createBaseSwapURLParams({
       chainId: chainId ?? undefined,
       outputChainId: outputChainId ?? undefined,
-      inputCurrency: inputTokenAddress
-        ? inputTokenAddress === getNativeAddress(chainIdOrDefault)
-          ? NATIVE_CHAIN_ID
-          : inputTokenAddress
-        : undefined,
-      outputCurrency: outputTokenAddress
-        ? outputTokenAddress === getNativeAddress(outputChainId ?? chainIdOrDefault)
-          ? NATIVE_CHAIN_ID
-          : outputTokenAddress
-        : undefined,
+      inputCurrency: getAddressParam(inputTokenAddress, chainIdOrDefault),
+      outputCurrency: getAddressParam(outputTokenAddress, outputChainIdOrDefault),
     }).toString()
   )
 }
