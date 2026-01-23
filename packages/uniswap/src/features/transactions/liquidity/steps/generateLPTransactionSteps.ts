@@ -2,6 +2,7 @@ import { ADDRESS_ZERO } from '@juiceswapxyz/router-sdk'
 import { CurrencyAmount, Token } from '@juiceswapxyz/sdk-core'
 import { createCollectFeesStep } from 'uniswap/src/features/transactions/liquidity/steps/collectFees'
 import { orderCollectFeesSteps } from 'uniswap/src/features/transactions/liquidity/steps/collectFeesSteps'
+import { createCreatePoolStep } from 'uniswap/src/features/transactions/liquidity/steps/createPool'
 import { orderDecreaseLiquiditySteps } from 'uniswap/src/features/transactions/liquidity/steps/decreaseLiquiditySteps'
 import { createDecreasePositionStep } from 'uniswap/src/features/transactions/liquidity/steps/decreasePosition'
 import { orderIncreaseLiquiditySteps } from 'uniswap/src/features/transactions/liquidity/steps/increaseLiquiditySteps'
@@ -64,7 +65,11 @@ export function generateLPTransactionSteps(txContext: LiquidityTxAndGasInfo): Tr
     })
     const approvalPositionToken = createApprovalTransactionStep({
       txRequest: approvePositionTokenRequest,
-      amountIn: action.liquidityToken ? CurrencyAmount.fromRawAmount(action.liquidityToken, 1) : undefined,
+      // For V3/V4 NFT approvals, liquidityToken may be undefined
+      // Use currency0.wrapped as a stand-in for display purposes
+      amountIn: action.liquidityToken
+        ? CurrencyAmount.fromRawAmount(action.liquidityToken, 1)
+        : CurrencyAmount.fromRawAmount(action.currency0Amount.currency.wrapped, 1),
       pair: [action.currency0Amount.currency, action.currency1Amount.currency],
     })
 
@@ -114,6 +119,10 @@ export function generateLPTransactionSteps(txContext: LiquidityTxAndGasInfo): Tr
         }
       case 'create':
       case 'increase':
+        // For create flow, check if we need to create the pool first (Gateway new pool)
+        const createPoolStep =
+          txContext.type === 'create' ? createCreatePoolStep(txContext.createPoolTxRequest) : undefined
+
         if (txContext.unsigned) {
           return orderIncreaseLiquiditySteps({
             revokeToken0,
@@ -124,6 +133,7 @@ export function generateLPTransactionSteps(txContext: LiquidityTxAndGasInfo): Tr
             permit: createPermit2SignatureStep(txContext.permit.typedData, action.currency0Amount.currency), // TODO: what about for multiple tokens
             token0PermitTransaction: undefined,
             token1PermitTransaction: undefined,
+            createPool: createPoolStep,
             increasePosition:
               txContext.type === 'increase'
                 ? createIncreasePositionAsyncStep(txContext.increasePositionRequestArgs)
@@ -139,6 +149,7 @@ export function generateLPTransactionSteps(txContext: LiquidityTxAndGasInfo): Tr
             permit: undefined,
             token0PermitTransaction: token0PermitTransactionStep,
             token1PermitTransaction: token1PermitTransactionStep,
+            createPool: createPoolStep,
             increasePosition: createIncreasePositionStep(txContext.txRequest),
           })
         }
