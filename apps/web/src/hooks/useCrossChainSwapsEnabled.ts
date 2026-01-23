@@ -1,9 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { FeatureFlags } from 'constants/featureFlags'
-
-const STORAGE_KEY = 'crossChainSwapsOverride'
-// Default key used by @tanstack/query-sync-storage-persister
-const REACT_QUERY_CACHE_KEY = 'REACT_QUERY_OFFLINE_CACHE'
+import { CROSS_CHAIN_SWAPS_STORAGE_KEY } from 'uniswap/src/utils/featureFlags'
 
 /**
  * Hook to handle URL-based cross-chain swaps override
@@ -11,32 +9,38 @@ const REACT_QUERY_CACHE_KEY = 'REACT_QUERY_OFFLINE_CACHE'
  * @internal
  */
 function useUrlCrossChainSwapsOverride(): boolean {
+  const queryClient = useQueryClient()
   const [overrideActive, setOverrideActive] = useState(() => {
     if (typeof window === 'undefined') return false
-    return localStorage.getItem(STORAGE_KEY) === 'true'
+    return localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY) === 'true'
   })
 
   useEffect(() => {
-    const checkUrlParams = () => {
+    const checkUrlParams = (): void => {
       const urlParams = new URLSearchParams(window.location.search)
       const param = urlParams.get('cross-chain-swaps')
 
-      if (param === 'true') {
-        localStorage.setItem(STORAGE_KEY, 'true')
-        // Clear React Query cache to ensure fresh data with new flag status
-        localStorage.removeItem(REACT_QUERY_CACHE_KEY)
-        // Hard refresh to ensure all components re-render with new state
-        window.location.href = window.location.pathname
-        return
-      }
+      if (param === 'true' || param === 'false') {
+        const newValue = param === 'true'
+        const currentValue = localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY) === 'true'
 
-      if (param === 'false') {
-        localStorage.removeItem(STORAGE_KEY)
-        // Clear React Query cache to ensure fresh data with new flag status
-        localStorage.removeItem(REACT_QUERY_CACHE_KEY)
-        // Hard refresh to ensure all components re-render with new state
-        window.location.href = window.location.pathname
-        return
+        // Only update if value changed
+        if (newValue !== currentValue) {
+          if (newValue) {
+            localStorage.setItem(CROSS_CHAIN_SWAPS_STORAGE_KEY, 'true')
+          } else {
+            localStorage.removeItem(CROSS_CHAIN_SWAPS_STORAGE_KEY)
+          }
+
+          // Invalidate all queries to refetch with new flag status
+          queryClient.invalidateQueries()
+          setOverrideActive(newValue)
+
+          // Remove query param from URL without full page refresh
+          const url = new URL(window.location.href)
+          url.searchParams.delete('cross-chain-swaps')
+          window.history.replaceState({}, '', url.toString())
+        }
       }
     }
 
@@ -44,14 +48,17 @@ function useUrlCrossChainSwapsOverride(): boolean {
     checkUrlParams()
 
     // Listen for manual localStorage changes (from other tabs/windows)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) {
-        setOverrideActive(e.newValue === 'true')
+    const handleStorageChange = (e: StorageEvent): void => {
+      if (e.key === CROSS_CHAIN_SWAPS_STORAGE_KEY) {
+        const newValue = e.newValue === 'true'
+        setOverrideActive(newValue)
+        // Invalidate queries when another tab changes the setting
+        queryClient.invalidateQueries()
       }
     }
 
     // Listen for URL changes (navigation)
-    const handlePopState = () => {
+    const handlePopState = (): void => {
       checkUrlParams()
     }
 
@@ -62,7 +69,7 @@ function useUrlCrossChainSwapsOverride(): boolean {
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('popstate', handlePopState)
     }
-  }, [])
+  }, [queryClient])
 
   return overrideActive
 }
@@ -76,16 +83,4 @@ export function useCrossChainSwapsEnabled(): boolean {
 
   // URL override takes priority, otherwise check env variable
   return hasUrlOverride || FeatureFlags.CROSS_CHAIN_SWAPS
-}
-
-/**
- * Non-React function to check if cross-chain swaps are enabled
- * For use in non-hook contexts (e.g., utility functions)
- */
-export function isCrossChainSwapsEnabled(): boolean {
-  if (typeof window !== 'undefined') {
-    const hasOverride = localStorage.getItem(STORAGE_KEY) === 'true'
-    if (hasOverride) return true
-  }
-  return FeatureFlags.CROSS_CHAIN_SWAPS
 }

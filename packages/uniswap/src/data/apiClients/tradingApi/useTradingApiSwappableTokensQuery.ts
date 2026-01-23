@@ -17,6 +17,7 @@ import {
   getTokenAddressFromChainForTradingApi,
   toTradingApiSupportedChainId,
 } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
+import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 import { logger } from 'utilities/src/logger/logger'
 import { ReactQueryCacheKey } from 'utilities/src/reactQuery/cache'
 import { MAX_REACT_QUERY_CACHE_TIME_MS } from 'utilities/src/time/time'
@@ -89,17 +90,6 @@ export function usePrefetchSwappableTokens(input: Maybe<TradeableAsset>): void {
       })
     })
   }, [input, queryClient])
-}
-
-function isCrossChainSwapsEnabled(): boolean {
-  const envEnabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
-  if (typeof window !== 'undefined') {
-    const localStorageOverride = localStorage.getItem('crossChainSwapsOverride') === 'true'
-    if (localStorageOverride) {
-      return true
-    }
-  }
-  return envEnabled
 }
 
 const swappableTokensQueryKey = (params?: SwappableTokensParams): QueryKey => {

@@ -13,6 +13,7 @@ import {
   isLnBitcoinBridgeQuote,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
+import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 import {
   ApprovalRequest,
   ApprovalResponse,
@@ -540,17 +541,6 @@ export const swapQuote = async (params: QuoteRequest): Promise<DiscriminatedQuot
 }
 
 export type FetchQuote = (params: QuoteRequest & { isUSDQuote?: boolean }) => Promise<DiscriminatedQuoteResponse>
-
-function isCrossChainSwapsEnabled(): boolean {
-  const envEnabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
-  if (typeof window !== 'undefined') {
-    const localStorageOverride = localStorage.getItem('crossChainSwapsOverride') === 'true'
-    if (localStorageOverride) {
-      return true
-    }
-  }
-  return envEnabled
-}
 
 export async function fetchQuote({
   isUSDQuote: _isUSDQuote,
