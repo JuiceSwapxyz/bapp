@@ -343,8 +343,8 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     setCurrentStep({ step, accepted: false })
 
     try {
-      const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
-      console.error('[ERC20 Chain Swap] Auto-claim complete:', { txHash })
+      const swap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
+      console.error('[ERC20 Chain Swap] Auto-claim complete:', { txHash: swap.claimTx })
       setCurrentStep({ step, accepted: true })
     } catch (error) {
       console.error('[ERC20 Chain Swap] Auto-claim failed:', error)
