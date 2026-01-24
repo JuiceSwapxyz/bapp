@@ -28,7 +28,7 @@ test.describe('Redirects', () => {
   })
 
   test('should redirect /pool/:tokenId with chain param to /positions/v3/:chainName/:tokenId', async ({ page }) => {
-    await page.goto('/pool/123?chain=ethereum')
+    await page.goto('/pool/123?chain=mainnet')
     await expect(page).toHaveURL(/\/positions\/v3\/ethereum\/123/)
   })
 

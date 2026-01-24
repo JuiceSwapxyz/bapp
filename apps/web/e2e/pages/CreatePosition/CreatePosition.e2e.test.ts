@@ -84,8 +84,8 @@ test.describe('Create position', () => {
         await expect(page.getByText('Dynamic fee tier')).toBeVisible()
         await expect(page.getByRole('button', { name: '0xA0b0...10cc' })).toBeVisible()
 
-        // Unichain WBTC should not load on ethereum, but ETH should
-        await page.goto(`/positions/create?currencyA=NATIVE&currencyB=${UNICHAIN_WBTC_ADDRESS}&chain=ethereum`)
+        // Unichain WBTC should not load on mainnet, but ETH should
+        await page.goto(`/positions/create?currencyA=NATIVE&currencyB=${UNICHAIN_WBTC_ADDRESS}&chain=mainnet`)
         await expect(page.getByRole('button', { name: 'ETH' })).toBeVisible()
         await expect(page.getByRole('button', { name: 'WBTC' })).not.toBeVisible()
       })

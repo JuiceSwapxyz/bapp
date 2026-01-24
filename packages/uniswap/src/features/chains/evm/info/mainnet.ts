@@ -54,7 +54,7 @@ export const MAINNET_CHAIN_INFO = {
     url: 'https://etherscan.io/',
     apiURL: 'https://api.etherscan.io',
   },
-  interfaceName: 'ethereum',
+  interfaceName: 'mainnet',
   label: 'Ethereum',
   logo: ETHEREUM_LOGO,
   nativeCurrency: {

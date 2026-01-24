@@ -140,7 +140,7 @@ describe('hooks', () => {
       })
 
       expect(result).toBe(
-        `?chain=ethereum&outputChain=optimism&inputCurrency=${NATIVE_CHAIN_ID}&outputCurrency=${NATIVE_CHAIN_ID}&value=1.0&field=${CurrencyField.INPUT}`,
+        `?chain=mainnet&outputChain=optimism&inputCurrency=${NATIVE_CHAIN_ID}&outputCurrency=${NATIVE_CHAIN_ID}&value=1.0&field=${CurrencyField.INPUT}`,
       )
     })
 
@@ -154,7 +154,7 @@ describe('hooks', () => {
       })
 
       expect(result).toBe(
-        `?chain=ethereum&inputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}&outputCurrency=${ETH_MAINNET.isNative ? NATIVE_CHAIN_ID : ETH_MAINNET.address}&value=100&field=${CurrencyField.OUTPUT}`,
+        `?chain=mainnet&inputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}&outputCurrency=${ETH_MAINNET.isNative ? NATIVE_CHAIN_ID : ETH_MAINNET.address}&value=100&field=${CurrencyField.OUTPUT}`,
       )
     })
 
@@ -166,7 +166,7 @@ describe('hooks', () => {
         independentField: CurrencyField.INPUT,
       })
 
-      expect(result).toBe(`?chain=ethereum&inputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}`)
+      expect(result).toBe(`?chain=mainnet&inputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}`)
     })
 
     test('serializeSwapAddressesToURLParameters handles cross-chain swaps', () => {
@@ -178,7 +178,7 @@ describe('hooks', () => {
       })
 
       expect(result).toBe(
-        `?chain=ethereum&outputChain=optimism&inputCurrency=${NATIVE_CHAIN_ID}&outputCurrency=${NATIVE_CHAIN_ID}`,
+        `?chain=mainnet&outputChain=optimism&inputCurrency=${NATIVE_CHAIN_ID}&outputCurrency=${NATIVE_CHAIN_ID}`,
       )
     })
 
@@ -190,7 +190,7 @@ describe('hooks', () => {
       })
 
       expect(result).toBe(
-        `?chain=ethereum&inputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}&outputCurrency=${ETH_MAINNET.isNative ? NATIVE_CHAIN_ID : ETH_MAINNET.address}`,
+        `?chain=mainnet&inputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}&outputCurrency=${ETH_MAINNET.isNative ? NATIVE_CHAIN_ID : ETH_MAINNET.address}`,
       )
     })
 
@@ -209,7 +209,7 @@ describe('hooks', () => {
         outputTokenAddress: UNI_ADDRESSES[UniverseChainId.Mainnet],
       })
 
-      expect(result).toBe(`?chain=ethereum&outputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}`)
+      expect(result).toBe(`?chain=mainnet&outputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}`)
     })
 
     test('serializeSwapStateToURLParameters handles partial state', () => {
@@ -218,7 +218,7 @@ describe('hooks', () => {
         inputCurrency: UNI[UniverseChainId.Mainnet],
       })
 
-      expect(result).toBe(`?chain=ethereum&inputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}`)
+      expect(result).toBe(`?chain=mainnet&inputCurrency=${UNI_ADDRESSES[UniverseChainId.Mainnet]}`)
     })
   })
 
