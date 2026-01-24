@@ -12,7 +12,7 @@ import {
   isErc20ChainSwapQuote,
   isLnBitcoinBridgeQuote,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
-import { swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
+import { swappableTokensData, swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
 import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 import {
   ApprovalRequest,
@@ -453,6 +453,17 @@ const getLightningBridgeQuote = async (params: QuoteRequest): Promise<Discrimina
   return response
 }
 
+function getTokenDecimals(chainId: ChainId, address: string): number {
+  const normalizedAddress = address.toLowerCase()
+
+  const match = Object.values(swappableTokensData)
+    .flatMap(sourceTokens => Object.values(sourceTokens))
+    .flat()
+    .find((target) => target.chainId === chainId && target.address.toLowerCase() === normalizedAddress)
+
+  return match?.decimals ?? 18
+}
+
 async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuoteResponse> {
   const ldsBridge = getLdsBridgeManager()
   const direction =
@@ -484,16 +495,14 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
     throw new Error(`Pair not found: ${from} -> ${to}. Available pairs: ${JSON.stringify(Object.keys(chainPairs))}`)
   }
 
-  // Boltz uses 8 decimals internally, USDT/JUSD use 6 decimals
-  // Convert 6→8: multiply by 100 (e.g., 10 USDT → 1000000000)
-  // Calculate fees in 8-decimal format
-  // Convert 8→6: divide by 100 (e.g., 997500000 → 997500)
-  const inputAmount = BigInt(params.amount)
-  const inputAmountBoltz = inputAmount * BigInt(100)
-  const feePercent = pairInfo.fees.percentage / 100
-  const minerFee = BigInt(pairInfo.fees.minerFees.server + pairInfo.fees.minerFees.user.claim)
-  const outputAmountBoltz = inputAmountBoltz - BigInt(Math.floor(Number(inputAmountBoltz) * feePercent)) - minerFee
-  const outputAmount = outputAmountBoltz / BigInt(100)
+  const inputDecimals = getTokenDecimals(params.tokenInChainId, params.tokenIn)
+  const outputDecimals = getTokenDecimals(params.tokenOutChainId, params.tokenOut)
+
+  const outputAmount = adjustAmountForDecimals({
+    amount: params.amount,
+    inputDecimals,
+    outputDecimals,
+  })
 
   const bridgeQuote: BridgeQuote = {
     quoteId: `erc20-chain-swap-${Date.now()}`,
@@ -503,7 +512,7 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
     direction,
     input: {
       token: params.tokenIn,
-      amount: inputAmount.toString(),
+      amount: params.amount,
     },
     output: {
       token: params.tokenOut,
