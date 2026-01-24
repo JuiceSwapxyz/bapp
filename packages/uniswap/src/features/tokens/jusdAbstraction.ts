@@ -43,6 +43,14 @@ export const SV_JUSD_ADDRESSES: Partial<Record<UniverseChainId, string>> = build
 
 export const JUICE_ADDRESSES: Partial<Record<UniverseChainId, string>> = buildAddressMap((a) => a.equity)
 
+// SUSD (StartUSD) addresses - from @juicedollar/jusd
+export const SUSD_ADDRESSES: Partial<Record<UniverseChainId, string>> = buildAddressMap((a) => a.startUSD)
+
+// Stablecoin Bridge addresses - from @juicedollar/jusd (for SUSD ↔ JUSD 1:1 swaps)
+export const STABLECOIN_BRIDGE_ADDRESSES: Partial<Record<UniverseChainId, string>> = buildAddressMap(
+  (a) => a.bridgeStartUSD,
+)
+
 // Gateway address from @juiceswapxyz/sdk-core CHAIN_TO_ADDRESSES_MAP
 // Type assertion needed as juiceSwapGatewayAddress may not be in older sdk-core types
 type ExtendedChainAddresses = { juiceSwapGatewayAddress?: string }
@@ -156,10 +164,7 @@ export function buildJusdCurrencyInfo(chainId: UniverseChainId): CurrencyInfo | 
  * This ensures users only see "JUSD" in the UI, never "svJUSD".
  * The Gateway contract handles actual svJUSD conversions internally.
  */
-export function transformSvJusdCurrencyInfo(
-  currencyInfo: CurrencyInfo,
-  chainId?: UniverseChainId,
-): CurrencyInfo {
+export function transformSvJusdCurrencyInfo(currencyInfo: CurrencyInfo, chainId?: UniverseChainId): CurrencyInfo {
   const currency = currencyInfo.currency
   const effectiveChainId = chainId ?? currency.chainId
 
@@ -186,10 +191,7 @@ export function transformSvJusdCurrencyInfo(
  *
  * This ensures users only see "JUSD" in the UI, never "svJUSD".
  */
-export function transformSvJusdToken(
-  token: SdkToken,
-  chainId?: UniverseChainId,
-): SdkToken {
+export function transformSvJusdToken(token: SdkToken, chainId?: UniverseChainId): SdkToken {
   const effectiveChainId = chainId ?? token.chainId
   if (isSvJusdAddress(effectiveChainId, token.address)) {
     const jusdAddress = getJusdAddress(effectiveChainId)

@@ -14,7 +14,7 @@ import { useUSDCValue } from 'uniswap/src/features/transactions/hooks/useUSDCPri
 import { usePriceUXEnabled } from 'uniswap/src/features/transactions/swap/hooks/usePriceUXEnabled'
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { getTradeAmounts } from 'uniswap/src/features/transactions/swap/utils/getTradeAmounts'
-import { isBridge } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isBridge, isStablecoinBridge } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { useNetworkColors } from 'uniswap/src/utils/colors'
 import { getSymbolDisplayText } from 'uniswap/src/utils/currency'
@@ -46,6 +46,7 @@ export function TransactionAmountsReview({
 
   const priceUXEnabled = usePriceUXEnabled()
   const { inputCurrencyAmount, outputCurrencyAmount } = getTradeAmounts(acceptedDerivedSwapInfo, priceUXEnabled)
+  const isStablecoinBridgeTrade = (trade && isStablecoinBridge(trade)) ?? false
 
   // This should never happen. It's just to keep TS happy.
   if (!inputCurrencyAmount || !outputCurrencyAmount) {
@@ -120,6 +121,11 @@ export function TransactionAmountsReview({
           <Text color="$neutral2" variant="body2">
             {t('swap.review.summary')}
           </Text>
+          {isStablecoinBridgeTrade && (
+            <Text color="$accent1" variant="body3" mt="$spacing4">
+              {t('swap.stablecoinBridge.label')}
+            </Text>
+          )}
         </Flex>
         {isWeb && (
           <Flex row centered gap="$spacing12">

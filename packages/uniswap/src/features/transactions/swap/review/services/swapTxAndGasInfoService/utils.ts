@@ -6,6 +6,7 @@ import type {
   ClassicQuoteResponse,
   DiscriminatedQuoteResponse,
   GatewayJusdQuoteResponse,
+  StablecoinBridgeQuoteResponse,
   WrapQuoteResponse,
 } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { getTradeSettingsDeadline } from 'uniswap/src/data/apiClients/tradingApi/utils/getTradeSettingsDeadline'
@@ -416,7 +417,7 @@ const EMPTY_PERMIT_TX_INFO: PermitTxInfo = {
 export function usePermitTxInfo({
   quote,
 }: {
-  quote?: DiscriminatedQuoteResponse | GatewayJusdQuoteResponse
+  quote?: DiscriminatedQuoteResponse | GatewayJusdQuoteResponse | StablecoinBridgeQuoteResponse
 }): PermitTxInfo {
   const classicQuote = quote && isClassic(quote) ? quote : undefined
   const gasStrategy = useActiveGasStrategy(classicQuote?.quote.chainId, 'swap')

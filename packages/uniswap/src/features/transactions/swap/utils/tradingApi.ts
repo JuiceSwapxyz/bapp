@@ -11,6 +11,7 @@ import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import type {
   BridgeQuoteResponse,
   GatewayJusdQuoteResponse,
+  StablecoinBridgeQuoteResponse,
 } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import {
   ClassicQuoteResponse,
@@ -47,6 +48,7 @@ import {
   GatewayJusdTrade,
   LightningBridgeTrade,
   PriorityOrderTrade,
+  StablecoinBridgeTrade,
   UniswapXV2Trade,
   UniswapXV3Trade,
   UnwrapTrade,
@@ -144,14 +146,14 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
       return new UnwrapTrade({ quote: data, currencyIn, currencyOut, tradeType })
     }
     default: {
-      // Handle Gateway routing types (custom routing types not in generated enum)
-      // - GATEWAY_JUSD: Swaps involving JUSD (converted to svJUSD internally)
-      // - GATEWAY_JUICE_IN: Selling JUICE via Equity.redeem()
-      // - GATEWAY_JUICE_OUT: Buying JUICE via Equity.invest()
+      // Handle custom routing types not in generated enum
       // Type assertion needed because TypeScript exhaustive checking narrows to 'never'
       const unknownData = data as DiscriminatedQuoteResponse | undefined
+      const routingType = unknownData?.routing as string
+
+      // Handle Gateway routing types (JUSD abstraction and JUICE equity swaps)
       const gatewayRoutingTypes = ['GATEWAY_JUSD', 'GATEWAY_JUICE_IN', 'GATEWAY_JUICE_OUT']
-      if (unknownData && gatewayRoutingTypes.includes(unknownData.routing as string)) {
+      if (unknownData && gatewayRoutingTypes.includes(routingType)) {
         return new GatewayJusdTrade({
           quote: unknownData as unknown as GatewayJusdQuoteResponse,
           currencyIn,
@@ -159,6 +161,17 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
           tradeType,
         })
       }
+
+      // Handle Stablecoin Bridge routing (SUSD ↔ JUSD 1:1 swaps)
+      if (unknownData && routingType === 'STABLECOIN_BRIDGE') {
+        return new StablecoinBridgeTrade({
+          quote: unknownData as unknown as StablecoinBridgeQuoteResponse,
+          currencyIn,
+          currencyOut,
+          tradeType,
+        })
+      }
+
       return null
     }
   }
@@ -435,7 +448,11 @@ export function toTradingApiSupportedChainId(chainId: Maybe<number>): TradingApi
 }
 
 export function getClassicQuoteFromResponse(
-  quote?: ClassicQuoteResponse | { routing: Exclude<Routing, Routing.CLASSIC> } | GatewayJusdQuoteResponse,
+  quote?:
+    | ClassicQuoteResponse
+    | { routing: Exclude<Routing, Routing.CLASSIC> }
+    | GatewayJusdQuoteResponse
+    | StablecoinBridgeQuoteResponse,
 ): ClassicQuote | undefined {
   if (quote && isClassic(quote)) {
     return quote.quote

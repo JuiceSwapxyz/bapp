@@ -12,8 +12,10 @@ import {
   isErc20ChainSwapQuote,
   isLnBitcoinBridgeQuote,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
-import { swappableTokensData, swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
-import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
+import {
+  swappableTokensData,
+  swappableTokensMappping,
+} from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
 import {
   ApprovalRequest,
   ApprovalResponse,
@@ -77,6 +79,7 @@ import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
 import { getSpenderAddress } from 'uniswap/src/utils/approvalCalldata'
+import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 
 // TradingAPI team is looking into updating type generation to produce the following types for it's current QuoteResponse type:
 // See: https://linear.app/uniswap/issue/API-236/explore-changing-the-quote-schema-to-pull-out-a-basequoteresponse
@@ -143,6 +146,28 @@ export type GatewayJusdQuoteResponse = {
   requestId: string
   quote: GatewayJusdQuote
   routing: GatewayJusdRoutingType
+  permitData: null
+}
+
+// Stablecoin Bridge routing type for SUSD ↔ JUSD 1:1 swaps
+export type StablecoinBridgeRoutingType = 'STABLECOIN_BRIDGE'
+
+// Stablecoin Bridge quote structure - 1:1 swap, no slippage
+export type StablecoinBridgeQuote = {
+  chainId: number
+  swapper: string
+  input: { amount: string; token: string }
+  output: { amount: string; token: string; recipient: string }
+  tradeType: TradeType
+  bridgeFunction: 'mint' | 'burn'
+  bridgeAddress: string
+}
+
+// Stablecoin Bridge quote response
+export type StablecoinBridgeQuoteResponse = {
+  requestId: string
+  quote: StablecoinBridgeQuote
+  routing: StablecoinBridgeRoutingType
   permitData: null
 }
 
@@ -457,7 +482,7 @@ function getTokenDecimals(chainId: ChainId, address: string): number {
   const normalizedAddress = address.toLowerCase()
 
   const match = Object.values(swappableTokensData)
-    .flatMap(sourceTokens => Object.values(sourceTokens))
+    .flatMap((sourceTokens) => Object.values(sourceTokens))
     .flat()
     .find((target) => target.chainId === chainId && target.address.toLowerCase() === normalizedAddress)
 

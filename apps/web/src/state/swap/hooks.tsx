@@ -80,6 +80,10 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
     return (chainInfo.tokens as any).JUSD?.address
   }
 
+  if (symbolUpper === 'SUSD' && chainId === UniverseChainId.CitreaTestnet) {
+    return '0xDFa3153E1eDa84F966BD01bc4C6D9A4FF36AcAeA'
+  }
+
   return undefined
 }
 
@@ -118,6 +122,10 @@ function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: 
     return 'JUSD'
   }
 
+  if (chainId === UniverseChainId.CitreaTestnet && normalizedAddress === '0xdfa3153e1eda84f966bd01bc4c6d9a4ff36acaea') {
+    return 'SUSD'
+  }
+
   return undefined
 }
 
@@ -137,7 +145,7 @@ export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): strin
       return NATIVE_CHAIN_ID
     }
 
-    if (upper === 'USDT' || upper === 'JUSD' || upper === 'USDC' || upper === 'DAI') {
+    if (upper === 'USDT' || upper === 'JUSD' || upper === 'USDC' || upper === 'DAI' || upper === 'SUSD') {
       return upper
     }
   }

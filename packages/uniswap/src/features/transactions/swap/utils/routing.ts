@@ -19,8 +19,12 @@ export const GATEWAY_ROUTING_VARIANTS = [
   GATEWAY_JUICE_OUT_ROUTING,
 ] as const
 
+// Stablecoin Bridge routing type for SUSD ↔ JUSD 1:1 swaps
+export const STABLECOIN_BRIDGE_ROUTING = 'STABLECOIN_BRIDGE' as const
+export type StablecoinBridgeRouting = typeof STABLECOIN_BRIDGE_ROUTING
+
 // TradeRouting encompasses all routing types including custom ones not in the Routing enum
-export type TradeRouting = Routing | GatewayJusdRouting
+export type TradeRouting = Routing | GatewayJusdRouting | StablecoinBridgeRouting
 
 export const UNISWAPX_ROUTING_VARIANTS = [
   Routing.DUTCH_V2,
@@ -40,6 +44,12 @@ export function isClassic<T extends { routing: TradeRouting }>(obj: T): obj is T
 
 export function isGatewayJusd<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: GatewayJusdRouting } {
   return GATEWAY_ROUTING_VARIANTS.includes(obj.routing as GatewayJusdRouting)
+}
+
+export function isStablecoinBridge<T extends { routing: TradeRouting }>(
+  obj: T,
+): obj is T & { routing: StablecoinBridgeRouting } {
+  return obj.routing === STABLECOIN_BRIDGE_ROUTING
 }
 
 export function isBridge<T extends { routing: TradeRouting }>(

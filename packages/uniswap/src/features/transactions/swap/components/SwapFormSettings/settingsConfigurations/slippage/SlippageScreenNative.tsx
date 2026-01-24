@@ -16,6 +16,7 @@ import {
   BitcoinBridgeTrade,
   BridgeTrade,
   LightningBridgeTrade,
+  StablecoinBridgeTrade,
 } from 'uniswap/src/features/transactions/swap/types/trade'
 import { getSlippageWarningColor } from 'uniswap/src/features/transactions/swap/utils/styleHelpers'
 import { getSymbolDisplayText } from 'uniswap/src/utils/currency'
@@ -97,7 +98,10 @@ export function SlippageScreenNative(): JSX.Element {
   const trade = useSwapFormStoreDerivedSwapInfo((s) => s.trade).trade
 
   const isBridgeTrade =
-    trade instanceof BridgeTrade || trade instanceof BitcoinBridgeTrade || trade instanceof LightningBridgeTrade
+    trade instanceof BridgeTrade ||
+    trade instanceof BitcoinBridgeTrade ||
+    trade instanceof LightningBridgeTrade ||
+    trade instanceof StablecoinBridgeTrade
 
   const {
     isEditingSlippage,
