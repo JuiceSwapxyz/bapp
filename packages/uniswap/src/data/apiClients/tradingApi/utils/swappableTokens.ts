@@ -147,4 +147,5 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
 }
 
 export const swappableTokensMappping: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> =
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   USE_SWAPPABLE_TOKENS_MAPPING ? swappableTokensData : {}

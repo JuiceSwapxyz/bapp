@@ -2,7 +2,7 @@ import { ChainId, Currency, WETH9 } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
-import { JUSD_ADDRESSES, JUICE_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { JUICE_ADDRESSES, JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 
 // Addresses from canonical packages - single source of truth
 const JUSD_ADDRESS = JUSD_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
@@ -98,6 +98,7 @@ const citreaJuiceCurrency = {
   logoUrl: 'https://docs.juiceswap.com/media/icons/juice.png',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const polygonUsdtCurrency = {
   currency: buildCurrency({
     chainId: UniverseChainId.Polygon,

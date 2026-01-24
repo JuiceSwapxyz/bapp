@@ -10,7 +10,7 @@
  * - @juiceswapxyz/sdk-core: Gateway address
  */
 
-import { ADDRESS } from '@juicedollar/jusd'
+import { ADDRESS } from '@juicedollar/jusd/exports/address.config'
 import { CHAIN_TO_ADDRESSES_MAP, ChainId, Token as SdkToken } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
@@ -156,10 +156,7 @@ export function buildJusdCurrencyInfo(chainId: UniverseChainId): CurrencyInfo | 
  * This ensures users only see "JUSD" in the UI, never "svJUSD".
  * The Gateway contract handles actual svJUSD conversions internally.
  */
-export function transformSvJusdCurrencyInfo(
-  currencyInfo: CurrencyInfo,
-  chainId?: UniverseChainId,
-): CurrencyInfo {
+export function transformSvJusdCurrencyInfo(currencyInfo: CurrencyInfo, chainId?: UniverseChainId): CurrencyInfo {
   const currency = currencyInfo.currency
   const effectiveChainId = chainId ?? currency.chainId
 
@@ -186,10 +183,7 @@ export function transformSvJusdCurrencyInfo(
  *
  * This ensures users only see "JUSD" in the UI, never "svJUSD".
  */
-export function transformSvJusdToken(
-  token: SdkToken,
-  chainId?: UniverseChainId,
-): SdkToken {
+export function transformSvJusdToken(token: SdkToken, chainId?: UniverseChainId): SdkToken {
   const effectiveChainId = chainId ?? token.chainId
   if (isSvJusdAddress(effectiveChainId, token.address)) {
     const jusdAddress = getJusdAddress(effectiveChainId)
