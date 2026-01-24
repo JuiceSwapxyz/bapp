@@ -471,7 +471,7 @@ export function validateTrade({
   const normalizeAddress = (address: string, chainId: number): string => {
     const universeChainId = chainId as UniverseChainId
     // If this is JUSD or SUSD, normalize to svJUSD for comparison
-    // (SUSD is routed through Gateway via addBridgedToken, which converts to svJUSD)
+    // (SUSD is routed through Gateway via registerBridgedToken, which converts to svJUSD)
     if (isJusdAddress(universeChainId, address) || isSusdAddress(universeChainId, address)) {
       return getSvJusdAddress(universeChainId) ?? address
     }
