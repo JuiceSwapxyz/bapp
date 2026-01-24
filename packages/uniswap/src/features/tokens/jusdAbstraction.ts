@@ -10,7 +10,7 @@
  * - @juiceswapxyz/sdk-core: Gateway address
  */
 
-import { ADDRESS } from '@juicedollar/jusd'
+import { ADDRESS } from '@juicedollar/jusd/exports/address.config'
 import { CHAIN_TO_ADDRESSES_MAP, ChainId, Token as SdkToken } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
