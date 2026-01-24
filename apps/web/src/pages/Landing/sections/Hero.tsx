@@ -2,6 +2,7 @@ import { ColumnCenter } from 'components/deprecated/Column'
 import { useCurrency } from 'hooks/Tokens'
 import { useScroll } from 'hooks/useScroll'
 import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
+import { CoinBubble, COIN_BUBBLE_ASSETS } from 'pages/Landing/components/CoinBubble'
 import { Swap } from 'pages/Swap'
 import { Fragment, useCallback, useMemo } from 'react'
 import { ChevronDown } from 'react-feather'
@@ -72,6 +73,44 @@ const HeroBackground = styled(Flex, {
     height: 'min(529px, 80vh)',
   },
 } as const)
+
+// Floating coin bubble container
+const CoinBubblesContainer = styled(Flex, {
+  name: 'CoinBubblesContainer',
+  position: 'absolute',
+  top: 300,
+  left: 0,
+  right: 0,
+  height: 700,
+  zIndex: 0,
+  pointerEvents: 'none',
+  overflow: 'visible',
+
+  $md: {
+    display: 'none',
+  },
+})
+
+// Individual bubble position wrapper
+const BubblePosition = styled(Flex, {
+  name: 'BubblePosition',
+  position: 'absolute',
+
+  '$platform-web': {
+    animation: 'float 6s ease-in-out infinite',
+  },
+
+  variants: {
+    delay: {
+      0: { '$platform-web': { animationDelay: '0s' } },
+      1: { '$platform-web': { animationDelay: '1s' } },
+      2: { '$platform-web': { animationDelay: '2s' } },
+      3: { '$platform-web': { animationDelay: '3s' } },
+      4: { '$platform-web': { animationDelay: '4s' } },
+      5: { '$platform-web': { animationDelay: '5s' } },
+    },
+  } as const,
+})
 
 export function Hero({ scrollToRef, transition }: HeroProps) {
   const media = useMedia()
@@ -160,6 +199,50 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       pointerEvents="none"
     >
       <HeroBackground />
+
+      {/* Floating Coin Bubbles */}
+      <CoinBubblesContainer>
+        {/* Above the wave */}
+        <BubblePosition left="5.7%" top={-78} delay={0}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.btcChain} alt="Bitcoin Chain" size={90} />
+        </BubblePosition>
+        <BubblePosition left="16%" top={-112} delay={2}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.btcLightning} alt="Bitcoin Lightning" size={65} />
+        </BubblePosition>
+        <BubblePosition left="19.4%" top={-16} delay={3}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="WBTC+ETH" size={73} />
+        </BubblePosition>
+        <BubblePosition right="13.2%" top={-105} delay={1}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.tetherPolygon} alt="Tether+Polygon" size={75} />
+        </BubblePosition>
+        <BubblePosition right="20.8%" top={-38} delay={4}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={79} />
+        </BubblePosition>
+        <BubblePosition right="6.2%" top={-35} delay={5}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.usdc} alt="USDC" size={66} />
+        </BubblePosition>
+
+        {/* Inside the wave */}
+        <BubblePosition left="11.9%" top={178} delay={0}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcLarge} alt="Bitcoin" size={120} />
+        </BubblePosition>
+        <BubblePosition left="8.5%" top={325} delay={4}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcSmall} alt="Bitcoin" size={70} />
+        </BubblePosition>
+        <BubblePosition left="23%" top={317} delay={3}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveWbtcCitrea} alt="WBTC+Citrea" size={70} />
+        </BubblePosition>
+        <BubblePosition right="21.3%" top={237} delay={2}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveJuice} alt="Juice" size={80} />
+        </BubblePosition>
+        <BubblePosition right="5.8%" top={271} delay={3}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdSmall} alt="USD" size={80} />
+        </BubblePosition>
+        <BubblePosition right="9.9%" top={129} delay={1}>
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdLarge} alt="USD" size={109} />
+        </BubblePosition>
+      </CoinBubblesContainer>
+
       <Flex
         alignSelf="center"
         maxWidth="85vw"
