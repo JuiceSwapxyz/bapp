@@ -1,6 +1,11 @@
-import { expect, test } from 'playwright/fixtures'
+import { expect, test } from '@playwright/test'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
+
+// Viewport sizes for visual regression testing
+const DESKTOP_VIEWPORT = { width: 1440, height: 900 }
+const TABLET_VIEWPORT = { width: 768, height: 1024 }
 const MOBILE_VIEWPORT = { width: 375, height: 667 }
+
 const UNCONNECTED_USER_PARAM = '?eagerlyConnect=false' // Query param to prevent automatic wallet connection
 const FORCE_INTRO_PARAM = '?intro=true' // Query param to force the intro screen to be displayed
 
@@ -76,6 +81,115 @@ test.describe('Landing Page', () => {
     test('does not render UK compliance banner in US', async ({ page }) => {
       await page.goto(`/swap${UNCONNECTED_USER_PARAM}`)
       await expect(page.getByTestId(TestID.UKDisclaimer)).not.toBeVisible()
+    })
+  })
+
+  test.describe('Visual Regression - Desktop', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.setViewportSize(DESKTOP_VIEWPORT)
+    })
+
+    test('should match baseline screenshot in light mode', async ({ page }) => {
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Light"')
+      })
+
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+
+      await expect(page).toHaveScreenshot('landing-page-desktop-light.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
+    })
+
+    test('should match baseline screenshot in dark mode', async ({ page }) => {
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Dark"')
+      })
+
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+
+      await expect(page).toHaveScreenshot('landing-page-desktop-dark.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
+    })
+  })
+
+  test.describe('Visual Regression - Tablet', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.setViewportSize(TABLET_VIEWPORT)
+    })
+
+    test('should match baseline screenshot in light mode - tablet', async ({ page }) => {
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Light"')
+      })
+
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+
+      await expect(page).toHaveScreenshot('landing-page-tablet-light.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
+    })
+
+    test('should match baseline screenshot in dark mode - tablet', async ({ page }) => {
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Dark"')
+      })
+
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(1000)
+
+      await expect(page).toHaveScreenshot('landing-page-tablet-dark.png', {
+        fullPage: true,
+        animations: 'disabled',
+        maxDiffPixels: 500, // Allow small pixel differences due to animation timing
+      })
+    })
+  })
+
+  test.describe('Visual Regression - Mobile', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.setViewportSize(MOBILE_VIEWPORT)
+    })
+
+    test('should match baseline screenshot in light mode - mobile', async ({ page }) => {
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Light"')
+      })
+
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+
+      await expect(page).toHaveScreenshot('landing-page-mobile-light.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
+    })
+
+    test('should match baseline screenshot in dark mode - mobile', async ({ page }) => {
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Dark"')
+      })
+
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+
+      await expect(page).toHaveScreenshot('landing-page-mobile-dark.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
     })
   })
 })
