@@ -5,13 +5,23 @@ import { getChainInfo, UNIVERSE_CHAIN_INFO } from 'uniswap/src/features/chains/c
 import { GqlChainId, UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyField } from 'uniswap/src/types/currency'
 
-// i.e. ?chain=mainnet -> ethereum
+// Legacy alias: ?chain=mainnet is accepted as alias for ?chain=ethereum
+const CHAIN_INTERFACE_NAME_ALIASES: Record<string, string> = {
+  mainnet: 'ethereum',
+}
+
+function resolveChainInterfaceName(name: string): string {
+  return CHAIN_INTERFACE_NAME_ALIASES[name] ?? name
+}
+
+// i.e. ?chain=mainnet -> ethereum (via alias) or ?chain=ethereum -> ethereum
 export function searchParamToBackendName(interfaceName: string | null): string | undefined {
   if (interfaceName === null) {
     return undefined
   }
 
-  const chain = Object.values(UNIVERSE_CHAIN_INFO).find((item) => item.interfaceName === interfaceName)
+  const resolvedName = resolveChainInterfaceName(interfaceName)
+  const chain = Object.values(UNIVERSE_CHAIN_INFO).find((item) => item.interfaceName === resolvedName)
   return chain ? chain.urlParam : undefined
 }
 
@@ -50,6 +60,8 @@ export function getParsedChainId(
     return undefined
   }
 
-  const chainInfo = Object.values(UNIVERSE_CHAIN_INFO).find((i) => i.interfaceName === chain)
+  // Resolve legacy aliases (e.g., mainnet -> ethereum)
+  const resolvedChain = resolveChainInterfaceName(chain)
+  const chainInfo = Object.values(UNIVERSE_CHAIN_INFO).find((i) => i.interfaceName === resolvedChain)
   return chainInfo?.id
 }
