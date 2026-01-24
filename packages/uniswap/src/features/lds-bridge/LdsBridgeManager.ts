@@ -234,15 +234,12 @@ class LdsBridgeManager extends SwapEventEmitter {
       return swap
     }
 
-    // Check if this is an ERC20 swap
-    const isERC20Swap = ERC20_TOKENS.has(swap.assetSend) || ERC20_TOKENS.has(swap.assetReceive)
-
-    if (!isERC20Swap) {
-      // For Bitcoin bridge, wait for Ponder to confirm lockup
-      const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
-      await ponderPromise
-      cancelPonderPolling()
-    }
+    // Wait for Ponder to confirm lockup before claiming.
+    // Ponder-claim (the server that executes claims) needs to index the lockup first,
+    // even though WebSocket already confirmed the Boltz server lockup.
+    const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
+    await ponderPromise
+    cancelPonderPolling()
 
     if (!swap.preimage) {
       throw new Error('Swap preimage not found')
