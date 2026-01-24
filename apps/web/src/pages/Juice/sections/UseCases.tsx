@@ -1,5 +1,6 @@
+import { ArrowDown, Award, Clock, DollarSign, Zap } from 'react-feather'
 import { useTranslation } from 'react-i18next'
-import { Flex, Text, styled } from 'ui/src'
+import { Flex, Text, styled, useSporeColors } from 'ui/src'
 
 import { FeatureCard } from '../components/FeatureCard'
 import { SectionHeader } from '../components/SectionHeader'
@@ -31,11 +32,6 @@ const FlywheelStep = styled(Flex, {
   gap: '$spacing12',
 })
 
-const FlywheelArrow = styled(Text, {
-  color: '$accent1',
-  fontSize: 24,
-})
-
 const FlywheelBox = styled(Flex, {
   padding: '$spacing12',
   backgroundColor: '$surface3',
@@ -45,39 +41,8 @@ const FlywheelBox = styled(Flex, {
   justifyContent: 'center',
 })
 
-function GovernanceIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      G
-    </Text>
-  )
-}
-
-function FeesIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      $
-    </Text>
-  )
-}
-
-function LiquidationIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      L
-    </Text>
-  )
-}
-
-function TimeIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      T
-    </Text>
-  )
-}
-
 export function UseCases() {
+  const colors = useSporeColors()
   const { t } = useTranslation()
 
   return (
@@ -86,25 +51,25 @@ export function UseCases() {
 
       <CardsContainer>
         <FeatureCard
-          icon={<GovernanceIcon />}
+          icon={<Award size={24} color={colors.accent1.val} />}
           title={t('juice.useCases.governance.title')}
           description={t('juice.useCases.governance.description')}
           benefit={t('juice.useCases.governance.benefit')}
         />
         <FeatureCard
-          icon={<FeesIcon />}
+          icon={<DollarSign size={24} color={colors.accent1.val} />}
           title={t('juice.useCases.fees.title')}
           description={t('juice.useCases.fees.description')}
           benefit={t('juice.useCases.fees.benefit')}
         />
         <FeatureCard
-          icon={<LiquidationIcon />}
+          icon={<Zap size={24} color={colors.accent1.val} />}
           title={t('juice.useCases.liquidations.title')}
           description={t('juice.useCases.liquidations.description')}
           benefit={t('juice.useCases.liquidations.benefit')}
         />
         <FeatureCard
-          icon={<TimeIcon />}
+          icon={<Clock size={24} color={colors.accent1.val} />}
           title={t('juice.useCases.votingPower.title')}
           description={t('juice.useCases.votingPower.description')}
           benefit={t('juice.useCases.votingPower.benefit')}
@@ -123,7 +88,7 @@ export function UseCases() {
               </Text>
             </FlywheelBox>
           </FlywheelStep>
-          <FlywheelArrow>v</FlywheelArrow>
+          <ArrowDown size={20} color={colors.accent1.val} />
           <FlywheelStep>
             <FlywheelBox>
               <Text variant="body2" color="$neutral1">
@@ -131,7 +96,7 @@ export function UseCases() {
               </Text>
             </FlywheelBox>
           </FlywheelStep>
-          <FlywheelArrow>v</FlywheelArrow>
+          <ArrowDown size={20} color={colors.accent1.val} />
           <FlywheelStep>
             <FlywheelBox>
               <Text variant="body2" color="$accent1">
@@ -139,7 +104,7 @@ export function UseCases() {
               </Text>
             </FlywheelBox>
           </FlywheelStep>
-          <FlywheelArrow>v</FlywheelArrow>
+          <ArrowDown size={20} color={colors.accent1.val} />
           <FlywheelStep>
             <FlywheelBox>
               <Text variant="body2" color="$neutral1">
@@ -147,7 +112,7 @@ export function UseCases() {
               </Text>
             </FlywheelBox>
           </FlywheelStep>
-          <FlywheelArrow>v</FlywheelArrow>
+          <ArrowDown size={20} color={colors.accent1.val} />
           <FlywheelStep>
             <FlywheelBox>
               <Text variant="body2" color="$neutral1">
@@ -155,7 +120,7 @@ export function UseCases() {
               </Text>
             </FlywheelBox>
           </FlywheelStep>
-          <FlywheelArrow>v</FlywheelArrow>
+          <ArrowDown size={20} color={colors.accent1.val} />
           <Text variant="body3" color="$neutral2" fontStyle="italic">
             (cycle repeats)
           </Text>

@@ -1,5 +1,6 @@
+import { AlertTriangle, Clock, Users, XOctagon } from 'react-feather'
 import { useTranslation } from 'react-i18next'
-import { Flex, Text, styled } from 'ui/src'
+import { Flex, Text, styled, useSporeColors } from 'ui/src'
 
 import { DataTable } from '../components/DataTable'
 import { FeatureCard } from '../components/FeatureCard'
@@ -45,39 +46,8 @@ const ComparisonColumn = styled(Flex, {
   gap: '$spacing8',
 })
 
-function VetoIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      V
-    </Text>
-  )
-}
-
-function TimeIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      T
-    </Text>
-  )
-}
-
-function DelegateIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      D
-    </Text>
-  )
-}
-
-function EmergencyIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      !
-    </Text>
-  )
-}
-
 export function Governance() {
+  const colors = useSporeColors()
   const { t } = useTranslation()
 
   const delegationExample = [
@@ -91,22 +61,22 @@ export function Governance() {
 
       <CardsContainer>
         <FeatureCard
-          icon={<VetoIcon />}
+          icon={<XOctagon size={24} color={colors.accent1.val} />}
           title={t('juice.governance.vetoModel.title')}
           description={t('juice.governance.vetoModel.description')}
         />
         <FeatureCard
-          icon={<TimeIcon />}
+          icon={<Clock size={24} color={colors.accent1.val} />}
           title={t('juice.governance.timeWeighted.title')}
           description={t('juice.governance.timeWeighted.description')}
         />
         <FeatureCard
-          icon={<DelegateIcon />}
+          icon={<Users size={24} color={colors.accent1.val} />}
           title={t('juice.governance.delegation.title')}
           description={t('juice.governance.delegation.description')}
         />
         <FeatureCard
-          icon={<EmergencyIcon />}
+          icon={<AlertTriangle size={24} color={colors.accent1.val} />}
           title={t('juice.governance.emergency.title')}
           description={t('juice.governance.emergency.description')}
         />

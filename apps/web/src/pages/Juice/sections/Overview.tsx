@@ -1,5 +1,6 @@
+import { GitBranch, PieChart, Shield } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
-import { Flex, Text, styled } from 'ui/src'
+import { Flex, Text, styled, useSporeColors } from 'ui/src'
 
 import { DataTable } from '../components/DataTable'
 import { FeatureCard } from '../components/FeatureCard'
@@ -30,31 +31,8 @@ const QuoteBox = styled(Flex, {
   borderLeftColor: '$accent1',
 })
 
-function EquityIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      E
-    </Text>
-  )
-}
-
-function DecentralizedIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      D
-    </Text>
-  )
-}
-
-function OracleIcon() {
-  return (
-    <Text fontSize={24} color="$accent1">
-      O
-    </Text>
-  )
-}
-
 export function Overview() {
+  const colors = useSporeColors()
   const { t } = useTranslation()
 
   const comparisonHeaders = ['Aspect', 'JUSD', 'JUICE']
@@ -82,17 +60,17 @@ export function Overview() {
 
       <CardsContainer>
         <FeatureCard
-          icon={<EquityIcon />}
+          icon={<PieChart size={24} color={colors.accent1.val} />}
           title={t('juice.overview.equity.title')}
           description={t('juice.overview.equity.description')}
         />
         <FeatureCard
-          icon={<DecentralizedIcon />}
+          icon={<GitBranch size={24} color={colors.accent1.val} />}
           title={t('juice.overview.decentralized.title')}
           description={t('juice.overview.decentralized.description')}
         />
         <FeatureCard
-          icon={<OracleIcon />}
+          icon={<Shield size={24} color={colors.accent1.val} />}
           title={t('juice.overview.oracleFree.title')}
           description={t('juice.overview.oracleFree.description')}
         />

@@ -1,5 +1,6 @@
-import { ChevronDown } from 'react-feather'
+import { ChevronDown, Droplet } from 'react-feather'
 import { Trans } from 'react-i18next'
+import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
 
@@ -17,10 +18,14 @@ const LogoContainer = styled(Flex, {
   width: 120,
   height: 120,
   borderRadius: '$roundedFull',
-  backgroundColor: '$accent1',
   alignItems: 'center',
   justifyContent: 'center',
   marginBottom: '$spacing16',
+
+  '$platform-web': {
+    background: 'linear-gradient(135deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)',
+    boxShadow: '0 8px 32px rgba(255, 124, 58, 0.3)',
+  },
 
   $md: {
     width: 100,
@@ -28,25 +33,31 @@ const LogoContainer = styled(Flex, {
   },
 })
 
-const GradientTitle = styled(Text, {
-  fontSize: 56,
-  fontWeight: 'bold',
-  textAlign: 'center',
+const GradientTitle = styled(
+  Text as any,
+  {
+    fontSize: 56,
+    fontWeight: 'bold',
+    textAlign: 'center',
 
-  '$platform-web': {
-    backgroundImage: 'linear-gradient(90deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)',
-    backgroundClip: 'text',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-  },
+    '$platform-web': {
+      color: 'transparent',
+      backgroundImage: 'linear-gradient(90deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)',
+      backgroundRepeat: 'no-repeat',
+      backgroundClip: 'text',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      display: 'inline-block',
+    },
 
-  $md: {
-    fontSize: 42,
-  },
-  $sm: {
-    fontSize: 32,
-  },
-})
+    $md: {
+      fontSize: 42,
+    },
+    $sm: {
+      fontSize: 32,
+    },
+  } as any,
+) as any
 
 const CTAButton = styled(Flex, {
   flexDirection: 'row',
@@ -63,6 +74,23 @@ const CTAButton = styled(Flex, {
   },
 })
 
+const SecondaryCTAButton = styled(Flex, {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: '$spacing8',
+  paddingHorizontal: '$spacing24',
+  paddingVertical: '$spacing12',
+  backgroundColor: 'transparent',
+  borderRadius: '$rounded12',
+  borderWidth: 2,
+  borderColor: '$accent1',
+  cursor: 'pointer',
+
+  hoverStyle: {
+    backgroundColor: '$accent1',
+  },
+})
+
 const ScrollIndicator = styled(Flex, {
   flexDirection: 'column',
   alignItems: 'center',
@@ -76,17 +104,23 @@ const ScrollIndicator = styled(Flex, {
   },
 })
 
+const SWAP_JUICE_URL = '/swap?inputCurrency=cBTC&outputCurrency=JUICE'
+
 export function Hero() {
+  const navigate = useNavigate()
+
   const scrollToContent = () => {
     window.scrollTo({ top: window.innerHeight * 0.8, behavior: 'smooth' })
+  }
+
+  const handleBuyJuice = () => {
+    navigate(SWAP_JUICE_URL)
   }
 
   return (
     <HeroContainer>
       <LogoContainer>
-        <Text fontSize={48} fontWeight="bold" color="$white">
-          J
-        </Text>
+        <Droplet size={56} color="white" fill="white" />
       </LogoContainer>
 
       <GradientTitle>
@@ -102,11 +136,16 @@ export function Hero() {
       </Text>
 
       <Flex flexDirection="row" gap="$spacing16" flexWrap="wrap" justifyContent="center">
-        <CTAButton onPress={scrollToContent}>
+        <CTAButton onPress={handleBuyJuice}>
           <Text variant="buttonLabel3" color="$white">
-            <Trans i18nKey="juice.hero.learnMore" />
+            <Trans i18nKey="juice.hero.getJuice" />
           </Text>
         </CTAButton>
+        <SecondaryCTAButton onPress={scrollToContent}>
+          <Text variant="buttonLabel3" color="$accent1">
+            <Trans i18nKey="juice.hero.learnMore" />
+          </Text>
+        </SecondaryCTAButton>
       </Flex>
 
       <ScrollIndicator onPress={scrollToContent}>
