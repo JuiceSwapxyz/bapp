@@ -163,14 +163,9 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
   )
 
   // Click handler for BTC Chain bubble - navigates to cross-chain swap from Bitcoin BTC to Citrea cBTC
+  // Chains are auto-inferred: BTC → Bitcoin, cBTC → Citrea
   const handleBtcChainClick = useCallback(() => {
-    const params = new URLSearchParams({
-      chain: 'bitcoin', // Input chain: Bitcoin
-      outputChain: 'citrea_testnet', // Output chain: Citrea Testnet
-      inputCurrency: 'BTC', // Input: Bitcoin BTC
-      outputCurrency: 'cBTC', // Output: cBTC (native on Citrea)
-    })
-    navigate(`/swap?${params.toString()}`)
+    navigate('/swap?inputCurrency=BTC&outputCurrency=cBTC')
   }, [navigate])
 
   const renderRiseInText = useMemo(() => {
