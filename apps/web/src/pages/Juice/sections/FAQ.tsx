@@ -40,24 +40,16 @@ export function FAQ() {
       answer: t('juice.faq.flashLoan.a'),
     },
     {
-      question: 'What is the "Kamikaze" mechanism?',
-      answer:
-        "In extreme cases where a malicious actor accumulates significant voting power, honest holders can sacrifice their own voting power to neutralize the threat. This is a last-resort defense mechanism that destroys both the attacker's and defender's voting power.",
+      question: t('juice.faq.kamikaze.q'),
+      answer: t('juice.faq.kamikaze.a'),
     },
     {
-      question: 'Is JUICE on multiple chains?',
-      answer:
-        'Currently, JUICE is deployed on Citrea (Bitcoin L2, Chain ID: 5115) testnet. Mainnet and potential multi-chain deployments will be announced.',
+      question: t('juice.faq.chains.q'),
+      answer: t('juice.faq.chains.a'),
     },
     {
-      question: 'How is JUICE different from other governance tokens?',
-      answer:
-        'JUICE uses veto-based governance (not approval-based), time-weighted voting power, and directly ties token value to protocol equity. This creates stronger alignment between holders and protocol health.',
-    },
-    {
-      question: 'Can I use JUICE directly in JuiceSwap?',
-      answer:
-        'JUICE cannot be used directly as swap input in JuiceSwap due to flash loan protection. To sell JUICE, you must first redeem it via JUICE.redeem() to get JUSD, then swap the JUSD. However, you CAN receive JUICE as swap output.',
+      question: t('juice.faq.swapUsage.q'),
+      answer: t('juice.faq.swapUsage.a'),
     },
   ]
 

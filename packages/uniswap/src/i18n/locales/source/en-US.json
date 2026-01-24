@@ -2576,5 +2576,11 @@
   "juice.faq.risk.q": "Can I lose money with JUICE?",
   "juice.faq.risk.a": "Yes. JUICE value depends on the protocol's equity reserves. If the protocol experiences losses (e.g., from bad debt), JUICE value decreases. However, JUICE holders also benefit when the protocol profits.",
   "juice.faq.flashLoan.q": "How does flash loan protection work?",
-  "juice.faq.flashLoan.a": "You cannot redeem JUICE in the same block you received it. This prevents flash loan governance attacks and atomic MEV manipulation."
+  "juice.faq.flashLoan.a": "You cannot redeem JUICE in the same block you received it. This prevents flash loan governance attacks and atomic MEV manipulation.",
+  "juice.faq.kamikaze.q": "What is the \"Kamikaze\" mechanism?",
+  "juice.faq.kamikaze.a": "In extreme cases where a malicious actor accumulates significant voting power, honest holders can sacrifice their own voting power to neutralize the threat. This is a last-resort defense mechanism that destroys both the attacker's and defender's voting power.",
+  "juice.faq.chains.q": "What chains is JUICE available on?",
+  "juice.faq.chains.a": "JUICE is currently available on Citrea, a Bitcoin Layer 2 network. This allows you to participate in governance with the security of Bitcoin.",
+  "juice.faq.swapUsage.q": "Can I use JUICE directly in JuiceSwap?",
+  "juice.faq.swapUsage.a": "JUICE cannot be used directly as swap input due to flash loan protection. To sell JUICE, you must first redeem it via the protocol to get JUSD, then swap the JUSD. However, you CAN receive JUICE as swap output."
 }
