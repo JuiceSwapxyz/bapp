@@ -231,9 +231,19 @@ class LdsBridgeManager extends SwapEventEmitter {
       return swap
     }
 
-    const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
-    await ponderPromise
-    cancelPonderPolling()
+    // Check if this is an ERC20 swap (USDT/JUSD)
+    const isERC20Swap =
+      swap.assetSend.includes('USDT') ||
+      swap.assetSend.includes('JUSD') ||
+      swap.assetReceive.includes('USDT') ||
+      swap.assetReceive.includes('JUSD')
+
+    if (!isERC20Swap) {
+      // For Bitcoin bridge, wait for Ponder to confirm lockup
+      const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
+      await ponderPromise
+      cancelPonderPolling()
+    }
 
     if (!swap.preimage) {
       throw new Error('Swap preimage not found')

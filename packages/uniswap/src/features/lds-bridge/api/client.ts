@@ -40,6 +40,10 @@ const LdsApiClient = createApiClient({
   baseUrl: `${process.env.REACT_APP_LDS_API_URL}`,
 })
 
+const PonderApiClient = createApiClient({
+  baseUrl: `${process.env.REACT_APP_PONDER_JUICESWAP_URL}`,
+})
+
 export async function fetchSubmarinePairs(): Promise<LightningBridgeSubmarineGetResponse> {
   return await LdsApiClient.get<LightningBridgeSubmarineGetResponse>('/swap/v2/swap/submarine')
 }
