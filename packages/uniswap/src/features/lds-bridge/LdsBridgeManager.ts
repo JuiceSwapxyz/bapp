@@ -37,6 +37,9 @@ import { pollForLockupConfirmation } from 'uniswap/src/features/lds-bridge/utils
 
 /* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type */
 
+// ERC20 tokens supported for auto-claim
+const ERC20_TOKENS = new Set(['USDT', 'JUSD'])
+
 class LdsBridgeManager extends SwapEventEmitter {
   private socketClient: ReturnType<typeof createLdsSocketClient>
   private storageManager: StorageManager
@@ -231,9 +234,15 @@ class LdsBridgeManager extends SwapEventEmitter {
       return swap
     }
 
-    const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
-    await ponderPromise
-    cancelPonderPolling()
+    // Check if this is an ERC20 swap
+    const isERC20Swap = ERC20_TOKENS.has(swap.assetSend) || ERC20_TOKENS.has(swap.assetReceive)
+
+    if (!isERC20Swap) {
+      // For Bitcoin bridge, wait for Ponder to confirm lockup
+      const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
+      await ponderPromise
+      cancelPonderPolling()
+    }
 
     if (!swap.preimage) {
       throw new Error('Swap preimage not found')
