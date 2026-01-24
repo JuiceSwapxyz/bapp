@@ -54,6 +54,10 @@
   "lint-staged": {
     "yarn.lock": [
       "yarn deduplicate"
+    ],
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
     ]
   },
   "browserslist": {
