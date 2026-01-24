@@ -1,0 +1,10 @@
+<svg width="40" height="68" viewBox="0 0 40 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="waveUsdGradient" x1="20" y1="0" x2="20" y2="68" gradientUnits="userSpaceOnUse">
+      <stop offset="0.322" stop-color="white"/>
+      <stop offset="1" stop-color="#FFEBD8"/>
+    </linearGradient>
+  </defs>
+  <!-- USD Dollar Symbol - translated to 0,0 origin (original x-30.5, y-15) -->
+  <path d="M24 0V5.5C32 6.5 37.5 11 38 18H29.5C29 14 26 11.5 21.5 11V27L24 27.5C33.5 29.5 39.5 34 39.5 43.5C39.5 52.5 33 58.5 24 60V67H15.5V60C6.5 59 0.5 53.5 0 45H8.5C9 50 12.5 53 17.5 53.5V37L15.5 36.5C6.5 34.5 0.5 30 0.5 21C0.5 12.5 6.5 7 15.5 5.5V0H24ZM15.5 26V12C11 12.5 8.5 15 8.5 19C8.5 23 11 25 15.5 26ZM24 38V53C29 52.5 31.5 50 31.5 45.5C31.5 41 28.5 39 24 38Z" fill="url(#waveUsdGradient)"/>
+</svg>

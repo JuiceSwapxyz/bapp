@@ -209,12 +209,6 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
         <BubblePosition left="16%" top={-112} delay={2}>
           <CoinBubble src={COIN_BUBBLE_ASSETS.btcLightning} alt="Bitcoin Lightning" size={65} />
         </BubblePosition>
-        <BubblePosition left="19.4%" top={-16} delay={3}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="WBTC+ETH" size={73} />
-        </BubblePosition>
-        <BubblePosition right="13.2%" top={-105} delay={1}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.tetherPolygon} alt="Tether+Polygon" size={75} />
-        </BubblePosition>
         <BubblePosition right="20.8%" top={-38} delay={4}>
           <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={79} />
         </BubblePosition>
@@ -224,19 +218,16 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
 
         {/* Inside the wave */}
         <BubblePosition left="11.9%" top={178} delay={0}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcLarge} alt="Bitcoin" size={120} />
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcLarge} alt="Bitcoin" size={120} variant="wave" />
         </BubblePosition>
         <BubblePosition left="8.5%" top={325} delay={4}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcSmall} alt="Bitcoin" size={70} />
-        </BubblePosition>
-        <BubblePosition left="23%" top={317} delay={3}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveWbtcCitrea} alt="WBTC+Citrea" size={70} />
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcSmall} alt="Bitcoin" size={70} variant="wave" />
         </BubblePosition>
         <BubblePosition right="5.8%" top={271} delay={3}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdSmall} alt="USD" size={80} />
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdSmall} alt="USD" size={80} variant="wave" />
         </BubblePosition>
         <BubblePosition right="9.9%" top={129} delay={1}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdLarge} alt="USD" size={109} />
+          <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdLarge} alt="USD" size={109} variant="wave" />
         </BubblePosition>
       </CoinBubblesContainer>
 
