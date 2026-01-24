@@ -52,7 +52,7 @@ describe('PoolTable', () => {
     const mockData = [
       {
         id: '1',
-        chain: 'mainnet',
+        chain: 'ethereum',
         token0: validRestPoolToken0,
         token1: validRestPoolToken1,
         feeTier: {
