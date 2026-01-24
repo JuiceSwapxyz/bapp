@@ -14,6 +14,7 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ALWAYS_ENABLED_CHAIN_IDS } from 'uniswap/src/features/chains/utils'
+import { getJuiceAddress, isJuiceAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { selectFilteredChainIds } from 'uniswap/src/features/transactions/swap/state/selectors'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { isAddress } from 'utilities/src/addresses'
@@ -80,6 +81,10 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
     return (chainInfo.tokens as any).JUSD?.address
   }
 
+  if (symbolUpper === 'JUICE') {
+    return getJuiceAddress(chainId)
+  }
+
   return undefined
 }
 
@@ -118,6 +123,10 @@ function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: 
     return 'JUSD'
   }
 
+  if (isJuiceAddress(chainId, address)) {
+    return 'JUICE'
+  }
+
   return undefined
 }
 
@@ -137,7 +146,12 @@ export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): strin
       return NATIVE_CHAIN_ID
     }
 
-    if (upper === 'USDT' || upper === 'JUSD' || upper === 'USDC' || upper === 'DAI') {
+    // cBTC is the native token on Citrea - treat like NATIVE
+    if (upper === 'CBTC') {
+      return NATIVE_CHAIN_ID
+    }
+
+    if (upper === 'USDT' || upper === 'JUSD' || upper === 'USDC' || upper === 'DAI' || upper === 'JUICE') {
       return upper
     }
   }
