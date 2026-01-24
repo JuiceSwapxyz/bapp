@@ -1,7 +1,7 @@
 import { MaxUint256, SWAP_ROUTER_02_ADDRESSES } from '@juiceswapxyz/sdk-core'
 import { PERMIT2_ADDRESS } from '@uniswap/permit2-sdk'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { JUICE_SWAP_GATEWAY_ADDRESSES, STABLECOIN_BRIDGE_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { JUICE_SWAP_GATEWAY_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 
 const ERC20_APPROVE_SELECTOR = '0x095ea7b3'
 
@@ -9,32 +9,19 @@ const ERC20_APPROVE_SELECTOR = '0x095ea7b3'
 const GATEWAY_ROUTING_VARIANTS = ['GATEWAY_JUSD', 'GATEWAY_JUICE_IN', 'GATEWAY_JUICE_OUT'] as const
 type GatewayRoutingVariant = (typeof GATEWAY_ROUTING_VARIANTS)[number]
 
-// Stablecoin Bridge routing constant
-const STABLECOIN_BRIDGE_ROUTING = 'STABLECOIN_BRIDGE' as const
-
 /**
  * Determines the appropriate spender address for swaps
  * Uses sdk-core as single source of truth for router addresses
- * For Gateway swaps, returns JuiceSwapGateway address instead
- * For Stablecoin Bridge swaps, returns StablecoinBridge address
+ * For Gateway swaps (including SUSD), returns JuiceSwapGateway address
  */
 export function getSpenderAddress(chainId: UniverseChainId, routing?: string): string {
-  // For Gateway swaps (JUSD abstraction, JUICE equity), use JuiceSwapGateway as spender
+  // For Gateway swaps (JUSD abstraction, JUICE equity, SUSD bridging), use JuiceSwapGateway as spender
   if (routing && GATEWAY_ROUTING_VARIANTS.includes(routing as GatewayRoutingVariant)) {
     const gatewayAddress = JUICE_SWAP_GATEWAY_ADDRESSES[chainId]
     if (!gatewayAddress) {
       throw new Error(`No JuiceSwapGateway address for chainId ${chainId}`)
     }
     return gatewayAddress
-  }
-
-  // For Stablecoin Bridge swaps (SUSD ↔ JUSD), use StablecoinBridge as spender
-  if (routing === STABLECOIN_BRIDGE_ROUTING) {
-    const bridgeAddress = STABLECOIN_BRIDGE_ADDRESSES[chainId]
-    if (!bridgeAddress) {
-      throw new Error(`No StablecoinBridge address for chainId ${chainId}`)
-    }
-    return bridgeAddress
   }
 
   return SWAP_ROUTER_02_ADDRESSES(chainId)

@@ -11,7 +11,6 @@ import {
   BitcoinBridgeTrade,
   BridgeTrade,
   LightningBridgeTrade,
-  StablecoinBridgeTrade,
 } from 'uniswap/src/features/transactions/swap/types/trade'
 
 interface MaxSlippageRowProps {
@@ -40,8 +39,7 @@ export function MaxSlippageRow({
   if (
     acceptedTrade instanceof BridgeTrade ||
     acceptedTrade instanceof BitcoinBridgeTrade ||
-    acceptedTrade instanceof LightningBridgeTrade ||
-    acceptedTrade instanceof StablecoinBridgeTrade
+    acceptedTrade instanceof LightningBridgeTrade
   ) {
     throw new Error('Invalid render of `MaxSlippageInfo` for bridge trade')
   }

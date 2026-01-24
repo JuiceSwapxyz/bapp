@@ -5,7 +5,7 @@ import { UnsignedV2DutchOrderInfo, V2DutchOrderTrade, PriorityOrderTrade as IPri
 import { Route as V2RouteSDK } from '@juiceswapxyz/v2-sdk'
 import { Route as V3RouteSDK } from '@juiceswapxyz/v3-sdk'
 import { Route as V4RouteSDK } from '@juiceswapxyz/v4-sdk'
-import { BridgeQuoteResponse, ClassicQuoteResponse, DutchQuoteResponse, DutchV3QuoteResponse, GatewayJusdQuoteResponse, PriorityQuoteResponse, StablecoinBridgeQuoteResponse, WrapQuoteResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
+import { BridgeQuoteResponse, ClassicQuoteResponse, DutchQuoteResponse, DutchV3QuoteResponse, GatewayJusdQuoteResponse, PriorityQuoteResponse, WrapQuoteResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { BigNumber, providers } from 'ethers/lib/ethers'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import {
@@ -398,9 +398,9 @@ export type Trade<
   TInput extends Currency = Currency,
   TOutput extends Currency = Currency,
   TTradeType extends TradeType = TradeType,
-> = ClassicTrade<TInput, TOutput, TTradeType> | UniswapXTrade | BridgeTrade | GatewayJusdTrade | StablecoinBridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade | WrapTrade | UnwrapTrade
+> = ClassicTrade<TInput, TOutput, TTradeType> | UniswapXTrade | BridgeTrade | GatewayJusdTrade | BitcoinBridgeTrade | LightningBridgeTrade | WrapTrade | UnwrapTrade
 
-export type TradeWithSlippage = Exclude<Trade, BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade | StablecoinBridgeTrade>
+export type TradeWithSlippage = Exclude<Trade, BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade>
 
 // TODO(WALL-4573) - Cleanup usage of optionality/null/undefined
 export interface TradeWithStatus<T extends Trade = Trade> {
@@ -707,71 +707,6 @@ export class GatewayJusdTrade {
     this.slippageTolerance = quote.quote.slippage ?? 0
 
     /* Gateway trades use slippage from the underlying swap */
-    this.maxAmountIn = this.inputAmount
-    this.minAmountOut = this.outputAmount
-  }
-
-  public get quoteOutputAmount(): CurrencyAmount<Currency> {
-    return this.outputAmount
-  }
-
-  public get quoteOutputAmountUserWillReceive(): CurrencyAmount<Currency> {
-    return this.outputAmount
-  }
-}
-
-/**
- * StablecoinBridgeTrade handles 1:1 swaps between SUSD and JUSD via the StablecoinBridge contract.
- * No slippage - always 1:1 exchange rate.
- */
-export class StablecoinBridgeTrade {
-  readonly quote: StablecoinBridgeQuoteResponse
-  readonly inputAmount: CurrencyAmount<Currency>
-  readonly outputAmount: CurrencyAmount<Currency>
-  readonly maxAmountIn: CurrencyAmount<Currency>
-  readonly minAmountOut: CurrencyAmount<Currency>
-  readonly executionPrice: Price<Currency, Currency>
-
-  readonly tradeType: TradeType
-  readonly routing = 'STABLECOIN_BRIDGE' as const
-  readonly indicative = false
-  readonly swapFee?: SwapFee
-  readonly inputTax: Percent = ZERO_PERCENT
-  readonly outputTax: Percent = ZERO_PERCENT
-
-  // No slippage for 1:1 bridge swaps
-  readonly slippageTolerance = 0
-  readonly priceImpact: undefined
-  readonly deadline: undefined
-
-  // Bridge-specific properties
-  readonly bridgeFunction: 'mint' | 'burn'
-  readonly bridgeAddress: string
-
-  constructor({ quote, currencyIn, currencyOut, tradeType }: { quote: StablecoinBridgeQuoteResponse, currencyIn: Currency, currencyOut: Currency, tradeType: TradeType }) {
-    this.quote = quote
-
-    const quoteInputAmount = quote.quote.input.amount
-    const quoteOutputAmount = quote.quote.output.amount
-    if (!quoteInputAmount || !quoteOutputAmount) {
-      throw new Error('Error parsing Stablecoin Bridge quote currency amounts')
-    }
-
-    const inputAmount = getCurrencyAmount({ value: quoteInputAmount, valueType: ValueType.Raw, currency: currencyIn })
-    const outputAmount = getCurrencyAmount({ value: quoteOutputAmount, valueType: ValueType.Raw, currency: currencyOut })
-    if (!inputAmount || !outputAmount) {
-      throw new Error('Error parsing Stablecoin Bridge quote currency amounts')
-    }
-
-    this.inputAmount = inputAmount
-    this.outputAmount = outputAmount
-    // 1:1 exchange rate
-    this.executionPrice = new Price(currencyIn, currencyOut, 1, 1)
-    this.tradeType = tradeType
-    this.bridgeFunction = quote.quote.bridgeFunction
-    this.bridgeAddress = quote.quote.bridgeAddress
-
-    // No slippage - fixed 1:1 ratio
     this.maxAmountIn = this.inputAmount
     this.minAmountOut = this.outputAmount
   }

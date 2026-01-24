@@ -46,11 +46,6 @@ export const JUICE_ADDRESSES: Partial<Record<UniverseChainId, string>> = buildAd
 // SUSD (StartUSD) addresses - from @juicedollar/jusd
 export const SUSD_ADDRESSES: Partial<Record<UniverseChainId, string>> = buildAddressMap((a) => a.startUSD)
 
-// Stablecoin Bridge addresses - from @juicedollar/jusd (for SUSD ↔ JUSD 1:1 swaps)
-export const STABLECOIN_BRIDGE_ADDRESSES: Partial<Record<UniverseChainId, string>> = buildAddressMap(
-  (a) => a.bridgeStartUSD,
-)
-
 // Gateway address from @juiceswapxyz/sdk-core CHAIN_TO_ADDRESSES_MAP
 // Type assertion needed as juiceSwapGatewayAddress may not be in older sdk-core types
 type ExtendedChainAddresses = { juiceSwapGatewayAddress?: string }

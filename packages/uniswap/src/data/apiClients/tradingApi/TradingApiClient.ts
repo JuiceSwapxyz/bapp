@@ -149,28 +149,6 @@ export type GatewayJusdQuoteResponse = {
   permitData: null
 }
 
-// Stablecoin Bridge routing type for SUSD ↔ JUSD 1:1 swaps
-export type StablecoinBridgeRoutingType = 'STABLECOIN_BRIDGE'
-
-// Stablecoin Bridge quote structure - 1:1 swap, no slippage
-export type StablecoinBridgeQuote = {
-  chainId: number
-  swapper: string
-  input: { amount: string; token: string }
-  output: { amount: string; token: string; recipient: string }
-  tradeType: TradeType
-  bridgeFunction: 'mint' | 'burn'
-  bridgeAddress: string
-}
-
-// Stablecoin Bridge quote response
-export type StablecoinBridgeQuoteResponse = {
-  requestId: string
-  quote: StablecoinBridgeQuote
-  routing: StablecoinBridgeRoutingType
-  permitData: null
-}
-
 export type WrapQuoteResponse<T extends Routing.WRAP | Routing.UNWRAP> = QuoteResponse & {
   quote: WrapUnwrapQuote
   routing: T
