@@ -67,17 +67,13 @@ export async function createReverseSwap(params: CreateReverseSwapRequest): Promi
 }
 
 export async function helpMeClaim(params: HelpMeClaimRequest): Promise<HelpMeClaimResponse> {
-  console.error('[helpMeClaim] Calling:', {
-    url: `${process.env.REACT_APP_PONDER_JUICESWAP_URL}/help-me-claim`,
-    params: { preimageHash: params.preimageHash, preimage: params.preimage.substring(0, 10) + '...' },
-  })
-  return await PonderApiClient.post<HelpMeClaimResponse>('/help-me-claim', {
+  return await LdsApiClient.post<HelpMeClaimResponse>('/claim/help-me-claim', {
     body: JSON.stringify(params),
   })
 }
 
 export async function getLockup(preimageHash: string): Promise<{ data: LockupCheckResponse }> {
-  return await PonderApiClient.post<{ data: LockupCheckResponse }>(`/graphql`, {
+  return await LdsApiClient.post<{ data: LockupCheckResponse }>(`/claim/graphql`, {
     body: JSON.stringify({
       operationName: 'LockupQuery',
       query: `query LockupQuery {
