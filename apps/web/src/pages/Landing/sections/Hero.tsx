@@ -86,7 +86,7 @@ const CoinBubblesContainer = styled(Flex, {
   pointerEvents: 'none',
   overflow: 'visible',
 
-  $md: {
+  $lg: {
     display: 'none',
   },
 })
