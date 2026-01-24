@@ -477,7 +477,7 @@ export function BuySellPanel({
         <Text variant="body2" color="$neutral2" textAlign="center">
           Trade on the main DEX instead
         </Text>
-        <TradeOnSwapButton onPress={() => navigate(`/swap?outputCurrency=${tokenAddress}`)}>
+        <TradeOnSwapButton onPress={() => navigate(`/swap?inputCurrency=JUSD&outputCurrency=${tokenAddress}`)}>
           <Text variant="buttonLabel2" color="$white">
             Trade on Swap
           </Text>
