@@ -20,6 +20,35 @@ import { CurrencyField } from 'uniswap/src/types/currency'
 import { isAddress } from 'utilities/src/addresses'
 import { getParsedChainId } from 'utils/chainParams'
 
+/**
+ * Maps well-known currency symbols to their "home" chain.
+ * This allows URLs like /swap?inputCurrency=BTC&outputCurrency=cBTC to work
+ * without explicitly specifying chain and outputChain parameters.
+ *
+ * @param symbol - The currency symbol (e.g., 'BTC', 'cBTC', 'ETH')
+ * @returns The chain ID where this currency is native, or undefined if unknown
+ */
+function getHomeChainForCurrency(symbol: string): UniverseChainId | undefined {
+  const symbolUpper = symbol.toUpperCase()
+
+  switch (symbolUpper) {
+    // Bitcoin is native to the Bitcoin chain
+    case 'BTC':
+      return UniverseChainId.Bitcoin
+
+    // cBTC is native to Citrea (testnet for now, mainnet when available)
+    case 'CBTC':
+      return UniverseChainId.CitreaTestnet
+
+    // ETH is native to Ethereum mainnet
+    case 'ETH':
+      return UniverseChainId.Mainnet
+
+    default:
+      return undefined
+  }
+}
+
 export function useSwapActionHandlers(): {
   onSwitchTokens: (options: { newOutputHasTax: boolean; previouslyEstimatedOutput: string }) => void
 } {
@@ -268,12 +297,28 @@ export function serializeSwapAddressesToURLParameters({
 }
 
 export function queryParametersToCurrencyState(parsedQs: ParsedQs): SerializedCurrencyState {
-  const chainId = getParsedChainId(parsedQs)
-  const outputChainId = getParsedChainId(parsedQs, CurrencyField.OUTPUT)
+  // Parse explicit chain params from URL
+  const explicitChainId = getParsedChainId(parsedQs)
+  const explicitOutputChainId = getParsedChainId(parsedQs, CurrencyField.OUTPUT)
+
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const parsedInputCurrencyAddress = parseCurrencyFromURLParameter(parsedQs.inputCurrency ?? parsedQs.inputcurrency)
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const parsedOutputCurrencyAddress = parseCurrencyFromURLParameter(parsedQs.outputCurrency ?? parsedQs.outputcurrency)
+
+  // Infer chains from currency symbols if not explicitly specified
+  // e.g., BTC → Bitcoin chain, cBTC → Citrea chain
+  const inferredInputChainId =
+    !explicitChainId && parsedInputCurrencyAddress ? getHomeChainForCurrency(parsedInputCurrencyAddress) : undefined
+  const inferredOutputChainId =
+    !explicitOutputChainId && parsedOutputCurrencyAddress
+      ? getHomeChainForCurrency(parsedOutputCurrencyAddress)
+      : undefined
+
+  // Use explicit chain if provided, otherwise use inferred chain
+  const chainId = explicitChainId ?? inferredInputChainId
+  const outputChainId = explicitOutputChainId ?? inferredOutputChainId
+
   const outputCurrencyAddress =
     parsedOutputCurrencyAddress === parsedInputCurrencyAddress && outputChainId === chainId
       ? undefined
