@@ -1,8 +1,10 @@
 import { ColumnCenter } from 'components/deprecated/Column'
+import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import { useCurrency } from 'hooks/Tokens'
+import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { useScroll } from 'hooks/useScroll'
-import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
 import { COIN_BUBBLE_ASSETS, CoinBubble } from 'pages/Landing/components/CoinBubble'
+import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
 import { Swap } from 'pages/Swap'
 import { Fragment, useCallback, useMemo } from 'react'
 import { ChevronDown } from 'react-feather'
@@ -10,7 +12,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { serializeSwapStateToURLParameters } from 'state/swap/hooks'
-import { Flex, styled, Text, useMedia } from 'ui/src'
+import { Flex, Text, styled, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -83,7 +85,6 @@ const CoinBubblesContainer = styled(Flex, {
   right: 0,
   height: 700,
   zIndex: 0,
-  pointerEvents: 'none',
   overflow: 'visible',
 
   $lg: {
@@ -95,6 +96,7 @@ const CoinBubblesContainer = styled(Flex, {
 const BubblePosition = styled(Flex, {
   name: 'BubblePosition',
   position: 'absolute',
+  pointerEvents: 'auto',
 
   '$platform-web': {
     animation: 'float 6s ease-in-out infinite',
@@ -118,6 +120,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
   const { defaultChainId } = useEnabledChains()
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const showBAppsContent = useIsBAppsCampaignVisible()
+  const isCrossChainSwapsEnabled = useCrossChainSwapsEnabled()
 
   // Use native token (cBTC on Citrea) as default input currency
   const initialInputCurrency = useCurrency({
@@ -160,6 +163,16 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
     [navigate],
   )
 
+  // Click handler for BTC Chain bubble - navigates to swap with BTC -> cBTC on Citrea
+  const handleBtcChainClick = useCallback(() => {
+    const params = new URLSearchParams({
+      chain: 'citrea_testnet',
+      inputCurrency: NATIVE_CHAIN_ID, // cBTC (native Bitcoin on Citrea)
+      outputCurrency: '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0', // cUSD
+    })
+    navigate(`/swap?${params.toString()}`)
+  }, [navigate])
+
   const renderRiseInText = useMemo(() => {
     const text = t('hero.swap.title')
 
@@ -200,36 +213,50 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
     >
       <HeroBackground />
 
-      {/* Floating Coin Bubbles */}
-      <CoinBubblesContainer>
-        {/* Above the wave */}
-        <BubblePosition left="5.7%" top={-78} delay={0}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.btcChain} alt="Bitcoin Chain" size={90} />
-        </BubblePosition>
-        <BubblePosition left="16%" top={-112} delay={2}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.btcLightning} alt="Bitcoin Lightning" size={65} />
-        </BubblePosition>
-        <BubblePosition right="20.8%" top={-38} delay={4}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={79} />
-        </BubblePosition>
-        <BubblePosition right="6.2%" top={-35} delay={5}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.usdc} alt="USDC" size={66} />
-        </BubblePosition>
+      {/* Floating Coin Bubbles - only shown when cross-chain swaps are enabled */}
+      {isCrossChainSwapsEnabled && (
+        <CoinBubblesContainer>
+          {/* Above the wave - 6 bubbles */}
+          <BubblePosition left="5.7%" top={-78} delay={0}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.btcChain} alt="Bitcoin Chain" size={90} onClick={handleBtcChainClick} />
+          </BubblePosition>
+          <BubblePosition left="16%" top={-112} delay={2}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.btcLightning} alt="Bitcoin Lightning" size={65} />
+          </BubblePosition>
+          <BubblePosition left="26%" top={-55} delay={1}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.tetherPolygon} alt="Tether+Polygon" size={75} />
+          </BubblePosition>
+          <BubblePosition right="26%" top={-65} delay={3}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="wBTC+ETH" size={73} />
+          </BubblePosition>
+          <BubblePosition right="20.8%" top={-38} delay={4}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={79} />
+          </BubblePosition>
+          <BubblePosition right="6.2%" top={-35} delay={5}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.usdc} alt="USDC" size={66} />
+          </BubblePosition>
 
-        {/* Inside the wave */}
-        <BubblePosition left="11.9%" top={178} delay={0}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcLarge} alt="Bitcoin" size={120} variant="wave" />
-        </BubblePosition>
-        <BubblePosition left="8.5%" top={325} delay={4}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcSmall} alt="Bitcoin" size={70} variant="wave" />
-        </BubblePosition>
-        <BubblePosition right="5.8%" top={271} delay={3}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdSmall} alt="USD" size={80} variant="wave" />
-        </BubblePosition>
-        <BubblePosition right="9.9%" top={129} delay={1}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdLarge} alt="USD" size={109} variant="wave" />
-        </BubblePosition>
-      </CoinBubblesContainer>
+          {/* Inside the wave - 6 bubbles */}
+          <BubblePosition left="11.9%" top={178} delay={0}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcLarge} alt="Bitcoin" size={120} variant="wave" />
+          </BubblePosition>
+          <BubblePosition left="8.5%" top={325} delay={4}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcSmall} alt="Bitcoin" size={70} variant="wave" />
+          </BubblePosition>
+          <BubblePosition left="22%" top={265} delay={2}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.waveWbtcCitrea} alt="wBTC+Citrea" size={70} variant="wave" />
+          </BubblePosition>
+          <BubblePosition right="22%" top={205} delay={5}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.waveJuice} alt="Juice" size={80} variant="wave" />
+          </BubblePosition>
+          <BubblePosition right="5.8%" top={271} delay={3}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdSmall} alt="USD" size={80} variant="wave" />
+          </BubblePosition>
+          <BubblePosition right="9.9%" top={129} delay={1}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdLarge} alt="USD" size={109} variant="wave" />
+          </BubblePosition>
+        </CoinBubblesContainer>
+      )}
 
       <Flex
         alignSelf="center"

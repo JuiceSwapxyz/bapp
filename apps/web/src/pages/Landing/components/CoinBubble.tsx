@@ -5,6 +5,7 @@ interface CoinBubbleProps {
   alt: string
   size?: number
   variant?: 'normal' | 'wave'
+  onClick?: () => void
 }
 
 // Glass bubble container with CSS effects
@@ -75,12 +76,22 @@ const InnerShadow = styled(Flex, {
   },
 })
 
-export function CoinBubble({ src, alt, size = 90, variant = 'normal' }: CoinBubbleProps) {
+export function CoinBubble({ src, alt, size = 90, variant = 'normal', onClick }: CoinBubbleProps) {
   // Symbol takes up ~70% of the bubble size
   const symbolSize = Math.round(size * 0.7)
+  const isClickable = !!onClick
 
   return (
-    <BubbleContainer variant={variant} width={size} height={size}>
+    <BubbleContainer
+      variant={variant}
+      width={size}
+      height={size}
+      onPress={onClick}
+      cursor={isClickable ? 'pointer' : undefined}
+      hoverStyle={isClickable ? { scale: 1.05, opacity: 0.9 } : undefined}
+      pressStyle={isClickable ? { scale: 0.95 } : undefined}
+      animation={isClickable ? 'quick' : undefined}
+    >
       <img
         src={src}
         alt={alt}
@@ -99,13 +110,17 @@ export const COIN_SYMBOLS = {
   btcChain: '/images/landing_page/symbol-btc-chain.svg',
   btcLightning: '/images/landing_page/symbol-btc-lightning.svg',
   tetherEth: '/images/landing_page/symbol-tether-eth.svg',
+  tetherPolygon: '/images/landing_page/symbol-tether-polygon.svg',
+  wbtcEth: '/images/landing_page/symbol-wbtc-eth.svg',
   usdc: '/images/landing_page/symbol-usdc.svg',
 
-  // Inside the wave (white/cream colored) - same symbol, different sizes applied via CoinBubble
+  // Inside the wave (white/cream colored)
   waveBtcLarge: '/images/landing_page/symbol-wave-btc-citrea.svg',
   waveBtcSmall: '/images/landing_page/symbol-wave-btc-citrea.svg',
   waveUsdLarge: '/images/landing_page/symbol-wave-usd.svg',
   waveUsdSmall: '/images/landing_page/symbol-wave-usd.svg',
+  waveWbtcCitrea: '/images/landing_page/symbol-wave-wbtc-citrea.svg',
+  waveJuice: '/images/landing_page/symbol-wave-juice.svg',
 } as const
 
 // Export for Hero.tsx
