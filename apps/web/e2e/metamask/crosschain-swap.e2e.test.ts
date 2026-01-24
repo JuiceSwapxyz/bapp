@@ -455,47 +455,77 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
           return false
         }
 
-        // Look for "Switch network" or "Add network" buttons (supports English and German)
+        // Take debug screenshot
+        try {
+          await mmPage.screenshot({
+            path: `e2e/metamask/snapshots/crosschain-swap.spec.ts/debug-network-${stepName}-${Date.now()}.png`,
+          })
+        } catch (e) {
+          console.log(`[${stepName}] Could not take debug screenshot`)
+        }
+
+        // First check if this is a network switch screen by looking for specific text
+        const networkScreenIndicators = [
+          // German
+          'text=/Wechseln eines Netzwerks/i',
+          'text=/Netzwerk wechseln/i',
+          'text=/Dieser Seite das Wechseln/i',
+          // English
+          'text=/switch.*network/i',
+          'text=/Allow this site to switch/i',
+          'text=/Add network/i',
+        ]
+
+        let isNetworkScreen = false
+        for (const indicator of networkScreenIndicators) {
+          if (
+            await mmPage
+              .locator(indicator)
+              .first()
+              .isVisible({ timeout: 500 })
+              .catch(() => false)
+          ) {
+            isNetworkScreen = true
+            console.log(`[${stepName}] Detected network switch screen: ${indicator}`)
+            break
+          }
+        }
+
+        if (!isNetworkScreen) {
+          console.log(`[${stepName}] Not a network switch screen`)
+          return false
+        }
+
+        // Look for the primary action button
         const networkSwitchSelectors = [
-          // data-testid selectors (language-independent)
-          '[data-testid="confirmation-submit-button"]',
-          '[data-testid="page-container-footer-next"]',
-          // English - Switch network
+          // German - most common
+          'button:has-text("Netzwerk wechseln")',
+          'button:has-text("Bestätigen")',
+          'button:has-text("Genehmigen")',
+          // English
           'button:has-text("Switch network")',
           'button:has-text("Approve")',
-          // German - Switch network
-          'button:has-text("Netzwerk wechseln")',
-          'button:has-text("Genehmigen")',
-          // English - Add network
-          'button:has-text("Approve")',
-          // German - Add network
-          'button:has-text("Genehmigen")',
+          'button:has-text("Confirm")',
+          // data-testid selectors (fallback)
+          '[data-testid="confirmation-submit-button"]',
+          '[data-testid="page-container-footer-next"]',
         ]
 
         for (const selector of networkSwitchSelectors) {
           const btn = mmPage.locator(selector).first()
-          if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
-            // Check if this is a network switch request by looking for network-related text
-            const hasNetworkText = await mmPage
-              .locator('text=/switch.*network|netzwerk.*wechseln|allow.*switch|add.*network|citrea/i')
-              .first()
-              .isVisible({ timeout: 1000 })
-              .catch(() => false)
-
-            if (hasNetworkText) {
-              console.log(`[${stepName}] Found network switch request, clicking: ${selector}`)
-              await btn.click()
-              try {
-                await mmPage.waitForTimeout(2000)
-              } catch (e) {
-                console.log(`[${stepName}] MetaMask page closed after network switch (expected behavior)`)
-              }
-              return true
+          if (await btn.isVisible({ timeout: 500 }).catch(() => false)) {
+            console.log(`[${stepName}] Found network switch button: ${selector}`)
+            await btn.click()
+            try {
+              await mmPage.waitForTimeout(2000)
+            } catch (e) {
+              console.log(`[${stepName}] MetaMask page closed after network switch (expected)`)
             }
+            return true
           }
         }
 
-        console.log(`[${stepName}] No network switch request found`)
+        console.log(`[${stepName}] Network switch screen detected but no button found`)
         return false
       }
 
@@ -511,50 +541,121 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
           return false
         }
 
-        // Look for confirm button with various selectors (supports English and German)
+        // Take debug screenshot
+        try {
+          await mmPage.screenshot({
+            path: `e2e/metamask/snapshots/crosschain-swap.spec.ts/debug-confirm-${stepName}-${Date.now()}.png`,
+          })
+        } catch (e) {
+          console.log(`[${stepName}] Could not take debug screenshot`)
+        }
+
+        // Detect what type of MetaMask screen we're on
+        const screenTypes = {
+          approval: [
+            // German - Spending cap / Allowance
+            'text=/Ausgabenobergrenze/i',
+            'text=/Ausgabelimit/i',
+            // English - Spending cap / Allowance
+            'text=/Spending cap/i',
+            'text=/Allowance/i',
+            'text=/Give permission/i',
+          ],
+          transaction: [
+            // German - Transaction
+            'text=/Transaktion/i',
+            'text=/CLAIM/i',
+            'text=/Estimated fee/i',
+            'text=/Geschätzte Gebühr/i',
+            // English - Transaction
+            'text=/Transaction/i',
+          ],
+          signature: [
+            // German - Signature
+            'text=/Signaturanfrage/i',
+            'text=/Signieren/i',
+            // English - Signature
+            'text=/Signature request/i',
+            'text=/Sign/i',
+          ],
+        }
+
+        let detectedScreen = 'unknown'
+        for (const [screenType, indicators] of Object.entries(screenTypes)) {
+          for (const indicator of indicators) {
+            if (
+              await mmPage
+                .locator(indicator)
+                .first()
+                .isVisible({ timeout: 300 })
+                .catch(() => false)
+            ) {
+              detectedScreen = screenType
+              console.log(`[${stepName}] Detected ${screenType} screen: ${indicator}`)
+              break
+            }
+          }
+          if (detectedScreen !== 'unknown') break
+        }
+
+        console.log(`[${stepName}] Screen type: ${detectedScreen}`)
+
+        // Define selectors based on screen type, with fallbacks
         const confirmSelectors = [
-          // data-testid selectors (language-independent)
-          '[data-testid="confirm-footer-button"]',
-          '[data-testid="page-container-footer-next"]',
-          '[data-testid="confirmation-submit-button"]',
-          // English
-          'button.btn-primary:has-text("Confirm")',
-          'button:has-text("Confirm")',
-          'button:has-text("Approve")',
-          'button:has-text("Sign")',
-          // German
-          'button.btn-primary:has-text("Bestätigen")',
+          // Primary buttons (blue) - most reliable
+          'button.mm-button-primary',
+          'button.btn-primary',
+          // German buttons
           'button:has-text("Bestätigen")',
           'button:has-text("Genehmigen")',
           'button:has-text("Signieren")',
+          'button:has-text("Weiter")',
+          'button:has-text("Verwenden")',
+          // English buttons
+          'button:has-text("Confirm")',
+          'button:has-text("Approve")',
+          'button:has-text("Sign")',
+          'button:has-text("Next")',
+          'button:has-text("Use default")',
+          // data-testid selectors (fallback)
+          '[data-testid="confirm-footer-button"]',
+          '[data-testid="page-container-footer-next"]',
+          '[data-testid="confirmation-submit-button"]',
+          '[data-testid="confirm-btn"]',
         ]
 
         for (const selector of confirmSelectors) {
           const btn = mmPage.locator(selector).first()
-          if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
-            console.log(`[${stepName}] Found confirm button with selector: ${selector}`)
+          if (await btn.isVisible({ timeout: 500 }).catch(() => false)) {
+            // Make sure it's not a disabled button
+            const isDisabled = await btn.isDisabled().catch(() => false)
+            if (isDisabled) {
+              console.log(`[${stepName}] Found button but it's disabled: ${selector}`)
+              continue
+            }
+            console.log(`[${stepName}] Found confirm button: ${selector}`)
             await btn.click()
-            // MetaMask may close the page after confirmation, so wrap waitForTimeout in try-catch
+            // MetaMask may close the page after confirmation
             try {
               await mmPage.waitForTimeout(2000)
             } catch (e) {
-              console.log(`[${stepName}] MetaMask page closed after confirmation (expected behavior)`)
+              console.log(`[${stepName}] MetaMask page closed after confirmation (expected)`)
             }
-            console.log(`[${stepName}] Clicked confirm button`)
+            console.log(`[${stepName}] Clicked confirm button successfully`)
             return true
           }
         }
 
-        // Check if there's a pending transaction indicator (English and German)
-        const pendingIndicator = mmPage
-          .locator('text=/pending|confirm|approve|sign|ausstehend|bestätigen|genehmigen|signieren/i')
-          .first()
-        if (await pendingIndicator.isVisible({ timeout: 1000 }).catch(() => false)) {
-          console.log(`[${stepName}] Found pending transaction indicator but no confirm button`)
-        } else {
-          console.log(`[${stepName}] No pending transaction found in MetaMask`)
+        // Log visible buttons for debugging
+        const allButtons = await mmPage.locator('button').all()
+        console.log(`[${stepName}] Found ${allButtons.length} buttons on page`)
+        for (let i = 0; i < Math.min(allButtons.length, 5); i++) {
+          const text = await allButtons[i].textContent().catch(() => 'unknown')
+          const visible = await allButtons[i].isVisible().catch(() => false)
+          console.log(`[${stepName}] Button ${i}: "${text?.trim()}" (visible: ${visible})`)
         }
 
+        console.log(`[${stepName}] No confirm button found`)
         return false
       }
 
