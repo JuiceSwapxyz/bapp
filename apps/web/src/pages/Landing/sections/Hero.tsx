@@ -1,5 +1,4 @@
 import { ColumnCenter } from 'components/deprecated/Column'
-import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import { useCurrency } from 'hooks/Tokens'
 import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { useScroll } from 'hooks/useScroll'
@@ -169,7 +168,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       chain: 'bitcoin', // Input chain: Bitcoin
       outputChain: 'citrea_testnet', // Output chain: Citrea Testnet
       inputCurrency: 'BTC', // Input: Bitcoin BTC
-      outputCurrency: NATIVE_CHAIN_ID, // Output: cBTC (native on Citrea)
+      outputCurrency: 'cBTC', // Output: cBTC (native on Citrea)
     })
     navigate(`/swap?${params.toString()}`)
   }, [navigate])

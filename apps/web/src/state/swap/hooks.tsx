@@ -73,6 +73,11 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
   const chainInfo = getChainInfo(chainId)
   const symbolUpper = symbol.toUpperCase()
 
+  // Check if symbol matches native currency (e.g., cBTC on Citrea, ETH on Ethereum, BTC on Bitcoin)
+  if (chainInfo.nativeCurrency.symbol.toUpperCase() === symbolUpper) {
+    return NATIVE_CHAIN_ID
+  }
+
   if (symbolUpper === 'USDT') {
     return chainInfo.tokens.USDT?.address
   }
