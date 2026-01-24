@@ -110,5 +110,6 @@ export async function claimErc20Swap(params: {
   const tx = await swapContract.claim(prefix0x(preimage), amount, tokenAddress, refundAddress, timelock)
 
   const receipt = await tx.wait()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return receipt.hash
 }

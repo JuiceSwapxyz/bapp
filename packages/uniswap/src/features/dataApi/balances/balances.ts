@@ -78,6 +78,7 @@ export function usePortfolioBalances({
     pollInterval: queryOptions.pollInterval,
     onCompleted: queryOptions.onCompleted
       ? (): void => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           queryOptions.onCompleted?.(undefined as any)
         }
       : undefined,

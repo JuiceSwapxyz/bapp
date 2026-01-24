@@ -1,4 +1,3 @@
-
 export const CROSS_CHAIN_SWAPS_STORAGE_KEY = 'crossChainSwapsOverride'
 
 export function isCrossChainSwapsEnabled(): boolean {

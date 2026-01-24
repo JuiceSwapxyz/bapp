@@ -60,6 +60,7 @@ export const createLdsSocketClient = (): {
     if (!subscribedSwaps.has(swapId) && !pendingSubscriptions.has(swapId)) {
       pendingSubscriptions.add(swapId)
       // Send subscription asynchronously (don't block)
+      // eslint-disable-next-line no-void
       void sendSubscription(swapId)
     }
     if (!listeners.has(swapId)) {

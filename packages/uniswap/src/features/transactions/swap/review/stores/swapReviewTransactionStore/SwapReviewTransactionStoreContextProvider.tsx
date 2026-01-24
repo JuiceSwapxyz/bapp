@@ -30,7 +30,9 @@ export const SwapReviewTransactionStoreContextProvider = ({
     'derivedSwapInfo' | 'swapTxContext' | 'acceptedDerivedSwapInfo' | 'newTradeRequiresAcceptance'
   >
 >): JSX.Element => {
-  const uniswapXGasBreakdown = isUniswapX(swapTxContext) ? swapTxContext.gasFeeBreakdown : undefined
+  const uniswapXGasBreakdown = isUniswapX(swapTxContext)
+    ? (swapTxContext as Extract<typeof swapTxContext, { gasFeeBreakdown: unknown }>).gasFeeBreakdown
+    : undefined
 
   const {
     chainId,

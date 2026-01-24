@@ -25,6 +25,7 @@ export const isErc20ChainSwapQuote = (params: QuoteRequest): boolean => {
   const isEthereumToCitrea = tokenInChainId === ChainId._1 && tokenOutChainId === ChainId._5115
   const isCitreaToEthereum = tokenInChainId === ChainId._5115 && tokenOutChainId === ChainId._1
 
+  // eslint-disable-next-line curly
   if (!isPolygonToCitrea && !isCitreaToPolygon && !isEthereumToCitrea && !isCitreaToEthereum) return false
 
   const isInputNative = !tokenIn || tokenIn === ZERO_ADDRESS
