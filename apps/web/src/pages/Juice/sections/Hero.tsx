@@ -1,4 +1,4 @@
-import { ChevronDown, Droplet } from 'react-feather'
+import { ChevronDown } from 'react-feather'
 import { Trans } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
@@ -15,28 +15,16 @@ const HeroContainer = styled(Flex, {
 })
 
 const LogoContainer = styled(Flex, {
-  width: 120,
-  height: 120,
-  borderRadius: '$roundedFull',
   alignItems: 'center',
   justifyContent: 'center',
   marginBottom: '$spacing16',
-
-  '$platform-web': {
-    background: 'linear-gradient(135deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)',
-    boxShadow: '0 8px 32px rgba(255, 124, 58, 0.3)',
-  },
-
-  $md: {
-    width: 100,
-    height: 100,
-  },
 })
 
 const GradientTitle = styled(
   Text as any,
   {
     fontSize: 56,
+    lineHeight: 70,
     fontWeight: 'bold',
     textAlign: 'center',
 
@@ -44,17 +32,22 @@ const GradientTitle = styled(
       color: 'transparent',
       backgroundImage: 'linear-gradient(90deg, #63C87A 0%, #FFB347 50%, #FF7C3A 100%)',
       backgroundRepeat: 'no-repeat',
+      backgroundSize: '100% 100%',
       backgroundClip: 'text',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       display: 'inline-block',
+      overflow: 'visible',
+      paddingBottom: 4,
     },
 
     $md: {
       fontSize: 42,
+      lineHeight: 52,
     },
     $sm: {
       fontSize: 32,
+      lineHeight: 40,
     },
   } as any,
 ) as any
@@ -120,7 +113,12 @@ export function Hero() {
   return (
     <HeroContainer>
       <LogoContainer>
-        <Droplet size={56} color="white" fill="white" />
+        <img
+          src="https://app.testnet.juicedollar.com/coin/juice.svg"
+          alt="JUICE Token"
+          width={120}
+          height={120}
+        />
       </LogoContainer>
 
       <GradientTitle>
