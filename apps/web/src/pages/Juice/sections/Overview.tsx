@@ -1,0 +1,125 @@
+import { Trans, useTranslation } from 'react-i18next'
+import { Flex, Text, styled } from 'ui/src'
+
+import { DataTable } from '../components/DataTable'
+import { FeatureCard } from '../components/FeatureCard'
+import { SectionHeader } from '../components/SectionHeader'
+
+const Section = styled(Flex, {
+  flexDirection: 'column',
+  gap: '$spacing32',
+  paddingVertical: '$spacing32',
+})
+
+const CardsContainer = styled(Flex, {
+  flexDirection: 'row',
+  gap: '$spacing16',
+  flexWrap: 'wrap',
+})
+
+const SubSection = styled(Flex, {
+  flexDirection: 'column',
+  gap: '$spacing16',
+})
+
+const QuoteBox = styled(Flex, {
+  padding: '$spacing20',
+  backgroundColor: '$surface2',
+  borderRadius: '$rounded16',
+  borderLeftWidth: 4,
+  borderLeftColor: '$accent1',
+})
+
+function EquityIcon() {
+  return (
+    <Text fontSize={24} color="$accent1">
+      E
+    </Text>
+  )
+}
+
+function DecentralizedIcon() {
+  return (
+    <Text fontSize={24} color="$accent1">
+      D
+    </Text>
+  )
+}
+
+function OracleIcon() {
+  return (
+    <Text fontSize={24} color="$accent1">
+      O
+    </Text>
+  )
+}
+
+export function Overview() {
+  const { t } = useTranslation()
+
+  const comparisonHeaders = ['Aspect', 'JUSD', 'JUICE']
+  const comparisonRows = [
+    ['Type', 'Stablecoin', 'Equity Token'],
+    ['Value Peg', 'US Dollar', 'Protocol Equity'],
+    ['Function', 'Payments, Store of Value', 'Governance, Capital Shares'],
+    ['Supply', 'Dynamic (Minting/Burning)', 'Dynamic (Investment/Redemption)'],
+    ['Fee Beneficiary', '-', 'JUICE Holders'],
+  ]
+
+  const cypherpunkHeaders = ['Cypherpunk Ideal', 'JuiceDollar Implementation']
+  const cypherpunkRows = [
+    ['Decentralization', 'No admin keys, no upgradeable contracts, no central authority'],
+    ['Trustlessness', 'Oracle-free design - no reliance on external price feeds'],
+    ['Permissionlessness', 'Anyone can propose new collateral types or mint JUSD'],
+    ['Self-Custody', 'Users hold their own collateral in position contracts'],
+    ['Code as Law', 'Smart contracts enforce rules, not institutions'],
+    ['Censorship Resistance', 'No entity can block minting or freeze accounts'],
+  ]
+
+  return (
+    <Section id="overview">
+      <SectionHeader title={t('juice.overview.title')} subtitle={t('juice.overview.description')} />
+
+      <CardsContainer>
+        <FeatureCard
+          icon={<EquityIcon />}
+          title={t('juice.overview.equity.title')}
+          description={t('juice.overview.equity.description')}
+        />
+        <FeatureCard
+          icon={<DecentralizedIcon />}
+          title={t('juice.overview.decentralized.title')}
+          description={t('juice.overview.decentralized.description')}
+        />
+        <FeatureCard
+          icon={<OracleIcon />}
+          title={t('juice.overview.oracleFree.title')}
+          description={t('juice.overview.oracleFree.description')}
+        />
+      </CardsContainer>
+
+      <SubSection>
+        <Text variant="subheading1" color="$neutral1" fontWeight="bold">
+          JUICE vs JUSD
+        </Text>
+        <DataTable headers={comparisonHeaders} rows={comparisonRows} />
+      </SubSection>
+
+      <SubSection>
+        <Text variant="subheading1" color="$neutral1" fontWeight="bold">
+          <Trans i18nKey="juice.overview.cypherpunk.title" />
+        </Text>
+        <Text variant="body2" color="$neutral2">
+          <Trans i18nKey="juice.overview.cypherpunk.description" />
+        </Text>
+        <DataTable headers={cypherpunkHeaders} rows={cypherpunkRows} />
+        <QuoteBox>
+          <Text variant="body2" color="$neutral2" fontStyle="italic">
+            "We the Cypherpunks are dedicated to building anonymous systems." - Eric Hughes, A Cypherpunk's Manifesto
+            (1993)
+          </Text>
+        </QuoteBox>
+      </SubSection>
+    </Section>
+  )
+}
