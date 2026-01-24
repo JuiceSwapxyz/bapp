@@ -31,6 +31,5 @@ export const COIN_BUBBLE_ASSETS = {
   waveBtcSmall: '/images/landing_page/coin-bubble-wave-btc-small.png',
   waveUsdLarge: '/images/landing_page/coin-bubble-wave-usd-large.png',
   waveUsdSmall: '/images/landing_page/coin-bubble-wave-usd-small.png',
-  waveJuice: '/images/landing_page/coin-bubble-wave-juice.png',
   waveWbtcCitrea: '/images/landing_page/coin-bubble-wave-wbtc-citrea.png',
 } as const

@@ -113,12 +113,7 @@ export function Hero() {
   return (
     <HeroContainer>
       <LogoContainer>
-        <img
-          src="https://app.testnet.juicedollar.com/coin/juice.svg"
-          alt="JUICE Token"
-          width={120}
-          height={120}
-        />
+        <img src="https://app.testnet.juicedollar.com/coin/juice.svg" alt="JUICE Token" width={120} height={120} />
       </LogoContainer>
 
       <GradientTitle>

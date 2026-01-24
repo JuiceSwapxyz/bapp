@@ -2,7 +2,7 @@ import { ColumnCenter } from 'components/deprecated/Column'
 import { useCurrency } from 'hooks/Tokens'
 import { useScroll } from 'hooks/useScroll'
 import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
-import { CoinBubble, COIN_BUBBLE_ASSETS } from 'pages/Landing/components/CoinBubble'
+import { COIN_BUBBLE_ASSETS, CoinBubble } from 'pages/Landing/components/CoinBubble'
 import { Swap } from 'pages/Swap'
 import { Fragment, useCallback, useMemo } from 'react'
 import { ChevronDown } from 'react-feather'
@@ -10,7 +10,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { serializeSwapStateToURLParameters } from 'state/swap/hooks'
-import { Flex, Text, styled, useMedia } from 'ui/src'
+import { Flex, styled, Text, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -231,9 +231,6 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
         </BubblePosition>
         <BubblePosition left="23%" top={317} delay={3}>
           <CoinBubble src={COIN_BUBBLE_ASSETS.waveWbtcCitrea} alt="WBTC+Citrea" size={70} />
-        </BubblePosition>
-        <BubblePosition right="21.3%" top={237} delay={2}>
-          <CoinBubble src={COIN_BUBBLE_ASSETS.waveJuice} alt="Juice" size={80} />
         </BubblePosition>
         <BubblePosition right="5.8%" top={271} delay={3}>
           <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdSmall} alt="USD" size={80} />

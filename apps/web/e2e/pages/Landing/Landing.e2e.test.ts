@@ -1,5 +1,5 @@
-import { expect, test } from '../../fixtures'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
+import { expect, test } from '../../fixtures'
 
 // Viewport sizes for visual regression testing
 const DESKTOP_VIEWPORT = { width: 1440, height: 900 }
