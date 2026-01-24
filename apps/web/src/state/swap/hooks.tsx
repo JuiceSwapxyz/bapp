@@ -14,6 +14,7 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ALWAYS_ENABLED_CHAIN_IDS } from 'uniswap/src/features/chains/utils'
+import { isSusdAddress, SUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { selectFilteredChainIds } from 'uniswap/src/features/transactions/swap/state/selectors'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { isAddress } from 'utilities/src/addresses'
@@ -80,8 +81,8 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
     return (chainInfo.tokens as any).JUSD?.address
   }
 
-  if (symbolUpper === 'SUSD' && chainId === UniverseChainId.CitreaTestnet) {
-    return '0xDFa3153E1eDa84F966BD01bc4C6D9A4FF36AcAeA'
+  if (symbolUpper === 'SUSD') {
+    return SUSD_ADDRESSES[chainId]
   }
 
   return undefined
@@ -122,7 +123,7 @@ function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: 
     return 'JUSD'
   }
 
-  if (chainId === UniverseChainId.CitreaTestnet && normalizedAddress === '0xdfa3153e1eda84f966bd01bc4c6d9a4ff36acaea') {
+  if (isSusdAddress(chainId, address)) {
     return 'SUSD'
   }
 
