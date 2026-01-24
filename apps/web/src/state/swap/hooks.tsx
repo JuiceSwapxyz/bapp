@@ -14,7 +14,7 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ALWAYS_ENABLED_CHAIN_IDS } from 'uniswap/src/features/chains/utils'
-import { isSusdAddress, SUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { isSusdAddress, JUSD_ADDRESSES, SUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { selectFilteredChainIds } from 'uniswap/src/features/transactions/swap/state/selectors'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { isAddress } from 'utilities/src/addresses'
@@ -390,11 +390,10 @@ export function useInitialCurrencyState(): {
       return resolvedAddress
     }
 
-    // Default to cUSD when no output currency is specified
+    // Default to JUSD when no output currency is specified
     if (!hasCurrencyQueryParams) {
-      // For Citrea Testnet, default to cUSD
-      if (initialChainId === UniverseChainId.CitreaTestnet || initialChainId === UniverseChainId.Sepolia) {
-        return '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0' // cUSD
+      if (initialChainId === UniverseChainId.CitreaTestnet) {
+        return JUSD_ADDRESSES[initialChainId]
       }
     }
 
