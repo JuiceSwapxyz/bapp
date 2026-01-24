@@ -160,11 +160,7 @@ export function useRemoveLiquidityTxAndGasInfo({ account }: { account?: string }
     deadlineInMinutes: customDeadline,
     refetchInterval: transactionError ? false : 5 * ONE_SECOND_MS,
     retry: false,
-    enabled:
-      !isUserCommittedToDecrease &&
-      !!decreaseCalldataQueryParams &&
-      !approvalLoading &&
-      !approvalError,
+    enabled: !isUserCommittedToDecrease && !!decreaseCalldataQueryParams && !approvalLoading && !approvalError,
   })
 
   useEffect(() => {
