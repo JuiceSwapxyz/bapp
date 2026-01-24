@@ -12,7 +12,8 @@ import {
   isErc20ChainSwapQuote,
   isLnBitcoinBridgeQuote,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
-import { swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
+import { swappableTokensData, swappableTokensMappping } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
+import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 import {
   ApprovalRequest,
   ApprovalResponse,
@@ -69,6 +70,7 @@ import {
   GasStrategy,
   LightningBridgeDirection,
   LightningInvoice,
+  PoolDetailsResponse,
 } from 'uniswap/src/data/tradingApi/types'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
@@ -451,6 +453,17 @@ const getLightningBridgeQuote = async (params: QuoteRequest): Promise<Discrimina
   return response
 }
 
+function getTokenDecimals(chainId: ChainId, address: string): number {
+  const normalizedAddress = address.toLowerCase()
+
+  const match = Object.values(swappableTokensData)
+    .flatMap(sourceTokens => Object.values(sourceTokens))
+    .flat()
+    .find((target) => target.chainId === chainId && target.address.toLowerCase() === normalizedAddress)
+
+  return match?.decimals ?? 18
+}
+
 async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuoteResponse> {
   const ldsBridge = getLdsBridgeManager()
   const direction =
@@ -478,52 +491,18 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
   const chainPairs = await ldsBridge.getChainPairs()
   const pairInfo = chainPairs[from]?.[to]
 
-  if (!pairInfo)
+  if (!pairInfo) {
     throw new Error(`Pair not found: ${from} -> ${to}. Available pairs: ${JSON.stringify(Object.keys(chainPairs))}`)
-
-  // Boltz uses 8 decimals internally
-  // USDT has 6 decimals, JUSD has 18 decimals
-  // Conversion factors:
-  // - USDT (6) → Boltz (8): * 10^2 = * 100
-  // - Boltz (8) → JUSD (18): * 10^10
-  // - JUSD (18) → Boltz (8): / 10^10
-  // - Boltz (8) → USDT (6): / 10^2 = / 100
-  const BOLTZ_DECIMALS = 8
-  const USDT_DECIMALS = 6
-  const JUSD_DECIMALS = 18
-
-  const isInputUsdt = from === 'USDT_POLYGON' || from === 'USDT_ETH'
-  const isOutputUsdt = to === 'USDT_POLYGON' || to === 'USDT_ETH'
-
-  const inputDecimals = isInputUsdt ? USDT_DECIMALS : JUSD_DECIMALS
-  const outputDecimals = isOutputUsdt ? USDT_DECIMALS : JUSD_DECIMALS
-
-  const inputAmount = BigInt(params.amount)
-
-  // Convert input to Boltz 8-decimal format
-  let inputAmountBoltz: bigint
-  if (inputDecimals < BOLTZ_DECIMALS) {
-    // e.g., USDT 6 → Boltz 8: multiply by 10^2
-    inputAmountBoltz = inputAmount * BigInt(10 ** (BOLTZ_DECIMALS - inputDecimals))
-  } else {
-    // e.g., JUSD 18 → Boltz 8: divide by 10^10
-    inputAmountBoltz = inputAmount / BigInt(10 ** (inputDecimals - BOLTZ_DECIMALS))
   }
 
-  // Calculate fees in Boltz 8-decimal format
-  const feePercent = pairInfo.fees.percentage / 100
-  const minerFee = BigInt(pairInfo.fees.minerFees.server + pairInfo.fees.minerFees.user.claim)
-  const outputAmountBoltz = inputAmountBoltz - BigInt(Math.floor(Number(inputAmountBoltz) * feePercent)) - minerFee
+  const inputDecimals = getTokenDecimals(params.tokenInChainId, params.tokenIn)
+  const outputDecimals = getTokenDecimals(params.tokenOutChainId, params.tokenOut)
 
-  // Convert output from Boltz 8-decimal to output token decimals
-  let outputAmount: bigint
-  if (outputDecimals < BOLTZ_DECIMALS) {
-    // e.g., Boltz 8 → USDT 6: divide by 10^2
-    outputAmount = outputAmountBoltz / BigInt(10 ** (BOLTZ_DECIMALS - outputDecimals))
-  } else {
-    // e.g., Boltz 8 → JUSD 18: multiply by 10^10
-    outputAmount = outputAmountBoltz * BigInt(10 ** (outputDecimals - BOLTZ_DECIMALS))
-  }
+  const outputAmount = adjustAmountForDecimals({
+    amount: params.amount,
+    inputDecimals,
+    outputDecimals,
+  })
 
   const bridgeQuote: BridgeQuote = {
     quoteId: `erc20-chain-swap-${Date.now()}`,
@@ -533,7 +512,7 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
     direction,
     input: {
       token: params.tokenIn,
-      amount: inputAmount.toString(),
+      amount: params.amount,
     },
     output: {
       token: params.tokenOut,
@@ -576,15 +555,17 @@ export async function fetchQuote({
   isUSDQuote: _isUSDQuote,
   ...params
 }: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  if (isBitcoinBridgeQuote(params)) {
+  const crossChainSwapsEnabled = isCrossChainSwapsEnabled()
+
+  if (crossChainSwapsEnabled && isBitcoinBridgeQuote(params)) {
     return await getBitcoinCrossChainQuote(params)
   }
 
-  if (isLnBitcoinBridgeQuote(params)) {
+  if (crossChainSwapsEnabled && isLnBitcoinBridgeQuote(params)) {
     return await getLightningBridgeQuote(params)
   }
 
-  if (isErc20ChainSwapQuote(params)) {
+  if (crossChainSwapsEnabled && isErc20ChainSwapQuote(params)) {
     return await getErc20ChainSwapQuote(params)
   }
 
@@ -879,6 +860,14 @@ export async function fetchOrdersWithoutIds({
 }
 
 export async function fetchSwappableTokens(params: SwappableTokensParams): Promise<GetSwappableTokensResponse> {
+  // Only return bridge tokens if cross-chain swaps are enabled
+  if (!isCrossChainSwapsEnabled()) {
+    return {
+      requestId: Math.random().toString(36).substring(2, 15),
+      tokens: [],
+    }
+  }
+
   const { tokenIn, tokenInChainId } = params
   const tokens = swappableTokensMappping[tokenInChainId]?.[tokenIn] ?? []
 
@@ -1127,6 +1116,14 @@ export async function checkWalletDelegation(
 
 export async function validateLightningAddress(params: { lnLikeAddress: string }): Promise<{ validated: boolean }> {
   return await TradingApiClient.post<{ validated: boolean }>('/v1/lightning/validate', {
+    body: JSON.stringify({
+      ...params,
+    }),
+  })
+}
+
+export async function fetchV3PoolDetails(params: { address: string; chainId: number }): Promise<PoolDetailsResponse> {
+  return await TradingApiClient.post<PoolDetailsResponse>('/v1/pools/v3/details', {
     body: JSON.stringify({
       ...params,
     }),

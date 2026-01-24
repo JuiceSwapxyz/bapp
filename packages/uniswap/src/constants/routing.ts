@@ -49,8 +49,15 @@ import { CITREA_TESTNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo, TokenList } from 'uniswap/src/features/dataApi/types'
 import { buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
+import { getJusdAddress, isJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { isNativeCurrencyAddress } from 'uniswap/src/utils/currencyId'
 import { isSameAddress } from 'utilities/src/addresses'
+
+// JUSD token for Citrea Testnet - used in COMMON_BASES
+const JUSD_CITREA_ADDRESS = getJusdAddress(UniverseChainId.CitreaTestnet)
+const JUSD_CITREA = JUSD_CITREA_ADDRESS
+  ? new Token(UniverseChainId.CitreaTestnet, JUSD_CITREA_ADDRESS, 18, 'JUSD', 'Juice Dollar')
+  : undefined
 
 type ChainCurrencyList = {
   readonly [chainId: number]: CurrencyInfo[]
@@ -166,6 +173,7 @@ export const COMMON_BASES: ChainCurrencyList = {
     nativeOnChain(UniverseChainId.CitreaTestnet),
     WRAPPED_NATIVE_CURRENCY[UniverseChainId.CitreaTestnet] as Token,
     CITREA_TESTNET_CHAIN_INFO.tokens.USDC,
+    ...(JUSD_CITREA ? [JUSD_CITREA] : []),
   ].map(buildPartialCurrencyInfo),
 
   [UniverseChainId.Bitcoin]: [
@@ -208,6 +216,11 @@ function getTokenLogoURI(chainId: UniverseChainId, address: string): ImageSource
   }
   if (chainId === UniverseChainId.Celo && isSameAddress(address, PORTAL_ETH_CELO.address)) {
     return ETH_LOGO as ImageSourcePropType
+  }
+
+  // JuiceSwap tokens - use custom logo URLs
+  if (isJusdAddress(chainId, address)) {
+    return 'https://docs.juiceswap.com/media/icons/jusd.png'
   }
 
   return networkName

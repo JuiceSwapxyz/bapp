@@ -292,9 +292,7 @@ function getDefaultChainId({
     return UniverseChainId.Sepolia
   }
 
-  // Default to mainnet for production
-  // All platforms now use EVM chains, so platform parameter is unused
-  return UniverseChainId.Mainnet
+  return UniverseChainId.CitreaTestnet
 }
 
 /** Returns all stablecoins for a given chainId. */

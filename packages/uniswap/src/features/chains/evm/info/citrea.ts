@@ -41,10 +41,10 @@ const citreaTestnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
     public: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
   },
   blockExplorers: {
@@ -93,16 +93,16 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   pendingTransactionsRetryOptions: undefined,
   rpcUrls: {
     [RPCType.Public]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
     [RPCType.Default]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
     [RPCType.Fallback]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
     [RPCType.Interface]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
   },
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(testnetTokens.USDC, 100e6),

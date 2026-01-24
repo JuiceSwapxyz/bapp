@@ -1,5 +1,6 @@
 import ErrorBoundary from 'components/ErrorBoundary'
 import { useFeatureFlagUrlOverrides } from 'featureFlags/useFeatureFlagUrlOverrides'
+import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { Body } from 'pages/App/Body'
 import { AppLayout } from 'pages/App/Layout'
 import { ResetPageScrollEffect } from 'pages/App/utils/ResetPageScroll'
@@ -27,6 +28,7 @@ export default function App() {
   const currentPage = getCurrentPageFromLocation(pathname)
 
   useFeatureFlagUrlOverrides()
+  useCrossChainSwapsEnabled() // Handle ?cross-chain-swaps=true/false URL parameter
 
   useEffect(() => {
     initializeScrollWatcher()

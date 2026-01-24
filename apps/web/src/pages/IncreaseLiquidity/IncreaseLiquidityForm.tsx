@@ -44,8 +44,8 @@ export function IncreaseLiquidityForm() {
 
   const { currency0Amount: initialCurrency0Amount, currency1Amount: initialCurrency1Amount } = position
 
-  const canUnwrap0 = unwrapNativeCurrency && canUnwrapCurrency(initialCurrency0Amount.currency, position.version)
-  const canUnwrap1 = unwrapNativeCurrency && canUnwrapCurrency(initialCurrency1Amount.currency, position.version)
+  const canUnwrap0 = canUnwrapCurrency(initialCurrency0Amount.currency, position.version)
+  const canUnwrap1 = canUnwrapCurrency(initialCurrency1Amount.currency, position.version)
 
   const nativeCurrency = nativeOnChain(position.chainId)
 

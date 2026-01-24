@@ -86,6 +86,7 @@ export function IncreaseLiquidityTxContextProvider({ children }: PropsWithChildr
       token1: getTokenOrZeroAddress(positionInfo.currency1Amount.currency),
       amount0: currencyAmounts.TOKEN0.quotient.toString(),
       amount1: currencyAmounts.TOKEN1.quotient.toString(),
+      tokenId: positionInfo.tokenId ? Number(positionInfo.tokenId) : undefined,
       generatePermitAsTransaction:
         positionInfo.version === ProtocolVersion.V4 ? generatePermitAsTransaction : undefined,
     }
