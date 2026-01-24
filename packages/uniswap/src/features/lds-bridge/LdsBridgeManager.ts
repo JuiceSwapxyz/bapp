@@ -235,8 +235,6 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
 
     // Wait for Ponder to confirm lockup before claiming.
-    // Ponder-claim (the server that executes claims) needs to index the lockup first,
-    // even though WebSocket already confirmed the Boltz server lockup.
     const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
     await ponderPromise
     cancelPonderPolling()
