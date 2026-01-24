@@ -38,7 +38,7 @@ import { isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, SwapConfigKey } from 'uniswap/src/features/gating/configs'
 import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
-import { getSvJusdAddress, isJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { getSvJusdAddress, isJusdAddress, isSusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import type { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import {
   BitcoinBridgeTrade,
@@ -466,12 +466,13 @@ export function validateTrade({
     return null
   }
 
-  // Helper to normalize JUSD ↔ svJUSD addresses for comparison
-  // Users see JUSD in the UI, but the API returns routes using svJUSD
+  // Helper to normalize JUSD/SUSD ↔ svJUSD addresses for comparison
+  // Users see JUSD/SUSD in the UI, but the API returns routes using svJUSD
   const normalizeAddress = (address: string, chainId: number): string => {
     const universeChainId = chainId as UniverseChainId
-    // If this is JUSD, normalize to svJUSD for comparison
-    if (isJusdAddress(universeChainId, address)) {
+    // If this is JUSD or SUSD, normalize to svJUSD for comparison
+    // (SUSD is routed through Gateway via addBridgedToken, which converts to svJUSD)
+    if (isJusdAddress(universeChainId, address) || isSusdAddress(universeChainId, address)) {
       return getSvJusdAddress(universeChainId) ?? address
     }
     return address

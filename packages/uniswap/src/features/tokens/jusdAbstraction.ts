@@ -88,6 +88,17 @@ export function isJuiceAddress(chainId: UniverseChainId, address: string): boole
 }
 
 /**
+ * Check if an address is the SUSD (StartUSD) token on a given chain
+ */
+export function isSusdAddress(chainId: UniverseChainId, address: string): boolean {
+  const susdAddress = SUSD_ADDRESSES[chainId]
+  if (!susdAddress) {
+    return false
+  }
+  return address.toLowerCase() === susdAddress.toLowerCase()
+}
+
+/**
  * Check if a chain has JuiceDollar integration
  */
 export function hasJuiceDollarIntegration(chainId: UniverseChainId): boolean {
