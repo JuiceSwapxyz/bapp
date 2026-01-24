@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from 'playwright/fixtures'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 
 // Viewport sizes for visual regression testing
