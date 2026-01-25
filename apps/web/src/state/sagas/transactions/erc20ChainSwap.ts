@@ -141,7 +141,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     from = 'JUSD_CITREA'
     to = isUsdcOutput ? 'USDC_ETH' : 'USDT_ETH'
   } else {
-    // Fallback for CitreaToEthereum (default to USDT)
+    // Fallback (should not be reached if all directions are handled)
     from = 'JUSD_CITREA'
     to = 'USDT_ETH'
   }
