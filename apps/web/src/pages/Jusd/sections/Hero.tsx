@@ -20,6 +20,7 @@ const LogoContainer = styled(Flex, {
   marginBottom: '$spacing16',
 })
 
+// TODO: Remove 'as any' type casts - extend Text component types to support gradient styling props
 const GradientTitle = styled(
   Text as any,
   {
@@ -114,6 +115,7 @@ export function Hero() {
   return (
     <HeroContainer>
       <LogoContainer>
+        {/* TODO: Move logo to local assets under /images/jusd/ instead of external URL */}
         <img
           src="https://app.testnet.juicedollar.com/coin/jusd.svg"
           alt={t('jusd.hero.imageAlt')}

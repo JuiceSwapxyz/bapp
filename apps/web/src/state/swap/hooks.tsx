@@ -119,6 +119,7 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
   }
 
   if (symbolUpper === 'WBTC') {
+    // TODO: Move WBTC address to chain config (chainInfo.tokens.WBTC) instead of hardcoding
     // WBTC address on Ethereum mainnet
     if (chainId === UniverseChainId.Mainnet) {
       return '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
@@ -149,6 +150,7 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
   }
 
   if (symbolUpper === 'JUSD') {
+    // TODO: Extend ChainInfo token types to include JUSD - remove 'as any' cast
     return (chainInfo.tokens as any).JUSD?.address
   }
 
@@ -208,6 +210,7 @@ function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Cu
     return chainInfo.tokens.USDT
   }
 
+  // TODO: Extend ChainInfo token types to include JUSD - remove 'as any' cast
   const jusdToken = (chainInfo.tokens as any).JUSD as Token | undefined
   if (jusdToken?.address.toLowerCase() === normalizedAddress) {
     return jusdToken
@@ -228,6 +231,7 @@ function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: 
     return 'USDT'
   }
 
+  // TODO: Extend ChainInfo token types to include JUSD - remove 'as any' cast
   const jusdToken = (chainInfo.tokens as any).JUSD as Token | undefined
   if (jusdToken?.address.toLowerCase() === normalizedAddress) {
     return 'JUSD'
