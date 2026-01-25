@@ -280,21 +280,12 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             <CoinBubble src={COIN_BUBBLE_ASSETS.usdc} alt="USDC" size={55} onClick={handleUsdcClick} />
           </BubblePosition>
 
-          {/* Inside the wave - 6 bubbles */}
+          {/* Inside the wave - 4 bubbles */}
           <BubblePosition left="11.9%" top={178} delay={0}>
             <CoinBubble
               src={COIN_BUBBLE_ASSETS.waveBtcLarge}
               alt="cBTC"
               size={120}
-              variant="wave"
-              onClick={handleCbtcClick}
-            />
-          </BubblePosition>
-          <BubblePosition left="8.5%" top={325} delay={4}>
-            <CoinBubble
-              src={COIN_BUBBLE_ASSETS.waveBtcSmall}
-              alt="cBTC"
-              size={70}
               variant="wave"
               onClick={handleCbtcClick}
             />
@@ -315,15 +306,6 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
               size={80}
               variant="wave"
               onClick={handleJuiceClick}
-            />
-          </BubblePosition>
-          <BubblePosition right="5.7%" top={272} delay={3}>
-            <CoinBubble
-              src={COIN_BUBBLE_ASSETS.waveUsdSmall}
-              alt="JUSD"
-              size={80}
-              variant="wave"
-              onClick={handleJusdClick}
             />
           </BubblePosition>
           <BubblePosition right="9.9%" top={129} delay={1}>
