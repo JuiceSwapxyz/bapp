@@ -1,7 +1,7 @@
 <svg preserveAspectRatio="xMidYMid meet" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="wbtc-eth">
 <!-- wBTC symbol (centered in viewBox) -->
-<circle cx="21" cy="21" r="21" fill="white"/>
+<circle cx="21" cy="21" r="21" fill="white" fill-opacity="0.15"/>
 <path d="M34.25 8.8L33.1 9.96C38.8 16.2 38.8 25.78 33.1 32.02L34.25 33.17C40.6 26.3 40.6 15.68 34.25 8.77V8.8Z" fill="#5A5564"/>
 <path d="M10 8.9C16.24 3.19 25.8 3.19 32.04 8.9L33.19 7.75C26.32 1.39 15.69 1.39 8.79 7.75L10 8.9Z" fill="#5A5564"/>
 <path d="M8.9 32.02C3.2 25.79 3.2 16.22 8.9 10L7.75 8.84C1.39 15.71 1.39 26.34 7.75 33.24L8.9 32.02Z" fill="#5A5564"/>
@@ -10,6 +10,7 @@
 <path d="M21 42C9.4 41.99 0 32.6 0 21C0 9.4 9.4 0 21.01 0C32.61 0 42.01 9.4 42.01 21C42.01 32.6 32.61 41.99 21.01 42H21ZM21 1.64C10.32 1.65 1.65 10.33 1.66 21.01C1.67 31.69 10.35 40.36 21.03 40.35C31.71 40.34 40.38 31.67 40.38 21C40.38 10.32 31.71 1.64 21.02 1.64C21.01 1.64 21 1.64 21 1.64Z" fill="#282138"/>
 <!-- ETH diamond badge (overflows viewBox, positioned bottom-right) -->
 <g id="eth-diamond">
+<circle cx="33.6" cy="31" r="8.5" fill="white"/>
 <path d="M33.6088 23.2527L33.5068 23.5994V33.6593L33.6088 33.7611L38.2886 31.0008L33.6088 23.2527Z" fill="var(--fill-0, #8498E7)"/>
 <path d="M33.6105 23.2528L28.9307 31.0009L33.6105 33.7612V28.8785V23.2528Z" fill="var(--fill-0, #A4B1ED)"/>
 <path d="M33.6088 34.6451L33.5513 34.7151V38.2987L33.6088 38.4666L38.2915 31.8862L33.6088 34.6451Z" fill="var(--fill-0, #8093E5)"/>

@@ -252,7 +252,12 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
         <CoinBubblesContainer>
           {/* Above the wave - 6 bubbles (positions and sizes match Figma) */}
           <BubblePosition left="6.7%" top={-78} delay={0}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.btcChain} alt="Bitcoin Chain" size={85} onClick={handleBtcChainClick} />
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.btcChain}
+              alt="Bitcoin Chain"
+              size={170}
+              onClick={handleBtcChainClick}
+            />
           </BubblePosition>
           <BubblePosition left="13.5%" top={-112} delay={2}>
             <CoinBubble
@@ -274,7 +279,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="wBTC+ETH" size={80} onClick={handleWbtcEthClick} />
           </BubblePosition>
           <BubblePosition right="16.8%" top={-38} delay={4}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={60} onClick={handleTetherClick} />
+            <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={120} onClick={handleTetherClick} />
           </BubblePosition>
           <BubblePosition right="5.8%" top={-35} delay={5}>
             <CoinBubble src={COIN_BUBBLE_ASSETS.usdc} alt="USDC" size={55} onClick={handleUsdcClick} />

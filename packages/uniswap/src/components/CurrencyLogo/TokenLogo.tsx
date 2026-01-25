@@ -49,6 +49,10 @@ export const TokenLogo = memo(function _TokenLogo({
       NUSD: 'https://docs.juiceswap.com/media/icons/nusd.png',
       TFC: 'https://docs.juiceswap.com/media/icons/tfc.png',
       USDC: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+      // L0 bridged tokens (LayerZero)
+      'WBTC.e': 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
+      'USDC.e': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+      'USDT.e': 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
     }
     if (symbol && tokenLogoOverrides[symbol]) {
       logoUrl = tokenLogoOverrides[symbol]
