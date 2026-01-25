@@ -45,8 +45,9 @@ export function useTokenBalanceWithBuffer(currencyBalance: Maybe<CurrencyAmount<
 }
 
 export function useDepositInfo(state: UseDepositInfoProps): DepositInfo {
-  const bufferPercentage = useNativeTokenPercentageBufferExperiment()
   const { protocolVersion, address, token0, token1, exactField, exactAmounts } = state
+  const chainId = token0?.chainId ?? token1?.chainId
+  const bufferPercentage = useNativeTokenPercentageBufferExperiment(chainId)
 
   const { balance: token0Balance } = useOnChainCurrencyBalance(token0, address)
   const { balance: token1Balance } = useOnChainCurrencyBalance(token1, address)
