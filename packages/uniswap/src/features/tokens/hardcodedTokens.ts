@@ -111,6 +111,43 @@ const polygonUsdtCurrency = {
   logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
 }
 
+// L0 bridged tokens on Citrea (from Ethereum via LayerZero)
+const citreaWbtceCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaTestnet,
+    address: '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d',
+    decimals: 8,
+    symbol: 'WBTC.e',
+    name: 'Wrapped BTC (LayerZero)',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaTestnet}-0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d`,
+  logoUrl: 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
+}
+
+const citreaUsdceCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaTestnet,
+    address: '0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839',
+    decimals: 6,
+    symbol: 'USDC.e',
+    name: 'USD Coin (LayerZero)',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaTestnet}-0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839`,
+  logoUrl: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+}
+
+const citreaUsdteCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaTestnet,
+    address: '0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4',
+    decimals: 6,
+    symbol: 'USDT.e',
+    name: 'Tether USD (LayerZero)',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaTestnet}-0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4`,
+  logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+}
+
 export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaNativeCurrency,
   citreaWrappedNativeCurrency,
@@ -121,6 +158,10 @@ export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaUsdcCurrency,
   citreaCusdCurrency,
   citreaNusdCurrency,
+  // L0 bridged tokens
+  citreaWbtceCurrency,
+  citreaUsdceCurrency,
+  citreaUsdteCurrency,
 ]
 
 export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
@@ -185,6 +226,10 @@ export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
     currencyId: `${UniverseChainId.Polygon}-0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
     logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
   },
+  // L0 bridged tokens on Citrea
+  citreaWbtceCurrency,
+  citreaUsdceCurrency,
+  citreaUsdteCurrency,
 ]
 
 /**
