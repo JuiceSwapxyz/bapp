@@ -8827,23 +8827,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@juiceswapxyz/router-sdk@npm:0.1.4-beta.0":
-  version: 0.1.4-beta.0
-  resolution: "@juiceswapxyz/router-sdk@npm:0.1.4-beta.0"
+"@juiceswapxyz/router-sdk@npm:0.1.5-beta.0":
+  version: 0.1.5-beta.0
+  resolution: "@juiceswapxyz/router-sdk@npm:0.1.5-beta.0"
   dependencies:
     "@ethersproject/abi": ^5.5.0
-    "@juiceswapxyz/sdk-core": 0.1.5-beta.0
-    "@juiceswapxyz/v2-sdk": 0.1.2-beta.0
-    "@juiceswapxyz/v3-sdk": 0.1.3-beta.0
-    "@juiceswapxyz/v4-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/sdk-core": 0.1.11-beta.0
+    "@juiceswapxyz/v2-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/v3-sdk": 0.1.4-beta.0
+    "@juiceswapxyz/v4-sdk": 0.1.4-beta.0
     "@uniswap/swap-router-contracts": ^1.3.0
-  checksum: 442837468d630b1b29481b1e9033af70bc6f23a3c6f8719a91ef834bcf2b00ecd955fdc80683476bbdcacf681989341a3f1e141c22e596bf4bb71b4dbea1b476
+  checksum: e332ea001763f3e7749a51a2876270d6bb3df217de8292b9ab7e14f15ef1325b164d97a1be137dbdc73e64f1e09fb1dda24a0b140140d5792e1db784dd3614a1
   languageName: node
   linkType: hard
 
-"@juiceswapxyz/sdk-core@npm:0.1.8-beta.0":
-  version: 0.1.8-beta.0
-  resolution: "@juiceswapxyz/sdk-core@npm:0.1.8-beta.0"
+"@juiceswapxyz/sdk-core@npm:0.1.11-beta.0":
+  version: 0.1.11-beta.0
+  resolution: "@juiceswapxyz/sdk-core@npm:0.1.11-beta.0"
   dependencies:
     "@ethersproject/address": ^5.0.2
     "@ethersproject/bytes": ^5.7.0
@@ -8854,32 +8854,32 @@ __metadata:
     jsbi: ^3.1.4
     tiny-invariant: ^1.1.0
     toformat: ^2.0.0
-  checksum: 6df9898b2131fa87235b02f77e1c2d375436a0cce8cb6810dfdf0be9b2b748a5b7f0481f4286e19774e7860772a3e561f4d546ba63cc2ac885cd9d5f5c73c802
+  checksum: a82d957014ddafc8e307883efb2cd89f743247d14d8425ed491ad14ddfc3416bb94554c9a66e47d6d19ae2bdc42786059a0aaf590ebadd9a027cc362b264e4e1
   languageName: node
   linkType: hard
 
-"@juiceswapxyz/uniswapx-sdk@npm:0.1.2-beta.0":
-  version: 0.1.2-beta.0
-  resolution: "@juiceswapxyz/uniswapx-sdk@npm:0.1.2-beta.0"
+"@juiceswapxyz/uniswapx-sdk@npm:0.1.3-beta.0":
+  version: 0.1.3-beta.0
+  resolution: "@juiceswapxyz/uniswapx-sdk@npm:0.1.3-beta.0"
   dependencies:
     "@ethersproject/bytes": ^5.7.0
     "@ethersproject/providers": ^5.7.0
-    "@juiceswapxyz/sdk-core": 0.1.5-beta.0
+    "@juiceswapxyz/sdk-core": 0.1.11-beta.0
     "@uniswap/permit2-sdk": ^1.2.1
     ethers: ^5.7.0
-  checksum: 5b0912d2e8fcf16b25b8a8409f5595da7f7571d1047b9a4510be3b4b60f6fa97f3cf5e8230d0143eb33f5ab3132c0a895e4f9fd017c5e2732c55d77bc9930dda
+  checksum: cc65d46ebce747bc40a8ee5410e5b74d3bfa57b885dbda4d298daeed9f09abd1cd5aee9ad76fdd65ba08fe44449bcfc03d0530cbe41d78b60ac98ee6219a4188
   languageName: node
   linkType: hard
 
-"@juiceswapxyz/universal-router-sdk@npm:0.1.5-beta.0":
-  version: 0.1.5-beta.0
-  resolution: "@juiceswapxyz/universal-router-sdk@npm:0.1.5-beta.0"
+"@juiceswapxyz/universal-router-sdk@npm:0.1.6-beta.0":
+  version: 0.1.6-beta.0
+  resolution: "@juiceswapxyz/universal-router-sdk@npm:0.1.6-beta.0"
   dependencies:
-    "@juiceswapxyz/router-sdk": 0.1.4-beta.0
-    "@juiceswapxyz/sdk-core": 0.1.5-beta.0
-    "@juiceswapxyz/v2-sdk": 0.1.2-beta.0
-    "@juiceswapxyz/v3-sdk": 0.1.3-beta.0
-    "@juiceswapxyz/v4-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/router-sdk": 0.1.5-beta.0
+    "@juiceswapxyz/sdk-core": 0.1.11-beta.0
+    "@juiceswapxyz/v2-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/v3-sdk": 0.1.4-beta.0
+    "@juiceswapxyz/v4-sdk": 0.1.4-beta.0
     "@openzeppelin/contracts": 4.7.0
     "@uniswap/permit2-sdk": ^1.3.0
     "@uniswap/universal-router": 2.0.0-beta.2
@@ -8887,49 +8887,49 @@ __metadata:
     "@uniswap/v3-core": 1.0.0
     bignumber.js: ^9.0.2
     ethers: ^5.7.0
-  checksum: fd729abca8bf4bf9770d80fded4a480896dc41b51914e90a4952b6fd971e7240ffa5f10165a1b549bee6853da16409222a7cb0c4b126eb6d4ede7e7a556d9355
+  checksum: 59d2ecc2adb288300d8f71c3919dfc1261ba26c969ca2b9f2f6975267f8695a2972d80a6db66e19a901857556a6e798a30a0dc53415f449c3d85856aa5f61e98
   languageName: node
   linkType: hard
 
-"@juiceswapxyz/v2-sdk@npm:0.1.2-beta.0":
-  version: 0.1.2-beta.0
-  resolution: "@juiceswapxyz/v2-sdk@npm:0.1.2-beta.0"
+"@juiceswapxyz/v2-sdk@npm:0.1.3-beta.0":
+  version: 0.1.3-beta.0
+  resolution: "@juiceswapxyz/v2-sdk@npm:0.1.3-beta.0"
   dependencies:
     "@ethersproject/address": ^5.0.2
     "@ethersproject/solidity": ^5.0.9
-    "@juiceswapxyz/sdk-core": 0.1.5-beta.0
+    "@juiceswapxyz/sdk-core": 0.1.11-beta.0
     tiny-invariant: ^1.1.0
     tiny-warning: ^1.0.3
-  checksum: 18065a699d703c2bb357f853764b864c4ee8dd95ebbbaa5fb5f3ec14fa40010c6bb19b64265507bf15d544402e814724a81f2f6eb258fcd81fcca0e88b542a02
+  checksum: 6631c8519bf7172a9182d548dcef8171ba151fdfd58e6da49fbd88ed553df629eb73a7ccae71db294114e8beffcf91ed16226d7569297b1a744abd6df8e58b37
   languageName: node
   linkType: hard
 
-"@juiceswapxyz/v3-sdk@npm:0.1.3-beta.0":
-  version: 0.1.3-beta.0
-  resolution: "@juiceswapxyz/v3-sdk@npm:0.1.3-beta.0"
+"@juiceswapxyz/v3-sdk@npm:0.1.4-beta.0":
+  version: 0.1.4-beta.0
+  resolution: "@juiceswapxyz/v3-sdk@npm:0.1.4-beta.0"
   dependencies:
     "@ethersproject/abi": ^5.5.0
     "@ethersproject/solidity": ^5.0.9
-    "@juiceswapxyz/sdk-core": 0.1.5-beta.0
+    "@juiceswapxyz/sdk-core": 0.1.11-beta.0
     "@uniswap/swap-router-contracts": ^1.3.0
     "@uniswap/v3-periphery": ^1.1.1
     "@uniswap/v3-staker": 1.0.0
     tiny-invariant: ^1.1.0
     tiny-warning: ^1.0.3
-  checksum: 05279e1d2613abbf958b9380386b2d1057046544decb20ab7d67040134db1b14808ed38aadadffe4aec31ee69bd7dcbb34b259ad82c06c0a8bdd42e954b13670
+  checksum: 2414b3d69a104890026370424ac3fb1e51816027fd3403c2e0d81030fdc1b1075a7382c45e31b6d103d6f41417defc65bfacb07163ce7cc0fb1de451fa1d99d5
   languageName: node
   linkType: hard
 
-"@juiceswapxyz/v4-sdk@npm:0.1.3-beta.0":
-  version: 0.1.3-beta.0
-  resolution: "@juiceswapxyz/v4-sdk@npm:0.1.3-beta.0"
+"@juiceswapxyz/v4-sdk@npm:0.1.4-beta.0":
+  version: 0.1.4-beta.0
+  resolution: "@juiceswapxyz/v4-sdk@npm:0.1.4-beta.0"
   dependencies:
     "@ethersproject/solidity": ^5.0.9
-    "@juiceswapxyz/sdk-core": 0.1.5-beta.0
-    "@juiceswapxyz/v3-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/sdk-core": 0.1.11-beta.0
+    "@juiceswapxyz/v3-sdk": 0.1.4-beta.0
     tiny-invariant: ^1.1.0
     tiny-warning: ^1.0.3
-  checksum: fbe5e6dc91d9c8025e287232afbbb1b8c244d9324b385baed106bb24ce16871744e821de8c0bdd9393a024a8d4395a53f616ea7dfbdd5c111051a6be95b23c2a
+  checksum: 1438717f5e7d920e497c2e648b3661b1ef5de886699e872831f363b087d9d440cbd4fa46ae118c1ee9acaf047e0bcd73577ab5d672c7a64a8dcb25326914dc4c
   languageName: node
   linkType: hard
 
@@ -17903,13 +17903,13 @@ __metadata:
     "@graphql-codegen/typescript-resolvers": 3.2.1
     "@juggle/resize-observer": 3.4.0
     "@juiceswapxyz/launchpad": 2.1.0
-    "@juiceswapxyz/router-sdk": 0.1.4-beta.0
-    "@juiceswapxyz/sdk-core": 0.1.8-beta.0
-    "@juiceswapxyz/uniswapx-sdk": 0.1.2-beta.0
-    "@juiceswapxyz/universal-router-sdk": 0.1.5-beta.0
-    "@juiceswapxyz/v2-sdk": 0.1.2-beta.0
-    "@juiceswapxyz/v3-sdk": 0.1.3-beta.0
-    "@juiceswapxyz/v4-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/router-sdk": 0.1.5-beta.0
+    "@juiceswapxyz/sdk-core": 0.1.11-beta.0
+    "@juiceswapxyz/uniswapx-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/universal-router-sdk": 0.1.6-beta.0
+    "@juiceswapxyz/v2-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/v3-sdk": 0.1.4-beta.0
+    "@juiceswapxyz/v4-sdk": 0.1.4-beta.0
     "@noble/hashes": 2.0.1
     "@playwright/test": 1.49.1
     "@popperjs/core": 2.11.8
@@ -48263,12 +48263,12 @@ __metadata:
     "@graphql-tools/merge": 9.0.1
     "@graphql-tools/mock": 9.0.0
     "@juicedollar/jusd": ^1.0.6
-    "@juiceswapxyz/router-sdk": 0.1.4-beta.0
-    "@juiceswapxyz/sdk-core": 0.1.8-beta.0
-    "@juiceswapxyz/uniswapx-sdk": 0.1.2-beta.0
-    "@juiceswapxyz/v2-sdk": 0.1.2-beta.0
-    "@juiceswapxyz/v3-sdk": 0.1.3-beta.0
-    "@juiceswapxyz/v4-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/router-sdk": 0.1.5-beta.0
+    "@juiceswapxyz/sdk-core": 0.1.11-beta.0
+    "@juiceswapxyz/uniswapx-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/v2-sdk": 0.1.3-beta.0
+    "@juiceswapxyz/v3-sdk": 0.1.4-beta.0
+    "@juiceswapxyz/v4-sdk": 0.1.4-beta.0
     "@react-native-community/netinfo": 11.4.1
     "@react-navigation/core": 7.9.2
     "@redux-devtools/extension": 3.3.0
@@ -48857,7 +48857,7 @@ __metadata:
     "@ethersproject/constants": 5.7.0
     "@ethersproject/contracts": 5.7.0
     "@ethersproject/providers": 5.7.2
-    "@juiceswapxyz/sdk-core": 0.1.8-beta.0
+    "@juiceswapxyz/sdk-core": 0.1.11-beta.0
     "@react-native-community/netinfo": 11.4.1
     "@react-navigation/core": 7.9.2
     "@storybook/react": 8.5.2
