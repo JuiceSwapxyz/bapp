@@ -161,7 +161,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
     ],
     [USDC_ETHEREUM]: [
       {
-        address: JUSD_CITREA,
+        address: JUSD_CITREA_TESTNET,
         chainId: ChainId._5115,
         name: 'JuiceSwap USD',
         project: {
