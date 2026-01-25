@@ -66,21 +66,24 @@ export function HowItWorks() {
   const colors = useSporeColors()
   const { t } = useTranslation()
 
-  const bridgeHeaders = ['Feature', 'Description']
+  const bridgeHeaders = [t('jusd.howItWorks.bridges.table.feature'), t('jusd.howItWorks.bridges.table.description')]
   const bridgeRows = [
-    ['Exchange Rate', '1:1 with source stablecoin'],
-    ['Volume Limit', 'Capped per bridge to limit exposure'],
-    ['Time Horizon', 'Bridges expire after ~1 year'],
-    ['Emergency Stop', '10% voting power can halt a compromised bridge'],
+    [t('jusd.howItWorks.bridges.exchangeRate'), t('jusd.howItWorks.bridges.exchangeRate.desc')],
+    [t('jusd.howItWorks.bridges.volumeLimit'), t('jusd.howItWorks.bridges.volumeLimit.desc')],
+    [t('jusd.howItWorks.bridges.timeHorizon'), t('jusd.howItWorks.bridges.timeHorizon.desc')],
+    [t('jusd.howItWorks.bridges.emergencyStop'), t('jusd.howItWorks.bridges.emergencyStop.desc')],
   ]
 
-  const positionHeaders = ['Parameter', 'Description']
+  const positionHeaders = [
+    t('jusd.howItWorks.position.table.parameter'),
+    t('jusd.howItWorks.position.table.description'),
+  ]
   const positionRows = [
-    ['Collateral', 'Asset locked to back JUSD (e.g., cBTC)'],
-    ['Liquidation Price', 'Price at which position can be liquidated'],
-    ['Reserve Ratio', 'Extra collateral held as safety buffer (typically 20%)'],
-    ['Interest Rate', 'Annual fee charged upfront (Leadrate + risk premium)'],
-    ['Minting Limit', 'Maximum JUSD mintable per position type'],
+    [t('jusd.howItWorks.position.collateral'), t('jusd.howItWorks.position.collateral.desc')],
+    [t('jusd.howItWorks.position.liquidationPrice'), t('jusd.howItWorks.position.liquidationPrice.desc')],
+    [t('jusd.howItWorks.position.reserveRatio'), t('jusd.howItWorks.position.reserveRatio.desc')],
+    [t('jusd.howItWorks.position.interestRate'), t('jusd.howItWorks.position.interestRate.desc')],
+    [t('jusd.howItWorks.position.mintingLimit'), t('jusd.howItWorks.position.mintingLimit.desc')],
   ]
 
   return (
@@ -107,9 +110,7 @@ export function HowItWorks() {
           />
         </CardsContainer>
         <DataTable headers={bridgeHeaders} rows={bridgeRows} />
-        <InfoBox type="warning">
-          Bridges have volume limits and expiration dates. Always check bridge status before large transactions.
-        </InfoBox>
+        <InfoBox type="warning">{t('jusd.howItWorks.bridges.warning')}</InfoBox>
       </SubSection>
 
       <SubSection>
@@ -122,7 +123,7 @@ export function HowItWorks() {
 
         <FlowContainer>
           <Text variant="subheading2" color="$neutral1" fontWeight="bold">
-            Collateralized Minting Flow
+            {t('jusd.howItWorks.flow.title')}
           </Text>
           <FlowStep>
             <StepNumber>
@@ -132,10 +133,10 @@ export function HowItWorks() {
             </StepNumber>
             <Flex flexDirection="column">
               <Text variant="body2" color="$neutral1" fontWeight="600">
-                Deposit Collateral
+                {t('jusd.howItWorks.flow.step1.title')}
               </Text>
               <Text variant="body3" color="$neutral2">
-                Lock cBTC or other approved assets
+                {t('jusd.howItWorks.flow.step1.description')}
               </Text>
             </Flex>
           </FlowStep>
@@ -148,10 +149,10 @@ export function HowItWorks() {
             </StepNumber>
             <Flex flexDirection="column">
               <Text variant="body2" color="$neutral1" fontWeight="600">
-                Set Parameters
+                {t('jusd.howItWorks.flow.step2.title')}
               </Text>
               <Text variant="body3" color="$neutral2">
-                Choose liquidation price, reserve ratio, interest
+                {t('jusd.howItWorks.flow.step2.description')}
               </Text>
             </Flex>
           </FlowStep>
@@ -164,10 +165,10 @@ export function HowItWorks() {
             </StepNumber>
             <Flex flexDirection="column">
               <Text variant="body2" color="$neutral1" fontWeight="600">
-                Mint JUSD
+                {t('jusd.howItWorks.flow.step3.title')}
               </Text>
               <Text variant="body3" color="$neutral2">
-                Receive JUSD up to your limit (minus fees)
+                {t('jusd.howItWorks.flow.step3.description')}
               </Text>
             </Flex>
           </FlowStep>
@@ -180,10 +181,10 @@ export function HowItWorks() {
             </StepNumber>
             <Flex flexDirection="column">
               <Text variant="body2" color="$neutral1" fontWeight="600">
-                Repay & Withdraw
+                {t('jusd.howItWorks.flow.step4.title')}
               </Text>
               <Text variant="body3" color="$neutral2">
-                Return JUSD to unlock your collateral
+                {t('jusd.howItWorks.flow.step4.description')}
               </Text>
             </Flex>
           </FlowStep>
@@ -213,12 +214,10 @@ export function HowItWorks() {
         </CardsContainer>
         <CodeBlock>
           <Text variant="body3" color="$neutral2" fontFamily="monospace">
-            Challenger Reward: 2% of challenged amount
+            {t('jusd.howItWorks.auctions.challengerReward')}
           </Text>
         </CodeBlock>
-        <InfoBox type="info">
-          This auction system eliminates the need for external oracles - the market determines fair prices directly.
-        </InfoBox>
+        <InfoBox type="info">{t('jusd.howItWorks.auctions.info')}</InfoBox>
       </SubSection>
     </Section>
   )

@@ -143,7 +143,7 @@ export function Hero() {
 
       <ScrollIndicator onPress={scrollToContent}>
         <Text variant="body3" color="$neutral2">
-          <Trans i18nKey="jusd.hero.learnMore" />
+          <Trans i18nKey="jusd.hero.scrollDown" />
         </Text>
         <ChevronDown size={20} color="var(--neutral2)" />
       </ScrollIndicator>

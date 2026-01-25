@@ -35,23 +35,46 @@ export function Overview() {
   const colors = useSporeColors()
   const { t } = useTranslation()
 
-  const comparisonHeaders = ['Aspect', 'JUSD', 'JUICE']
+  const comparisonHeaders = [t('jusd.overview.comparison.aspect'), 'JUSD', 'JUICE']
   const comparisonRows = [
-    ['Type', 'Stablecoin', 'Equity Token'],
-    ['Value Peg', 'US Dollar', 'Protocol Equity'],
-    ['Function', 'Payments, Store of Value', 'Governance, Capital Shares'],
-    ['Supply', 'Dynamic (Minting/Burning)', 'Dynamic (Investment/Redemption)'],
-    ['Yield', 'Savings Interest (Leadrate)', 'Fee Revenue + Liquidation Profits'],
+    [
+      t('jusd.overview.comparison.type'),
+      t('jusd.overview.comparison.type.jusd'),
+      t('jusd.overview.comparison.type.juice'),
+    ],
+    [
+      t('jusd.overview.comparison.valuePeg'),
+      t('jusd.overview.comparison.valuePeg.jusd'),
+      t('jusd.overview.comparison.valuePeg.juice'),
+    ],
+    [
+      t('jusd.overview.comparison.function'),
+      t('jusd.overview.comparison.function.jusd'),
+      t('jusd.overview.comparison.function.juice'),
+    ],
+    [
+      t('jusd.overview.comparison.supply'),
+      t('jusd.overview.comparison.supply.jusd'),
+      t('jusd.overview.comparison.supply.juice'),
+    ],
+    [
+      t('jusd.overview.comparison.yield'),
+      t('jusd.overview.comparison.yield.jusd'),
+      t('jusd.overview.comparison.yield.juice'),
+    ],
   ]
 
-  const cypherpunkHeaders = ['Cypherpunk Ideal', 'JuiceDollar Implementation']
+  const cypherpunkHeaders = [
+    t('jusd.overview.cypherpunk.table.ideal'),
+    t('jusd.overview.cypherpunk.table.implementation'),
+  ]
   const cypherpunkRows = [
-    ['Decentralization', 'No admin keys, no upgradeable contracts, no central authority'],
-    ['Trustlessness', 'Oracle-free design - no reliance on external price feeds'],
-    ['Permissionlessness', 'Anyone can propose new collateral types or mint JUSD'],
-    ['Self-Custody', 'Users hold their own collateral in position contracts'],
-    ['Code as Law', 'Smart contracts enforce rules, not institutions'],
-    ['Censorship Resistance', 'No entity can block minting or freeze accounts'],
+    [t('jusd.overview.cypherpunk.decentralization'), t('jusd.overview.cypherpunk.decentralization.desc')],
+    [t('jusd.overview.cypherpunk.trustlessness'), t('jusd.overview.cypherpunk.trustlessness.desc')],
+    [t('jusd.overview.cypherpunk.permissionlessness'), t('jusd.overview.cypherpunk.permissionlessness.desc')],
+    [t('jusd.overview.cypherpunk.selfCustody'), t('jusd.overview.cypherpunk.selfCustody.desc')],
+    [t('jusd.overview.cypherpunk.codeAsLaw'), t('jusd.overview.cypherpunk.codeAsLaw.desc')],
+    [t('jusd.overview.cypherpunk.censorshipResistance'), t('jusd.overview.cypherpunk.censorshipResistance.desc')],
   ]
 
   return (
@@ -78,7 +101,7 @@ export function Overview() {
 
       <SubSection>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          JUSD vs JUICE
+          {t('jusd.overview.comparison.title')}
         </Text>
         <DataTable headers={comparisonHeaders} rows={comparisonRows} />
       </SubSection>
@@ -93,8 +116,7 @@ export function Overview() {
         <DataTable headers={cypherpunkHeaders} rows={cypherpunkRows} />
         <QuoteBox>
           <Text variant="body2" color="$neutral2" fontStyle="italic">
-            &ldquo;We the Cypherpunks are dedicated to building anonymous systems.&rdquo; - Eric Hughes, A
-            Cypherpunk&apos;s Manifesto (1993)
+            {t('jusd.overview.cypherpunk.quote')}
           </Text>
         </QuoteBox>
       </SubSection>

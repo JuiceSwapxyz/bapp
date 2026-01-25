@@ -50,20 +50,20 @@ export function Savings() {
   const colors = useSporeColors()
   const { t } = useTranslation()
 
-  const savingsHeaders = ['Feature', 'Description']
+  const savingsHeaders = [t('jusd.savings.table.feature'), t('jusd.savings.table.description')]
   const savingsRows = [
-    ['No lockup period', 'Withdraw anytime without penalty'],
-    ['Continuous interest', 'Interest accrues every second'],
-    ['Compound on refresh', 'Claim interest to earn interest on interest'],
-    ['Governance-controlled rate', 'JUICE holders vote on the Leadrate'],
+    [t('jusd.savings.table.noLockup'), t('jusd.savings.table.noLockup.desc')],
+    [t('jusd.savings.table.continuous'), t('jusd.savings.table.continuous.desc')],
+    [t('jusd.savings.table.compound'), t('jusd.savings.table.compound.desc')],
+    [t('jusd.savings.table.governance'), t('jusd.savings.table.governance.desc')],
   ]
 
-  const vaultHeaders = ['Concept', 'Description']
+  const vaultHeaders = [t('jusd.savings.vault.concept'), t('jusd.savings.table.description')]
   const vaultRows = [
-    ['Shares (svJUSD)', 'Represent your proportional ownership of the vault'],
-    ['Assets (JUSD)', 'The underlying tokens in the vault'],
-    ['Price per Share', 'Increases over time as interest accrues'],
-    ['Standard', 'ERC-4626 - compatible with DeFi protocols'],
+    [t('jusd.savings.vault.shares'), t('jusd.savings.vault.shares.desc')],
+    [t('jusd.savings.vault.assets'), t('jusd.savings.vault.assets.desc')],
+    [t('jusd.savings.vault.pricePerShare'), t('jusd.savings.vault.pricePerShare.desc')],
+    [t('jusd.savings.vault.standard'), t('jusd.savings.vault.standard.desc')],
   ]
 
   return (
@@ -71,9 +71,21 @@ export function Savings() {
       <SectionHeader title={t('jusd.savings.title')} subtitle={t('jusd.savings.description')} />
 
       <MetricsContainer>
-        <MetricCard value="0%" label="No Lockup" description="Withdraw anytime" />
-        <MetricCard value="Leadrate" label="Interest Rate" description="Governance controlled" />
-        <MetricCard value="svJUSD" label="Vault Token" description="ERC-4626 compatible" />
+        <MetricCard
+          value={t('jusd.savings.metric.noLockup.value')}
+          label={t('jusd.savings.metric.noLockup.label')}
+          description={t('jusd.savings.metric.noLockup.description')}
+        />
+        <MetricCard
+          value={t('jusd.savings.metric.interestRate.value')}
+          label={t('jusd.savings.metric.interestRate.label')}
+          description={t('jusd.savings.metric.interestRate.description')}
+        />
+        <MetricCard
+          value={t('jusd.savings.metric.vaultToken.value')}
+          label={t('jusd.savings.metric.vaultToken.label')}
+          description={t('jusd.savings.metric.vaultToken.description')}
+        />
       </MetricsContainer>
 
       <CardsContainer>
@@ -101,32 +113,31 @@ export function Savings() {
 
       <SubSection>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          Key Features
+          {t('jusd.savings.features.title')}
         </Text>
         <DataTable headers={savingsHeaders} rows={savingsRows} />
       </SubSection>
 
       <SubSection>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          The Leadrate System
+          {t('jusd.savings.leadrate.title')}
         </Text>
         <Text variant="body2" color="$neutral2">
-          The Leadrate (from German &ldquo;Leitzins&rdquo; - base rate) is the system-wide interest rate that affects
-          both savings yields and borrowing costs. It&apos;s controlled by JUICE holders through governance.
+          {t('jusd.savings.leadrate.description')}
         </Text>
         <CodeBlock>
           <Flex flexDirection="column" gap="$spacing8">
             <Text variant="body3" color="$neutral2" fontFamily="monospace">
-              Rate Change Process:
+              {t('jusd.savings.leadrate.process')}
             </Text>
             <Text variant="body3" color="$neutral2" fontFamily="monospace">
-              1. Qualified JUICE holder (≥2% voting power) proposes new rate
+              {t('jusd.savings.leadrate.step1')}
             </Text>
             <Text variant="body3" color="$neutral2" fontFamily="monospace">
-              2. 7-day timelock period
+              {t('jusd.savings.leadrate.step2')}
             </Text>
             <Text variant="body3" color="$neutral2" fontFamily="monospace">
-              3. Anyone can execute the change after timelock
+              {t('jusd.savings.leadrate.step3')}
             </Text>
           </Flex>
         </CodeBlock>
@@ -134,43 +145,39 @@ export function Savings() {
 
       <SubSection>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          ERC-4626 Savings Vault (svJUSD)
+          {t('jusd.savings.vault.title')}
         </Text>
         <Text variant="body2" color="$neutral2">
-          For DeFi integration, JuiceDollar provides an ERC-4626 compatible vault. This standard interface allows
-          seamless integration with other DeFi protocols.
+          {t('jusd.savings.vault.description')}
         </Text>
         <DataTable headers={vaultHeaders} rows={vaultRows} />
       </SubSection>
 
       <ExampleBox>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          Interest Calculation Example
+          {t('jusd.savings.example.title')}
         </Text>
         <Flex flexDirection="column" gap="$spacing12">
           <Text variant="body2" color="$neutral2">
-            <strong>Scenario:</strong> Deposit 10,000 JUSD at 4% annual Leadrate for 30 days
+            <strong>{t('jusd.savings.example.scenario')}</strong>
           </Text>
           <CodeBlock>
             <Flex flexDirection="column" gap="$spacing8">
               <Text variant="body3" color="$neutral2" fontFamily="monospace">
-                Daily interest = 10,000 × (40,000 / 1,000,000) / 365 = 1.096 JUSD
+                {t('jusd.savings.example.daily')}
               </Text>
               <Text variant="body3" color="$neutral2" fontFamily="monospace">
-                30-day interest = 1.096 × 30 = 32.88 JUSD
+                {t('jusd.savings.example.monthly')}
               </Text>
               <Text variant="body3" color="$accent1" fontFamily="monospace">
-                With daily compounding ≈ 32.96 JUSD
+                {t('jusd.savings.example.compound')}
               </Text>
             </Flex>
           </CodeBlock>
         </Flex>
       </ExampleBox>
 
-      <InfoBox type="warning">
-        Interest is paid from the equity pool. In extreme scenarios with depleted equity, interest payments may be
-        capped. Unlike traditional bank deposits, there is no deposit insurance.
-      </InfoBox>
+      <InfoBox type="warning">{t('jusd.savings.warning')}</InfoBox>
     </Section>
   )
 }

@@ -61,37 +61,37 @@ export function UseCases() {
 
       <ExampleBox>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          Borrowing Example
+          {t('jusd.useCases.example.title')}
         </Text>
         <ExampleItem>
           <Text variant="body2" color="$neutral1" fontWeight="600">
-            Scenario: Mint 10,000 JUSD against cBTC
+            {t('jusd.useCases.example.scenario')}
           </Text>
           <Flex flexDirection="column" gap="$spacing4" pl="$spacing16">
             <Text variant="body2" color="$neutral2">
-              • Collateral: 0.5 cBTC (worth ~$20,000)
+              • {t('jusd.useCases.example.collateral')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              • Reserve Ratio: 20% (2,000 JUSD held back)
+              • {t('jusd.useCases.example.reserve')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              • Interest: 5% annual (500 JUSD upfront)
+              • {t('jusd.useCases.example.interest')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              • You receive: 10,000 - 2,000 - 500 = 7,500 JUSD
+              • {t('jusd.useCases.example.receive')}
             </Text>
           </Flex>
         </ExampleItem>
         <ExampleItem>
           <Text variant="body2" color="$neutral1" fontWeight="600">
-            To close position:
+            {t('jusd.useCases.example.close')}
           </Text>
           <Flex flexDirection="column" gap="$spacing4" pl="$spacing16">
             <Text variant="body2" color="$neutral2">
-              • Repay 10,000 JUSD (your minted amount)
+              • {t('jusd.useCases.example.repay')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              • Receive back: 0.5 cBTC + 2,000 JUSD reserve
+              • {t('jusd.useCases.example.receiveBack')}
             </Text>
           </Flex>
         </ExampleItem>
@@ -99,31 +99,31 @@ export function UseCases() {
 
       <ExampleBox>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          Why Borrow JUSD?
+          {t('jusd.useCases.whyBorrow.title')}
         </Text>
         <Flex flexDirection="column" gap="$spacing12">
           <ExampleItem>
             <Text variant="body2" color="$accent1" fontWeight="600">
-              1. Leverage without selling
+              {t('jusd.useCases.whyBorrow.leverage.title')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              Keep your Bitcoin exposure while accessing liquidity. Use JUSD for other investments or expenses.
+              {t('jusd.useCases.whyBorrow.leverage.desc')}
             </Text>
           </ExampleItem>
           <ExampleItem>
             <Text variant="body2" color="$accent1" fontWeight="600">
-              2. Tax efficiency
+              {t('jusd.useCases.whyBorrow.tax.title')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              Borrowing against crypto may have different tax implications than selling in many jurisdictions.
+              {t('jusd.useCases.whyBorrow.tax.desc')}
             </Text>
           </ExampleItem>
           <ExampleItem>
             <Text variant="body2" color="$accent1" fontWeight="600">
-              3. Yield farming
+              {t('jusd.useCases.whyBorrow.yield.title')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              Mint JUSD, deposit to savings for yield, or provide liquidity in DeFi protocols.
+              {t('jusd.useCases.whyBorrow.yield.desc')}
             </Text>
           </ExampleItem>
         </Flex>

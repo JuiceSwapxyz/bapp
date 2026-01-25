@@ -84,13 +84,37 @@ export function TechDetails() {
     { name: 'StartUSD', address: '0xDFa3153E1eDa84F966BD01bc4C6D9A4FF36AcAeA', desc: 'Genesis Stablecoin' },
   ]
 
-  const constantsHeaders = ['Constant', 'Value', 'Description']
+  const constantsHeaders = [
+    t('jusd.tech.constants.table.constant'),
+    t('jusd.tech.constants.table.value'),
+    t('jusd.tech.constants.table.description'),
+  ]
   const constantsRows = [
-    ['MIN_APPLICATION_PERIOD', '14 days', 'Minimum time for new minters'],
-    ['MIN_APPLICATION_FEE', '1,000 JUSD', 'Minimum proposal fee'],
-    ['CHALLENGER_REWARD', '2%', 'Reward for successful liquidations'],
-    ['RESERVE_RATIO', '~20%', 'Typical reserve held for positions'],
-    ['EMERGENCY_QUORUM', '10%', 'Voting power needed to stop a bridge'],
+    [
+      t('jusd.tech.constants.minApplicationPeriod'),
+      t('jusd.tech.constants.minApplicationPeriod.value'),
+      t('jusd.tech.constants.minApplicationPeriod.desc'),
+    ],
+    [
+      t('jusd.tech.constants.minApplicationFee'),
+      t('jusd.tech.constants.minApplicationFee.value'),
+      t('jusd.tech.constants.minApplicationFee.desc'),
+    ],
+    [
+      t('jusd.tech.constants.challengerReward'),
+      t('jusd.tech.constants.challengerReward.value'),
+      t('jusd.tech.constants.challengerReward.desc'),
+    ],
+    [
+      t('jusd.tech.constants.reserveRatio'),
+      t('jusd.tech.constants.reserveRatio.value'),
+      t('jusd.tech.constants.reserveRatio.desc'),
+    ],
+    [
+      t('jusd.tech.constants.emergencyQuorum'),
+      t('jusd.tech.constants.emergencyQuorum.value'),
+      t('jusd.tech.constants.emergencyQuorum.desc'),
+    ],
   ]
 
   return (
@@ -144,7 +168,7 @@ export function TechDetails() {
 
       <SubSection>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          Key Functions
+          {t('jusd.tech.functions.title')}
         </Text>
         <CodeBlock>
           <Flex flexDirection="column" gap="$spacing12">
@@ -190,46 +214,46 @@ export function TechDetails() {
 
       <SubSection>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          Protocol Constants
+          {t('jusd.tech.constants.title')}
         </Text>
         <DataTable headers={constantsHeaders} rows={constantsRows} />
       </SubSection>
 
       <SubSection>
         <Text variant="subheading1" color="$neutral1" fontWeight="bold">
-          Security Features
+          {t('jusd.tech.security.title')}
         </Text>
         <Flex flexDirection="column" gap="$spacing12">
           <Flex flexDirection="column" gap="$spacing4">
             <Text variant="body2" color="$neutral1" fontWeight="600">
-              Immutability
+              {t('jusd.tech.security.immutability')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              No admin keys, no upgradeable proxies, code is law.
+              {t('jusd.tech.security.immutability.desc')}
             </Text>
           </Flex>
           <Flex flexDirection="column" gap="$spacing4">
             <Text variant="body2" color="$neutral1" fontWeight="600">
-              Oracle-Free Design
+              {t('jusd.tech.security.oracleFree')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              Dutch auctions determine fair prices - no reliance on external price feeds.
+              {t('jusd.tech.security.oracleFree.desc')}
             </Text>
           </Flex>
           <Flex flexDirection="column" gap="$spacing4">
             <Text variant="body2" color="$neutral1" fontWeight="600">
-              Reserve System
+              {t('jusd.tech.security.reserve')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              Three layers of protection: borrower reserve, equity pool, general borrower pool.
+              {t('jusd.tech.security.reserve.desc')}
             </Text>
           </Flex>
           <Flex flexDirection="column" gap="$spacing4">
             <Text variant="body2" color="$neutral1" fontWeight="600">
-              Governance Timelocks
+              {t('jusd.tech.security.timelocks')}
             </Text>
             <Text variant="body2" color="$neutral2">
-              7-14 day delays for critical changes, 2% minority veto protection.
+              {t('jusd.tech.security.timelocks.desc')}
             </Text>
           </Flex>
         </Flex>
