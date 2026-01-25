@@ -198,4 +198,136 @@ test.describe('Landing Page', () => {
       })
     })
   })
+
+  test.describe('Coin Bubble Navigation', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.setViewportSize(DESKTOP_VIEWPORT)
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Light"')
+        localStorage.setItem('crossChainSwapsOverride', 'true')
+      })
+    })
+
+    // Above the wave bubbles
+    test('Bitcoin Chain bubble navigates to BTC->cBTC swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('Bitcoin Chain').click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*inputCurrency=BTC.*outputCurrency=cBTC.*/)
+      await expect(page).toHaveScreenshot('bubble-btc-chain-swap.png', { animations: 'disabled' })
+    })
+
+    test('Bitcoin Lightning bubble navigates to lnBTC->cBTC swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('Bitcoin Lightning').click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*inputCurrency=lnBTC.*outputCurrency=cBTC.*/)
+      await expect(page).toHaveScreenshot('bubble-btc-lightning-swap.png', { animations: 'disabled' })
+    })
+
+    test('Tether+Polygon bubble navigates to USDT->JUSD swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('Tether+Polygon').click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*chain=polygon.*inputCurrency=USDT.*outputCurrency=JUSD.*/)
+      await expect(page).toHaveScreenshot('bubble-tether-polygon-swap.png', { animations: 'disabled' })
+    })
+
+    test('wBTC+ETH bubble navigates to WBTC->WBTC.e swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('wBTC+ETH').click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*chain=ethereum.*inputCurrency=WBTC.*outputCurrency=WBTC\.e.*/)
+      await expect(page).toHaveScreenshot('bubble-wbtc-eth-swap.png', { animations: 'disabled' })
+    })
+
+    test('Tether+ETH bubble navigates to USDT->JUSD swap on Ethereum', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('Tether+ETH').click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*chain=ethereum.*inputCurrency=USDT.*outputCurrency=JUSD.*/)
+      await expect(page).toHaveScreenshot('bubble-tether-eth-swap.png', { animations: 'disabled' })
+    })
+
+    test('USDC bubble navigates to USDC->JUSD swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('USDC').click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*chain=ethereum.*inputCurrency=USDC.*outputCurrency=JUSD.*/)
+      await expect(page).toHaveScreenshot('bubble-usdc-swap.png', { animations: 'disabled' })
+    })
+
+    // Inside the wave bubbles
+    test('cBTC large bubble navigates to BTC->cBTC swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('cBTC').first().click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*inputCurrency=BTC.*outputCurrency=cBTC.*/)
+      await expect(page).toHaveScreenshot('bubble-cbtc-large-swap.png', { animations: 'disabled' })
+    })
+
+    test('cBTC small bubble navigates to BTC->cBTC swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('cBTC').nth(1).click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*inputCurrency=BTC.*outputCurrency=cBTC.*/)
+      await expect(page).toHaveScreenshot('bubble-cbtc-small-swap.png', { animations: 'disabled' })
+    })
+
+    test('wBTC+Citrea bubble navigates to WBTC->WBTC.e swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('wBTC+Citrea').click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*chain=ethereum.*inputCurrency=WBTC.*outputCurrency=WBTC\.e.*/)
+      await expect(page).toHaveScreenshot('bubble-wbtc-citrea-swap.png', { animations: 'disabled' })
+    })
+
+    test('Juice bubble navigates to cBTC->JUICE swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('Juice').click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*chain=citrea.*inputCurrency=cBTC.*outputCurrency=JUICE.*/)
+      await expect(page).toHaveScreenshot('bubble-juice-swap.png', { animations: 'disabled' })
+    })
+
+    test('JUSD small bubble navigates to cBTC->JUSD swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('JUSD').first().click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*chain=citrea.*inputCurrency=cBTC.*outputCurrency=JUSD.*/)
+      await expect(page).toHaveScreenshot('bubble-jusd-small-swap.png', { animations: 'disabled' })
+    })
+
+    test('JUSD large bubble navigates to cBTC->JUSD swap', async ({ page }) => {
+      await page.goto(`/${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+      await page.getByAltText('JUSD').nth(1).click()
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(500)
+      await expect(page).toHaveURL(/.*chain=citrea.*inputCurrency=cBTC.*outputCurrency=JUSD.*/)
+      await expect(page).toHaveScreenshot('bubble-jusd-large-swap.png', { animations: 'disabled' })
+    })
+  })
 })
