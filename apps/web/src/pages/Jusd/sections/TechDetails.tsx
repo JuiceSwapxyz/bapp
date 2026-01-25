@@ -53,35 +53,71 @@ function ContractAddress({ address }: { address: string }) {
 export function TechDetails() {
   const { t } = useTranslation()
 
-  const chainHeaders = ['Property', 'Value']
+  const chainHeaders = [t('jusd.tech.table.property'), t('jusd.tech.table.value')]
   const chainRows = [
-    ['Network', 'Citrea (Bitcoin L2)'],
-    ['Chain ID', '5115'],
-    ['Status', 'Testnet'],
-    ['Consensus', 'Bitcoin-secured'],
+    [t('jusd.tech.chain.network'), t('jusd.tech.chain.network.value')],
+    [t('jusd.tech.chain.chainId'), t('jusd.tech.chain.chainId.value')],
+    [t('jusd.tech.chain.status'), t('jusd.tech.chain.status.value')],
+    [t('jusd.tech.chain.consensus'), t('jusd.tech.chain.consensus.value')],
   ]
 
-  const tokenHeaders = ['Property', 'Value']
+  const tokenHeaders = [t('jusd.tech.table.property'), t('jusd.tech.table.value')]
   const tokenRows = [
-    ['Name', 'JuiceDollar'],
-    ['Symbol', 'JUSD'],
-    ['Decimals', '18'],
-    ['Standard', 'ERC-20 + ERC-2612 (Permit) + ERC-3009'],
-    ['Peg', 'US Dollar (soft peg)'],
-    ['Supply', 'Dynamic (Minting/Burning)'],
+    [t('jusd.tech.token.name'), t('jusd.tech.token.name.value')],
+    [t('jusd.tech.token.symbol'), t('jusd.tech.token.symbol.value')],
+    [t('jusd.tech.token.decimals'), t('jusd.tech.token.decimals.value')],
+    [t('jusd.tech.token.standard'), t('jusd.tech.token.standard.value')],
+    [t('jusd.tech.token.peg'), t('jusd.tech.token.peg.value')],
+    [t('jusd.tech.token.supply'), t('jusd.tech.token.supply.value')],
   ]
 
   const contracts = [
-    { name: 'JUSD', address: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015', desc: 'Main Stablecoin Token' },
-    { name: 'JUICE (Equity)', address: '0x7b2A560bf72B0Dd2EAbE3271F829C2597c8420d5', desc: 'Governance & Pool Shares' },
-    { name: 'svJUSD', address: '0x9580498224551E3f2e3A04330a684BF025111C53', desc: 'ERC-4626 Savings Vault' },
-    { name: 'MintingHubGateway', address: '0x372368ca530B4d55622c24E28F0347e26caDc64A', desc: 'Position Management' },
-    { name: 'PositionFactory', address: '0xB22a0701237a226d17aE0C4FE8263Edf5Be5f20d', desc: 'Position Creation' },
-    { name: 'PositionRoller', address: '0x09d24251654e5B89d5fcd35d087f0CB4163471aC', desc: 'Position Rollover' },
-    { name: 'SavingsGateway', address: '0xbfE44EE0471D0cF4759B97A458240f26c2D340Ca', desc: 'Savings with Rewards' },
-    { name: 'FrontendGateway', address: '0x3EB394f950abf90aC78127C0f4c78545E0eD3DFe', desc: 'Frontend Rewards' },
-    { name: 'StartUSD Bridge', address: '0x25F8599Be1D25501212b20bD72DF1caA97b496b1', desc: 'Bootstrap Bridge' },
-    { name: 'StartUSD', address: '0xDFa3153E1eDa84F966BD01bc4C6D9A4FF36AcAeA', desc: 'Genesis Stablecoin' },
+    { name: 'JUSD', address: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015', desc: t('jusd.tech.contracts.jusd.desc') },
+    {
+      name: 'JUICE (Equity)',
+      address: '0x7b2A560bf72B0Dd2EAbE3271F829C2597c8420d5',
+      desc: t('jusd.tech.contracts.juice.desc'),
+    },
+    {
+      name: 'svJUSD',
+      address: '0x9580498224551E3f2e3A04330a684BF025111C53',
+      desc: t('jusd.tech.contracts.svjusd.desc'),
+    },
+    {
+      name: 'MintingHubGateway',
+      address: '0x372368ca530B4d55622c24E28F0347e26caDc64A',
+      desc: t('jusd.tech.contracts.mintingHub.desc'),
+    },
+    {
+      name: 'PositionFactory',
+      address: '0xB22a0701237a226d17aE0C4FE8263Edf5Be5f20d',
+      desc: t('jusd.tech.contracts.positionFactory.desc'),
+    },
+    {
+      name: 'PositionRoller',
+      address: '0x09d24251654e5B89d5fcd35d087f0CB4163471aC',
+      desc: t('jusd.tech.contracts.positionRoller.desc'),
+    },
+    {
+      name: 'SavingsGateway',
+      address: '0xbfE44EE0471D0cF4759B97A458240f26c2D340Ca',
+      desc: t('jusd.tech.contracts.savingsGateway.desc'),
+    },
+    {
+      name: 'FrontendGateway',
+      address: '0x3EB394f950abf90aC78127C0f4c78545E0eD3DFe',
+      desc: t('jusd.tech.contracts.frontendGateway.desc'),
+    },
+    {
+      name: 'StartUSD Bridge',
+      address: '0x25F8599Be1D25501212b20bD72DF1caA97b496b1',
+      desc: t('jusd.tech.contracts.startUsdBridge.desc'),
+    },
+    {
+      name: 'StartUSD',
+      address: '0xDFa3153E1eDa84F966BD01bc4C6D9A4FF36AcAeA',
+      desc: t('jusd.tech.contracts.startUsd.desc'),
+    },
   ]
 
   const constantsHeaders = [

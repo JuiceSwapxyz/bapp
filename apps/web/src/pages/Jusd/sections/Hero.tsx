@@ -1,5 +1,5 @@
 import { ChevronDown } from 'react-feather'
-import { Trans } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
@@ -100,6 +100,7 @@ const ScrollIndicator = styled(Flex, {
 const SWAP_JUSD_URL = '/swap?inputCurrency=cBTC&outputCurrency=JUSD'
 
 export function Hero() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const scrollToContent = () => {
@@ -113,7 +114,12 @@ export function Hero() {
   return (
     <HeroContainer>
       <LogoContainer>
-        <img src="https://app.testnet.juicedollar.com/coin/jusd.svg" alt="JUSD Stablecoin" width={120} height={120} />
+        <img
+          src="https://app.testnet.juicedollar.com/coin/jusd.svg"
+          alt={t('jusd.hero.imageAlt')}
+          width={120}
+          height={120}
+        />
       </LogoContainer>
 
       <GradientTitle>
