@@ -168,6 +168,12 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
     navigate('/swap?inputCurrency=BTC&outputCurrency=cBTC')
   }, [navigate])
 
+  // Click handler for Lightning bubble - navigates to cross-chain swap from Lightning lnBTC to Citrea cBTC
+  // Chains are auto-inferred: lnBTC → Lightning Network, cBTC → Citrea
+  const handleLightningClick = useCallback(() => {
+    navigate('/swap?inputCurrency=lnBTC&outputCurrency=cBTC')
+  }, [navigate])
+
   const renderRiseInText = useMemo(() => {
     const text = t('hero.swap.title')
 
@@ -216,7 +222,12 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             <CoinBubble src={COIN_BUBBLE_ASSETS.btcChain} alt="Bitcoin Chain" size={90} onClick={handleBtcChainClick} />
           </BubblePosition>
           <BubblePosition left="16%" top={-112} delay={2}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.btcLightning} alt="Bitcoin Lightning" size={65} />
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.btcLightning}
+              alt="Bitcoin Lightning"
+              size={65}
+              onClick={handleLightningClick}
+            />
           </BubblePosition>
           <BubblePosition left="26%" top={-55} delay={1}>
             <CoinBubble src={COIN_BUBBLE_ASSETS.tetherPolygon} alt="Tether+Polygon" size={75} />

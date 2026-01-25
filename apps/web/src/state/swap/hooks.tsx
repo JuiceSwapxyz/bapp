@@ -37,6 +37,10 @@ function getHomeChainForCurrency(symbol: string): UniverseChainId | undefined {
     case 'BTC':
       return UniverseChainId.Bitcoin
 
+    // lnBTC is native to Lightning Network
+    case 'LNBTC':
+      return UniverseChainId.LightningNetwork
+
     // cBTC is native to Citrea (testnet for now, mainnet when available)
     case 'CBTC':
       return UniverseChainId.CitreaTestnet
@@ -120,8 +124,8 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
 }
 
 function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Currency | undefined {
-  // Handle native currencies (NATIVE_CHAIN_ID, BTC, cBTC)
-  if (address === NATIVE_CHAIN_ID || ['btc', 'cbtc', 'native'].includes(address.toLowerCase())) {
+  // Handle native currencies (NATIVE_CHAIN_ID, BTC, lnBTC, cBTC)
+  if (address === NATIVE_CHAIN_ID || ['btc', 'lnbtc', 'cbtc', 'native'].includes(address.toLowerCase())) {
     return nativeOnChain(chainId)
   }
 
@@ -181,6 +185,11 @@ export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): strin
 
     // BTC is the native token on Bitcoin chain
     if (upper === 'BTC') {
+      return NATIVE_CHAIN_ID
+    }
+
+    // lnBTC is the native token on Lightning Network
+    if (upper === 'LNBTC') {
       return NATIVE_CHAIN_ID
     }
 
@@ -499,7 +508,7 @@ export function useInitialCurrencyState(): {
       // Handle NATIVE_CHAIN_ID or native symbol directly
       if (
         initialInputCurrencyAddress === NATIVE_CHAIN_ID ||
-        ['btc', 'cbtc', 'native'].includes(initialInputCurrencyAddress.toLowerCase())
+        ['btc', 'lnbtc', 'cbtc', 'native'].includes(initialInputCurrencyAddress.toLowerCase())
       ) {
         return nativeOnChain(initialChainId)
       }
