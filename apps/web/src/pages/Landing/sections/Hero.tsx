@@ -179,6 +179,11 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
     navigate('/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea')
   }, [navigate])
 
+  // Click handler for Tether+Polygon bubble - navigates to cross-chain swap from Polygon USDT to Citrea JUSD
+  const handleTetherPolygonClick = useCallback(() => {
+    navigate('/swap?chain=polygon&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea')
+  }, [navigate])
+
   const renderRiseInText = useMemo(() => {
     const text = t('hero.swap.title')
 
@@ -235,7 +240,12 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             />
           </BubblePosition>
           <BubblePosition left="26%" top={-55} delay={1}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.tetherPolygon} alt="Tether+Polygon" size={75} />
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.tetherPolygon}
+              alt="Tether+Polygon"
+              size={75}
+              onClick={handleTetherPolygonClick}
+            />
           </BubblePosition>
           <BubblePosition right="26%" top={-65} delay={3}>
             <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="wBTC+ETH" size={73} />
