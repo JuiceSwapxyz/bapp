@@ -37,9 +37,6 @@ import { pollForLockupConfirmation } from 'uniswap/src/features/lds-bridge/utils
 
 /* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type */
 
-// ERC20 tokens supported for auto-claim
-const ERC20_TOKENS = new Set(['USDT', 'JUSD'])
-
 class LdsBridgeManager extends SwapEventEmitter {
   private socketClient: ReturnType<typeof createLdsSocketClient>
   private storageManager: StorageManager
