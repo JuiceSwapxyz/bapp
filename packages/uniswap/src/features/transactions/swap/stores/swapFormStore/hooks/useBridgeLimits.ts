@@ -70,10 +70,41 @@ const isReverseBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): 
   )
 }
 
+const isErc20ChainBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): boolean => {
+  const isFromEthereumOrPolygon =
+    currencyIn?.chainId === UniverseChainId.Mainnet || currencyIn?.chainId === UniverseChainId.Polygon
+  const isToEthereumOrPolygon =
+    currencyOut?.chainId === UniverseChainId.Mainnet || currencyOut?.chainId === UniverseChainId.Polygon
+  const isFromCitrea = currencyIn?.chainId === UniverseChainId.CitreaTestnet
+  const isToCitrea = currencyOut?.chainId === UniverseChainId.CitreaTestnet
+
+  // Ethereum/Polygon → Citrea or Citrea → Ethereum/Polygon
+  return (isFromEthereumOrPolygon && isToCitrea) || (isFromCitrea && isToEthereumOrPolygon)
+}
+
 const symbolMap = {
   lnBTC: 'BTC',
   cBTC: 'cBTC',
   BTC: 'BTC',
+}
+
+// Maps currency symbol + chainId to API symbol for ERC20 chain swaps
+const getErc20ApiSymbol = (symbol: string | undefined, chainId: UniverseChainId | undefined): string | undefined => {
+  if (!symbol || !chainId) {
+    return undefined
+  }
+
+  if (symbol === 'USDT' && chainId === UniverseChainId.Mainnet) {
+    return 'USDT_ETH'
+  }
+  if (symbol === 'USDT' && chainId === UniverseChainId.Polygon) {
+    return 'USDT_POLYGON'
+  }
+  if (symbol === 'JUSD' && chainId === UniverseChainId.CitreaTestnet) {
+    return 'JUSD_CITREA'
+  }
+
+  return undefined
 }
 
 const usePairInfo = (
@@ -95,6 +126,10 @@ const usePairInfo = (
     return chainPairs
   }
 
+  if (isErc20ChainBridge(params)) {
+    return chainPairs
+  }
+
   return undefined
 }
 
@@ -106,8 +141,22 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
     return undefined
   }
 
-  const symbolIn = symbolMap[currencyIn.symbol as keyof typeof symbolMap]
-  const symbolOut = symbolMap[currencyOut.symbol as keyof typeof symbolMap]
+  // Determine API symbols based on bridge type
+  let symbolIn: string | undefined
+  let symbolOut: string | undefined
+
+  if (isErc20ChainBridge(params)) {
+    symbolIn = getErc20ApiSymbol(currencyIn.symbol, currencyIn.chainId)
+    symbolOut = getErc20ApiSymbol(currencyOut.symbol, currencyOut.chainId)
+  } else {
+    symbolIn = symbolMap[currencyIn.symbol as keyof typeof symbolMap]
+    symbolOut = symbolMap[currencyOut.symbol as keyof typeof symbolMap]
+  }
+
+  if (!symbolIn || !symbolOut) {
+    return undefined
+  }
+
   const { limits } = pairInfo[symbolIn]?.[symbolOut] || {}
   if (!limits) {
     return undefined
