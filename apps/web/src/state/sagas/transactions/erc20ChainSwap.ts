@@ -1,10 +1,9 @@
-import { Web3Provider } from '@ethersproject/providers'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { call } from 'typed-redux-saga'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { LdsSwapStatus, buildErc20LockupTx, claimErc20Swap, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import { LdsSwapStatus, buildErc20LockupTx, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
 import { Erc20ChainSwapStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
@@ -57,48 +56,6 @@ async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<v
   })
 }
 
-interface WaitForProviderChainParams {
-  targetChainId: number
-  provider: Web3Provider
-  timeout?: number
-}
-
-async function waitForProviderChain(params: WaitForProviderChainParams): Promise<void> {
-  const { targetChainId, provider, timeout = 30000 } = params
-  const startTime = Date.now()
-
-  try {
-    const network = await provider.getNetwork()
-    if (network.chainId === targetChainId) {
-      return
-    }
-  } catch (error) {
-    logger.debug('erc20ChainSwap', 'waitForProviderChain', 'Failed to get provider network', error)
-  }
-
-  await new Promise<void>((resolve, reject) => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const network = await provider.getNetwork()
-        if (network.chainId === targetChainId) {
-          clearInterval(pollInterval)
-          resolve()
-        } else if (Date.now() - startTime > timeout) {
-          clearInterval(pollInterval)
-          reject(
-            new Error(
-              `Timeout waiting for provider to switch to chain ${targetChainId}. Current chain: ${network.chainId}`,
-            ),
-          )
-        }
-      } catch (error) {
-        clearInterval(pollInterval)
-        reject(error)
-      }
-    }, 500)
-  })
-}
-
 const CONTRACTS = {
   polygon: {
     swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
@@ -136,23 +93,6 @@ function tokenToBoltzDecimals(amount: bigint, tokenDecimals: number): number {
   }
 }
 
-/**
- * Convert from Boltz 8-decimal format to token decimals
- */
-function boltzToTokenDecimals(boltzAmount: bigint, tokenDecimals: number): bigint {
-  if (tokenDecimals === BOLTZ_DECIMALS) {
-    return boltzAmount
-  } else if (tokenDecimals > BOLTZ_DECIMALS) {
-    // e.g., 8 decimals -> 18 decimals: multiply by 10^10
-    const multiplier = 10n ** BigInt(tokenDecimals - BOLTZ_DECIMALS)
-    return boltzAmount * multiplier
-  } else {
-    // e.g., 8 decimals -> 6 decimals: divide by 10^2
-    const divisor = 10n ** BigInt(BOLTZ_DECIMALS - tokenDecimals)
-    return boltzAmount / divisor
-  }
-}
-
 interface HandleErc20ChainSwapParams {
   step: Erc20ChainSwapStep
   setCurrentStep: SetCurrentStepFn
@@ -172,24 +112,16 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   const from = isPolygonToCitrea ? 'USDT_POLYGON' : isEthereumToCitrea ? 'USDT_ETH' : 'JUSD_CITREA'
   const to = isPolygonToCitrea || isEthereumToCitrea ? 'JUSD_CITREA' : isCitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETH'
   const sourceChain = isPolygonToCitrea ? 'polygon' : isEthereumToCitrea ? 'ethereum' : 'citrea'
-  const targetChain = isPolygonToCitrea || isEthereumToCitrea ? 'citrea' : isCitreaToPolygon ? 'polygon' : 'ethereum'
   const sourceChainId = isPolygonToCitrea
     ? UniverseChainId.Polygon
     : isEthereumToCitrea
       ? UniverseChainId.Mainnet
       : UniverseChainId.CitreaTestnet
-  const targetChainId =
-    isPolygonToCitrea || isEthereumToCitrea
-      ? UniverseChainId.CitreaTestnet
-      : isCitreaToPolygon
-        ? UniverseChainId.Polygon
-        : UniverseChainId.Mainnet
 
   const ldsBridge = getLdsBridgeManager()
 
-  // Get token decimals for source and target chains
+  // Get token decimals for source chain
   const sourceDecimals = CONTRACTS[sourceChain].decimals
-  const targetDecimals = CONTRACTS[targetChain].decimals
 
   // 1. Create swap (convert source token decimals → Boltz 8 decimals for API)
   const inputAmount = trade.inputAmount.quotient.toString()
@@ -303,81 +235,19 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
-  const currentAccount = getAccount(wagmiConfig)
-  if (currentAccount.chainId !== targetChainId) {
-    try {
-      yield* call(selectChain, targetChainId)
-      yield* call(waitForNetwork, targetChainId)
-    } catch (_error) {
-      yield* call(waitForNetwork, targetChainId)
-    }
-  }
-
-  // Get signer for target chain (now that we're on the correct chain)
-  let targetClient
-  try {
-    targetClient = yield* call(getConnectorClientForChain, targetChainId)
-  } catch (error) {
-    throw new TransactionStepFailedError({
-      message: `Failed to get connector client for chain ${targetChainId}: ${error instanceof Error ? error.message : String(error)}`,
-      step,
-      originalError: error instanceof Error ? error : new Error(String(error)),
-    })
-  }
-
-  const targetProvider = clientToProvider(targetClient, targetChainId)
-  if (!targetProvider) {
-    throw new TransactionStepFailedError({
-      message: `Failed to get provider for chain ${targetChainId}`,
-      step,
-    })
-  }
-
-  try {
-    yield* call(waitForProviderChain, { targetChainId, provider: targetProvider })
-  } catch (error) {
-    const chainName =
-      targetChainId === UniverseChainId.CitreaTestnet
-        ? 'Citrea Testnet'
-        : targetChainId === UniverseChainId.Polygon
-          ? 'Polygon'
-          : 'Ethereum'
-    throw new TransactionStepFailedError({
-      message: `Failed to switch to ${chainName} network. Please manually switch to ${chainName} in MetaMask and try again.`,
-      step,
-      originalError: error instanceof Error ? error : new Error(String(error)),
-    })
-  }
-
-  const targetSigner = targetProvider.getSigner(account.address)
-
-  // Convert from Boltz 8 decimals to target token decimals
-  const boltzAmount8Decimals = BigInt(chainSwap.claimDetails.amount)
-  const claimAmount = boltzToTokenDecimals(boltzAmount8Decimals, targetDecimals)
-
-  // Update step to show we're claiming (user may need to approve in wallet)
+  // 4. Auto-claim for both directions (USDT ↔ JUSD)
   setCurrentStep({ step, accepted: false })
 
   try {
-    yield* call(claimErc20Swap, {
-      signer: targetSigner,
-      contractAddress: CONTRACTS[targetChain].swap,
-      tokenAddress: CONTRACTS[targetChain].token,
-      preimage: chainSwap.preimage,
-      amount: claimAmount,
-      refundAddress: chainSwap.claimDetails.refundAddress!,
-      timelock: chainSwap.claimDetails.timeoutBlockHeight,
-    })
-
-    // Update step to show claim is complete
+    yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
     setCurrentStep({ step, accepted: true })
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
-      extra: { step: 'claim', targetChain },
+      extra: { swapId: chainSwap.id, step: 'autoClaimSwap' },
     })
     throw new TransactionStepFailedError({
-      message: `Failed to claim tokens: ${error instanceof Error ? error.message : String(error)}. Please ensure Boltz has locked tokens on ${targetChain} and try again.`,
+      message: `Auto-claim failed: ${error instanceof Error ? error.message : String(error)}`,
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })
