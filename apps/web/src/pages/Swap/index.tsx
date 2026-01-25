@@ -3,7 +3,6 @@ import { PrefetchBalancesWrapper } from 'appGraphql/data/apollo/AdaptiveTokenBal
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { popupRegistry } from 'components/Popups/registry'
 import { PopupType } from 'components/Popups/types'
-import { SwapBottomCard } from 'components/SwapBottomCard'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
@@ -343,7 +342,6 @@ function UniversalSwapFlow({
             <>
               <CitreaCampaignProgress />
               <BAppsCard />
-              <SwapBottomCard />
             </>
           )}
         </Flex>
