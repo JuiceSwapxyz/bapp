@@ -68,7 +68,8 @@ export function DepositInputForm({
   amount1Loading,
   autofocus = true,
 }: InputFormProps) {
-  const bufferPercentage = useNativeTokenPercentageBufferExperiment()
+  const chainId = token0?.chainId ?? token1?.chainId
+  const bufferPercentage = useNativeTokenPercentageBufferExperiment(chainId)
   const [focusedInputField, setFocusedInputField] = useState(autofocus ? PositionField.TOKEN0 : undefined)
 
   const token0BalanceWithBuffer = useTokenBalanceWithBuffer(currencyBalances?.[PositionField.TOKEN0], bufferPercentage)
