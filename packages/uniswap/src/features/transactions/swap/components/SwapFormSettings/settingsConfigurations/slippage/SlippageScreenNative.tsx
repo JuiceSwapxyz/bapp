@@ -145,7 +145,7 @@ export function SlippageScreenNative(): JSX.Element {
           {t('swap.settings.slippage.description')}
         </Text>
       )}
-      {/* TODO: Re-enable once support.juiceswap.xyz is configured
+      {/* TODO: Re-enable once support.juiceswap.com is configured
       {!isBridgeTrade && }
       */}
       <Flex gap="$spacing12">
