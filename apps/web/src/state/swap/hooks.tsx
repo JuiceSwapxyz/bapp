@@ -8,6 +8,7 @@ import { useMultichainContext } from 'state/multichain/useMultichainContext'
 import { CurrencyState, SerializedCurrencyState, SwapState } from 'state/swap/types'
 import { useSwapAndLimitContext, useSwapContext } from 'state/swap/useSwapContext'
 import { getNativeAddress } from 'uniswap/src/constants/addresses'
+import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import { useUrlContext } from 'uniswap/src/contexts/UrlContext'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -39,10 +40,6 @@ function getHomeChainForCurrency(symbol: string): UniverseChainId | undefined {
     // cBTC is native to Citrea (testnet for now, mainnet when available)
     case 'CBTC':
       return UniverseChainId.CitreaTestnet
-
-    // ETH is native to Ethereum mainnet
-    case 'ETH':
-      return UniverseChainId.Mainnet
 
     default:
       return undefined
@@ -123,6 +120,11 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
 }
 
 function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Currency | undefined {
+  // Handle native currencies (NATIVE_CHAIN_ID, BTC, cBTC)
+  if (address === NATIVE_CHAIN_ID || ['btc', 'cbtc', 'native'].includes(address.toLowerCase())) {
+    return nativeOnChain(chainId)
+  }
+
   if (!isAddress(address)) {
     return undefined
   }
@@ -172,11 +174,13 @@ export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): strin
     }
 
     const upper = urlParam.toUpperCase()
-    if (upper === 'ETH') {
-      return 'ETH'
-    }
 
     if (urlParam === NATIVE_CHAIN_ID) {
+      return NATIVE_CHAIN_ID
+    }
+
+    // BTC is the native token on Bitcoin chain
+    if (upper === 'BTC') {
       return NATIVE_CHAIN_ID
     }
 
@@ -301,19 +305,29 @@ export function queryParametersToCurrencyState(parsedQs: ParsedQs): SerializedCu
   const explicitChainId = getParsedChainId(parsedQs)
   const explicitOutputChainId = getParsedChainId(parsedQs, CurrencyField.OUTPUT)
 
+  // Get raw URL parameters for chain inference (before conversion to NATIVE_CHAIN_ID)
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const rawInputCurrency =
+    typeof (parsedQs.inputCurrency ?? parsedQs.inputcurrency) === 'string'
+      ? ((parsedQs.inputCurrency ?? parsedQs.inputcurrency) as string)
+      : undefined
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const rawOutputCurrency =
+    typeof (parsedQs.outputCurrency ?? parsedQs.outputcurrency) === 'string'
+      ? ((parsedQs.outputCurrency ?? parsedQs.outputcurrency) as string)
+      : undefined
+
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const parsedInputCurrencyAddress = parseCurrencyFromURLParameter(parsedQs.inputCurrency ?? parsedQs.inputcurrency)
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const parsedOutputCurrencyAddress = parseCurrencyFromURLParameter(parsedQs.outputCurrency ?? parsedQs.outputcurrency)
 
   // Infer chains from currency symbols if not explicitly specified
-  // e.g., BTC → Bitcoin chain, cBTC → Citrea chain
+  // Use raw URL params (BTC, cBTC) not parsed ones (NATIVE_CHAIN_ID) so we can identify the chain
   const inferredInputChainId =
-    !explicitChainId && parsedInputCurrencyAddress ? getHomeChainForCurrency(parsedInputCurrencyAddress) : undefined
+    !explicitChainId && rawInputCurrency ? getHomeChainForCurrency(rawInputCurrency) : undefined
   const inferredOutputChainId =
-    !explicitOutputChainId && parsedOutputCurrencyAddress
-      ? getHomeChainForCurrency(parsedOutputCurrencyAddress)
-      : undefined
+    !explicitOutputChainId && rawOutputCurrency ? getHomeChainForCurrency(rawOutputCurrency) : undefined
 
   // Use explicit chain if provided, otherwise use inferred chain
   const chainId = explicitChainId ?? inferredInputChainId
@@ -361,7 +375,14 @@ export function useInitialCurrencyState(): {
     return queryParametersToCurrencyState(parsedQs)
   }, [parsedQs])
 
-  const supportedChainId = useSupportedChainId(parsedCurrencyState.chainId ?? defaultChainId) ?? UniverseChainId.Mainnet
+  // For non-EVM chains like Bitcoin, use the parsed chain directly (they won't be in "supported" EVM chains)
+  const evmSupportedChainId = useSupportedChainId(parsedCurrencyState.chainId ?? defaultChainId)
+  const isNonEvmChain =
+    parsedCurrencyState.chainId === UniverseChainId.Bitcoin ||
+    parsedCurrencyState.chainId === UniverseChainId.LightningNetwork
+  const supportedChainId: UniverseChainId = isNonEvmChain
+    ? (parsedCurrencyState.chainId as UniverseChainId)
+    : evmSupportedChainId ?? UniverseChainId.Mainnet
   const supportedChainInfo = getChainInfo(supportedChainId)
   const isChainExplicitlySpecified = !!parsedCurrencyState.chainId
   const isSupportedChainCompatible =
@@ -475,6 +496,13 @@ export function useInitialCurrencyState(): {
       return currencyFromInputHook
     }
     if (initialInputCurrencyAddress && initialChainId) {
+      // Handle NATIVE_CHAIN_ID or native symbol directly
+      if (
+        initialInputCurrencyAddress === NATIVE_CHAIN_ID ||
+        ['btc', 'cbtc', 'native'].includes(initialInputCurrencyAddress.toLowerCase())
+      ) {
+        return nativeOnChain(initialChainId)
+      }
       const address = isAddress(initialInputCurrencyAddress)
         ? initialInputCurrencyAddress
         : getTokenAddressBySymbol(initialChainId, initialInputCurrencyAddress)
