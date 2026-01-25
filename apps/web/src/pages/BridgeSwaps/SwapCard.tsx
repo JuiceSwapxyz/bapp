@@ -195,7 +195,7 @@ function shortenHash(hash: string, chars = 8): string {
   return `${hash.slice(0, chars)}...${hash.slice(-chars)}`
 }
 
-export function SwapCard({ swap, onRefresh }: SwapCardProps): JSX.Element {
+export function SwapCard({ swap, onRefresh: _onRefresh }: SwapCardProps): JSX.Element {
   const [expanded, setExpanded] = useState(false)
   const statusInfo = getStatusInfo(swap)
 

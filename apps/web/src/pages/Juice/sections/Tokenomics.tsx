@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Flex, Text, styled } from 'ui/src'
 
-import { InfoBox } from '../components/InfoBox'
-import { MetricCard } from '../components/MetricCard'
-import { SectionHeader } from '../components/SectionHeader'
+import { InfoBox } from 'pages/Juice/components/InfoBox'
+import { MetricCard } from 'pages/Juice/components/MetricCard'
+import { SectionHeader } from 'pages/Juice/components/SectionHeader'
 
 const Section = styled(Flex, {
   flexDirection: 'column',

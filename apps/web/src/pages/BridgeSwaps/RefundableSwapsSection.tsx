@@ -1,3 +1,4 @@
+import { AddressInput, RefundButton, RefundableSection, RefundableSwapCard } from 'pages/BridgeSwaps/styles'
 import { useCallback, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { refundSwap } from 'state/sagas/transactions/bridgeRefundSaga'
@@ -7,7 +8,7 @@ import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { useValidateBitcoinAddress } from 'uniswap/src/data/apiClients/tradingApi/useValidateBitcoinAddress'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { AddressInput, RefundButton, RefundableSection, RefundableSwapCard } from './styles'
+import { logger } from 'utilities/src/logger/logger'
 
 interface RefundableSwapsSectionProps {
   refundableSwaps: (SomeSwap & { id: string })[]
@@ -113,8 +114,8 @@ export function RefundableSwapsSection({
     async (swapId: string) => {
       const destinationAddress = destinationAddresses[swapId]
 
-      if (!destinationAddress?.trim()) {
-        console.error('Destination address is required')
+      if (!destinationAddress.trim()) {
+        logger.warn('RefundableSwapsSection', 'handleRefund', 'Destination address is required')
         return
       }
 
@@ -123,7 +124,7 @@ export function RefundableSwapsSection({
         dispatch(refundSwap(swapId, destinationAddress))
         await onRefetch()
       } catch (error) {
-        console.error('Failed to refund swap:', error)
+        logger.error(error, { tags: { file: 'RefundableSwapsSection', function: 'handleRefund' } })
       } finally {
         setRefundingSwaps((prev) => {
           const next = new Set(prev)

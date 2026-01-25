@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { Flex, Text, styled } from 'ui/src'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 
-import { DataTable } from '../components/DataTable'
-import { SectionHeader } from '../components/SectionHeader'
+import { DataTable } from 'pages/Juice/components/DataTable'
+import { SectionHeader } from 'pages/Juice/components/SectionHeader'
 
 const Section = styled(Flex, {
   flexDirection: 'column',
@@ -35,7 +35,7 @@ const AddressLink = styled(Flex, {
 
 const EXPLORER_BASE = 'https://explorer.testnet.citrea.xyz/address/'
 
-function ContractAddress({ address, name }: { address: string; name: string }) {
+function ContractAddress({ address, name: _name }: { address: string; name: string }) {
   const handleClick = () => {
     window.open(`${EXPLORER_BASE}${address}`, '_blank', 'noopener,noreferrer')
   }
@@ -151,7 +151,7 @@ export function TechDetails() {
           <Flex flexDirection="column" gap="$spacing12">
             <Flex flexDirection="column" gap="$spacing4">
               <Text variant="body3" color="$accent1" fontFamily="monospace">
-                // Investment
+                {/* Investment */}
               </Text>
               <Text variant="body3" color="$neutral2" fontFamily="monospace">
                 function invest(uint256 amount, uint256 expectedShares) external returns (uint256)
@@ -159,7 +159,7 @@ export function TechDetails() {
             </Flex>
             <Flex flexDirection="column" gap="$spacing4">
               <Text variant="body3" color="$accent1" fontFamily="monospace">
-                // Redemption
+                {/* Redemption */}
               </Text>
               <Text variant="body3" color="$neutral2" fontFamily="monospace">
                 function redeem(address target, uint256 shares) external returns (uint256)
@@ -167,7 +167,7 @@ export function TechDetails() {
             </Flex>
             <Flex flexDirection="column" gap="$spacing4">
               <Text variant="body3" color="$accent1" fontFamily="monospace">
-                // Price Query
+                {/* Price Query */}
               </Text>
               <Text variant="body3" color="$neutral2" fontFamily="monospace">
                 function price() public view returns (uint256)
@@ -175,7 +175,7 @@ export function TechDetails() {
             </Flex>
             <Flex flexDirection="column" gap="$spacing4">
               <Text variant="body3" color="$accent1" fontFamily="monospace">
-                // Voting Power
+                {/* Voting Power */}
               </Text>
               <Text variant="body3" color="$neutral2" fontFamily="monospace">
                 function votes(address holder) public view returns (uint256)
@@ -183,7 +183,7 @@ export function TechDetails() {
             </Flex>
             <Flex flexDirection="column" gap="$spacing4">
               <Text variant="body3" color="$accent1" fontFamily="monospace">
-                // Delegation
+                {/* Delegation */}
               </Text>
               <Text variant="body3" color="$neutral2" fontFamily="monospace">
                 function delegateVoteTo(address delegate) external

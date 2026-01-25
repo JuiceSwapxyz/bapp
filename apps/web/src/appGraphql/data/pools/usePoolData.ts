@@ -101,11 +101,7 @@ export function usePoolData(
     errorPolicy: 'all',
     skip: true,
   })
-  const {
-    data: dataV3,
-    isLoading: loadingV3,
-    error: errorV3,
-  } = useV3PoolDetails({ address: poolIdOrAddress, chainId: chainId })
+  const { data: dataV3, isLoading: loadingV3, error: errorV3 } = useV3PoolDetails({ address: poolIdOrAddress, chainId })
   const {
     loading: loadingV2,
     error: errorV2,
@@ -120,13 +116,13 @@ export function usePoolData(
     const anyError = Boolean(errorV4 || errorV3 || errorV2)
     const anyLoading = Boolean(loadingV4 || loadingV3 || loadingV2)
 
-    const pool = dataV4?.v4Pool ?? dataV3?.data?.v3Pool ?? dataV2?.v2Pair ?? undefined
+    const pool = dataV4?.v4Pool ?? dataV3?.data.v3Pool ?? dataV2?.v2Pair ?? undefined
     const feeTier: FeeData = {
-      feeAmount: dataV4?.v4Pool?.feeTier ?? dataV3?.data?.v3Pool?.feeTier ?? V2_DEFAULT_FEE_TIER,
+      feeAmount: dataV4?.v4Pool?.feeTier ?? dataV3?.data.v3Pool.feeTier ?? V2_DEFAULT_FEE_TIER,
       tickSpacing: DEFAULT_TICK_SPACING,
       isDynamic: dataV4?.v4Pool?.isDynamicFee ?? false,
     }
-    const poolId = dataV4?.v4Pool?.poolId ?? dataV3?.data?.v3Pool?.address ?? dataV2?.v2Pair?.address ?? poolIdOrAddress
+    const poolId = dataV4?.v4Pool?.poolId ?? dataV3?.data.v3Pool.address ?? dataV2?.v2Pair?.address ?? poolIdOrAddress
 
     return {
       data: pool
@@ -158,7 +154,7 @@ export function usePoolData(
     }
   }, [
     dataV2?.v2Pair,
-    dataV3?.data?.v3Pool,
+    dataV3?.data.v3Pool,
     dataV4?.v4Pool,
     errorV2,
     errorV3,

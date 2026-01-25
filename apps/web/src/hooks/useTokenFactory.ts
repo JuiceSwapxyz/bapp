@@ -160,17 +160,17 @@ export function useTokenInfo(
   }, [data, tokenAddress, isLoading])
 }
 
+export interface UseTokenListOptions {
+  startIndex: number
+  count: number
+  chainId?: UniverseChainId
+}
+
 /**
  * Hook to get multiple tokens with their info
- * @param startIndex - Start index (inclusive)
- * @param count - Number of tokens to fetch
- * @param chainId - Chain ID
  */
-export function useTokenList(
-  startIndex: number,
-  count: number,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
-): { tokens: string[]; isLoading: boolean } {
+export function useTokenList(options: UseTokenListOptions): { tokens: string[]; isLoading: boolean } {
+  const { startIndex, count, chainId = UniverseChainId.CitreaTestnet } = options
   const factoryAddress = useFactoryAddress(chainId)
   const address = factoryAddress ? assume0xAddress(factoryAddress) : undefined
 

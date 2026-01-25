@@ -49,7 +49,7 @@ export function TokenLogo({ metadataURI, symbol, size = 48 }: TokenLogoProps) {
   }
 
   // Fallback to letter placeholder
-  const letter = symbol?.charAt(0).toUpperCase() || '?'
+  const letter = symbol.charAt(0).toUpperCase() || '?'
 
   return (
     <LogoPlaceholder width={size} height={size}>

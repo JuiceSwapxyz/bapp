@@ -98,7 +98,9 @@ function parseFromURLParameter(urlParam: ParsedQs[string]): string | undefined {
 }
 
 function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: string): string | undefined {
-  if (!chainId) return undefined
+  if (!chainId) {
+    return undefined
+  }
 
   const chainInfo = getChainInfo(chainId)
   const symbolUpper = symbol.toUpperCase()
@@ -215,7 +217,9 @@ function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Cu
 }
 
 function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: string): string | undefined {
-  if (!chainId || !isAddress(address)) return undefined
+  if (!chainId || !isAddress(address)) {
+    return undefined
+  }
 
   const chainInfo = getChainInfo(chainId)
   const normalizedAddress = address.toLowerCase()
@@ -333,8 +337,12 @@ export function serializeSwapStateToURLParameters(
   const hasValidInput = (inputCurrency || outputCurrency) && typedValue
 
   const getCurrencyParam = (currency: Currency | undefined, currencyChainId: UniverseChainId): string | undefined => {
-    if (!currency) return undefined
-    if (currency.isNative) return NATIVE_CHAIN_ID
+    if (!currency) {
+      return undefined
+    }
+    if (currency.isNative) {
+      return NATIVE_CHAIN_ID
+    }
     const symbol = getTokenSymbolByAddress(currencyChainId, currency.address)
     return symbol ?? currency.address
   }
@@ -367,8 +375,12 @@ export function serializeSwapAddressesToURLParameters({
   const outputChainIdOrDefault = outputChainId ?? chainIdOrDefault
 
   const getAddressParam = (address: string | undefined, currencyChainId: UniverseChainId): string | undefined => {
-    if (!address) return undefined
-    if (address === getNativeAddress(currencyChainId)) return NATIVE_CHAIN_ID
+    if (!address) {
+      return undefined
+    }
+    if (address === getNativeAddress(currencyChainId)) {
+      return NATIVE_CHAIN_ID
+    }
     const symbol = getTokenSymbolByAddress(currencyChainId, address)
     return symbol ?? address
   }
@@ -390,16 +402,16 @@ export function queryParametersToCurrencyState(parsedQs: ParsedQs): SerializedCu
   const explicitOutputChainId = getParsedChainId(parsedQs, CurrencyField.OUTPUT)
 
   // Get raw URL parameters for chain inference (before conversion to NATIVE_CHAIN_ID)
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  /* eslint-disable @typescript-eslint/no-unnecessary-condition */
   const rawInputCurrency =
     typeof (parsedQs.inputCurrency ?? parsedQs.inputcurrency) === 'string'
       ? ((parsedQs.inputCurrency ?? parsedQs.inputcurrency) as string)
       : undefined
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const rawOutputCurrency =
     typeof (parsedQs.outputCurrency ?? parsedQs.outputcurrency) === 'string'
       ? ((parsedQs.outputCurrency ?? parsedQs.outputcurrency) as string)
       : undefined
+  /* eslint-enable @typescript-eslint/no-unnecessary-condition */
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const parsedInputCurrencyAddress = parseCurrencyFromURLParameter(parsedQs.inputCurrency ?? parsedQs.inputcurrency)
@@ -579,6 +591,7 @@ export function useInitialCurrencyState(): {
     if (currencyFromInputHook) {
       return currencyFromInputHook
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (initialInputCurrencyAddress && initialChainId) {
       // Handle NATIVE_CHAIN_ID or native symbol directly
       if (

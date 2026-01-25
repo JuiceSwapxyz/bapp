@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Flex, Text, styled } from 'ui/src'
 
-import { DataTable } from '../components/DataTable'
-import { InfoBox } from '../components/InfoBox'
-import { SectionHeader } from '../components/SectionHeader'
+import { DataTable } from 'pages/Juice/components/DataTable'
+import { InfoBox } from 'pages/Juice/components/InfoBox'
+import { SectionHeader } from 'pages/Juice/components/SectionHeader'
 
 const Section = styled(Flex, {
   flexDirection: 'column',
@@ -90,7 +90,7 @@ export function RisksEconomics() {
             </LayerNumber>
             <Flex flexDirection="column">
               <Text variant="body2" color="$neutral1" fontWeight="600">
-                Borrower's Reserve
+                Borrower&apos;s Reserve
               </Text>
               <Text variant="body3" color="$neutral2">
                 First, the reserve of the liquidated position
