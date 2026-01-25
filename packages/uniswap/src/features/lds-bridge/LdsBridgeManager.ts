@@ -231,6 +231,7 @@ class LdsBridgeManager extends SwapEventEmitter {
       return swap
     }
 
+    // Wait for Ponder to confirm lockup before claiming.
     const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
     await ponderPromise
     cancelPonderPolling()
