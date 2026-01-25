@@ -52,7 +52,7 @@ const slice = createSlice({
       analytics.setTestnetMode(true, WALLET_TESTNET_CONFIG)
     },
     setCitreaOnlyEnabled: (state, { payload }: PayloadAction<boolean>) => {
-      state.isCitreaOnlyEnabled = payload
+      state.isCitreaOnlyEnabled = true
     },
     setHapticsEnabled: (state, { payload }: PayloadAction<boolean>) => {
       state.hapticsEnabled = payload

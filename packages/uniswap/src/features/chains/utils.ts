@@ -223,6 +223,12 @@ export function getEnabledChains({
       // All chains are now Platform.EVM, so no filtering needed
     }
 
+    if (isCitreaOnlyEnabled) {
+      if (chainInfo.id !== UniverseChainId.CitreaTestnet) {
+        return false
+      }
+    }
+
     if (ALWAYS_ENABLED_CHAIN_IDS.includes(chainInfo.id)) {
       return true
     }
@@ -239,11 +245,6 @@ export function getEnabledChains({
       if (isTestnet && !includeTestnets) {
         return false
       }
-    }
-
-    // If Citrea only is enabled, only show CitreaTestnet
-    if (isCitreaOnlyEnabled && chainInfo.id !== UniverseChainId.CitreaTestnet) {
-      return false
     }
 
     // Filter by feature flags
@@ -307,4 +308,14 @@ export function getPrimaryStablecoin(chainId: UniverseChainId): Token {
 
 export function isUniverseChainId(chainId?: number | UniverseChainId | null): chainId is UniverseChainId {
   return !!chainId && ALL_CHAIN_IDS.includes(chainId as UniverseChainId)
+}
+
+/**
+ * Check if Citrea Mainnet is available in the system
+ * @returns true when CitreaMainnet chain is added to ORDERED_CHAINS
+ */
+export function isCitreaMainnetAvailable(): boolean {
+  // Check if UniverseChainId.CitreaMainnet exists and is in ORDERED_CHAINS
+  // @ts-expect-error - CitreaMainnet doesn't exist yet, will exist when added
+  return ORDERED_CHAINS.some((chain) => chain.id === UniverseChainId.CitreaMainnet)
 }

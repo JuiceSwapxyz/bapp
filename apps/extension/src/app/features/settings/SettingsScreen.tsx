@@ -29,6 +29,7 @@ import {
 } from 'ui/src/components/icons'
 import { resetUniswapBehaviorHistory } from 'uniswap/src/features/behaviorHistory/slice'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
+import { isCitreaMainnetAvailable } from 'uniswap/src/features/chains/utils'
 import { FiatCurrency, ORDERED_CURRENCIES } from 'uniswap/src/features/fiatCurrency/constants'
 import { getFiatCurrencyName, useAppFiatCurrencyInfo } from 'uniswap/src/features/fiatCurrency/hooks'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
@@ -232,6 +233,7 @@ export function SettingsScreen(): JSX.Element {
               <SettingsToggleRow
                 Icon={Wrench}
                 checked={isTestnetModeEnabled}
+                disabled={!isCitreaMainnetAvailable()}
                 title={t('settings.setting.wallet.testnetMode.title')}
                 onCheckedChange={handleTestnetModeToggle}
               />
