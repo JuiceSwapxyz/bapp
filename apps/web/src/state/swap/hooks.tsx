@@ -112,6 +112,10 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
     return chainInfo.tokens.USDT?.address
   }
 
+  if (symbolUpper === 'USDC') {
+    return chainInfo.tokens.USDC?.address
+  }
+
   if (symbolUpper === 'JUSD') {
     return (chainInfo.tokens as any).JUSD?.address
   }
