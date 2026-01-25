@@ -189,9 +189,24 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
     navigate('/swap?chain=ethereum&inputCurrency=USDC&outputCurrency=JUSD&outputChain=citrea')
   }, [navigate])
 
-  // Click handler for wBTC+ETH bubble - navigates to cross-chain swap from Ethereum wBTC to Citrea cBTC
+  // Click handler for wBTC+ETH bubble - navigates to cross-chain swap from Ethereum wBTC to Citrea WBTC.e (via L0 bridge)
   const handleWbtcEthClick = useCallback(() => {
-    navigate('/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC&outputChain=citrea')
+    navigate('/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=WBTC.e&outputChain=citrea')
+  }, [navigate])
+
+  // Click handler for cBTC bubble - navigates to cross-chain swap from Bitcoin BTC to Citrea cBTC
+  const handleCbtcClick = useCallback(() => {
+    navigate('/swap?inputCurrency=BTC&outputCurrency=cBTC')
+  }, [navigate])
+
+  // Click handler for JUICE bubble - navigates to swap cBTC to JUICE on Citrea
+  const handleJuiceClick = useCallback(() => {
+    navigate('/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUICE')
+  }, [navigate])
+
+  // Click handler for JUSD bubble - navigates to swap cBTC to JUSD on Citrea
+  const handleJusdClick = useCallback(() => {
+    navigate('/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUSD')
   }, [navigate])
 
   const renderRiseInText = useMemo(() => {
@@ -269,22 +284,58 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
 
           {/* Inside the wave - 6 bubbles */}
           <BubblePosition left="11.9%" top={178} delay={0}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcLarge} alt="Bitcoin" size={120} variant="wave" />
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveBtcLarge}
+              alt="cBTC"
+              size={120}
+              variant="wave"
+              onClick={handleCbtcClick}
+            />
           </BubblePosition>
           <BubblePosition left="8.5%" top={325} delay={4}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.waveBtcSmall} alt="Bitcoin" size={70} variant="wave" />
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveBtcSmall}
+              alt="cBTC"
+              size={70}
+              variant="wave"
+              onClick={handleCbtcClick}
+            />
           </BubblePosition>
           <BubblePosition left="22%" top={265} delay={2}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.waveWbtcCitrea} alt="wBTC+Citrea" size={70} variant="wave" />
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveWbtcCitrea}
+              alt="wBTC+Citrea"
+              size={70}
+              variant="wave"
+              onClick={handleWbtcEthClick}
+            />
           </BubblePosition>
           <BubblePosition right="22%" top={205} delay={5}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.waveJuice} alt="Juice" size={80} variant="wave" />
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveJuice}
+              alt="Juice"
+              size={80}
+              variant="wave"
+              onClick={handleJuiceClick}
+            />
           </BubblePosition>
           <BubblePosition right="5.8%" top={271} delay={3}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdSmall} alt="USD" size={80} variant="wave" />
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveUsdSmall}
+              alt="JUSD"
+              size={80}
+              variant="wave"
+              onClick={handleJusdClick}
+            />
           </BubblePosition>
           <BubblePosition right="9.9%" top={129} delay={1}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.waveUsdLarge} alt="USD" size={109} variant="wave" />
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveUsdLarge}
+              alt="JUSD"
+              size={109}
+              variant="wave"
+              onClick={handleJusdClick}
+            />
           </BubblePosition>
         </CoinBubblesContainer>
       )}

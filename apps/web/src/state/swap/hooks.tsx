@@ -121,7 +121,29 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
     if (chainId === UniverseChainId.Mainnet) {
       return '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
     }
-    return chainInfo.tokens.WBTC?.address
+    return undefined
+  }
+
+  // L0 bridged tokens on Citrea (from Ethereum via LayerZero)
+  if (symbolUpper === 'WBTC.E') {
+    if (chainId === UniverseChainId.CitreaTestnet) {
+      return '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d' // Citrea WBTC.e (WBTCOFT)
+    }
+    return undefined
+  }
+
+  if (symbolUpper === 'USDC.E') {
+    if (chainId === UniverseChainId.CitreaTestnet) {
+      return '0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839' // Citrea USDC.e
+    }
+    return undefined
+  }
+
+  if (symbolUpper === 'USDT.E') {
+    if (chainId === UniverseChainId.CitreaTestnet) {
+      return '0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4' // Citrea USDT.e
+    }
+    return undefined
   }
 
   if (symbolUpper === 'JUSD') {
@@ -133,6 +155,29 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
   }
 
   return undefined
+}
+
+// TODO: Remove mock tokens when Citrea Mainnet is live and tokens are in chain config
+// L0 bridged token addresses on Citrea (mainnet addresses, mocked for testnet UI)
+const L0_BRIDGED_TOKENS = {
+  'WBTC.e': {
+    address: '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d',
+    decimals: 8,
+    symbol: 'WBTC.e',
+    name: 'Wrapped BTC (LayerZero)',
+  },
+  'USDC.e': {
+    address: '0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839',
+    decimals: 6,
+    symbol: 'USDC.e',
+    name: 'USD Coin (LayerZero)',
+  },
+  'USDT.e': {
+    address: '0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4',
+    decimals: 6,
+    symbol: 'USDT.e',
+    name: 'Tether USD (LayerZero)',
+  },
 }
 
 function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Currency | undefined {
@@ -147,6 +192,15 @@ function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Cu
 
   const chainInfo = getChainInfo(chainId)
   const normalizedAddress = address.toLowerCase()
+
+  // Check for L0 bridged tokens on Citrea
+  if (chainId === UniverseChainId.CitreaTestnet) {
+    for (const [, tokenInfo] of Object.entries(L0_BRIDGED_TOKENS)) {
+      if (tokenInfo.address.toLowerCase() === normalizedAddress) {
+        return new Token(chainId, tokenInfo.address, tokenInfo.decimals, tokenInfo.symbol, tokenInfo.name)
+      }
+    }
+  }
 
   if (chainInfo.tokens.USDT?.address.toLowerCase() === normalizedAddress) {
     return chainInfo.tokens.USDT
@@ -215,7 +269,9 @@ export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): strin
       upper === 'JUSD' ||
       upper === 'USDC' ||
       upper === 'WBTC' ||
-      upper === 'DAI' ||
+      upper === 'WBTC.E' ||
+      upper === 'USDC.E' ||
+      upper === 'USDT.E' ||
       upper === 'JUICE'
     ) {
       return upper

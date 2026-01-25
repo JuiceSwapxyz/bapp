@@ -52,7 +52,12 @@ export function getParsedChainId(
   parsedQs?: ParsedQs,
   key: CurrencyField = CurrencyField.INPUT,
 ): UniverseChainId | undefined {
-  const chain = key === CurrencyField.INPUT ? parsedQs?.chain : parsedQs?.outputChain
+  // Handle both camelCase and lowercase variants (browsers may lowercase query params)
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const chain =
+    key === CurrencyField.INPUT
+      ? parsedQs?.chain ?? (parsedQs as any)?.Chain
+      : parsedQs?.outputChain ?? (parsedQs as any)?.outputchain ?? (parsedQs as any)?.OutputChain
   if (!chain || typeof chain !== 'string') {
     return undefined
   }

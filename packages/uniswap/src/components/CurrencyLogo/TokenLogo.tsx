@@ -35,7 +35,7 @@ export const TokenLogo = memo(function _TokenLogo({
   loading,
   webFontSize = 10,
   lineHeight = 14,
-  alwaysShowNetworkLogo = false,
+  alwaysShowNetworkLogo: _alwaysShowNetworkLogo = false,
 }: TokenLogoProps): JSX.Element {
   const isTestnetToken = !!chainId && isTestnetChain(chainId)
 
