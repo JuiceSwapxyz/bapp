@@ -336,8 +336,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
-  // 4. Auto-claim for both directions (USDT ↔ JUSD)
-  console.error('[ERC20 Chain Swap] Using auto-claim')
+  // 4. Auto-claim for both directions (USDT ↔ JUSD
   setCurrentStep({ step, accepted: false })
 
   try {
