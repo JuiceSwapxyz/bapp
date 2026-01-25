@@ -63,6 +63,7 @@ export function getParsedChainId(
   }
 
   // Resolve aliases (e.g., ethereum -> mainnet)
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const normalizedChain = CHAIN_NAME_ALIASES[chain.toLowerCase()] ?? chain
 
   const chainInfo = Object.values(UNIVERSE_CHAIN_INFO).find((i) => i.interfaceName === normalizedChain)

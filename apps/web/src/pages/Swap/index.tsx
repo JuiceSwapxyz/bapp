@@ -356,7 +356,7 @@ const DisabledOverlay = styled(Flex, {
   zIndex: zIndexes.overlay,
 })
 
-const DisabledSwapOverlay = () => {
+const _DisabledSwapOverlay = () => {
   const { t } = useTranslation()
 
   return (

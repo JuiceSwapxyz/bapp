@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { Flex, styled } from 'ui/src'
 
-import { Accordion } from '../components/Accordion'
-import { SectionHeader } from '../components/SectionHeader'
+import { Accordion } from 'pages/Juice/components/Accordion'
+import { SectionHeader } from 'pages/Juice/components/SectionHeader'
 
 const Section = styled(Flex, {
   flexDirection: 'column',

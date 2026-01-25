@@ -14,6 +14,7 @@ import { Flex, Text, styled } from 'ui/src'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
+import { assume0xAddress } from 'utils/wagmi'
 import { formatUnits, parseUnits } from 'viem'
 import { useBalance } from 'wagmi'
 
@@ -229,14 +230,14 @@ export function BuySellPanel({
     if (!baseAsset) {
       return undefined
     }
-    return new Token(chainId, baseAsset as `0x${string}`, 18, 'JUSD', 'Juice Dollar')
+    return new Token(chainId, assume0xAddress(baseAsset), 18, 'JUSD', 'Juice Dollar')
   }, [baseAsset, chainId])
 
   const launchpadToken = useMemo(() => {
     if (!tokenAddress) {
       return undefined
     }
-    return new Token(chainId, tokenAddress as `0x${string}`, 18, tokenSymbol, tokenSymbol)
+    return new Token(chainId, assume0xAddress(tokenAddress), 18, tokenSymbol, tokenSymbol)
   }, [tokenAddress, tokenSymbol, chainId])
 
   // Check allowance for base asset (for buying)
@@ -353,7 +354,7 @@ export function BuySellPanel({
         })
         addTransaction(tx, {
           type: TransactionType.LaunchpadBuy,
-          tokenAddress: tokenAddress as `0x${string}`,
+          tokenAddress: assume0xAddress(tokenAddress),
           dappInfo: { name: `Bought ${formattedAmount} ${tokenSymbol}` },
         })
         // Wait for confirmation before showing success toast
@@ -389,7 +390,7 @@ export function BuySellPanel({
         })
         addTransaction(tx, {
           type: TransactionType.LaunchpadSell,
-          tokenAddress: tokenAddress as `0x${string}`,
+          tokenAddress: assume0xAddress(tokenAddress),
           dappInfo: { name: `Sold ${formattedAmount} ${tokenSymbol}` },
         })
         // Wait for confirmation before showing success toast

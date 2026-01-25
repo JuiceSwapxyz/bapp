@@ -32,6 +32,7 @@ export function useBondingCurveContract(tokenAddress: string | undefined, chainI
 export function useTokenFactoryContract(chainId: UniverseChainId = UniverseChainId.CitreaTestnet) {
   const factoryAddress = useMemo(() => {
     const addresses = LAUNCHPAD_ADDRESSES[chainId]
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!addresses || addresses.factory === '0x0000000000000000000000000000000000000000') {
       return undefined
     }

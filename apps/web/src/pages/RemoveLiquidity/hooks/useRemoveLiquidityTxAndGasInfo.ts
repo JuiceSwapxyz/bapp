@@ -38,6 +38,7 @@ export function useRemoveLiquidityTxAndGasInfo({ account }: { account?: string }
 
     // V2 uses ERC-20 LP token approval
     if (positionInfo.version === ProtocolVersion.V2) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!positionInfo.liquidityToken || !positionInfo.liquidityAmount) {
         return undefined
       }

@@ -2,10 +2,10 @@ import { AlertTriangle, Clock, Users, XOctagon } from 'react-feather'
 import { useTranslation } from 'react-i18next'
 import { Flex, Text, styled, useSporeColors } from 'ui/src'
 
-import { DataTable } from '../components/DataTable'
-import { FeatureCard } from '../components/FeatureCard'
-import { InfoBox } from '../components/InfoBox'
-import { SectionHeader } from '../components/SectionHeader'
+import { DataTable } from 'pages/Juice/components/DataTable'
+import { FeatureCard } from 'pages/Juice/components/FeatureCard'
+import { InfoBox } from 'pages/Juice/components/InfoBox'
+import { SectionHeader } from 'pages/Juice/components/SectionHeader'
 
 const Section = styled(Flex, {
   flexDirection: 'column',
@@ -87,8 +87,8 @@ export function Governance() {
           Veto-Based Governance
         </Text>
         <Text variant="body2" color="$neutral2">
-          Unlike most DAOs where proposals need majority approval, JuiceDollar's governance works in reverse: proposals
-          pass by default after the application period. Anyone with 2% voting power can VETO a proposal.
+          Unlike most DAOs where proposals need majority approval, JuiceDollar&apos;s governance works in reverse:
+          proposals pass by default after the application period. Anyone with 2% voting power can VETO a proposal.
         </Text>
         <ComparisonBox>
           <ComparisonColumn>
@@ -127,8 +127,8 @@ export function Governance() {
           Time-Weighted Voting Power
         </Text>
         <Text variant="body2" color="$neutral2">
-          Your voting power depends on both your balance AND how long you've held. This prevents "vote buying" just
-          before important decisions and rewards long-term commitment.
+          Your voting power depends on both your balance AND how long you&apos;ve held. This prevents &quot;vote
+          buying&quot; just before important decisions and rewards long-term commitment.
         </Text>
         <CodeBlock>
           <Flex flexDirection="column" gap="$spacing8">
@@ -151,7 +151,7 @@ export function Governance() {
           Delegation
         </Text>
         <Text variant="body2" color="$neutral2">
-          Delegation is ADDITIVE: The delegate gains your votes, BUT you keep your own voting power too! It's also
+          Delegation is ADDITIVE: The delegate gains your votes, BUT you keep your own voting power too! It&apos;s also
           TRANSITIVE: If Alice delegates to Bob who delegates to Charles, Charles can use votes from both.
         </Text>
         <DataTable headers={['Step', 'Result', 'Voting Power']} rows={delegationExample} />
@@ -191,8 +191,8 @@ export function Governance() {
         </Text>
         <Text variant="body2" color="$neutral2">
           <strong>Kamikaze Mechanism:</strong> If a malicious actor gains significant voting power, honest holders can
-          "kamikaze" their votes to neutralize the threat. This destroys both the attacker's and defender's voting
-          power.
+          &quot;kamikaze&quot; their votes to neutralize the threat. This destroys both the attacker&apos;s and
+          defender&apos;s voting power.
         </Text>
         <Text variant="body2" color="$neutral2">
           <strong>Capital Restructuring:</strong> If equity falls below 1,000 JUSD (critical threshold), holders with

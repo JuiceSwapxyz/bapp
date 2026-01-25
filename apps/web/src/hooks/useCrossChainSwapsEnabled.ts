@@ -11,7 +11,9 @@ import { CROSS_CHAIN_SWAPS_STORAGE_KEY } from 'uniswap/src/utils/featureFlags'
 function useUrlCrossChainSwapsOverride(): boolean {
   const queryClient = useQueryClient()
   const [overrideActive, setOverrideActive] = useState(() => {
-    if (typeof window === 'undefined') return false
+    if (typeof window === 'undefined') {
+      return false
+    }
     return localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY) === 'true'
   })
 

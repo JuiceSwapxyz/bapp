@@ -1,11 +1,11 @@
+import { SwapCard } from 'pages/BridgeSwaps/SwapCard'
+import { EmptyState, FilterTab, FilterTabs, SortButton, SwapsList } from 'pages/BridgeSwaps/SwapsTable.styles'
+import { SwapFilterType, SwapSortOrder, SwapStatusCategory } from 'pages/BridgeSwaps/types'
 import { useCallback, useMemo, useState } from 'react'
 import { Flex, Text } from 'ui/src'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
-import { SwapCard } from './SwapCard'
-import { EmptyState, FilterTab, FilterTabs, SortButton, SwapsList } from './SwapsTable.styles'
-import { SwapFilterType, SwapSortOrder, SwapStatusCategory } from './types'
 
 interface SwapsTableProps {
   swaps: (SomeSwap & { id: string })[]

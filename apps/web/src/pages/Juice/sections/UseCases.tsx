@@ -2,8 +2,8 @@ import { ArrowDown, Award, Clock, DollarSign, Zap } from 'react-feather'
 import { useTranslation } from 'react-i18next'
 import { Flex, Text, styled, useSporeColors } from 'ui/src'
 
-import { FeatureCard } from '../components/FeatureCard'
-import { SectionHeader } from '../components/SectionHeader'
+import { FeatureCard } from 'pages/Juice/components/FeatureCard'
+import { SectionHeader } from 'pages/Juice/components/SectionHeader'
 
 const Section = styled(Flex, {
   flexDirection: 'column',
