@@ -1,3 +1,4 @@
+import { ADDRESS } from '@juicedollar/jusd'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { call } from 'typed-redux-saga'
@@ -64,7 +65,7 @@ const CONTRACTS = {
   },
   citrea: {
     swap: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
-    token: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
+    token: ADDRESS[5115]!.juiceDollar,
     decimals: 18, // JUSD on Citrea has 18 decimals
   },
   ethereum: {

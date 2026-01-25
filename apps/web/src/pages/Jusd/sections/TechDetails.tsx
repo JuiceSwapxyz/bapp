@@ -1,3 +1,4 @@
+import { ADDRESS } from '@juicedollar/jusd'
 import { useTranslation } from 'react-i18next'
 import { Flex, Text, styled } from 'ui/src'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
@@ -73,7 +74,7 @@ export function TechDetails() {
   ]
 
   const contracts = [
-    { name: 'JUSD', address: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015', desc: t('jusd.tech.contracts.jusd.desc') },
+    { name: 'JUSD', address: ADDRESS[5115]!.juiceDollar, desc: t('jusd.tech.contracts.jusd.desc') },
     {
       name: 'JUICE (Equity)',
       address: '0x7b2A560bf72B0Dd2EAbE3271F829C2597c8420d5',

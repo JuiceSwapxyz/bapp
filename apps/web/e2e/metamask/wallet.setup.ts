@@ -1,3 +1,4 @@
+import { ADDRESS } from '@juicedollar/jusd'
 import dotenv from 'dotenv'
 import { Wallet } from 'ethers'
 import path from 'path'
@@ -47,7 +48,7 @@ export const CHAIN_CONFIG = {
 export const TOKENS = {
   // JUSD on Citrea Testnet
   JUSD: {
-    address: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
+    address: ADDRESS[5115]!.juiceDollar,
     symbol: 'JUSD',
     decimals: 18, // JUSD has 18 decimals - DO NOT CHANGE
     chainId: 5115,

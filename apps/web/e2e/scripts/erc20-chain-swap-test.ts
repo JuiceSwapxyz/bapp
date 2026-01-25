@@ -31,6 +31,7 @@
  */
 
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { ADDRESS } from '@juicedollar/jusd'
 import { createHash, randomBytes } from 'crypto'
 import { Contract, Wallet } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
@@ -57,7 +58,7 @@ const CONFIG = {
   citrea: {
     rpcUrl: 'https://rpc.testnet.citrea.xyz',
     chainId: 5115,
-    jusd: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
+    jusd: ADDRESS[5115]!.juiceDollar,
     erc20Swap: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
   },
 
