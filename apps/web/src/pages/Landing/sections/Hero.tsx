@@ -13,8 +13,9 @@ import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { serializeSwapStateToURLParameters } from 'state/swap/hooks'
 import { Flex, Text, styled, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
+import { getNativeAddress } from 'uniswap/src/constants/addresses'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { SwapRedirectFn } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
 
 interface HeroProps {
@@ -123,16 +124,13 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
 
   // Use native token (cBTC on Citrea) as default input currency
   const initialInputCurrency = useCurrency({
-    address: 'ETH', // This will get the native token for any chain
+    address: getNativeAddress(defaultChainId),
     chainId: defaultChainId,
   })
 
-  // Use cUSD as default output currency for Citrea and Sepolia
+  // Use JUSD as default output currency
   const initialOutputCurrency = useCurrency({
-    address:
-      defaultChainId === UniverseChainId.CitreaTestnet || defaultChainId === UniverseChainId.Sepolia
-        ? '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0' // cUSD
-        : undefined,
+    address: JUSD_ADDRESSES[defaultChainId],
     chainId: defaultChainId,
   })
 

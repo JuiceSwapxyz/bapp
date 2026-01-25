@@ -11,11 +11,12 @@ import { getNativeAddress } from 'uniswap/src/constants/addresses'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import { useUrlContext } from 'uniswap/src/contexts/UrlContext'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
+import { DEFAULT_NATIVE_ADDRESS_LEGACY } from 'uniswap/src/features/chains/evm/rpc'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ALWAYS_ENABLED_CHAIN_IDS } from 'uniswap/src/features/chains/utils'
-import { getJuiceAddress, isJuiceAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { JUSD_ADDRESSES, getJuiceAddress, isJuiceAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { selectFilteredChainIds } from 'uniswap/src/features/transactions/swap/state/selectors'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { isAddress } from 'utilities/src/addresses'
@@ -566,11 +567,11 @@ export function useInitialCurrencyState(): {
       return resolvedAddress
     }
 
-    // Default to cUSD when no output currency is specified
+    // Default to JUSD when no output currency is specified
     if (!hasCurrencyQueryParams) {
-      // For Citrea Testnet, default to cUSD
-      if (initialChainId === UniverseChainId.CitreaTestnet || initialChainId === UniverseChainId.Sepolia) {
-        return '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0' // cUSD
+      const jusdAddress = JUSD_ADDRESSES[initialChainId]
+      if (jusdAddress) {
+        return jusdAddress
       }
     }
 
@@ -597,9 +598,10 @@ export function useInitialCurrencyState(): {
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (initialInputCurrencyAddress && initialChainId) {
-      // Handle NATIVE_CHAIN_ID or native symbol directly
+      // Handle NATIVE_CHAIN_ID, native address (0xeeee...), or native symbol directly
       if (
         initialInputCurrencyAddress === NATIVE_CHAIN_ID ||
+        initialInputCurrencyAddress.toLowerCase() === DEFAULT_NATIVE_ADDRESS_LEGACY.toLowerCase() ||
         ['btc', 'lnbtc', 'cbtc', 'native'].includes(initialInputCurrencyAddress.toLowerCase())
       ) {
         return nativeOnChain(initialChainId)
