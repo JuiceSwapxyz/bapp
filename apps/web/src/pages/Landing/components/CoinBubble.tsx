@@ -4,7 +4,7 @@ interface CoinBubbleProps {
   src: string
   alt: string
   size?: number
-  variant?: 'normal' | 'wave'
+  variant?: 'normal' | 'wave' | 'light'
   onClick?: () => void
 }
 
@@ -29,12 +29,23 @@ const BubbleContainer = styled(Flex, {
         },
       },
       wave: {
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        // Orange bubble matching the wave background (#FF7D14)
+        backgroundColor: 'rgba(255, 125, 20, 0.35)',
         borderWidth: 1,
         borderStyle: 'solid',
-        borderColor: 'rgba(255, 255, 255, 0.3)',
+        borderColor: 'rgba(255, 125, 20, 0.5)',
         '$platform-web': {
-          boxShadow: '0px 10px 27px 0px rgba(0, 0, 0, 0.08)',
+          boxShadow: '0px 10px 27px 0px rgba(0, 0, 0, 0.12)',
+        },
+      },
+      light: {
+        // White background with blue border for wBTC+ETH
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: '#627EEA',
+        '$platform-web': {
+          boxShadow: '0px 7px 20px 0px rgba(98, 126, 234, 0.15)',
         },
       },
     },
@@ -64,8 +75,15 @@ const InnerShadow = styled(Flex, {
         },
       },
       wave: {
+        // Gold-tinted inner shadow for orange bubbles
         '$platform-web': {
-          boxShadow: 'inset 4px 9px 20px 0px rgba(255, 255, 255, 0.47)',
+          boxShadow: 'inset 4px 9px 20px 0px rgba(255, 197, 51, 0.35)',
+        },
+      },
+      light: {
+        // Subtle blue-tinted inner shadow
+        '$platform-web': {
+          boxShadow: 'inset -1.3px -4.2px 9px 0px rgba(98, 126, 234, 0.15)',
         },
       },
     },
@@ -109,12 +127,13 @@ export const COIN_SYMBOLS = {
   // Above the wave (colored)
   btcChain: '/images/landing_page/symbol-btc-chain.svg',
   btcLightning: '/images/landing_page/symbol-btc-lightning.svg',
+  tether: '/images/landing_page/symbol-tether.svg', // Tether only (no badge)
   tetherEth: '/images/landing_page/symbol-tether-eth.svg',
   tetherPolygon: '/images/landing_page/symbol-tether-polygon.svg',
   wbtcEth: '/images/landing_page/symbol-wbtc-eth.svg',
   usdc: '/images/landing_page/symbol-usdc.svg',
 
-  // Inside the wave (white/cream colored)
+  // Inside the wave (cream colored for orange bubble background)
   waveBtcLarge: '/images/landing_page/symbol-wave-btc-citrea.svg',
   waveBtcSmall: '/images/landing_page/symbol-wave-btc-citrea.svg',
   waveUsdLarge: '/images/landing_page/symbol-wave-usd.svg',

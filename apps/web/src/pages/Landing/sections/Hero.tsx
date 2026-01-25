@@ -172,8 +172,8 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
     navigate('/swap?inputCurrency=lnBTC&outputCurrency=cBTC')
   }, [navigate])
 
-  // Click handler for Tether+ETH bubble - navigates to cross-chain swap from Ethereum USDT to Citrea JUSD
-  const handleTetherEthClick = useCallback(() => {
+  // Click handler for Tether bubble (no badge) - navigates to cross-chain swap from Ethereum USDT to Citrea JUSD
+  const handleTetherClick = useCallback(() => {
     navigate('/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea')
   }, [navigate])
 
@@ -250,34 +250,34 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       {/* Floating Coin Bubbles - only shown when cross-chain swaps are enabled */}
       {isCrossChainSwapsEnabled && (
         <CoinBubblesContainer>
-          {/* Above the wave - 6 bubbles */}
-          <BubblePosition left="5.7%" top={-78} delay={0}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.btcChain} alt="Bitcoin Chain" size={90} onClick={handleBtcChainClick} />
+          {/* Above the wave - 6 bubbles (positions and sizes match Figma) */}
+          <BubblePosition left="6.7%" top={-78} delay={0}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.btcChain} alt="Bitcoin Chain" size={85} onClick={handleBtcChainClick} />
           </BubblePosition>
-          <BubblePosition left="16%" top={-112} delay={2}>
+          <BubblePosition left="13.5%" top={-112} delay={2}>
             <CoinBubble
               src={COIN_BUBBLE_ASSETS.btcLightning}
               alt="Bitcoin Lightning"
-              size={65}
+              size={55}
               onClick={handleLightningClick}
             />
           </BubblePosition>
-          <BubblePosition right="13.2%" top={-104} delay={1}>
+          <BubblePosition right="10.2%" top={-104} delay={1}>
             <CoinBubble
               src={COIN_BUBBLE_ASSETS.tetherPolygon}
               alt="Tether+Polygon"
-              size={75}
+              size={65}
               onClick={handleTetherPolygonClick}
             />
           </BubblePosition>
-          <BubblePosition left="19.4%" top={-15} delay={3}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="wBTC+ETH" size={73} onClick={handleWbtcEthClick} />
+          <BubblePosition left="16.5%" top={-15} delay={3}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="wBTC+ETH" size={80} onClick={handleWbtcEthClick} />
           </BubblePosition>
-          <BubblePosition right="20.8%" top={-38} delay={4}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={79} onClick={handleTetherEthClick} />
+          <BubblePosition right="16.8%" top={-38} delay={4}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={60} onClick={handleTetherClick} />
           </BubblePosition>
-          <BubblePosition right="6.2%" top={-35} delay={5}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.usdc} alt="USDC" size={66} onClick={handleUsdcClick} />
+          <BubblePosition right="5.8%" top={-35} delay={5}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.usdc} alt="USDC" size={55} onClick={handleUsdcClick} />
           </BubblePosition>
 
           {/* Inside the wave - 6 bubbles */}
