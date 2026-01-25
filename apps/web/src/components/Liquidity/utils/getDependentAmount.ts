@@ -8,7 +8,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import {
   DEFAULT_SHARE_PRICE,
   getJusdTokenInPair,
-  isJusdPool,
+  isSvJusdAddress,
   jusdToSvJusd,
   svJusdToJusd,
 } from 'uniswap/src/features/tokens/jusdAbstraction'
@@ -155,16 +155,28 @@ export function getDependentAmountFromV3PositionWithJusdAdjustment({
   const wrappedIndependentAmount = independentAmount.wrapped
   const independentTokenIsFirstToken = wrappedIndependentAmount.currency.equals(pool.token0)
 
-  // Check if this is a JUSD pool and we have share price info
+  // Check if this pool uses svJUSD tokens (real on-chain pool)
+  // Mock pools use JUSD tokens directly and don't need adjustment
   const token0Address = pool.token0.address
   const token1Address = pool.token1.address
   const effectiveSharePrice = sharePrice || DEFAULT_SHARE_PRICE
 
-  const isJusdPairFlag = chainId ? isJusdPool(chainId, token0Address, token1Address) : false
-  const jusdToken = chainId ? getJusdTokenInPair(chainId, token0Address, token1Address) : null
+  // Only apply adjustment if pool uses svJUSD tokens (real on-chain pool)
+  // Mock pools created for new positions use JUSD tokens and JUSD prices,
+  // so no conversion is needed - the calculation is already in JUSD terms
+  const token0IsSvJusd = chainId ? isSvJusdAddress(chainId, token0Address) : false
+  const token1IsSvJusd = chainId ? isSvJusdAddress(chainId, token1Address) : false
+  const poolUsesSvJusd = token0IsSvJusd || token1IsSvJusd
 
-  // If not a JUSD pair or no share price adjustment needed, use standard calculation
-  if (!isJusdPairFlag || !jusdToken || effectiveSharePrice === DEFAULT_SHARE_PRICE) {
+  // If pool doesn't use svJUSD or no share price adjustment needed, use standard calculation
+  if (!poolUsesSvJusd || effectiveSharePrice === DEFAULT_SHARE_PRICE) {
+    return getDependentAmountFromV3Position({ independentAmount, pool, tickLower, tickUpper })
+  }
+
+  // Determine which token position is svJUSD for conversion logic
+  const jusdToken = getJusdTokenInPair(chainId!, token0Address, token1Address)
+  if (!jusdToken) {
+    // Safety check - should not happen if poolUsesSvJusd is true
     return getDependentAmountFromV3Position({ independentAmount, pool, tickLower, tickUpper })
   }
 
