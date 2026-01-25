@@ -43,6 +43,9 @@ export const SV_JUSD_ADDRESSES: Partial<Record<UniverseChainId, string>> = build
 
 export const JUICE_ADDRESSES: Partial<Record<UniverseChainId, string>> = buildAddressMap((a) => a.equity)
 
+// SUSD (StartUSD) addresses - from @juicedollar/jusd
+export const SUSD_ADDRESSES: Partial<Record<UniverseChainId, string>> = buildAddressMap((a) => a.startUSD)
+
 // Gateway address from @juiceswapxyz/sdk-core CHAIN_TO_ADDRESSES_MAP
 // Type assertion needed as juiceSwapGatewayAddress may not be in older sdk-core types
 type ExtendedChainAddresses = { juiceSwapGatewayAddress?: string }
@@ -82,6 +85,17 @@ export function isJuiceAddress(chainId: UniverseChainId, address: string): boole
     return false
   }
   return address.toLowerCase() === juiceAddress.toLowerCase()
+}
+
+/**
+ * Check if an address is the SUSD (StartUSD) token on a given chain
+ */
+export function isSusdAddress(chainId: UniverseChainId, address: string): boolean {
+  const susdAddress = SUSD_ADDRESSES[chainId]
+  if (!susdAddress) {
+    return false
+  }
+  return address.toLowerCase() === susdAddress.toLowerCase()
 }
 
 /**

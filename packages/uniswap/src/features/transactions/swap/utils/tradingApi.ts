@@ -38,7 +38,7 @@ import { isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, SwapConfigKey } from 'uniswap/src/features/gating/configs'
 import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
-import { getSvJusdAddress, isJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { getSvJusdAddress, isJusdAddress, isSusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import type { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import {
   BitcoinBridgeTrade,
@@ -144,14 +144,14 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
       return new UnwrapTrade({ quote: data, currencyIn, currencyOut, tradeType })
     }
     default: {
-      // Handle Gateway routing types (custom routing types not in generated enum)
-      // - GATEWAY_JUSD: Swaps involving JUSD (converted to svJUSD internally)
-      // - GATEWAY_JUICE_IN: Selling JUICE via Equity.redeem()
-      // - GATEWAY_JUICE_OUT: Buying JUICE via Equity.invest()
+      // Handle custom routing types not in generated enum
       // Type assertion needed because TypeScript exhaustive checking narrows to 'never'
       const unknownData = data as DiscriminatedQuoteResponse | undefined
+      const routingType = unknownData?.routing as string
+
+      // Handle Gateway routing types (JUSD abstraction and JUICE equity swaps)
       const gatewayRoutingTypes = ['GATEWAY_JUSD', 'GATEWAY_JUICE_IN', 'GATEWAY_JUICE_OUT']
-      if (unknownData && gatewayRoutingTypes.includes(unknownData.routing as string)) {
+      if (unknownData && gatewayRoutingTypes.includes(routingType)) {
         return new GatewayJusdTrade({
           quote: unknownData as unknown as GatewayJusdQuoteResponse,
           currencyIn,
@@ -159,6 +159,7 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
           tradeType,
         })
       }
+
       return null
     }
   }
@@ -465,12 +466,13 @@ export function validateTrade({
     return null
   }
 
-  // Helper to normalize JUSD ↔ svJUSD addresses for comparison
-  // Users see JUSD in the UI, but the API returns routes using svJUSD
+  // Helper to normalize JUSD/SUSD ↔ svJUSD addresses for comparison
+  // Users see JUSD/SUSD in the UI, but the API returns routes using svJUSD
   const normalizeAddress = (address: string, chainId: number): string => {
     const universeChainId = chainId as UniverseChainId
-    // If this is JUSD, normalize to svJUSD for comparison
-    if (isJusdAddress(universeChainId, address)) {
+    // If this is JUSD or SUSD, normalize to svJUSD for comparison
+    // (SUSD is routed through Gateway via registerBridgedToken, which converts to svJUSD)
+    if (isJusdAddress(universeChainId, address) || isSusdAddress(universeChainId, address)) {
       return getSvJusdAddress(universeChainId) ?? address
     }
     return address

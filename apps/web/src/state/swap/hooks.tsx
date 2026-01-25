@@ -16,7 +16,13 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ALWAYS_ENABLED_CHAIN_IDS } from 'uniswap/src/features/chains/utils'
-import { JUSD_ADDRESSES, getJuiceAddress, isJuiceAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
+import {
+  JUSD_ADDRESSES,
+  SUSD_ADDRESSES,
+  getJuiceAddress,
+  isJuiceAddress,
+  isSusdAddress,
+} from 'uniswap/src/features/tokens/jusdAbstraction'
 import { selectFilteredChainIds } from 'uniswap/src/features/transactions/swap/state/selectors'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { isAddress } from 'utilities/src/addresses'
@@ -155,6 +161,10 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
     return (chainInfo.tokens as any).JUSD?.address
   }
 
+  if (symbolUpper === 'SUSD') {
+    return SUSD_ADDRESSES[chainId]
+  }
+
   if (symbolUpper === 'JUICE') {
     return getJuiceAddress(chainId)
   }
@@ -238,6 +248,10 @@ function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: 
     return 'JUSD'
   }
 
+  if (isSusdAddress(chainId, address)) {
+    return 'SUSD'
+  }
+
   if (isJuiceAddress(chainId, address)) {
     return 'JUICE'
   }
@@ -281,7 +295,8 @@ export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): strin
       upper === 'WBTC.E' ||
       upper === 'USDC.E' ||
       upper === 'USDT.E' ||
-      upper === 'JUICE'
+      upper === 'JUICE' ||
+      upper === 'SUSD'
     ) {
       return upper
     }

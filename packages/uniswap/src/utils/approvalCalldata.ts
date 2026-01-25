@@ -12,10 +12,10 @@ type GatewayRoutingVariant = (typeof GATEWAY_ROUTING_VARIANTS)[number]
 /**
  * Determines the appropriate spender address for swaps
  * Uses sdk-core as single source of truth for router addresses
- * For Gateway swaps, returns JuiceSwapGateway address instead
+ * For Gateway swaps (including SUSD), returns JuiceSwapGateway address
  */
 export function getSpenderAddress(chainId: UniverseChainId, routing?: string): string {
-  // For Gateway swaps (JUSD abstraction, JUICE equity), use JuiceSwapGateway as spender
+  // For Gateway swaps (JUSD abstraction, JUICE equity, SUSD bridging), use JuiceSwapGateway as spender
   if (routing && GATEWAY_ROUTING_VARIANTS.includes(routing as GatewayRoutingVariant)) {
     const gatewayAddress = JUICE_SWAP_GATEWAY_ADDRESSES[chainId]
     if (!gatewayAddress) {
@@ -23,6 +23,7 @@ export function getSpenderAddress(chainId: UniverseChainId, routing?: string): s
     }
     return gatewayAddress
   }
+
   return SWAP_ROUTER_02_ADDRESSES(chainId)
 }
 

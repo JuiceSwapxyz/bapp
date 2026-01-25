@@ -13,6 +13,7 @@ export type GatewayJusdRouting =
   | typeof GATEWAY_JUICE_OUT_ROUTING
 
 // All Gateway routing variants
+// Note: SUSD is routed through Gateway via registerBridgedToken() - no separate routing type needed
 export const GATEWAY_ROUTING_VARIANTS = [
   GATEWAY_JUSD_ROUTING,
   GATEWAY_JUICE_IN_ROUTING,
