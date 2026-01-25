@@ -22,7 +22,7 @@ export function UniswapXInfo({
   return (
     <WarningInfo
       infoButton={
-        // TODO: Re-enable once support.juiceswap.xyz is configured
+        // TODO: Re-enable once support.juiceswap.com is configured
         //
         null
       }

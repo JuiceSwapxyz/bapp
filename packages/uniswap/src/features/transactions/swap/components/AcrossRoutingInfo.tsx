@@ -42,7 +42,7 @@ export function AcrossRoutingInfo(): JSX.Element {
     () =>
       isMobileApp ? (
         <Flex centered gap="$spacing16">
-          {/* TODO: Re-enable once support.juiceswap.xyz is configured
+          {/* TODO: Re-enable once support.juiceswap.com is configured
           
           */}
           <Flex row alignItems="center" gap="$spacing6" justifyContent="center">

@@ -111,7 +111,7 @@ function InfoButton({
   if (includesDelegation && isMobileApp) {
     return (
       <Flex mb="$spacing8">
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         
         */}
       </Flex>
@@ -126,7 +126,7 @@ function InfoButton({
     return <UniswapXFeeContent uniswapXGasFeeInfo={uniswapXGasFeeInfo} />
   }
 
-  // TODO: Re-enable once support.juiceswap.xyz is configured
+  // TODO: Re-enable once support.juiceswap.com is configured
   // return
   return null
 }
@@ -192,7 +192,7 @@ function UniswapXFeeContent({ uniswapXGasFeeInfo }: { uniswapXGasFeeInfo: Format
   return (
     <Flex gap="$spacing12">
       <Flex row centered={isMobileApp} width="100%">
-        {/* TODO: Re-enable once support.juiceswap.xyz is configured
+        {/* TODO: Re-enable once support.juiceswap.com is configured
         
         */}
       </Flex>
