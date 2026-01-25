@@ -1142,3 +1142,38 @@ export async function fetchV3PoolDetails(params: { address: string; chainId: num
     }),
   })
 }
+
+// ===== svJUSD Share Price API =====
+
+/**
+ * Response from the svJUSD share price endpoint
+ */
+export interface SvJusdSharePriceResponse {
+  chainId: number
+  sharePrice: string // e.g., "1020000000000000000" (1.02 with 18 decimals)
+  sharePriceDecimals: number // Always 18
+  svJusdAddress: string
+  jusdAddress: string
+  timestamp: number
+  cached: boolean
+}
+
+/**
+ * Fetches the current svJUSD share price for a given chain.
+ *
+ * The share price represents how much JUSD one svJUSD is worth.
+ * As interest accrues in the vault, this value increases over time.
+ *
+ * This is essential for accurate dependent amount calculations
+ * when creating or modifying liquidity positions involving JUSD.
+ *
+ * @param params.chainId - The chain ID to query (e.g., 5115 for Citrea Testnet)
+ * @returns Share price info including the price, addresses, and cache status
+ */
+export async function fetchSvJusdSharePrice(params: { chainId: number }): Promise<SvJusdSharePriceResponse> {
+  return await TradingApiClient.get<SvJusdSharePriceResponse>('/v1/svjusd/sharePrice', {
+    params: {
+      chainId: params.chainId.toString(),
+    },
+  })
+}
