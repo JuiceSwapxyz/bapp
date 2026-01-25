@@ -1,3 +1,4 @@
+import { ADDRESS } from '@juicedollar/jusd'
 import { ChainId, GetSwappableTokensResponse, SafetyLevel } from 'uniswap/src/data/tradingApi/__generated__'
 
 // Temporal mapping of swappable tokens for bridges (Citrea, Bitcoin, Lightning Network)
@@ -5,7 +6,7 @@ import { ChainId, GetSwappableTokensResponse, SafetyLevel } from 'uniswap/src/da
 
 const USE_SWAPPABLE_TOKENS_MAPPING = true
 
-const JUSD_CITREA = '0xFdB0a83d94CD65151148a131167Eb499Cb85d015'
+const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
 const USDT_ETHEREUM = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 const USDC_ETHEREUM = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
@@ -42,7 +43,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
         decimals: 18,
       },
     ],
-    [JUSD_CITREA]: [
+    [JUSD_CITREA_TESTNET]: [
       {
         address: USDT_POLYGON,
         chainId: ChainId._137,
@@ -126,7 +127,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
   [ChainId._137]: {
     [USDT_POLYGON]: [
       {
-        address: JUSD_CITREA,
+        address: JUSD_CITREA_TESTNET,
         chainId: ChainId._5115,
         name: 'JuiceSwap USD',
         project: {
@@ -144,7 +145,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
   [ChainId._1]: {
     [USDT_ETHEREUM]: [
       {
-        address: JUSD_CITREA,
+        address: JUSD_CITREA_TESTNET,
         chainId: ChainId._5115,
         name: 'JuiceSwap USD',
         project: {
@@ -160,7 +161,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
     ],
     [USDC_ETHEREUM]: [
       {
-        address: JUSD_CITREA,
+        address: JUSD_CITREA_TESTNET,
         chainId: ChainId._5115,
         name: 'JuiceSwap USD',
         project: {

@@ -1,3 +1,4 @@
+import { ADDRESS } from '@juicedollar/jusd'
 import { ChainId, WETH9 } from '@juiceswapxyz/sdk-core'
 import { CurrencyAmount, Token } from '@uniswap/sdk-core'
 import { CITREA_LOGO } from 'ui/src/assets'
@@ -22,7 +23,7 @@ const testnetTokens = buildChainTokens({
     CUSD: buildCUSD('0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0', UniverseChainId.CitreaTestnet),
     JUSD: new Token(
       UniverseChainId.CitreaTestnet,
-      '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
+      ADDRESS[5115]!.juiceDollar,
       18,
       'JUSD',
       'JuiceSwap USD',

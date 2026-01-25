@@ -1,3 +1,4 @@
+import { ADDRESS } from '@juicedollar/jusd'
 import { useTranslation } from 'react-i18next'
 import { Flex, Text, styled } from 'ui/src'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
@@ -83,7 +84,7 @@ export function TechDetails() {
 
   const contracts = [
     { name: 'JUICE (Equity)', address: '0x7b2A560bf72B0Dd2EAbE3271F829C2597c8420d5', desc: 'Governance & Pool Shares' },
-    { name: 'JUSD', address: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015', desc: 'Stablecoin' },
+    { name: 'JUSD', address: ADDRESS[5115]!.juiceDollar, desc: 'Stablecoin' },
     { name: 'svJUSD', address: '0x9580498224551E3f2e3A04330a684BF025111C53', desc: 'ERC-4626 Savings Vault' },
     { name: 'MintingHubGateway', address: '0x372368ca530B4d55622c24E28F0347e26caDc64A', desc: 'Position Management' },
     { name: 'PositionFactory', address: '0xB22a0701237a226d17aE0C4FE8263Edf5Be5f20d', desc: 'Position Creation' },

@@ -1,3 +1,4 @@
+import { ADDRESS } from '@juicedollar/jusd'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { call } from 'typed-redux-saga'
@@ -60,7 +61,7 @@ async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<v
 const USDC_ETHEREUM_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
 const USDT_ETHEREUM_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 const USDT_POLYGON_ADDRESS = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
-const JUSD_CITREA_ADDRESS = '0xFdB0a83d94CD65151148a131167Eb499Cb85d015'
+const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
 
 // Swap contract addresses (same contract handles multiple tokens on each chain)
 const SWAP_CONTRACTS = {
@@ -74,7 +75,7 @@ const TOKEN_CONFIGS: Record<string, { address: string; decimals: number; chainId
   USDT_ETH: { address: USDT_ETHEREUM_ADDRESS, decimals: 6, chainId: UniverseChainId.Mainnet },
   USDC_ETH: { address: USDC_ETHEREUM_ADDRESS, decimals: 6, chainId: UniverseChainId.Mainnet },
   USDT_POLYGON: { address: USDT_POLYGON_ADDRESS, decimals: 6, chainId: UniverseChainId.Polygon },
-  JUSD_CITREA: { address: JUSD_CITREA_ADDRESS, decimals: 18, chainId: UniverseChainId.CitreaTestnet },
+  JUSD_CITREA: { address: JUSD_CITREA_TESTNET, decimals: 18, chainId: UniverseChainId.CitreaTestnet },
 }
 
 const BOLTZ_DECIMALS = 8 // Boltz uses 8 decimals internally
