@@ -213,3 +213,85 @@ export function transformSvJusdToken(token: SdkToken, chainId?: UniverseChainId)
   }
   return token
 }
+
+// ===== svJUSD Share Price Utilities =====
+
+/**
+ * Default share price (1:1) used when no share price is available
+ * Represents 1e18 in string format
+ */
+export const DEFAULT_SHARE_PRICE = '1000000000000000000'
+
+/**
+ * Convert JUSD amount to svJUSD shares using share price
+ *
+ * @param jusdAmount - JUSD amount as string (in wei)
+ * @param sharePrice - Share price as string (18 decimals, e.g., "1020000000000000000" = 1.02)
+ * @returns svJUSD shares as string (in wei)
+ */
+export function jusdToSvJusd(jusdAmount: string, sharePrice: string): string {
+  const jusd = BigInt(jusdAmount)
+  const price = BigInt(sharePrice || DEFAULT_SHARE_PRICE)
+  const one = BigInt(DEFAULT_SHARE_PRICE) // 1e18
+
+  // svJUSD = JUSD * 1e18 / sharePrice
+  const svJusd = (jusd * one) / price
+  return svJusd.toString()
+}
+
+/**
+ * Convert svJUSD shares to JUSD amount using share price
+ *
+ * @param svJusdAmount - svJUSD shares as string (in wei)
+ * @param sharePrice - Share price as string (18 decimals, e.g., "1020000000000000000" = 1.02)
+ * @returns JUSD amount as string (in wei)
+ */
+export function svJusdToJusd(svJusdAmount: string, sharePrice: string): string {
+  const svJusd = BigInt(svJusdAmount)
+  const price = BigInt(sharePrice || DEFAULT_SHARE_PRICE)
+  const one = BigInt(DEFAULT_SHARE_PRICE) // 1e18
+
+  // JUSD = svJUSD * sharePrice / 1e18
+  const jusd = (svJusd * price) / one
+  return jusd.toString()
+}
+
+/**
+ * Check if a token pair involves JUSD on a given chain.
+ * This is used to determine if share price adjustments are needed for LP operations.
+ *
+ * @param chainId - The chain ID to check
+ * @param token0Address - Address of token0
+ * @param token1Address - Address of token1
+ * @returns true if either token is JUSD or svJUSD
+ */
+export function isJusdPool(chainId: UniverseChainId, token0Address: string, token1Address: string): boolean {
+  return (
+    isJusdAddress(chainId, token0Address) ||
+    isJusdAddress(chainId, token1Address) ||
+    isSvJusdAddress(chainId, token0Address) ||
+    isSvJusdAddress(chainId, token1Address)
+  )
+}
+
+/**
+ * Determine which token in a pair is JUSD (or svJUSD)
+ *
+ * @param chainId - The chain ID to check
+ * @param token0Address - Address of token0
+ * @param token1Address - Address of token1
+ * @returns 'TOKEN_0', 'TOKEN_1', or null if neither is JUSD
+ */
+export function getJusdTokenInPair(
+  chainId: UniverseChainId,
+  token0Address: string,
+  token1Address: string,
+): 'TOKEN_0' | 'TOKEN_1' | null {
+  if (isJusdAddress(chainId, token0Address) || isSvJusdAddress(chainId, token0Address)) {
+    return 'TOKEN_0'
+  }
+  if (isJusdAddress(chainId, token1Address) || isSvJusdAddress(chainId, token1Address)) {
+    return 'TOKEN_1'
+  }
+  return null
+}
