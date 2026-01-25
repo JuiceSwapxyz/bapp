@@ -9,6 +9,7 @@ const USE_SWAPPABLE_TOKENS_MAPPING = true
 const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
 const USDT_ETHEREUM = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+const USDC_ETHEREUM = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
 
 export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = {
   [ChainId._5115]: {
@@ -71,6 +72,20 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
         symbol: 'USDT',
         decimals: 6,
       },
+      {
+        address: USDC_ETHEREUM,
+        chainId: ChainId._1,
+        name: 'USD Coin',
+        project: {
+          logo: {
+            url: 'https://assets.coingecko.com/coins/images/6319/large/usdc.png',
+          },
+          safetyLevel: SafetyLevel.VERIFIED,
+          isSpam: false,
+        },
+        symbol: 'USDC',
+        decimals: 6,
+      },
     ],
   },
   [ChainId._21_000_000]: {
@@ -131,6 +146,22 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
     [USDT_ETHEREUM]: [
       {
         address: JUSD_CITREA_TESTNET,
+        chainId: ChainId._5115,
+        name: 'JuiceSwap USD',
+        project: {
+          logo: {
+            url: 'https://docs.juiceswap.com/media/icons/jusd.png',
+          },
+          safetyLevel: SafetyLevel.VERIFIED,
+          isSpam: false,
+        },
+        symbol: 'JUSD',
+        decimals: 18,
+      },
+    ],
+    [USDC_ETHEREUM]: [
+      {
+        address: JUSD_CITREA,
         chainId: ChainId._5115,
         name: 'JuiceSwap USD',
         project: {

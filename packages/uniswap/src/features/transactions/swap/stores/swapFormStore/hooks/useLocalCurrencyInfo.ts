@@ -10,6 +10,7 @@ import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
 const JUSD_CITREA = ADDRESS[5115]!.juiceDollar
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
 const USDT_ETHEREUM = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+const USDC_ETHEREUM = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
 
 // L0 bridged tokens on Citrea
 const WBTC_E_CITREA = '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d'
@@ -74,6 +75,17 @@ const localCurrencyInfo: CurrencyInfo[] = [
     }) as Currency,
     currencyId: buildCurrencyId(UniverseChainId.Mainnet, USDT_ETHEREUM),
     logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+  },
+  {
+    currency: buildCurrency({
+      chainId: UniverseChainId.Mainnet,
+      address: USDC_ETHEREUM,
+      decimals: 6,
+      symbol: 'USDC',
+      name: 'USD Coin',
+    }) as Currency,
+    currencyId: buildCurrencyId(UniverseChainId.Mainnet, USDC_ETHEREUM),
+    logoUrl: 'https://assets.coingecko.com/coins/images/6319/large/usdc.png',
   },
   // L0 bridged tokens on Citrea
   {
