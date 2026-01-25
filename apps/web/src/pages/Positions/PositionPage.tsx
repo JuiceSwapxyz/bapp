@@ -1039,12 +1039,6 @@ const EarningsSection = ({
             ) : (
               feeRows.length > 0 && <LiquidityPositionAmountRows rows={feeRows} />
             )}
-
-            {(!totalEarningsFiatValue || totalEarningsFiatValue.equalTo(0)) && (
-              <Text variant="body3" color="$neutral3">
-                {t('pool.earnings.empty')}
-              </Text>
-            )}
           </>
         )}
       </Flex>
