@@ -41,6 +41,13 @@ export function useChainIdFromUrlParam(): UniverseChainId | undefined {
   return chainId
 }
 
+// Chain name aliases for better URL readability
+const CHAIN_NAME_ALIASES: Record<string, string> = {
+  ethereum: 'mainnet',
+  eth: 'mainnet',
+  citrea: 'citrea_testnet',
+}
+
 export function getParsedChainId(
   parsedQs?: ParsedQs,
   key: CurrencyField = CurrencyField.INPUT,
@@ -50,6 +57,9 @@ export function getParsedChainId(
     return undefined
   }
 
-  const chainInfo = Object.values(UNIVERSE_CHAIN_INFO).find((i) => i.interfaceName === chain)
+  // Resolve aliases (e.g., ethereum -> mainnet)
+  const normalizedChain = CHAIN_NAME_ALIASES[chain.toLowerCase()] ?? chain
+
+  const chainInfo = Object.values(UNIVERSE_CHAIN_INFO).find((i) => i.interfaceName === normalizedChain)
   return chainInfo?.id
 }
