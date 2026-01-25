@@ -236,23 +236,15 @@ async function handleSwitchChains(
   }
 
   const chainSwitched = await selectChain(swapChainId)
-  console.error('[Chain Switch] selectChain result:', {
-    chainSwitched,
-    swapChainId,
-    startChainId,
-  })
 
   // For ERC20 chain swaps, if chain switch fails, allow it to proceed anyway
   // The chain switch will happen during transaction execution
   if (!chainSwitched && isErc20ChainSwap(swapTxContext)) {
-    console.error('[Chain Switch] ERC20 chain swap detected, allowing to proceed despite chain switch failure')
     // Allow ERC20 chain swaps to proceed - chain will switch during transaction execution
     return { chainSwitchFailed: false }
   }
 
-  const result = { chainSwitchFailed: !chainSwitched }
-  console.error('[Chain Switch] Returning result:', result)
-  return result
+  return { chainSwitchFailed: !chainSwitched }
 }
 
 function* swap(params: SwapParams) {

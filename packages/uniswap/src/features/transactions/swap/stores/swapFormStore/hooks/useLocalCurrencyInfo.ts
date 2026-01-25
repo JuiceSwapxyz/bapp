@@ -10,6 +10,11 @@ const JUSD_CITREA = '0xFdB0a83d94CD65151148a131167Eb499Cb85d015'
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
 const USDT_ETHEREUM = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 
+// L0 bridged tokens on Citrea
+const WBTC_E_CITREA = '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d'
+const USDC_E_CITREA = '0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839'
+const USDT_E_CITREA = '0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4'
+
 const localCurrencyInfo: CurrencyInfo[] = [
   {
     currency: buildCurrency({
@@ -67,6 +72,40 @@ const localCurrencyInfo: CurrencyInfo[] = [
       name: 'Tether USD',
     }) as Currency,
     currencyId: buildCurrencyId(UniverseChainId.Mainnet, USDT_ETHEREUM),
+    logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+  },
+  // L0 bridged tokens on Citrea
+  {
+    currency: buildCurrency({
+      chainId: UniverseChainId.CitreaTestnet,
+      address: WBTC_E_CITREA,
+      decimals: 8,
+      symbol: 'WBTC.e',
+      name: 'Wrapped BTC (LayerZero)',
+    }) as Currency,
+    currencyId: buildCurrencyId(UniverseChainId.CitreaTestnet, WBTC_E_CITREA),
+    logoUrl: 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
+  },
+  {
+    currency: buildCurrency({
+      chainId: UniverseChainId.CitreaTestnet,
+      address: USDC_E_CITREA,
+      decimals: 6,
+      symbol: 'USDC.e',
+      name: 'USD Coin (LayerZero)',
+    }) as Currency,
+    currencyId: buildCurrencyId(UniverseChainId.CitreaTestnet, USDC_E_CITREA),
+    logoUrl: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+  },
+  {
+    currency: buildCurrency({
+      chainId: UniverseChainId.CitreaTestnet,
+      address: USDT_E_CITREA,
+      decimals: 6,
+      symbol: 'USDT.e',
+      name: 'Tether USD (LayerZero)',
+    }) as Currency,
+    currencyId: buildCurrencyId(UniverseChainId.CitreaTestnet, USDT_E_CITREA),
     logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
   },
 ]

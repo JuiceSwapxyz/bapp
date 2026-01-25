@@ -1,6 +1,8 @@
 import { ColumnCenter } from 'components/deprecated/Column'
 import { useCurrency } from 'hooks/Tokens'
+import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { useScroll } from 'hooks/useScroll'
+import { COIN_BUBBLE_ASSETS, CoinBubble } from 'pages/Landing/components/CoinBubble'
 import { Hover, RiseIn, RiseInText } from 'pages/Landing/components/animations'
 import { Swap } from 'pages/Swap'
 import { Fragment, useCallback, useMemo } from 'react'
@@ -11,8 +13,9 @@ import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
 import { serializeSwapStateToURLParameters } from 'state/swap/hooks'
 import { Flex, Text, styled, useMedia } from 'ui/src'
 import { INTERFACE_NAV_HEIGHT } from 'ui/src/theme'
+import { getNativeAddress } from 'uniswap/src/constants/addresses'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { SwapRedirectFn } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
 
 interface HeroProps {
@@ -73,25 +76,61 @@ const HeroBackground = styled(Flex, {
   },
 } as const)
 
+// Floating coin bubble container
+const CoinBubblesContainer = styled(Flex, {
+  name: 'CoinBubblesContainer',
+  position: 'absolute',
+  top: 300,
+  left: 0,
+  right: 0,
+  height: 700,
+  zIndex: 0,
+  overflow: 'visible',
+
+  $lg: {
+    display: 'none',
+  },
+})
+
+// Individual bubble position wrapper
+const BubblePosition = styled(Flex, {
+  name: 'BubblePosition',
+  position: 'absolute',
+  pointerEvents: 'auto',
+
+  '$platform-web': {
+    animation: 'float 6s ease-in-out infinite',
+  },
+
+  variants: {
+    delay: {
+      0: { '$platform-web': { animationDelay: '0s' } },
+      1: { '$platform-web': { animationDelay: '1s' } },
+      2: { '$platform-web': { animationDelay: '2s' } },
+      3: { '$platform-web': { animationDelay: '3s' } },
+      4: { '$platform-web': { animationDelay: '4s' } },
+      5: { '$platform-web': { animationDelay: '5s' } },
+    },
+  } as const,
+})
+
 export function Hero({ scrollToRef, transition }: HeroProps) {
   const media = useMedia()
   const { height: scrollPosition } = useScroll({ enabled: !media.sm })
   const { defaultChainId } = useEnabledChains()
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const showBAppsContent = useIsBAppsCampaignVisible()
+  const isCrossChainSwapsEnabled = useCrossChainSwapsEnabled()
 
   // Use native token (cBTC on Citrea) as default input currency
   const initialInputCurrency = useCurrency({
-    address: 'ETH', // This will get the native token for any chain
+    address: getNativeAddress(defaultChainId),
     chainId: defaultChainId,
   })
 
-  // Use cUSD as default output currency for Citrea and Sepolia
+  // Use JUSD as default output currency
   const initialOutputCurrency = useCurrency({
-    address:
-      defaultChainId === UniverseChainId.CitreaTestnet || defaultChainId === UniverseChainId.Sepolia
-        ? '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0' // cUSD
-        : undefined,
+    address: JUSD_ADDRESSES[defaultChainId],
     chainId: defaultChainId,
   })
 
@@ -120,6 +159,53 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
     },
     [navigate],
   )
+
+  // Click handler for BTC Chain bubble - navigates to cross-chain swap from Bitcoin BTC to Citrea cBTC
+  // Chains are auto-inferred: BTC → Bitcoin, cBTC → Citrea
+  const handleBtcChainClick = useCallback(() => {
+    navigate('/swap?inputCurrency=BTC&outputCurrency=cBTC')
+  }, [navigate])
+
+  // Click handler for Lightning bubble - navigates to cross-chain swap from Lightning lnBTC to Citrea cBTC
+  // Chains are auto-inferred: lnBTC → Lightning Network, cBTC → Citrea
+  const handleLightningClick = useCallback(() => {
+    navigate('/swap?inputCurrency=lnBTC&outputCurrency=cBTC')
+  }, [navigate])
+
+  // Click handler for Tether bubble (no badge) - navigates to cross-chain swap from Ethereum USDT to Citrea JUSD
+  const handleTetherClick = useCallback(() => {
+    navigate('/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea')
+  }, [navigate])
+
+  // Click handler for Tether+Polygon bubble - navigates to cross-chain swap from Polygon USDT to Citrea JUSD
+  const handleTetherPolygonClick = useCallback(() => {
+    navigate('/swap?chain=polygon&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea')
+  }, [navigate])
+
+  // Click handler for USDC bubble - navigates to cross-chain swap from Ethereum USDC to Citrea JUSD
+  const handleUsdcClick = useCallback(() => {
+    navigate('/swap?chain=ethereum&inputCurrency=USDC&outputCurrency=JUSD&outputChain=citrea')
+  }, [navigate])
+
+  // Click handler for wBTC+ETH bubble - navigates to cross-chain swap from Ethereum wBTC to Citrea WBTC.e (via L0 bridge)
+  const handleWbtcEthClick = useCallback(() => {
+    navigate('/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=WBTC.e&outputChain=citrea')
+  }, [navigate])
+
+  // Click handler for cBTC bubble - navigates to cross-chain swap from Bitcoin BTC to Citrea cBTC
+  const handleCbtcClick = useCallback(() => {
+    navigate('/swap?inputCurrency=BTC&outputCurrency=cBTC')
+  }, [navigate])
+
+  // Click handler for JUICE bubble - navigates to swap cBTC to JUICE on Citrea
+  const handleJuiceClick = useCallback(() => {
+    navigate('/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUICE')
+  }, [navigate])
+
+  // Click handler for JUSD bubble - navigates to swap cBTC to JUSD on Citrea
+  const handleJusdClick = useCallback(() => {
+    navigate('/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUSD')
+  }, [navigate])
 
   const renderRiseInText = useMemo(() => {
     const text = t('hero.swap.title')
@@ -160,6 +246,85 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
       pointerEvents="none"
     >
       <HeroBackground />
+
+      {/* Floating Coin Bubbles - only shown when cross-chain swaps are enabled */}
+      {isCrossChainSwapsEnabled && (
+        <CoinBubblesContainer>
+          {/* Above the wave - 6 bubbles (positions and sizes match Figma) */}
+          <BubblePosition left="6.7%" top={-78} delay={0}>
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.btcChain}
+              alt="Bitcoin Chain"
+              size={170}
+              onClick={handleBtcChainClick}
+            />
+          </BubblePosition>
+          <BubblePosition left="13.5%" top={-112} delay={2}>
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.btcLightning}
+              alt="Bitcoin Lightning"
+              size={55}
+              onClick={handleLightningClick}
+            />
+          </BubblePosition>
+          <BubblePosition right="10.2%" top={-104} delay={1}>
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.tetherPolygon}
+              alt="Tether+Polygon"
+              size={65}
+              onClick={handleTetherPolygonClick}
+            />
+          </BubblePosition>
+          <BubblePosition left="16.5%" top={-15} delay={3}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="wBTC+ETH" size={80} onClick={handleWbtcEthClick} />
+          </BubblePosition>
+          <BubblePosition right="16.8%" top={-38} delay={4}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={120} onClick={handleTetherClick} />
+          </BubblePosition>
+          <BubblePosition right="5.8%" top={-35} delay={5}>
+            <CoinBubble src={COIN_BUBBLE_ASSETS.usdc} alt="USDC" size={55} onClick={handleUsdcClick} />
+          </BubblePosition>
+
+          {/* Inside the wave - 4 bubbles */}
+          <BubblePosition left="11.9%" top={178} delay={0}>
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveBtcLarge}
+              alt="cBTC"
+              size={120}
+              variant="wave"
+              onClick={handleCbtcClick}
+            />
+          </BubblePosition>
+          <BubblePosition left="23.1%" top={317} delay={2}>
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveWbtcCitrea}
+              alt="wBTC+Citrea"
+              size={70}
+              variant="wave"
+              onClick={handleWbtcEthClick}
+            />
+          </BubblePosition>
+          <BubblePosition right="21.3%" top={237} delay={5}>
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveJuice}
+              alt="Juice"
+              size={80}
+              variant="wave"
+              onClick={handleJuiceClick}
+            />
+          </BubblePosition>
+          <BubblePosition right="9.9%" top={129} delay={1}>
+            <CoinBubble
+              src={COIN_BUBBLE_ASSETS.waveUsdLarge}
+              alt="JUSD"
+              size={109}
+              variant="wave"
+              onClick={handleJusdClick}
+            />
+          </BubblePosition>
+        </CoinBubblesContainer>
+      )}
+
       <Flex
         alignSelf="center"
         maxWidth="85vw"

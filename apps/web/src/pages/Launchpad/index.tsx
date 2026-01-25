@@ -205,7 +205,7 @@ export default function Launchpad() {
   const [page, setPage] = useState(0)
 
   // Fetch tokens from Ponder API with filtering
-  const { data: tokensData, isLoading: tokensLoading } = useLaunchpadTokens(filter, page, TOKENS_PER_PAGE)
+  const { data: tokensData, isLoading: tokensLoading } = useLaunchpadTokens({ filter, page, limit: TOKENS_PER_PAGE })
   const { data: stats, isLoading: statsLoading } = useLaunchpadStats()
 
   const tokens = tokensData?.tokens || []

@@ -121,7 +121,7 @@ function useCurrencyInfoWithLoading(
 
 export function checkIsNative(addressOrCurrency?: string | Currency): boolean {
   return typeof addressOrCurrency === 'string'
-    ? [NATIVE_CHAIN_ID, 'native', 'eth'].includes(addressOrCurrency.toLowerCase())
+    ? [NATIVE_CHAIN_ID, 'native', 'btc', 'lnbtc', 'cbtc'].includes(addressOrCurrency.toLowerCase())
     : addressOrCurrency?.isNative ?? false
 }
 

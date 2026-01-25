@@ -32,6 +32,8 @@ import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
+import { logger } from 'utilities/src/logger/logger'
+import { assume0xAddress } from 'utils/wagmi'
 import { formatUnits } from 'viem'
 
 const PageContainer = styled(Flex, {
@@ -145,7 +147,7 @@ export default function TokenDetail() {
 
   const { tokenInfo } = useTokenInfo(tokenAddress)
   const { data: launchpadData } = useLaunchpadToken(tokenAddress)
-  const { data: metadata } = useTokenMetadata(launchpadData?.token?.metadataURI)
+  const { data: metadata } = useTokenMetadata(launchpadData?.token.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
   const [isGraduating, setIsGraduating] = useState(false)
 
@@ -179,7 +181,7 @@ export default function TokenDetail() {
       const tx = await graduate()
       addTransaction(tx, {
         type: TransactionType.LaunchpadGraduate,
-        tokenAddress: tokenAddress as `0x${string}`,
+        tokenAddress: assume0xAddress(tokenAddress ?? ''),
         dappInfo: { name: `Graduated ${symbol} to JuiceSwap V2` },
       })
       // Wait for confirmation
@@ -205,7 +207,9 @@ export default function TokenDetail() {
       // Refresh token data to show graduated state
       refetchBondingCurve()
     } catch (error) {
-      console.error('Graduate failed:', error)
+      logger.error(error instanceof Error ? error : new Error(String(error)), {
+        tags: { file: 'TokenDetail', function: 'handleGraduate' },
+      })
     } finally {
       setIsGraduating(false)
     }
@@ -284,7 +288,7 @@ export default function TokenDetail() {
           </BackButton>
 
           <HeaderSection>
-            <TokenLogo metadataURI={launchpadData?.token?.metadataURI} symbol={symbol || '?'} size={80} />
+            <TokenLogo metadataURI={launchpadData?.token.metadataURI} symbol={symbol || '?'} size={80} />
             <TokenInfo>
               <Flex flexDirection="row" alignItems="center" gap="$spacing12">
                 <TokenName>{name || 'Unknown Token'}</TokenName>
@@ -392,6 +396,7 @@ export default function TokenDetail() {
                     <InfoCircle size={14} color="$neutral3" />
                   </Flex>
 
+                  {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
                   {canGraduate && !graduated && (
                     <GraduateButton
                       onPress={isGraduating ? undefined : handleGraduate}

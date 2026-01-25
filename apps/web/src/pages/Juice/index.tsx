@@ -2,14 +2,14 @@ import { Flex, styled } from 'ui/src'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 
-import { FAQ } from './sections/FAQ'
-import { Governance } from './sections/Governance'
-import { Hero } from './sections/Hero'
-import { Overview } from './sections/Overview'
-import { RisksEconomics } from './sections/RisksEconomics'
-import { TechDetails } from './sections/TechDetails'
-import { Tokenomics } from './sections/Tokenomics'
-import { UseCases } from './sections/UseCases'
+import { FAQ } from 'pages/Juice/sections/FAQ'
+import { Governance } from 'pages/Juice/sections/Governance'
+import { Hero } from 'pages/Juice/sections/Hero'
+import { Overview } from 'pages/Juice/sections/Overview'
+import { RisksEconomics } from 'pages/Juice/sections/RisksEconomics'
+import { TechDetails } from 'pages/Juice/sections/TechDetails'
+import { Tokenomics } from 'pages/Juice/sections/Tokenomics'
+import { UseCases } from 'pages/Juice/sections/UseCases'
 
 const PageContainer = styled(Flex, {
   width: '100%',

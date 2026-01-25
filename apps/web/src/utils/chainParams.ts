@@ -41,15 +41,31 @@ export function useChainIdFromUrlParam(): UniverseChainId | undefined {
   return chainId
 }
 
+// Chain name aliases for better URL readability
+const CHAIN_NAME_ALIASES: Record<string, string> = {
+  ethereum: 'mainnet',
+  eth: 'mainnet',
+  citrea: 'citrea_testnet',
+}
+
 export function getParsedChainId(
   parsedQs?: ParsedQs,
   key: CurrencyField = CurrencyField.INPUT,
 ): UniverseChainId | undefined {
-  const chain = key === CurrencyField.INPUT ? parsedQs?.chain : parsedQs?.outputChain
+  // Handle both camelCase and lowercase variants (browsers may lowercase query params)
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const chain =
+    key === CurrencyField.INPUT
+      ? parsedQs?.chain ?? (parsedQs as any)?.Chain
+      : parsedQs?.outputChain ?? (parsedQs as any)?.outputchain ?? (parsedQs as any)?.OutputChain
   if (!chain || typeof chain !== 'string') {
     return undefined
   }
 
-  const chainInfo = Object.values(UNIVERSE_CHAIN_INFO).find((i) => i.interfaceName === chain)
+  // Resolve aliases (e.g., ethereum -> mainnet)
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const normalizedChain = CHAIN_NAME_ALIASES[chain.toLowerCase()] ?? chain
+
+  const chainInfo = Object.values(UNIVERSE_CHAIN_INFO).find((i) => i.interfaceName === normalizedChain)
   return chainInfo?.id
 }

@@ -2,9 +2,9 @@ import { GitBranch, PieChart, Shield } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
 import { Flex, Text, styled, useSporeColors } from 'ui/src'
 
-import { DataTable } from '../components/DataTable'
-import { FeatureCard } from '../components/FeatureCard'
-import { SectionHeader } from '../components/SectionHeader'
+import { DataTable } from 'pages/Juice/components/DataTable'
+import { FeatureCard } from 'pages/Juice/components/FeatureCard'
+import { SectionHeader } from 'pages/Juice/components/SectionHeader'
 
 const Section = styled(Flex, {
   flexDirection: 'column',
@@ -93,8 +93,8 @@ export function Overview() {
         <DataTable headers={cypherpunkHeaders} rows={cypherpunkRows} />
         <QuoteBox>
           <Text variant="body2" color="$neutral2" fontStyle="italic">
-            "We the Cypherpunks are dedicated to building anonymous systems." - Eric Hughes, A Cypherpunk's Manifesto
-            (1993)
+            &quot;We the Cypherpunks are dedicated to building anonymous systems.&quot; - Eric Hughes, A
+            Cypherpunk&apos;s Manifesto (1993)
           </Text>
         </QuoteBox>
       </SubSection>
