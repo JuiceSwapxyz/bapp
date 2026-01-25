@@ -56,22 +56,25 @@ async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<v
   })
 }
 
-const CONTRACTS = {
-  polygon: {
-    swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
-    token: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-    decimals: 6, // USDT on Polygon has 6 decimals
-  },
-  citrea: {
-    swap: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
-    token: '0xFdB0a83d94CD65151148a131167Eb499Cb85d015',
-    decimals: 18, // JUSD on Citrea has 18 decimals
-  },
-  ethereum: {
-    swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
-    token: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    decimals: 6, // USDT on Ethereum has 6 decimals
-  },
+// Token addresses
+const USDC_ETHEREUM_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+const USDT_ETHEREUM_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+const USDT_POLYGON_ADDRESS = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
+const JUSD_CITREA_ADDRESS = '0xFdB0a83d94CD65151148a131167Eb499Cb85d015'
+
+// Swap contract addresses (same contract handles multiple tokens on each chain)
+const SWAP_CONTRACTS = {
+  ethereum: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
+  polygon: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
+  citrea: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
+}
+
+// Token configurations by API symbol
+const TOKEN_CONFIGS: Record<string, { address: string; decimals: number; chainId: UniverseChainId }> = {
+  USDT_ETH: { address: USDT_ETHEREUM_ADDRESS, decimals: 6, chainId: UniverseChainId.Mainnet },
+  USDC_ETH: { address: USDC_ETHEREUM_ADDRESS, decimals: 6, chainId: UniverseChainId.Mainnet },
+  USDT_POLYGON: { address: USDT_POLYGON_ADDRESS, decimals: 6, chainId: UniverseChainId.Polygon },
+  JUSD_CITREA: { address: JUSD_CITREA_ADDRESS, decimals: 18, chainId: UniverseChainId.CitreaTestnet },
 }
 
 const BOLTZ_DECIMALS = 8 // Boltz uses 8 decimals internally
@@ -108,9 +111,41 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   const isPolygonToCitrea = step.direction === Erc20ChainSwapDirection.PolygonToCitrea
   const isEthereumToCitrea = step.direction === Erc20ChainSwapDirection.EthereumToCitrea
   const isCitreaToPolygon = step.direction === Erc20ChainSwapDirection.CitreaToPolygon
+  const isCitreaToEthereum = step.direction === Erc20ChainSwapDirection.CitreaToEthereum
 
-  const from = isPolygonToCitrea ? 'USDT_POLYGON' : isEthereumToCitrea ? 'USDT_ETH' : 'JUSD_CITREA'
-  const to = isPolygonToCitrea || isEthereumToCitrea ? 'JUSD_CITREA' : isCitreaToPolygon ? 'USDT_POLYGON' : 'USDT_ETH'
+  // Detect if input token is USDC (for Ethereum direction)
+  const inputTokenAddress = trade.inputAmount.currency.isToken
+    ? trade.inputAmount.currency.address.toLowerCase()
+    : undefined
+  const isUsdcInput = inputTokenAddress === USDC_ETHEREUM_ADDRESS.toLowerCase()
+
+  // For Citrea → Ethereum, we need to detect if output is USDC
+  const outputTokenAddress = trade.outputAmount.currency.isToken
+    ? trade.outputAmount.currency.address.toLowerCase()
+    : undefined
+  const isUsdcOutput = outputTokenAddress === USDC_ETHEREUM_ADDRESS.toLowerCase()
+
+  // Determine API symbols based on direction and token type
+  let from: string
+  let to: string
+  if (isPolygonToCitrea) {
+    from = 'USDT_POLYGON'
+    to = 'JUSD_CITREA'
+  } else if (isEthereumToCitrea) {
+    from = isUsdcInput ? 'USDC_ETH' : 'USDT_ETH'
+    to = 'JUSD_CITREA'
+  } else if (isCitreaToPolygon) {
+    from = 'JUSD_CITREA'
+    to = 'USDT_POLYGON'
+  } else if (isCitreaToEthereum) {
+    from = 'JUSD_CITREA'
+    to = isUsdcOutput ? 'USDC_ETH' : 'USDT_ETH'
+  } else {
+    // Fallback for CitreaToEthereum (default to USDT)
+    from = 'JUSD_CITREA'
+    to = 'USDT_ETH'
+  }
+
   const sourceChain = isPolygonToCitrea ? 'polygon' : isEthereumToCitrea ? 'ethereum' : 'citrea'
   const sourceChainId = isPolygonToCitrea
     ? UniverseChainId.Polygon
@@ -120,8 +155,8 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
   const ldsBridge = getLdsBridgeManager()
 
-  // Get token decimals for source chain
-  const sourceDecimals = CONTRACTS[sourceChain].decimals
+  // Get token decimals for source token from TOKEN_CONFIGS
+  const sourceDecimals = TOKEN_CONFIGS[from].decimals
 
   // 1. Create swap (convert source token decimals → Boltz 8 decimals for API)
   const inputAmount = trade.inputAmount.quotient.toString()
@@ -191,8 +226,8 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   try {
     lockResult = yield* call(buildErc20LockupTx, {
       signer: sourceSigner,
-      contractAddress: CONTRACTS[sourceChain].swap,
-      tokenAddress: CONTRACTS[sourceChain].token,
+      contractAddress: SWAP_CONTRACTS[sourceChain as keyof typeof SWAP_CONTRACTS],
+      tokenAddress: TOKEN_CONFIGS[from].address,
       preimageHash: chainSwap.preimageHash,
       amount: BigInt(inputAmount),
       claimAddress: chainSwap.lockupDetails.claimAddress!,

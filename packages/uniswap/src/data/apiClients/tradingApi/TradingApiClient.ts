@@ -467,6 +467,8 @@ function getTokenDecimals(chainId: ChainId, address: string): number {
   return match?.decimals ?? 18
 }
 
+const USDC_ETHEREUM_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'.toLowerCase()
+
 async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuoteResponse> {
   const ldsBridge = getLdsBridgeManager()
   const direction =
@@ -478,18 +480,26 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
           ? Erc20ChainSwapDirection.CitreaToPolygon
           : Erc20ChainSwapDirection.CitreaToEthereum
 
+  // Determine if USDC or USDT based on token address
+  const isUsdcInput = params.tokenIn.toLowerCase() === USDC_ETHEREUM_ADDRESS
+  const isUsdcOutput = params.tokenOut.toLowerCase() === USDC_ETHEREUM_ADDRESS
+
   const from =
     direction === Erc20ChainSwapDirection.PolygonToCitrea
       ? 'USDT_POLYGON'
       : direction === Erc20ChainSwapDirection.EthereumToCitrea
-        ? 'USDT_ETH'
+        ? isUsdcInput
+          ? 'USDC_ETH'
+          : 'USDT_ETH'
         : 'JUSD_CITREA'
   const to =
     direction === Erc20ChainSwapDirection.PolygonToCitrea || direction === Erc20ChainSwapDirection.EthereumToCitrea
       ? 'JUSD_CITREA'
       : direction === Erc20ChainSwapDirection.CitreaToPolygon
         ? 'USDT_POLYGON'
-        : 'USDT_ETH'
+        : isUsdcOutput
+          ? 'USDC_ETH'
+          : 'USDT_ETH'
 
   const chainPairs = await ldsBridge.getChainPairs()
   const pairInfo = chainPairs[from]?.[to]
