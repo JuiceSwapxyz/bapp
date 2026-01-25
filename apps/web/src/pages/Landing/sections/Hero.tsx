@@ -189,6 +189,11 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
     navigate('/swap?chain=ethereum&inputCurrency=USDC&outputCurrency=JUSD&outputChain=citrea')
   }, [navigate])
 
+  // Click handler for wBTC+ETH bubble - navigates to cross-chain swap from Ethereum wBTC to Citrea cBTC
+  const handleWbtcEthClick = useCallback(() => {
+    navigate('/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC&outputChain=citrea')
+  }, [navigate])
+
   const renderRiseInText = useMemo(() => {
     const text = t('hero.swap.title')
 
@@ -253,7 +258,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
             />
           </BubblePosition>
           <BubblePosition right="26%" top={-65} delay={3}>
-            <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="wBTC+ETH" size={73} />
+            <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="wBTC+ETH" size={73} onClick={handleWbtcEthClick} />
           </BubblePosition>
           <BubblePosition right="20.8%" top={-38} delay={4}>
             <CoinBubble src={COIN_BUBBLE_ASSETS.tetherEth} alt="Tether+ETH" size={79} onClick={handleTetherEthClick} />

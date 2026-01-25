@@ -116,6 +116,14 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
     return chainInfo.tokens.USDC?.address
   }
 
+  if (symbolUpper === 'WBTC') {
+    // WBTC address on Ethereum mainnet
+    if (chainId === UniverseChainId.Mainnet) {
+      return '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
+    }
+    return chainInfo.tokens.WBTC?.address
+  }
+
   if (symbolUpper === 'JUSD') {
     return (chainInfo.tokens as any).JUSD?.address
   }
@@ -202,7 +210,14 @@ export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): strin
       return NATIVE_CHAIN_ID
     }
 
-    if (upper === 'USDT' || upper === 'JUSD' || upper === 'USDC' || upper === 'DAI' || upper === 'JUICE') {
+    if (
+      upper === 'USDT' ||
+      upper === 'JUSD' ||
+      upper === 'USDC' ||
+      upper === 'WBTC' ||
+      upper === 'DAI' ||
+      upper === 'JUICE'
+    ) {
       return upper
     }
   }
