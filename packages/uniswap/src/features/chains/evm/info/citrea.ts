@@ -2,6 +2,7 @@ import { ADDRESS } from '@juicedollar/jusd'
 import { ChainId, WETH9 } from '@juiceswapxyz/sdk-core'
 import { CurrencyAmount, Token } from '@uniswap/sdk-core'
 import { CITREA_LOGO } from 'ui/src/assets'
+import { config } from 'uniswap/src/config'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { DEFAULT_NATIVE_ADDRESS_LEGACY } from 'uniswap/src/features/chains/evm/rpc'
 import { buildChainTokens } from 'uniswap/src/features/chains/evm/tokens'
@@ -16,6 +17,8 @@ import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { buildCUSD, buildUSDC } from 'uniswap/src/features/tokens/stablecoin'
 import { defineChain } from 'viem'
+
+const CITREA_TESTNET_EXPLORER_URL = config.citreaTestnetExplorerUrl
 
 const testnetTokens = buildChainTokens({
   stables: {
@@ -51,8 +54,8 @@ const citreaTestnet = defineChain({
   blockExplorers: {
     default: {
       name: 'Citrea Testnet Explorer',
-      url: 'https://testnet.citreascan.com',
-      apiUrl: 'https://testnet.citreascan.com/api',
+      url: CITREA_TESTNET_EXPLORER_URL,
+      apiUrl: `${CITREA_TESTNET_EXPLORER_URL}/api`,
     },
   },
   contracts: {},
@@ -76,8 +79,8 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   elementName: ElementName.ChainCitreaTestnet,
   explorer: {
     name: 'Citrea Testnet Explorer',
-    url: 'https://testnet.citreascan.com/',
-    apiURL: 'https://testnet.citreascan.com/api',
+    url: `${CITREA_TESTNET_EXPLORER_URL}/`,
+    apiURL: `${CITREA_TESTNET_EXPLORER_URL}/api`,
   },
   interfaceName: 'citrea_testnet',
   label: 'Citrea Testnet',
@@ -87,7 +90,7 @@ export const CITREA_TESTNET_CHAIN_INFO = {
     symbol: 'cBTC',
     decimals: 18,
     address: DEFAULT_NATIVE_ADDRESS_LEGACY,
-    explorerLink: 'https://testnet.citreascan.com/',
+    explorerLink: `${CITREA_TESTNET_EXPLORER_URL}/`,
     logo: CITREA_LOGO,
   },
   networkLayer: NetworkLayer.L2, // Citrea is a Bitcoin rollup (L2)

@@ -32,4 +32,5 @@ declare module 'react-native-dotenv' {
   export const UNITAGS_API_URL_OVERRIDE: string
   export const INCLUDE_PROTOTYPE_FEATURES: string
   export const GH_TOKEN_RN_CLI: string
+  export const CITREA_TESTNET_EXPLORER_URL: string
 }
