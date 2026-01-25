@@ -264,7 +264,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
               onClick={handleLightningClick}
             />
           </BubblePosition>
-          <BubblePosition left="26%" top={-55} delay={1}>
+          <BubblePosition right="13.2%" top={-104} delay={1}>
             <CoinBubble
               src={COIN_BUBBLE_ASSETS.tetherPolygon}
               alt="Tether+Polygon"
@@ -272,7 +272,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
               onClick={handleTetherPolygonClick}
             />
           </BubblePosition>
-          <BubblePosition right="26%" top={-65} delay={3}>
+          <BubblePosition left="19.4%" top={-15} delay={3}>
             <CoinBubble src={COIN_BUBBLE_ASSETS.wbtcEth} alt="wBTC+ETH" size={73} onClick={handleWbtcEthClick} />
           </BubblePosition>
           <BubblePosition right="20.8%" top={-38} delay={4}>
@@ -301,7 +301,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
               onClick={handleCbtcClick}
             />
           </BubblePosition>
-          <BubblePosition left="22%" top={265} delay={2}>
+          <BubblePosition left="23.1%" top={317} delay={2}>
             <CoinBubble
               src={COIN_BUBBLE_ASSETS.waveWbtcCitrea}
               alt="wBTC+Citrea"
@@ -310,7 +310,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
               onClick={handleWbtcEthClick}
             />
           </BubblePosition>
-          <BubblePosition right="22%" top={205} delay={5}>
+          <BubblePosition right="21.3%" top={237} delay={5}>
             <CoinBubble
               src={COIN_BUBBLE_ASSETS.waveJuice}
               alt="Juice"
@@ -319,7 +319,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
               onClick={handleJuiceClick}
             />
           </BubblePosition>
-          <BubblePosition right="5.8%" top={271} delay={3}>
+          <BubblePosition right="5.7%" top={272} delay={3}>
             <CoinBubble
               src={COIN_BUBBLE_ASSETS.waveUsdSmall}
               alt="JUSD"
