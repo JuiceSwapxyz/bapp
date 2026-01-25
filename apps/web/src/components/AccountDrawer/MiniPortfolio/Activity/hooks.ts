@@ -14,6 +14,7 @@ import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeMa
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { swapStatusFinal } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
+import { logger } from 'utilities/src/logger/logger'
 
 /** Detects transactions from same account with the same nonce and different hash */
 function findCancelTx({
@@ -139,7 +140,7 @@ export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading
         setBridgeSwaps(pendingSwaps)
         setLoading(false)
       } catch (error) {
-        console.error('Failed to load bridge swaps:', error)
+        logger.error(error, { tags: { file: 'Activity/hooks', function: 'loadInitialSwaps' } })
         setLoading(false)
       }
     }

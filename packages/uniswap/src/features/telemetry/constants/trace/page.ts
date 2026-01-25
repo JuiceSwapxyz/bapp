@@ -6,6 +6,8 @@ export enum InterfacePageName {
   ExplorePage = 'explore-page',
   ExtensionPasskeySignInPage = 'extension-passkey-sign-in-page',
   ExtensionUninstall = 'extension-uninstall',
+  JuicePage = 'juice-page',
+  JusdPage = 'jusd-page',
   LandingPage = 'landing-page',
   LaunchpadCreatePage = 'launchpad-create-page',
   LaunchpadPage = 'launchpad-page',

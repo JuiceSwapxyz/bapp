@@ -3,7 +3,6 @@ import { PrefetchBalancesWrapper } from 'appGraphql/data/apollo/AdaptiveTokenBal
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { popupRegistry } from 'components/Popups/registry'
 import { PopupType } from 'components/Popups/types'
-import { SwapBottomCard } from 'components/SwapBottomCard'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
@@ -339,9 +338,12 @@ function UniversalSwapFlow({
               onSubmitSwap={handleSubmitSwap}
             />
           </SwapDependenciesStoreContextProvider>
-          <CitreaCampaignProgress />
-          <BAppsCard />
-          <SwapBottomCard />
+          {!hideFooter && (
+            <>
+              <CitreaCampaignProgress />
+              <BAppsCard />
+            </>
+          )}
         </Flex>
       )}
       {/* Removed Limit, Buy, and Sell tabs as we only support Swap now */}
@@ -356,7 +358,7 @@ const DisabledOverlay = styled(Flex, {
   zIndex: zIndexes.overlay,
 })
 
-const DisabledSwapOverlay = () => {
+const _DisabledSwapOverlay = () => {
   const { t } = useTranslation()
 
   return (

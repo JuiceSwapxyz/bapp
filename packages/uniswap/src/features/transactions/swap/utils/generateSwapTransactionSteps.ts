@@ -33,6 +33,7 @@ import {
   isUniswapX,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
 
+// eslint-disable-next-line complexity
 export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo, _v4Enabled?: boolean): TransactionStep[] {
   const isValidSwap = isValidSwapTxContext(txContext)
 

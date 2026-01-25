@@ -1,11 +1,19 @@
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
 import { type LaunchpadToken } from 'hooks/useLaunchpadTokens'
+import { TokenLogo } from 'pages/Launchpad/components/TokenLogo'
+import {
+  Card,
+  GraduatedBadge,
+  ProgressBar,
+  ProgressFill,
+  StatLabel,
+  StatRow,
+  StatValue,
+} from 'pages/Launchpad/components/shared'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
 import { formatUnits } from 'viem'
-import { TokenLogo } from './TokenLogo'
-import { Card, GraduatedBadge, ProgressBar, ProgressFill, StatLabel, StatRow, StatValue } from './shared'
 
 const TokenHeader = styled(Flex, {
   flexDirection: 'row',

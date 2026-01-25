@@ -120,6 +120,7 @@ export function generateLPTransactionSteps(txContext: LiquidityTxAndGasInfo): Tr
       case 'create':
       case 'increase':
         // For create flow, check if we need to create the pool first (Gateway new pool)
+        // eslint-disable-next-line no-case-declarations
         const createPoolStep =
           txContext.type === 'create' ? createCreatePoolStep(txContext.createPoolTxRequest) : undefined
 

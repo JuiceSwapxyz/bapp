@@ -23,9 +23,11 @@
  *
  * IMPORTANT - Decimal Handling:
  *   - Boltz API uses 8 decimals internally
- *   - USDT/JUSD use 6 decimals
- *   - Amount to API: multiply by 100 (6→8)
- *   - Amount from API to contract: divide by 100 (8→6)
+ *   - USDT has 6 decimals, JUSD has 18 decimals
+ *   - USDT → Boltz: multiply by 100 (6→8)
+ *   - Boltz → JUSD: multiply by 10^10 (8→18)
+ *   - JUSD → Boltz: divide by 10^10 (18→8)
+ *   - Boltz → USDT: divide by 100 (8→6)
  */
 
 import { JsonRpcProvider } from '@ethersproject/providers'
@@ -310,16 +312,16 @@ async function usdtPolygonToJusdSwap(privateKey: string) {
           console.log('\n--- Step 5: Claiming JUSD on Citrea ---')
 
           try {
-            // IMPORTANT: Boltz returns amount in 8 decimals, JUSD has 6 decimals
-            // Convert: amount / 100
-            const claimAmount = BigInt(createSwapResponse.claimDetails.amount) / 100n
+            // IMPORTANT: Boltz returns amount in 8 decimals, JUSD has 18 decimals
+            // Convert: amount * 10^10 (8→18)
+            const claimAmount = BigInt(createSwapResponse.claimDetails.amount) * 10n ** 10n
 
             await claimJusdOnCitrea(citreaWallet, preimage, createSwapResponse.claimDetails, claimAmount)
 
             // Check new balance
             const citreaJusd = new Contract(CONFIG.citrea.jusd, ERC20_ABI, citreaProvider)
             const newBalance = await citreaJusd.balanceOf(userAddress)
-            console.log(`\nNew JUSD Balance (Citrea): ${formatUnits(newBalance, 6)} JUSD`)
+            console.log(`\nNew JUSD Balance (Citrea): ${formatUnits(newBalance, 18)} JUSD`)
 
             ws.close()
             resolve()
@@ -358,7 +360,7 @@ async function claimJusdOnCitrea(wallet: Wallet, preimage: Buffer, claimDetails:
 
   console.log(`Contract: ${CONFIG.citrea.erc20Swap}`)
   console.log(`Preimage: ${preimage.toString('hex')}`)
-  console.log(`Amount: ${formatUnits(amount, 6)} JUSD`)
+  console.log(`Amount: ${formatUnits(amount, 18)} JUSD`)
   console.log(`Refund Address: ${claimDetails.refundAddress}`)
   console.log(`Timelock: ${claimDetails.timeoutBlockHeight}`)
 

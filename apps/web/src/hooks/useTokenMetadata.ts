@@ -42,7 +42,9 @@ export function useTokenMetadata(metadataURI: string | null | undefined) {
   return useQuery({
     queryKey: ['token-metadata', metadataURI],
     queryFn: async (): Promise<TokenMetadata | null> => {
-      if (!metadataURI) return null
+      if (!metadataURI) {
+        return null
+      }
 
       const url = ipfsToHttp(metadataURI)
       const response = await fetch(url)
@@ -69,7 +71,9 @@ export function useTokenMetadata(metadataURI: string | null | undefined) {
  * @returns The value if found, null otherwise
  */
 export function getSocialLink(metadata: TokenMetadata | null | undefined, type: string): string | null {
-  if (!metadata?.attributes) return null
+  if (!metadata?.attributes) {
+    return null
+  }
   const attr = metadata.attributes.find((a) => a.trait_type === type)
   return attr?.value ?? null
 }

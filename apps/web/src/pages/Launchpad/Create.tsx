@@ -225,7 +225,9 @@ export default function CreateToken() {
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
+    if (!file) {
+      return
+    }
 
     // Validate file type
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
@@ -406,7 +408,9 @@ export default function CreateToken() {
                 onChange={handleNameChange}
                 maxLength={100}
               />
-              <InputHint>The full name of your token (e.g., "Dogecoin"). {name.length}/100 characters.</InputHint>
+              <InputHint>
+                The full name of your token (e.g., &quot;Dogecoin&quot;). {name.length}/100 characters.
+              </InputHint>
             </InputGroup>
 
             <InputGroup>
@@ -418,7 +422,7 @@ export default function CreateToken() {
                 onChange={handleSymbolChange}
                 maxLength={20}
               />
-              <InputHint>The trading symbol (e.g., "DOGE"). Uppercase letters and numbers only.</InputHint>
+              <InputHint>The trading symbol (e.g., &quot;DOGE&quot;). Uppercase letters and numbers only.</InputHint>
             </InputGroup>
 
             <InputGroup>

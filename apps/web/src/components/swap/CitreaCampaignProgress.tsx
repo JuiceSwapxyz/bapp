@@ -47,17 +47,17 @@ const CAMPAIGN_TASKS = [
   {
     id: 1,
     name: 'NUSD',
-    url: '/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001',
+    url: '/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001',
   },
   {
     id: 2,
     name: 'cUSD',
-    url: '/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001',
+    url: '/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001',
   },
   {
     id: 3,
     name: 'USDC',
-    url: '/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001',
+    url: '/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001',
   },
 ]
 

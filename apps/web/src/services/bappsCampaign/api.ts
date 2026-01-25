@@ -4,7 +4,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 const BAPPS_API_BASE_URL =
   process.env.REACT_APP_TRADING_API_URL_OVERRIDE ||
   process.env.REACT_APP_UNISWAP_GATEWAY_DNS ||
-  'https://api.juiceswap.xyz'
+  'https://api.juiceswap.com'
 
 // eslint-disable-next-line import/no-unused-modules
 export interface CampaignTask {

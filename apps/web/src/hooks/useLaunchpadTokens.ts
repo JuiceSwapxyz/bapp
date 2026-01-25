@@ -76,15 +76,18 @@ export interface LaunchpadTradesResponse {
   }
 }
 
+export interface UseLaunchpadTokensOptions {
+  filter?: LaunchpadFilterType
+  page?: number
+  limit?: number
+  sort?: 'newest' | 'volume' | 'trades'
+}
+
 /**
  * Fetch launchpad tokens with filtering and pagination
  */
-export function useLaunchpadTokens(
-  filter: LaunchpadFilterType = 'all',
-  page: number = 0,
-  limit: number = 20,
-  sort: 'newest' | 'volume' | 'trades' = 'newest',
-) {
+export function useLaunchpadTokens(options: UseLaunchpadTokensOptions = {}) {
+  const { filter = 'all', page = 0, limit = 20, sort = 'newest' } = options
   return useQuery({
     queryKey: ['launchpad-tokens', filter, page, limit, sort],
     queryFn: async (): Promise<LaunchpadTokensResponse> => {
@@ -142,10 +145,17 @@ export function useLaunchpadStats() {
   })
 }
 
+export interface UseLaunchpadTradesOptions {
+  address: string | undefined
+  page?: number
+  limit?: number
+}
+
 /**
  * Fetch trades for a specific token with pagination
  */
-export function useLaunchpadTrades(address: string | undefined, page: number = 0, limit: number = 50) {
+export function useLaunchpadTrades(options: UseLaunchpadTradesOptions) {
+  const { address, page = 0, limit = 50 } = options
   return useQuery({
     queryKey: ['launchpad-trades', address, page, limit],
     queryFn: async (): Promise<LaunchpadTradesResponse> => {

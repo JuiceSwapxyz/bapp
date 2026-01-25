@@ -8,17 +8,54 @@ import { useMultichainContext } from 'state/multichain/useMultichainContext'
 import { CurrencyState, SerializedCurrencyState, SwapState } from 'state/swap/types'
 import { useSwapAndLimitContext, useSwapContext } from 'state/swap/useSwapContext'
 import { getNativeAddress } from 'uniswap/src/constants/addresses'
+import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import { useUrlContext } from 'uniswap/src/contexts/UrlContext'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
+import { DEFAULT_NATIVE_ADDRESS_LEGACY } from 'uniswap/src/features/chains/evm/rpc'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ALWAYS_ENABLED_CHAIN_IDS } from 'uniswap/src/features/chains/utils'
-import { isSusdAddress, JUSD_ADDRESSES, SUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
+import {
+  JUSD_ADDRESSES,
+  SUSD_ADDRESSES,
+  getJuiceAddress,
+  isJuiceAddress,
+  isSusdAddress,
+} from 'uniswap/src/features/tokens/jusdAbstraction'
 import { selectFilteredChainIds } from 'uniswap/src/features/transactions/swap/state/selectors'
 import { CurrencyField } from 'uniswap/src/types/currency'
 import { isAddress } from 'utilities/src/addresses'
 import { getParsedChainId } from 'utils/chainParams'
+
+/**
+ * Maps well-known currency symbols to their "home" chain.
+ * This allows URLs like /swap?inputCurrency=BTC&outputCurrency=cBTC to work
+ * without explicitly specifying chain and outputChain parameters.
+ *
+ * @param symbol - The currency symbol (e.g., 'BTC', 'cBTC', 'ETH')
+ * @returns The chain ID where this currency is native, or undefined if unknown
+ */
+function getHomeChainForCurrency(symbol: string): UniverseChainId | undefined {
+  const symbolUpper = symbol.toUpperCase()
+
+  switch (symbolUpper) {
+    // Bitcoin is native to the Bitcoin chain
+    case 'BTC':
+      return UniverseChainId.Bitcoin
+
+    // lnBTC is native to Lightning Network
+    case 'LNBTC':
+      return UniverseChainId.LightningNetwork
+
+    // cBTC is native to Citrea (testnet for now, mainnet when available)
+    case 'CBTC':
+      return UniverseChainId.CitreaTestnet
+
+    default:
+      return undefined
+  }
+}
 
 export function useSwapActionHandlers(): {
   onSwitchTokens: (options: { newOutputHasTax: boolean; previouslyEstimatedOutput: string }) => void
@@ -68,16 +105,59 @@ function parseFromURLParameter(urlParam: ParsedQs[string]): string | undefined {
 }
 
 function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: string): string | undefined {
-  if (!chainId) return undefined
+  if (!chainId) {
+    return undefined
+  }
 
   const chainInfo = getChainInfo(chainId)
   const symbolUpper = symbol.toUpperCase()
+
+  // Check if symbol matches native currency (e.g., cBTC on Citrea, ETH on Ethereum, BTC on Bitcoin)
+  if (chainInfo.nativeCurrency.symbol.toUpperCase() === symbolUpper) {
+    return NATIVE_CHAIN_ID
+  }
 
   if (symbolUpper === 'USDT') {
     return chainInfo.tokens.USDT?.address
   }
 
+  if (symbolUpper === 'USDC') {
+    return chainInfo.tokens.USDC?.address
+  }
+
+  if (symbolUpper === 'WBTC') {
+    // TODO: Move WBTC address to chain config (chainInfo.tokens.WBTC) instead of hardcoding
+    // WBTC address on Ethereum mainnet
+    if (chainId === UniverseChainId.Mainnet) {
+      return '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
+    }
+    return undefined
+  }
+
+  // L0 bridged tokens on Citrea (from Ethereum via LayerZero)
+  if (symbolUpper === 'WBTC.E') {
+    if (chainId === UniverseChainId.CitreaTestnet) {
+      return '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d' // Citrea WBTC.e (WBTCOFT)
+    }
+    return undefined
+  }
+
+  if (symbolUpper === 'USDC.E') {
+    if (chainId === UniverseChainId.CitreaTestnet) {
+      return '0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839' // Citrea USDC.e
+    }
+    return undefined
+  }
+
+  if (symbolUpper === 'USDT.E') {
+    if (chainId === UniverseChainId.CitreaTestnet) {
+      return '0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4' // Citrea USDT.e
+    }
+    return undefined
+  }
+
   if (symbolUpper === 'JUSD') {
+    // TODO: Extend ChainInfo token types to include JUSD - remove 'as any' cast
     return (chainInfo.tokens as any).JUSD?.address
   }
 
@@ -85,10 +165,42 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
     return SUSD_ADDRESSES[chainId]
   }
 
+  if (symbolUpper === 'JUICE') {
+    return getJuiceAddress(chainId)
+  }
+
   return undefined
 }
 
+// TODO: Remove mock tokens when Citrea Mainnet is live and tokens are in chain config
+// L0 bridged token addresses on Citrea (mainnet addresses, mocked for testnet UI)
+const L0_BRIDGED_TOKENS = {
+  'WBTC.e': {
+    address: '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d',
+    decimals: 8,
+    symbol: 'WBTC.e',
+    name: 'Wrapped BTC (LayerZero)',
+  },
+  'USDC.e': {
+    address: '0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839',
+    decimals: 6,
+    symbol: 'USDC.e',
+    name: 'USD Coin (LayerZero)',
+  },
+  'USDT.e': {
+    address: '0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4',
+    decimals: 6,
+    symbol: 'USDT.e',
+    name: 'Tether USD (LayerZero)',
+  },
+}
+
 function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Currency | undefined {
+  // Handle native currencies (NATIVE_CHAIN_ID, BTC, lnBTC, cBTC)
+  if (address === NATIVE_CHAIN_ID || ['btc', 'lnbtc', 'cbtc', 'native'].includes(address.toLowerCase())) {
+    return nativeOnChain(chainId)
+  }
+
   if (!isAddress(address)) {
     return undefined
   }
@@ -96,10 +208,20 @@ function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Cu
   const chainInfo = getChainInfo(chainId)
   const normalizedAddress = address.toLowerCase()
 
+  // Check for L0 bridged tokens on Citrea
+  if (chainId === UniverseChainId.CitreaTestnet) {
+    for (const [, tokenInfo] of Object.entries(L0_BRIDGED_TOKENS)) {
+      if (tokenInfo.address.toLowerCase() === normalizedAddress) {
+        return new Token(chainId, tokenInfo.address, tokenInfo.decimals, tokenInfo.symbol, tokenInfo.name)
+      }
+    }
+  }
+
   if (chainInfo.tokens.USDT?.address.toLowerCase() === normalizedAddress) {
     return chainInfo.tokens.USDT
   }
 
+  // TODO: Extend ChainInfo token types to include JUSD - remove 'as any' cast
   const jusdToken = (chainInfo.tokens as any).JUSD as Token | undefined
   if (jusdToken?.address.toLowerCase() === normalizedAddress) {
     return jusdToken
@@ -109,7 +231,9 @@ function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Cu
 }
 
 function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: string): string | undefined {
-  if (!chainId || !isAddress(address)) return undefined
+  if (!chainId || !isAddress(address)) {
+    return undefined
+  }
 
   const chainInfo = getChainInfo(chainId)
   const normalizedAddress = address.toLowerCase()
@@ -118,6 +242,7 @@ function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: 
     return 'USDT'
   }
 
+  // TODO: Extend ChainInfo token types to include JUSD - remove 'as any' cast
   const jusdToken = (chainInfo.tokens as any).JUSD as Token | undefined
   if (jusdToken?.address.toLowerCase() === normalizedAddress) {
     return 'JUSD'
@@ -125,6 +250,10 @@ function getTokenSymbolByAddress(chainId: UniverseChainId | undefined, address: 
 
   if (isSusdAddress(chainId, address)) {
     return 'SUSD'
+  }
+
+  if (isJuiceAddress(chainId, address)) {
+    return 'JUICE'
   }
 
   return undefined
@@ -138,15 +267,37 @@ export function parseCurrencyFromURLParameter(urlParam: ParsedQs[string]): strin
     }
 
     const upper = urlParam.toUpperCase()
-    if (upper === 'ETH') {
-      return 'ETH'
-    }
 
     if (urlParam === NATIVE_CHAIN_ID) {
       return NATIVE_CHAIN_ID
     }
 
-    if (upper === 'USDT' || upper === 'JUSD' || upper === 'USDC' || upper === 'DAI' || upper === 'SUSD') {
+    // BTC is the native token on Bitcoin chain
+    if (upper === 'BTC') {
+      return NATIVE_CHAIN_ID
+    }
+
+    // lnBTC is the native token on Lightning Network
+    if (upper === 'LNBTC') {
+      return NATIVE_CHAIN_ID
+    }
+
+    // cBTC is the native token on Citrea - treat like NATIVE
+    if (upper === 'CBTC') {
+      return NATIVE_CHAIN_ID
+    }
+
+    if (
+      upper === 'USDT' ||
+      upper === 'JUSD' ||
+      upper === 'USDC' ||
+      upper === 'WBTC' ||
+      upper === 'WBTC.E' ||
+      upper === 'USDC.E' ||
+      upper === 'USDT.E' ||
+      upper === 'JUICE' ||
+      upper === 'SUSD'
+    ) {
       return upper
     }
   }
@@ -206,8 +357,12 @@ export function serializeSwapStateToURLParameters(
   const hasValidInput = (inputCurrency || outputCurrency) && typedValue
 
   const getCurrencyParam = (currency: Currency | undefined, currencyChainId: UniverseChainId): string | undefined => {
-    if (!currency) return undefined
-    if (currency.isNative) return NATIVE_CHAIN_ID
+    if (!currency) {
+      return undefined
+    }
+    if (currency.isNative) {
+      return NATIVE_CHAIN_ID
+    }
     const symbol = getTokenSymbolByAddress(currencyChainId, currency.address)
     return symbol ?? currency.address
   }
@@ -240,8 +395,12 @@ export function serializeSwapAddressesToURLParameters({
   const outputChainIdOrDefault = outputChainId ?? chainIdOrDefault
 
   const getAddressParam = (address: string | undefined, currencyChainId: UniverseChainId): string | undefined => {
-    if (!address) return undefined
-    if (address === getNativeAddress(currencyChainId)) return NATIVE_CHAIN_ID
+    if (!address) {
+      return undefined
+    }
+    if (address === getNativeAddress(currencyChainId)) {
+      return NATIVE_CHAIN_ID
+    }
     const symbol = getTokenSymbolByAddress(currencyChainId, address)
     return symbol ?? address
   }
@@ -258,12 +417,38 @@ export function serializeSwapAddressesToURLParameters({
 }
 
 export function queryParametersToCurrencyState(parsedQs: ParsedQs): SerializedCurrencyState {
-  const chainId = getParsedChainId(parsedQs)
-  const outputChainId = getParsedChainId(parsedQs, CurrencyField.OUTPUT)
+  // Parse explicit chain params from URL
+  const explicitChainId = getParsedChainId(parsedQs)
+  const explicitOutputChainId = getParsedChainId(parsedQs, CurrencyField.OUTPUT)
+
+  // Get raw URL parameters for chain inference (before conversion to NATIVE_CHAIN_ID)
+  /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+  const rawInputCurrency =
+    typeof (parsedQs.inputCurrency ?? parsedQs.inputcurrency) === 'string'
+      ? ((parsedQs.inputCurrency ?? parsedQs.inputcurrency) as string)
+      : undefined
+  const rawOutputCurrency =
+    typeof (parsedQs.outputCurrency ?? parsedQs.outputcurrency) === 'string'
+      ? ((parsedQs.outputCurrency ?? parsedQs.outputcurrency) as string)
+      : undefined
+  /* eslint-enable @typescript-eslint/no-unnecessary-condition */
+
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const parsedInputCurrencyAddress = parseCurrencyFromURLParameter(parsedQs.inputCurrency ?? parsedQs.inputcurrency)
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const parsedOutputCurrencyAddress = parseCurrencyFromURLParameter(parsedQs.outputCurrency ?? parsedQs.outputcurrency)
+
+  // Infer chains from currency symbols if not explicitly specified
+  // Use raw URL params (BTC, cBTC) not parsed ones (NATIVE_CHAIN_ID) so we can identify the chain
+  const inferredInputChainId =
+    !explicitChainId && rawInputCurrency ? getHomeChainForCurrency(rawInputCurrency) : undefined
+  const inferredOutputChainId =
+    !explicitOutputChainId && rawOutputCurrency ? getHomeChainForCurrency(rawOutputCurrency) : undefined
+
+  // Use explicit chain if provided, otherwise use inferred chain
+  const chainId = explicitChainId ?? inferredInputChainId
+  const outputChainId = explicitOutputChainId ?? inferredOutputChainId
+
   const outputCurrencyAddress =
     parsedOutputCurrencyAddress === parsedInputCurrencyAddress && outputChainId === chainId
       ? undefined
@@ -306,7 +491,14 @@ export function useInitialCurrencyState(): {
     return queryParametersToCurrencyState(parsedQs)
   }, [parsedQs])
 
-  const supportedChainId = useSupportedChainId(parsedCurrencyState.chainId ?? defaultChainId) ?? UniverseChainId.Mainnet
+  // For non-EVM chains like Bitcoin, use the parsed chain directly (they won't be in "supported" EVM chains)
+  const evmSupportedChainId = useSupportedChainId(parsedCurrencyState.chainId ?? defaultChainId)
+  const isNonEvmChain =
+    parsedCurrencyState.chainId === UniverseChainId.Bitcoin ||
+    parsedCurrencyState.chainId === UniverseChainId.LightningNetwork
+  const supportedChainId: UniverseChainId = isNonEvmChain
+    ? (parsedCurrencyState.chainId as UniverseChainId)
+    : evmSupportedChainId ?? UniverseChainId.Mainnet
   const supportedChainInfo = getChainInfo(supportedChainId)
   const isChainExplicitlySpecified = !!parsedCurrencyState.chainId
   const isSupportedChainCompatible =
@@ -392,8 +584,9 @@ export function useInitialCurrencyState(): {
 
     // Default to JUSD when no output currency is specified
     if (!hasCurrencyQueryParams) {
-      if (initialChainId === UniverseChainId.CitreaTestnet) {
-        return JUSD_ADDRESSES[initialChainId]
+      const jusdAddress = JUSD_ADDRESSES[initialChainId]
+      if (jusdAddress) {
+        return jusdAddress
       }
     }
 
@@ -418,7 +611,16 @@ export function useInitialCurrencyState(): {
     if (currencyFromInputHook) {
       return currencyFromInputHook
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (initialInputCurrencyAddress && initialChainId) {
+      // Handle NATIVE_CHAIN_ID, native address (0xeeee...), or native symbol directly
+      if (
+        initialInputCurrencyAddress === NATIVE_CHAIN_ID ||
+        initialInputCurrencyAddress.toLowerCase() === DEFAULT_NATIVE_ADDRESS_LEGACY.toLowerCase() ||
+        ['btc', 'lnbtc', 'cbtc', 'native'].includes(initialInputCurrencyAddress.toLowerCase())
+      ) {
+        return nativeOnChain(initialChainId)
+      }
       const address = isAddress(initialInputCurrencyAddress)
         ? initialInputCurrencyAddress
         : getTokenAddressBySymbol(initialChainId, initialInputCurrencyAddress)

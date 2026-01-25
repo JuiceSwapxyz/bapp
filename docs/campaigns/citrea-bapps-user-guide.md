@@ -10,7 +10,7 @@ Complete these 3 swaps on JuiceSwap to qualify for the Citrea bApps Campaign rew
 ### Task 1: Swap cBTC to Nectra USD (NUSD)
 
 Direct link to complete this task:
-[https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001](https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001)
+[https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001](https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001)
 
 - **Input**: 0.00001 cBTC (Native token)
 - **Output**: NUSD (Nectra USD)
@@ -19,7 +19,7 @@ Direct link to complete this task:
 ### Task 2: Swap cBTC to cUSD (cUSD)
 
 Direct link to complete this task:
-[https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001](https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001)
+[https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001](https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001)
 
 - **Input**: 0.00001 cBTC (Native token)
 - **Output**: cUSD
@@ -28,7 +28,7 @@ Direct link to complete this task:
 ### Task 3: Swap cBTC to USDC (USDC)
 
 Direct link to complete this task:
-[https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001](https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001)
+[https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001](https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001)
 
 - **Input**: 0.00000000001 cBTC (Native token)
 - **Output**: USDC

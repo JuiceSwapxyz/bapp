@@ -91,7 +91,9 @@ const RecentTransactions = memo(function RecentTransactions() {
             ),
             cell: (transaction) => {
               const tx = transaction.getValue?.()
-              if (!tx) return null
+              if (!tx) {
+                return null
+              }
               return (
                 <Cell loading={showLoadingSkeleton} justifyContent="flex-start">
                   <TimestampCell
@@ -233,7 +235,9 @@ const RecentTransactions = memo(function RecentTransactions() {
         ),
         cell: (transaction) => {
           const tx = transaction.getValue?.()
-          if (!tx) return null
+          if (!tx) {
+            return null
+          }
           return (
             <Cell loading={showLoadingSkeleton}>
               <StyledExternalLink
