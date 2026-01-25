@@ -100,11 +100,36 @@ const getErc20ApiSymbol = (symbol: string | undefined, chainId: UniverseChainId 
   if (symbol === 'USDT' && chainId === UniverseChainId.Polygon) {
     return 'USDT_POLYGON'
   }
+  if (symbol === 'USDC' && chainId === UniverseChainId.Mainnet) {
+    return 'USDC_ETH'
+  }
   if (symbol === 'JUSD' && chainId === UniverseChainId.CitreaTestnet) {
     return 'JUSD_CITREA'
   }
 
   return undefined
+}
+
+// Boltz API uses 8 decimals internally for all amounts
+const BOLTZ_DECIMALS = 8
+
+/**
+ * Convert from Boltz 8-decimal format to token's native decimals
+ * Used for displaying limits in the correct token denomination
+ * Returns a string to be compatible with CurrencyAmount.fromRawAmount
+ */
+const boltzToTokenDecimals = (boltzAmount: number, tokenDecimals: number): string => {
+  if (tokenDecimals === BOLTZ_DECIMALS) {
+    return boltzAmount.toString()
+  } else if (tokenDecimals > BOLTZ_DECIMALS) {
+    // e.g., 8 decimals -> 18 decimals (JUSD): multiply by 10^(18-8) = 10^10
+    const multiplier = Math.pow(10, tokenDecimals - BOLTZ_DECIMALS)
+    return (boltzAmount * multiplier).toString()
+  } else {
+    // e.g., 8 decimals -> 6 decimals (USDT/USDC): divide by 10^(8-6) = 10^2
+    const divisor = Math.pow(10, BOLTZ_DECIMALS - tokenDecimals)
+    return Math.floor(boltzAmount / divisor).toString()
+  }
 }
 
 const usePairInfo = (
@@ -161,14 +186,20 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   if (!limits) {
     return undefined
   }
+
+  // Limits are displayed on the non-Citrea side (source for outgoing, destination for incoming)
   const isInputSide = currencyIn.chainId !== UniverseChainId.CitreaTestnet
-  const nonEvmCurrency = currencyIn.chainId !== UniverseChainId.CitreaTestnet ? currencyIn : currencyOut
+  const limitsCurrency = isInputSide ? currencyIn : currencyOut
 
   const { minimal, maximal } = limits
 
+  // Convert from Boltz 8-decimal format to token's native decimals
+  const minAmount = boltzToTokenDecimals(minimal, limitsCurrency.decimals)
+  const maxAmount = boltzToTokenDecimals(maximal, limitsCurrency.decimals)
+
   const bridgeLimits: BridgeLimits = {
-    min: CurrencyAmount.fromRawAmount(nonEvmCurrency, minimal),
-    max: CurrencyAmount.fromRawAmount(nonEvmCurrency, maximal),
+    min: CurrencyAmount.fromRawAmount(limitsCurrency, minAmount),
+    max: CurrencyAmount.fromRawAmount(limitsCurrency, maxAmount),
   }
 
   return {
