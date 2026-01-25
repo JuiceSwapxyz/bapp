@@ -8,7 +8,7 @@ const TFC_ADDRESS = '0x14ADf6B87096Ef750a956756BA191fc6BE94e473'
 const cUSD_ADDRESS = '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0'
 const NUSD_ADDRESS = '0x9B28B690550522608890C3C7e63c0b4A7eBab9AA'
 const USDC_ADDRESS = '0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F'
-const JUSD_TESTNET_ADDRESS = ADDRESS[5115]!.juiceDollar
+const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
 
 export const getLocalTokenLogoUrlByAddress = (tokenAddress: string | undefined): string | undefined => {
   switch (tokenAddress) {
@@ -23,7 +23,7 @@ export const getLocalTokenLogoUrlByAddress = (tokenAddress: string | undefined):
       return 'https://docs.juiceswap.com/media/icons/nusd.png'
     case USDC_ADDRESS.toLowerCase():
       return 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png'
-    case JUSD_TESTNET_ADDRESS.toLowerCase():
+    case JUSD_CITREA_TESTNET.toLowerCase():
       return 'https://docs.juiceswap.com/media/icons/jusd.png'
 
     default:

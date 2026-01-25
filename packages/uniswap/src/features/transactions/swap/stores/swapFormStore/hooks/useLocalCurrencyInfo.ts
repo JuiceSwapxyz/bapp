@@ -7,7 +7,7 @@ import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
 import { CurrencyId } from 'uniswap/src/types/currency'
 import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
 
-const JUSD_CITREA = ADDRESS[5115]!.juiceDollar
+const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
 const USDT_ETHEREUM = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 const USDC_ETHEREUM = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
@@ -46,12 +46,12 @@ const localCurrencyInfo: CurrencyInfo[] = [
   {
     currency: buildCurrency({
       chainId: UniverseChainId.CitreaTestnet,
-      address: JUSD_CITREA,
+      address: JUSD_CITREA_TESTNET,
       decimals: 18,
       symbol: 'JUSD',
       name: 'JuiceSwap USD',
     }) as Currency,
-    currencyId: buildCurrencyId(UniverseChainId.CitreaTestnet, JUSD_CITREA),
+    currencyId: buildCurrencyId(UniverseChainId.CitreaTestnet, JUSD_CITREA_TESTNET),
     logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
   },
   {
