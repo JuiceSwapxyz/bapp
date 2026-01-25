@@ -339,9 +339,13 @@ function UniversalSwapFlow({
               onSubmitSwap={handleSubmitSwap}
             />
           </SwapDependenciesStoreContextProvider>
-          <CitreaCampaignProgress />
-          <BAppsCard />
-          <SwapBottomCard />
+          {!hideFooter && (
+            <>
+              <CitreaCampaignProgress />
+              <BAppsCard />
+              <SwapBottomCard />
+            </>
+          )}
         </Flex>
       )}
       {/* Removed Limit, Buy, and Sell tabs as we only support Swap now */}
