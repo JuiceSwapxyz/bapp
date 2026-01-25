@@ -92,6 +92,7 @@ test.describe('Landing Page', () => {
     test('should match baseline screenshot in light mode', async ({ page }) => {
       await page.addInitScript(() => {
         localStorage.setItem('interface_color_theme', '"Light"')
+        localStorage.setItem('crossChainSwapsOverride', 'true')
       })
 
       await page.goto(`/${UNCONNECTED_USER_PARAM}`)
@@ -107,6 +108,7 @@ test.describe('Landing Page', () => {
     test('should match baseline screenshot in dark mode', async ({ page }) => {
       await page.addInitScript(() => {
         localStorage.setItem('interface_color_theme', '"Dark"')
+        localStorage.setItem('crossChainSwapsOverride', 'true')
       })
 
       await page.goto(`/${UNCONNECTED_USER_PARAM}`)
@@ -128,6 +130,7 @@ test.describe('Landing Page', () => {
     test('should match baseline screenshot in light mode - tablet', async ({ page }) => {
       await page.addInitScript(() => {
         localStorage.setItem('interface_color_theme', '"Light"')
+        localStorage.setItem('crossChainSwapsOverride', 'true')
       })
 
       await page.goto(`/${UNCONNECTED_USER_PARAM}`)
@@ -143,6 +146,7 @@ test.describe('Landing Page', () => {
     test('should match baseline screenshot in dark mode - tablet', async ({ page }) => {
       await page.addInitScript(() => {
         localStorage.setItem('interface_color_theme', '"Dark"')
+        localStorage.setItem('crossChainSwapsOverride', 'true')
       })
 
       await page.goto(`/${UNCONNECTED_USER_PARAM}`)
@@ -165,6 +169,7 @@ test.describe('Landing Page', () => {
     test('should match baseline screenshot in light mode - mobile', async ({ page }) => {
       await page.addInitScript(() => {
         localStorage.setItem('interface_color_theme', '"Light"')
+        localStorage.setItem('crossChainSwapsOverride', 'true')
       })
 
       await page.goto(`/${UNCONNECTED_USER_PARAM}`)
@@ -180,6 +185,7 @@ test.describe('Landing Page', () => {
     test('should match baseline screenshot in dark mode - mobile', async ({ page }) => {
       await page.addInitScript(() => {
         localStorage.setItem('interface_color_theme', '"Dark"')
+        localStorage.setItem('crossChainSwapsOverride', 'true')
       })
 
       await page.goto(`/${UNCONNECTED_USER_PARAM}`)
