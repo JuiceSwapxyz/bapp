@@ -5,7 +5,11 @@ import path from 'path'
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '.env.local') })
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3001'
+const BASE_URL = process.env.BASE_URL
+
+if (!BASE_URL) {
+  throw new Error('BASE_URL environment variable is required. No fallbacks allowed!')
+}
 
 /**
  * Playwright configuration for MetaMask E2E tests
