@@ -191,6 +191,7 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
 }
 
 export const ALWAYS_ENABLED_CHAIN_IDS = [
+  UniverseChainId.CitreaMainnet,
   UniverseChainId.Bitcoin,
   UniverseChainId.LightningNetwork,
   UniverseChainId.CitreaTestnet,
