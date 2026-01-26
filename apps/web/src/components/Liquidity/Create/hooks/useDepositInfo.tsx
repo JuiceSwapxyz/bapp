@@ -8,15 +8,19 @@ import { DepositInfo } from 'components/Liquidity/types'
 import {
   getDependentAmountFromV2Pair,
   getDependentAmountFromV3Position,
+  getDependentAmountFromV3PositionWithJusdAdjustment,
   getDependentAmountFromV4Position,
 } from 'components/Liquidity/utils/getDependentAmount'
 import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
 import { useMemo } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { PositionField } from 'types/position'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useMaxAmountSpend } from 'uniswap/src/features/gas/hooks/useMaxAmountSpend'
 import { applyNativeTokenPercentageBuffer } from 'uniswap/src/features/gas/utils'
 import { useOnChainCurrencyBalance } from 'uniswap/src/features/portfolio/api'
+import { useSvJusdSharePrice } from 'uniswap/src/features/tokens/hooks/useSvJusdSharePrice'
+import { isJusdPool } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { useUSDCValue } from 'uniswap/src/features/transactions/hooks/useUSDCPrice'
 
 type UseDepositInfoProps = {
@@ -45,8 +49,12 @@ export function useTokenBalanceWithBuffer(currencyBalance: Maybe<CurrencyAmount<
 }
 
 export function useDepositInfo(state: UseDepositInfoProps): DepositInfo {
-  const bufferPercentage = useNativeTokenPercentageBufferExperiment()
   const { protocolVersion, address, token0, token1, exactField, exactAmounts } = state
+  const chainId = token0?.chainId ?? token1?.chainId
+  const bufferPercentage = useNativeTokenPercentageBufferExperiment(chainId)
+
+  // Fetch svJUSD share price for JUSD pair calculations
+  const { sharePrice: svJusdSharePrice } = useSvJusdSharePrice(chainId as UniverseChainId | undefined)
 
   const { balance: token0Balance } = useOnChainCurrencyBalance(token0, address)
   const { balance: token1Balance } = useOnChainCurrencyBalance(token1, address)
@@ -87,14 +95,30 @@ export function useDepositInfo(state: UseDepositInfoProps): DepositInfo {
       return undefined
     }
 
+    // For V3 pools, check if this is a JUSD pair and use adjusted calculation
+    const v3Pool = state.poolOrPair as V3Pool
+    const isV3JusdPair =
+      protocolVersion === ProtocolVersion.V3 &&
+      chainId &&
+      isJusdPool(chainId as UniverseChainId, v3Pool.token0.address, v3Pool.token1.address)
+
     const dependentTokenAmount =
       protocolVersion === ProtocolVersion.V3
-        ? getDependentAmountFromV3Position({
-            independentAmount,
-            pool: state.poolOrPair as V3Pool,
-            tickLower,
-            tickUpper,
-          })
+        ? isV3JusdPair
+          ? getDependentAmountFromV3PositionWithJusdAdjustment({
+              independentAmount,
+              pool: v3Pool,
+              tickLower,
+              tickUpper,
+              chainId: chainId as UniverseChainId,
+              sharePrice: svJusdSharePrice,
+            })
+          : getDependentAmountFromV3Position({
+              independentAmount,
+              pool: v3Pool,
+              tickLower,
+              tickUpper,
+            })
         : getDependentAmountFromV4Position({
             independentAmount,
             pool: state.poolOrPair as V4Pool,
@@ -102,7 +126,18 @@ export function useDepositInfo(state: UseDepositInfoProps): DepositInfo {
             tickUpper,
           })
     return dependentToken && CurrencyAmount.fromRawAmount(dependentToken, dependentTokenAmount.quotient)
-  }, [state, protocolVersion, independentAmount, otherAmount, dependentToken, exactField, token0, token1])
+  }, [
+    state,
+    protocolVersion,
+    independentAmount,
+    otherAmount,
+    dependentToken,
+    exactField,
+    token0,
+    token1,
+    chainId,
+    svJusdSharePrice,
+  ])
 
   const independentTokenUSDValue = useUSDCValue(independentAmount)
   const dependentTokenUSDValue = useUSDCValue(dependentAmount)

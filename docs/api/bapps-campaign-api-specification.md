@@ -205,7 +205,7 @@ The API should persist:
 
 You'll need to connect to Citrea Testnet to verify transactions:
 
-- **RPC Endpoint**: `https://rpc.testnet.juiceswap.com`
+- **RPC Endpoint**: `https://dev.rpc.testnet.juiceswap.com`
 - **Chain ID**: 5115
 - **Explorer API**: `https://testnet.citreascan.com/api`
 
@@ -326,7 +326,7 @@ Recommended environment variables for your API:
 DATABASE_URL=postgresql://user:password@localhost/bapps_campaign
 
 # Blockchain
-CITREA_RPC_URL=https://rpc.testnet.juiceswap.com
+CITREA_RPC_URL=https://dev.rpc.testnet.juiceswap.com
 CITREA_CHAIN_ID=5115
 
 # Redis Cache (optional)

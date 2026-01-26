@@ -1,37 +1,37 @@
-import { MaxUint256 } from '@juiceswapxyz/sdk-core'
+import { MaxUint256, SWAP_ROUTER_02_ADDRESSES } from '@juiceswapxyz/sdk-core'
 import { PERMIT2_ADDRESS } from '@uniswap/permit2-sdk'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { JUICE_SWAP_GATEWAY_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 
 const ERC20_APPROVE_SELECTOR = '0x095ea7b3'
 
-const SPENDER_ADDRESSES = {
-  PERMIT2: PERMIT2_ADDRESS,
-
-  UNIVERSAL_ROUTER: {
-    [UniverseChainId.Sepolia]: '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD',
-  } as Record<UniverseChainId, string>,
-
-  V3_SWAP_ROUTER: {
-    [UniverseChainId.Sepolia]: '0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E',
-    [UniverseChainId.CitreaTestnet]: '0x610c98EAD0df13EA906854b6041122e8A8D14413',
-    // Add other chains as needed
-  } as Record<UniverseChainId, string>,
-} as const
+// Gateway routing constants (defined locally to avoid circular dependency with routing.ts)
+const GATEWAY_ROUTING_VARIANTS = ['GATEWAY_JUSD', 'GATEWAY_JUICE_IN', 'GATEWAY_JUICE_OUT'] as const
+type GatewayRoutingVariant = (typeof GATEWAY_ROUTING_VARIANTS)[number]
 
 /**
- * Determines the appropriate spender address for classic swaps
- * Based on the example response, even classic swaps use Permit2 as the spender
+ * Determines the appropriate spender address for swaps
+ * Uses sdk-core as single source of truth for router addresses
+ * For Gateway swaps (including SUSD), returns JuiceSwapGateway address
  */
-export function getSpenderAddress(_chainId: UniverseChainId): string {
-  return SPENDER_ADDRESSES.V3_SWAP_ROUTER[_chainId]
+export function getSpenderAddress(chainId: UniverseChainId, routing?: string): string {
+  // For Gateway swaps (JUSD abstraction, JUICE equity, SUSD bridging), use JuiceSwapGateway as spender
+  if (routing && GATEWAY_ROUTING_VARIANTS.includes(routing as GatewayRoutingVariant)) {
+    const gatewayAddress = JUICE_SWAP_GATEWAY_ADDRESSES[chainId]
+    if (!gatewayAddress) {
+      throw new Error(`No JuiceSwapGateway address for chainId ${chainId}`)
+    }
+    return gatewayAddress
+  }
+
+  return SWAP_ROUTER_02_ADDRESSES(chainId)
 }
 
 /**
- * Gets the spender address specifically for classic swaps
- * Based on the example response, classic swaps use Permit2
+ * Gets the spender address specifically for Permit2-based swaps
  */
 export function getClassicSwapSpenderAddress(_chainId: UniverseChainId): string {
-  return SPENDER_ADDRESSES.PERMIT2
+  return PERMIT2_ADDRESS
 }
 
 /**

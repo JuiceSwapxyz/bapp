@@ -4,10 +4,12 @@ import { Contract } from 'ethers/lib/ethers'
 import { useMemo } from 'react'
 import ERC20_ABI from 'uniswap/src/abis/erc20.json'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
+import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getPollingIntervalByBlocktime } from 'uniswap/src/features/chains/utils'
 import { DynamicConfigs, SyncTransactionSubmissionChainIdsConfigKey } from 'uniswap/src/features/gating/configs'
 import { getDynamicConfigValue } from 'uniswap/src/features/gating/hooks'
+import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { createEthersProvider } from 'uniswap/src/features/providers/createEthersProvider'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
 import { currencyAddress as getCurrencyAddress } from 'uniswap/src/utils/currencyId'
@@ -21,8 +23,12 @@ export type BalanceLookupParams = {
 }
 
 /** Custom fetcher that uses an ethers provider to fetch. */
-export async function getOnChainBalancesFetch(params: BalanceLookupParams): Promise<{ balance?: string }> {
-  return getOnChainBalancesFetchEVM(params)
+export async function getOnChainBalancesFetch(params: BalanceLookupParams): Promise<{ balance?: string } | undefined> {
+  const chainInfo = getChainInfo(params.chainId)
+  if (chainInfo.platform === Platform.EVM) {
+    return getOnChainBalancesFetchEVM(params)
+  }
+  return undefined
 }
 
 async function getOnChainBalancesFetchEVM(params: BalanceLookupParams): Promise<{ balance?: string }> {
@@ -101,7 +107,7 @@ export function useOnChainCurrencyBalance(
 ): { balance: CurrencyAmount<Currency> | undefined; isLoading: boolean; error: unknown } {
   const refetchInterval = getPollingIntervalByBlocktime(currency?.chainId)
 
-  const { data, error } = useQuery<{ balance?: string }>({
+  const { data, error } = useQuery<{ balance?: string } | undefined>({
     queryKey: [ReactQueryCacheKey.OnchainBalances, accountAddress, currency],
     queryFn:
       currency && accountAddress

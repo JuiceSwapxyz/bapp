@@ -223,7 +223,7 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
     }
   }, [selectedHistoryDuration, t])
 
-  const [mainView, setMainView] = useState<'chart' | 'nft'>('chart')
+  const [mainView, setMainView] = useState<'chart' | 'nft'>('nft')
   const mainViewOptions = useMemo(() => {
     return [
       {
@@ -1038,12 +1038,6 @@ const EarningsSection = ({
               </>
             ) : (
               feeRows.length > 0 && <LiquidityPositionAmountRows rows={feeRows} />
-            )}
-
-            {(!totalEarningsFiatValue || totalEarningsFiatValue.equalTo(0)) && (
-              <Text variant="body3" color="$neutral3">
-                {t('pool.earnings.empty')}
-              </Text>
             )}
           </>
         )}

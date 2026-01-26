@@ -1,9 +1,15 @@
+import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
+import { BridgeQuote } from 'uniswap/src/data/tradingApi/__generated__'
+import { BitcoinBridgeDirection, LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { createApprovalTransactionStep } from 'uniswap/src/features/transactions/steps/approve'
 import { createPermit2SignatureStep } from 'uniswap/src/features/transactions/steps/permit2Signature'
 import { createPermit2TransactionStep } from 'uniswap/src/features/transactions/steps/permit2Transaction'
 import { createRevocationTransactionStep } from 'uniswap/src/features/transactions/steps/revoke'
 import { TransactionStep } from 'uniswap/src/features/transactions/steps/types'
+import { createBitcoinBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { orderClassicSwapSteps } from 'uniswap/src/features/transactions/swap/steps/classicSteps'
+import { createErc20ChainSwapStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
+import { createLightningBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { createSignUniswapXOrderStep } from 'uniswap/src/features/transactions/swap/steps/signOrder'
 import {
   createSwapTransactionAsyncStep,
@@ -11,10 +17,24 @@ import {
   createSwapTransactionStepBatched,
 } from 'uniswap/src/features/transactions/swap/steps/swap'
 import { orderUniswapXSteps } from 'uniswap/src/features/transactions/swap/steps/uniswapxSteps'
-import { SwapTxAndGasInfo, isValidSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
-import { isBridge, isClassic, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import {
+  ClassicSwapTxAndGasInfo,
+  GatewayJusdSwapTxAndGasInfo,
+  SwapTxAndGasInfo,
+  isValidSwapTxContext,
+} from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
+import {
+  isBitcoinBridge,
+  isBridge,
+  isClassic,
+  isErc20ChainSwap,
+  isGatewayJusd,
+  isLightningBridge,
+  isUniswapX,
+} from 'uniswap/src/features/transactions/swap/utils/routing'
 
-export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo): TransactionStep[] {
+// eslint-disable-next-line complexity
+export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo, _v4Enabled?: boolean): TransactionStep[] {
   const isValidSwap = isValidSwapTxContext(txContext)
 
   if (isValidSwap) {
@@ -23,36 +43,44 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo): Trans
     const revocation = createRevocationTransactionStep(revocationTxRequest, trade.inputAmount.currency.wrapped)
     const approval = createApprovalTransactionStep({ txRequest: approveTxRequest, amountIn: trade.inputAmount })
 
-    if (isClassic(txContext)) {
-      const { swapRequestArgs } = txContext
+    if (isClassic(txContext) || isGatewayJusd(txContext)) {
+      // Cast to the union type since TypeScript has trouble narrowing with || on complex unions
+      const classicContext = txContext as ClassicSwapTxAndGasInfo | GatewayJusdSwapTxAndGasInfo
+      const { swapRequestArgs } = classicContext
 
-      if (txContext.unsigned) {
+      if (classicContext.unsigned && classicContext.permit && 'typedData' in classicContext.permit) {
         return orderClassicSwapSteps({
           revocation,
           approval,
-          permit: createPermit2SignatureStep(txContext.permit.typedData, trade.inputAmount.currency),
+          permit: createPermit2SignatureStep(classicContext.permit.typedData, trade.inputAmount.currency),
           swap: createSwapTransactionAsyncStep(swapRequestArgs),
         })
       }
-      if (txContext.txRequests.length > 1) {
+      if (classicContext.txRequests && classicContext.txRequests.length > 1) {
         return orderClassicSwapSteps({
           permit: undefined,
-          swap: createSwapTransactionStepBatched(txContext.txRequests),
+          swap: createSwapTransactionStepBatched(classicContext.txRequests),
         })
       }
 
-      const permit = txContext.permit
-        ? createPermit2TransactionStep({
-            txRequest: txContext.permit.txRequest,
-            amountIn: trade.inputAmount,
-          })
-        : undefined
+      const permit =
+        classicContext.permit && 'txRequest' in classicContext.permit
+          ? createPermit2TransactionStep({
+              txRequest: classicContext.permit.txRequest,
+              amountIn: trade.inputAmount,
+            })
+          : undefined
+
+      // At this point txRequests should exist since we're past the unsigned check
+      if (!classicContext.txRequests) {
+        return []
+      }
 
       return orderClassicSwapSteps({
         revocation,
         approval,
         permit,
-        swap: createSwapTransactionStep(txContext.txRequests[0]),
+        swap: createSwapTransactionStep(classicContext.txRequests[0]),
       })
     } else if (isUniswapX(txContext)) {
       return orderUniswapXSteps({
@@ -60,19 +88,36 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo): Trans
         approval,
         signOrder: createSignUniswapXOrderStep(txContext.permit.typedData, txContext.trade.quote.quote),
       })
+    } else if (isBitcoinBridge(txContext)) {
+      const direction =
+        ((txContext.trade.quote.quote as BridgeQuote).direction as BitcoinBridgeDirection | undefined) ??
+        BitcoinBridgeDirection.CitreaToBitcoin
+      return [createBitcoinBridgeTransactionStep(direction)]
+    } else if (isLightningBridge(txContext)) {
+      const direction =
+        ((txContext.trade.quote.quote as BridgeQuote).direction as LightningBridgeDirection | undefined) ??
+        LightningBridgeDirection.Submarine
+      return [createLightningBridgeTransactionStep(direction)]
+    } else if (isErc20ChainSwap(txContext)) {
+      // ERC20 chain swaps have routing ERC20_CHAIN_SWAP
+      const direction = (trade.quote.quote as BridgeQuote).direction as Erc20ChainSwapDirection
+      return [createErc20ChainSwapStep(direction)]
     } else if (isBridge(txContext)) {
-      if (txContext.txRequests.length > 1) {
+      // Regular bridge swaps require txRequests
+      if (txContext.txRequests && txContext.txRequests.length > 1) {
         return orderClassicSwapSteps({
           permit: undefined,
           swap: createSwapTransactionStepBatched(txContext.txRequests),
         })
       }
-      return orderClassicSwapSteps({
-        revocation,
-        approval,
-        permit: undefined,
-        swap: createSwapTransactionStep(txContext.txRequests[0]),
-      })
+      if (txContext.txRequests && txContext.txRequests.length > 0) {
+        return orderClassicSwapSteps({
+          revocation,
+          approval,
+          permit: undefined,
+          swap: createSwapTransactionStep(txContext.txRequests[0]),
+        })
+      }
     }
   }
 

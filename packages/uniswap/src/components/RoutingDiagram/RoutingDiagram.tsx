@@ -79,7 +79,14 @@ function Pool({
         <Text variant="body4">
           <Trans
             i18nKey="pool.percent"
-            values={{ pct: currency0.symbol + '/' + currency1.symbol + ' ' + feeAmount / 10000 }}
+            values={{
+              pct:
+                (currency0CurrencyInfo?.currency.symbol ?? currency0.symbol) +
+                '/' +
+                (currency1CurrencyInfo?.currency.symbol ?? currency1.symbol) +
+                ' ' +
+                feeAmount / 10000,
+            }}
           />
         </Text>
         <Tooltip.Arrow />

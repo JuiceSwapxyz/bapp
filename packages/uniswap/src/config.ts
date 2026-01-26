@@ -5,6 +5,7 @@ import {
   API_BASE_URL_V2_OVERRIDE,
   APPSFLYER_API_KEY,
   APPSFLYER_APP_ID,
+  CITREA_TESTNET_EXPLORER_URL,
   FOR_API_URL_OVERRIDE,
   GRAPHQL_URL_OVERRIDE,
   INCLUDE_PROTOTYPE_FEATURES,
@@ -40,6 +41,7 @@ export interface Config {
   apiBaseUrlV2Override: string
   appsflyerApiKey: string
   appsflyerAppId: string
+  citreaTestnetExplorerUrl: string
   isE2ETest: boolean
   forApiUrlOverride: string
   graphqlUrlOverride: string
@@ -75,6 +77,10 @@ const _config: Config = {
   apiBaseUrlV2Override: process.env.API_BASE_URL_V2_OVERRIDE || API_BASE_URL_V2_OVERRIDE,
   appsflyerApiKey: process.env.APPSFLYER_API_KEY || APPSFLYER_API_KEY,
   appsflyerAppId: process.env.APPSFLYER_APP_ID || APPSFLYER_APP_ID,
+  citreaTestnetExplorerUrl:
+    process.env.REACT_APP_CITREA_TESTNET_EXPLORER_URL ||
+    process.env.CITREA_TESTNET_EXPLORER_URL ||
+    CITREA_TESTNET_EXPLORER_URL,
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   isE2ETest: process.env.IS_E2E_TEST?.toLowerCase() === 'true' || IS_E2E_TEST?.toLowerCase() === 'true',
   forApiUrlOverride: process.env.FOR_API_URL_OVERRIDE || FOR_API_URL_OVERRIDE,

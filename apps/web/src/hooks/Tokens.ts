@@ -29,7 +29,9 @@ function useCurrencyPreprocessing({
   const chainIdWithFallback =
     (typeof addressOrCurrency === 'string' ? chainId : addressOrCurrency?.chainId) ?? connectedChainId
   const supportedChainId = useSupportedChainId(chainIdWithFallback)
-  const nativeAddressWithFallback = getChainInfo(supportedChainId ?? UniverseChainId.Mainnet).nativeCurrency.address
+  // Use explicitly passed chainId even if not in enabled chains (for cross-chain swaps)
+  const effectiveChainId = chainId ?? supportedChainId ?? UniverseChainId.Mainnet
+  const nativeAddressWithFallback = getChainInfo(effectiveChainId).nativeCurrency.address
 
   const isNative = useMemo(() => checkIsNative(addressOrCurrency), [addressOrCurrency])
   const address = useMemo(
@@ -38,7 +40,7 @@ function useCurrencyPreprocessing({
   )
 
   const addressWithFallback = isNative || !address ? nativeAddressWithFallback : address
-  const currencyId = buildCurrencyId(supportedChainId ?? UniverseChainId.Mainnet, addressWithFallback)
+  const currencyId = buildCurrencyId(effectiveChainId, addressWithFallback)
   const shouldSkip = !addressOrCurrency || skip
 
   return { currencyId, shouldSkip, addressOrCurrency }
@@ -119,7 +121,7 @@ function useCurrencyInfoWithLoading(
 
 export function checkIsNative(addressOrCurrency?: string | Currency): boolean {
   return typeof addressOrCurrency === 'string'
-    ? [NATIVE_CHAIN_ID, 'native', 'eth'].includes(addressOrCurrency.toLowerCase())
+    ? [NATIVE_CHAIN_ID, 'native', 'btc', 'lnbtc', 'cbtc'].includes(addressOrCurrency.toLowerCase())
     : addressOrCurrency?.isNative ?? false
 }
 

@@ -88,6 +88,7 @@ function mockSwapFormStore(inputAmount: string, outputAmount: string): void {
           [CurrencyField.INPUT]: CurrencyAmount.fromRawAmount(USDC, inputAmount),
           [CurrencyField.OUTPUT]: CurrencyAmount.fromRawAmount(USDC, outputAmount),
         },
+        limits: null,
         currencies: {
           [CurrencyField.INPUT]: {
             currency: USDC,

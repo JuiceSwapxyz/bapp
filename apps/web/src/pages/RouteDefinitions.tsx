@@ -38,6 +38,12 @@ const ExtensionUninstall = lazy(() => import('pages/ExtensionUninstall/Extension
 const Bapps = lazy(() => import('pages/Bapps'))
 const FirstSqueezer = lazy(() => import('pages/FirstSqueezer'))
 const OAuthCallback = lazy(() => import('pages/OAuthCallback'))
+const Launchpad = lazy(() => import('pages/Launchpad'))
+const LaunchpadTokenDetail = lazy(() => import('pages/Launchpad/TokenDetail'))
+const LaunchpadCreate = lazy(() => import('pages/Launchpad/Create'))
+const BridgeSwaps = lazy(() => import('pages/BridgeSwaps'))
+const JuicePage = lazy(() => import('pages/Juice'))
+const JusdPage = lazy(() => import('pages/Jusd'))
 
 interface RouterConfig {
   browserRouterEnabled?: boolean
@@ -373,6 +379,56 @@ export const routes: RouteDefinition[] = [
     path: '/oauth-callback',
     getElement: () => <OAuthCallback />,
     getTitle: () => 'OAuth Callback - JuiceSwap',
+  }),
+  // Launchpad - Bonding Curve Token Launch
+  createRouteDefinition({
+    path: '/launchpad',
+    getElement: () => <Launchpad />,
+    getTitle: () => 'Launchpad - JuiceSwap',
+    getDescription: () => 'Launch tokens with bonding curves. Graduate to JuiceSwap V2 with locked liquidity.',
+  }),
+  createRouteDefinition({
+    path: '/launchpad/create',
+    getElement: () => <LaunchpadCreate />,
+    getTitle: () => 'Create Token - JuiceSwap Launchpad',
+    getDescription: () => 'Launch your token on a bonding curve with no upfront liquidity required.',
+  }),
+  createRouteDefinition({
+    path: '/launchpad/:tokenAddress',
+    getElement: () => <LaunchpadTokenDetail />,
+    getTitle: () => 'Token - JuiceSwap Launchpad',
+    getDescription: () => 'Trade tokens on the bonding curve before graduation to JuiceSwap V2.',
+  }),
+  // Bridge Swaps
+  createRouteDefinition({
+    path: '/bridge-swaps',
+    getElement: () => <BridgeSwaps />,
+    getTitle: () => 'Bridge Swaps - JuiceSwap',
+    getDescription: () => 'View and manage all your Bitcoin bridge transactions',
+  }),
+  // JUICE Token Information Page
+  createRouteDefinition({
+    path: '/juice',
+    getElement: () => (
+      <Suspense fallback={null}>
+        <JuicePage />
+      </Suspense>
+    ),
+    getTitle: () => 'Juice Protocol (JUICE) | JuiceSwap',
+    getDescription: () =>
+      'Learn how JUICE, the governance and equity token of JuiceDollar, works. Own a piece of the protocol, earn fees, and shape the future.',
+  }),
+  // JUSD Stablecoin Information Page
+  createRouteDefinition({
+    path: '/jusd',
+    getElement: () => (
+      <Suspense fallback={null}>
+        <JusdPage />
+      </Suspense>
+    ),
+    getTitle: () => 'JuiceDollar (JUSD) | JuiceSwap',
+    getDescription: () =>
+      'Learn how JUSD, the decentralized stablecoin of JuiceDollar, works. Oracle-free, overcollateralized, and built on cypherpunk principles.',
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),

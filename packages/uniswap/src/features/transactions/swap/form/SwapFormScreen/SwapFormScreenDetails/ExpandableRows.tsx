@@ -14,6 +14,7 @@ import { useFeeOnTransferAmounts } from 'uniswap/src/features/transactions/swap/
 import { useParsedSwapWarnings } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/useSwapWarnings'
 import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
+import { UniswapXSwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import { getSwapFeeUsdFromDerivedSwapInfo } from 'uniswap/src/features/transactions/swap/utils/getSwapFeeUsd'
 import { isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { CurrencyField } from 'uniswap/src/types/currency'
@@ -22,9 +23,11 @@ export function ExpandableRows({ isBridge }: { isBridge?: boolean }): JSX.Elemen
   const { t } = useTranslation()
   const { gasFee, gasFeeBreakdown } = useSwapTxStore((s) => {
     if (isUniswapX(s)) {
+      // Cast after type guard since TypeScript has trouble narrowing complex unions
+      const uniswapXContext = s as UniswapXSwapTxAndGasInfo
       return {
-        gasFee: s.gasFee,
-        gasFeeBreakdown: s.gasFeeBreakdown,
+        gasFee: uniswapXContext.gasFee,
+        gasFeeBreakdown: uniswapXContext.gasFeeBreakdown,
       }
     }
 

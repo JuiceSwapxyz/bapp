@@ -10,6 +10,11 @@ import { useSetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap
 import { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { handleAtomicSendCalls } from 'state/sagas/transactions/5792'
+import { handleBitcoinBridgeBitcoinToCitrea } from 'state/sagas/transactions/bitcoinBridgeBitcoinToCitrea'
+import { handleBitcoinBridgeCitreaToBitcoin } from 'state/sagas/transactions/bitcoinBridgeCitreaToBitcoin'
+import { handleErc20ChainSwap } from 'state/sagas/transactions/erc20ChainSwap'
+import { handleLightningBridgeReverse } from 'state/sagas/transactions/lightningBridgeReverse'
+import { handleLightningBridgeSubmarine } from 'state/sagas/transactions/lightningBridgeSubmarine'
 import { useGetOnPressRetry } from 'state/sagas/transactions/retry'
 import { handleUniswapXSignatureStep } from 'state/sagas/transactions/uniswapx'
 import {
@@ -52,7 +57,15 @@ import { PermitMethod, ValidatedSwapTxContext } from 'uniswap/src/features/trans
 import { BridgeTrade, ClassicTrade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { slippageToleranceToPercent } from 'uniswap/src/features/transactions/swap/utils/format'
 import { generateSwapTransactionSteps } from 'uniswap/src/features/transactions/swap/utils/generateSwapTransactionSteps'
-import { UNISWAPX_ROUTING_VARIANTS, isClassic } from 'uniswap/src/features/transactions/swap/utils/routing'
+import {
+  TradeRouting,
+  UNISWAPX_ROUTING_VARIANTS,
+  isBitcoinBridge,
+  isClassic,
+  isErc20ChainSwap,
+  isGatewayJusd,
+  isLightningBridge,
+} from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import {
@@ -69,7 +82,9 @@ interface HandleSwapStepParams extends Omit<HandleOnChainStepParams, 'step' | 'i
   trade: ClassicTrade | BridgeTrade
   analytics: SwapTradeBaseProperties
   onTransactionHash?: (hash: string) => void
+  swapTxContext?: ValidatedSwapTxContext
 }
+
 function* handleSwapTransactionStep(params: HandleSwapStepParams) {
   const { trade, step, signature, analytics, onTransactionHash } = params
 
@@ -106,7 +121,6 @@ function* handleSwapTransactionStep(params: HandleSwapStepParams) {
     )
   }
 
-  // Update swap form store with actual transaction hash
   if (onTransactionHash) {
     onTransactionHash(hash)
   }
@@ -201,7 +215,7 @@ type SwapParams = {
 }
 
 /** Asserts that a given object fits a given routing variant. */
-function requireRouting<T extends Routing, V extends { routing: Routing }>(
+function requireRouting<T extends TradeRouting, V extends { routing: TradeRouting }>(
   val: V,
   routing: readonly T[],
 ): asserts val is V & { routing: T } {
@@ -222,6 +236,14 @@ async function handleSwitchChains(
   }
 
   const chainSwitched = await selectChain(swapChainId)
+
+  // For ERC20 chain swaps, if chain switch fails, allow it to proceed anyway
+  // The chain switch will happen during transaction execution
+  if (!chainSwitched && isErc20ChainSwap(swapTxContext)) {
+    // Allow ERC20 chain swaps to proceed - chain will switch during transaction execution
+    return { chainSwitchFailed: false }
+  }
+
   return { chainSwitchFailed: !chainSwitched }
 }
 
@@ -239,10 +261,19 @@ function* swap(params: SwapParams) {
   } = params
   const { trade } = swapTxContext
 
-  const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
-  if (chainSwitchFailed) {
-    onFailure()
-    return
+  const isLightningBridgeSwap = isLightningBridge(swapTxContext)
+  const isBitcoinBridgeSwap = isBitcoinBridge(swapTxContext)
+  const isErc20ChainSwapSwap = isErc20ChainSwap(swapTxContext)
+
+  // Skip chain switching only for lightning and bitcoin bridges
+  // ERC20 chain swaps need to switch to source chain (input currency chainId) before locking
+  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap
+  if (changeChain) {
+    const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
+    if (chainSwitchFailed) {
+      onFailure()
+      return
+    }
   }
 
   const steps = yield* call(generateSwapTransactionSteps, swapTxContext, v4Enabled)
@@ -269,25 +300,32 @@ function* swap(params: SwapParams) {
         }
         case TransactionStepType.SwapTransaction:
         case TransactionStepType.SwapTransactionAsync: {
-          requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
+          // Gateway trades execute like Classic trades but have different routing type
+          if (!isGatewayJusd(swapTxContext)) {
+            requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
+          }
           yield* call(handleSwapTransactionStep, {
             account,
             signature,
             step,
             setCurrentStep,
-            trade,
+            trade: trade as ClassicTrade | BridgeTrade,
             analytics,
             onTransactionHash: params.onTransactionHash,
+            swapTxContext,
           })
           break
         }
         case TransactionStepType.SwapTransactionBatched: {
-          requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
+          // Gateway trades execute like Classic trades but have different routing type
+          if (!isGatewayJusd(swapTxContext)) {
+            requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
+          }
           yield* call(handleSwapTransactionBatchedStep, {
             account,
             step,
             setCurrentStep,
-            trade,
+            trade: trade as ClassicTrade | BridgeTrade,
             analytics,
             disableOneClickSwap,
           })
@@ -296,6 +334,70 @@ function* swap(params: SwapParams) {
         case TransactionStepType.UniswapXSignature: {
           requireRouting(trade, UNISWAPX_ROUTING_VARIANTS)
           yield* call(handleUniswapXSignatureStep, { account, step, setCurrentStep, trade, analytics })
+          break
+        }
+        case TransactionStepType.BitcoinBridgeCitreaToBitcoinStep: {
+          requireRouting(swapTxContext, [Routing.BITCOIN_BRIDGE])
+          yield* call(handleBitcoinBridgeCitreaToBitcoin, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
+        case TransactionStepType.BitcoinBridgeBitcoinToCitreaStep: {
+          requireRouting(swapTxContext, [Routing.BITCOIN_BRIDGE])
+          yield* call(handleBitcoinBridgeBitcoinToCitrea, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
+        case TransactionStepType.LightningBridgeSubmarineStep: {
+          requireRouting(swapTxContext, [Routing.LN_BRIDGE])
+          yield* call(handleLightningBridgeSubmarine, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
+        case TransactionStepType.LightningBridgeReverseStep: {
+          requireRouting(swapTxContext, [Routing.LN_BRIDGE])
+          yield* call(handleLightningBridgeReverse, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            destinationAddress: swapTxContext.destinationAddress,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
+        case TransactionStepType.Erc20ChainSwapStep: {
+          yield* call(handleErc20ChainSwap, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            selectChain: params.selectChain,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
           break
         }
         default: {
@@ -313,7 +415,10 @@ function* swap(params: SwapParams) {
     return
   }
 
-  yield* call(onSuccess)
+  // For lightning bridge, bitcoin bridge, and ERC20 chain swaps, onSuccess is called earlier in the flow
+  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap) {
+    yield* call(onSuccess)
+  }
 }
 
 export const swapSaga = createSaga(swap, 'swapSaga')

@@ -72,6 +72,12 @@ export interface CreatePositionTxAndGasInfo extends BaseLiquidityTxAndGasInfo {
   type: LiquidityTransactionType.Create
   unsigned: boolean
   createPositionRequestArgs: CreateLPPositionRequest | undefined
+  /**
+   * Transaction to create and initialize the pool before adding liquidity.
+   * Used in Gateway flow when the svJUSD pool doesn't exist yet.
+   * This transaction calls createAndInitializePoolIfNecessary on PositionManager.
+   */
+  createPoolTxRequest: ValidatedTransactionRequest | undefined
 }
 
 export interface MigrateV3PositionTxAndGasInfo extends BaseLiquidityTxAndGasInfo {

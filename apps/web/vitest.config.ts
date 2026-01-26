@@ -25,7 +25,7 @@ export default defineConfig({
         'src/locales/**',
         'src/test-utils/**',
         'src/types/v3/**',
-        'src/playwright/**',
+        'e2e/**',
         '**/*.snap',
       ],
     },

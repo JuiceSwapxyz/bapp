@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import bitcoinLogo from 'assets/images/coins/bitcoin.png'
 import { useOpenOffchainActivityModal } from 'components/AccountDrawer/MiniPortfolio/Activity/OffchainActivityModal'
 import {
   getFORTransactionToActivityQueryOptions,
@@ -11,15 +12,24 @@ import AlertTriangleFilled from 'components/Icons/AlertTriangleFilled'
 import { LoaderV3 } from 'components/Icons/LoadingSpinner'
 import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { POPUP_MAX_WIDTH } from 'components/Popups/constants'
+import { BitcoinBridgeDirection, LdsBridgeStatus } from 'components/Popups/types'
 import { useIsRecentFlashblocksNotification } from 'hooks/useIsRecentFlashblocksNotification'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
 import { useOrder } from 'state/signatures/hooks'
 import { useTransaction } from 'state/transactions/hooks'
 import { isPendingTx } from 'state/transactions/utils'
 import { EllipsisTamaguiStyle } from 'theme/components/styles'
-import { Flex, Text, TouchableArea, useSporeColors } from 'ui/src'
+import { Flex, Text, TouchableArea, useShadowPropsMedium, useSporeColors } from 'ui/src'
+import { Arrow } from 'ui/src/components/arrow/Arrow'
+import { AlertTriangleFilled as AlertTriangleFilledUI } from 'ui/src/components/icons/AlertTriangleFilled'
+import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { X } from 'ui/src/components/icons/X'
+import { iconSizes } from 'ui/src/theme'
+import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { BridgeIcon } from 'uniswap/src/components/CurrencyLogo/SplitLogo'
+import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useIsSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -205,4 +215,397 @@ export function FORTransactionPopupContent({
   }
 
   return <ActivityPopupContent activity={activity} onClose={onClose} onClick={noop} />
+}
+
+export function BridgingPopupContent({ hash, onClose }: { hash: string; onClose: () => void }) {
+  const transaction = useTransaction(hash)
+
+  const { formatNumberOrString } = useLocalizationContext()
+  const { data: activity } = useQuery(
+    getTransactionToActivityQueryOptions({
+      transaction,
+      formatNumber: formatNumberOrString,
+    }),
+  )
+
+  if (!transaction || !activity) {
+    return null
+  }
+
+  const onClick = () =>
+    window.open(
+      getExplorerLink({ chainId: activity.chainId, data: activity.hash, type: ExplorerDataType.TRANSACTION }),
+      '_blank',
+    )
+
+  const explorerUrlUnavailable = isPendingTx(transaction) && transaction.batchInfo
+
+  return (
+    <ActivityPopupContent
+      activity={activity}
+      onClick={explorerUrlUnavailable ? undefined : onClick}
+      onClose={onClose}
+    />
+  )
+}
+
+export function LightningBridgePopupContent({
+  direction,
+  status,
+  onClose,
+}: {
+  direction: LightningBridgeDirection
+  status: LdsBridgeStatus
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const colors = useSporeColors()
+
+  const title = useMemo(() => {
+    switch (status) {
+      case LdsBridgeStatus.Pending:
+        return t('Bridging Bitcoins')
+      case LdsBridgeStatus.Confirmed:
+        return t('Bitcoins bridged successfully')
+      case LdsBridgeStatus.Failed:
+        return t('Bitcoins bridging failed')
+      default:
+        return t('Bridging Bitcoins')
+    }
+  }, [status, t])
+
+  const logoTo = useMemo(() => {
+    switch (direction) {
+      case LightningBridgeDirection.Submarine:
+        return UniverseChainId.LightningNetwork
+      case LightningBridgeDirection.Reverse:
+        return UniverseChainId.CitreaTestnet
+      default:
+        return UniverseChainId.CitreaTestnet
+    }
+  }, [direction])
+
+  const logoFrom = useMemo(() => {
+    switch (direction) {
+      case LightningBridgeDirection.Submarine:
+        return UniverseChainId.CitreaTestnet
+      case LightningBridgeDirection.Reverse:
+        return UniverseChainId.LightningNetwork
+      default:
+        return UniverseChainId.CitreaTestnet
+    }
+  }, [direction])
+
+  const isPending = status === LdsBridgeStatus.Pending
+
+  return (
+    <Flex
+      row
+      width={POPUP_MAX_WIDTH}
+      backgroundColor="$surface1"
+      position="relative"
+      borderWidth={1}
+      borderRadius="$rounded16"
+      borderColor="$surface3"
+      py={2}
+      px={0}
+      animation="300ms"
+      $sm={{
+        mx: 'auto',
+        width: '100%',
+      }}
+    >
+      <TouchableArea onPress={noop} flex={1}>
+        <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
+          <Flex justifyContent="center">
+            <PortfolioLogo chainId={UniverseChainId.Mainnet} images={[bitcoinLogo]} size={32} />
+          </Flex>
+          <Flex justifyContent="center" gap="$gap4" fill>
+            <Text variant="body2" color="$neutral1">
+              {title}
+            </Text>
+            <Flex row alignItems="center" gap="$gap4">
+              <NetworkLogo chainId={logoFrom} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {direction === 'submarine' ? 'Citrea' : 'Lightning Network'}
+              </Text>
+              <Arrow direction="e" color="$neutral3" size={iconSizes.icon16} />
+              <NetworkLogo chainId={logoTo} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {direction === 'submarine' ? 'Lightning Network' : 'Citrea'}
+              </Text>
+            </Flex>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+      {isPending ? (
+        <Flex position="absolute" top="$spacing24" right="$spacing16">
+          <LoaderV3 color={colors.accent1.variable} size="20px" />
+        </Flex>
+      ) : (
+        <Flex position="absolute" right="$spacing16" top="$spacing16" data-testid={TestID.ActivityPopupCloseIcon}>
+          <TouchableArea onPress={onClose}>
+            <X color="$neutral2" size={16} />
+          </TouchableArea>
+        </Flex>
+      )}
+    </Flex>
+  )
+}
+
+export function BitcoinBridgePopupContent({
+  direction,
+  status,
+  onClose,
+}: {
+  direction: BitcoinBridgeDirection
+  status: LdsBridgeStatus
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const colors = useSporeColors()
+
+  const title = useMemo(() => {
+    switch (status) {
+      case LdsBridgeStatus.Pending:
+        return t('Bridging Bitcoins')
+      case LdsBridgeStatus.Confirmed:
+        return t('Bitcoins bridged successfully')
+      case LdsBridgeStatus.Failed:
+        return t('Bitcoins bridging failed')
+      default:
+        return t('Bridging Bitcoins')
+    }
+  }, [status, t])
+
+  const logoTo = useMemo(() => {
+    switch (direction) {
+      case BitcoinBridgeDirection.BitcoinToCitrea:
+        return UniverseChainId.CitreaTestnet
+      case BitcoinBridgeDirection.CitreaToBitcoin:
+        return UniverseChainId.Bitcoin
+      default:
+        return UniverseChainId.CitreaTestnet
+    }
+  }, [direction])
+
+  const logoFrom = useMemo(() => {
+    switch (direction) {
+      case BitcoinBridgeDirection.BitcoinToCitrea:
+        return UniverseChainId.Bitcoin
+      case BitcoinBridgeDirection.CitreaToBitcoin:
+        return UniverseChainId.CitreaTestnet
+      default:
+        return UniverseChainId.CitreaTestnet
+    }
+  }, [direction])
+
+  const isPending = status === LdsBridgeStatus.Pending
+
+  return (
+    <Flex
+      row
+      width={POPUP_MAX_WIDTH}
+      backgroundColor="$surface1"
+      position="relative"
+      borderWidth={1}
+      borderRadius="$rounded16"
+      borderColor="$surface3"
+      py={2}
+      px={0}
+      animation="300ms"
+      $sm={{
+        mx: 'auto',
+        width: '100%',
+      }}
+    >
+      <TouchableArea onPress={noop} flex={1}>
+        <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
+          <Flex justifyContent="center">
+            <PortfolioLogo chainId={UniverseChainId.Mainnet} images={[bitcoinLogo]} size={32} />
+          </Flex>
+          <Flex justifyContent="center" gap="$gap4" fill>
+            <Text variant="body2" color="$neutral1">
+              {title}
+            </Text>
+            <Flex row alignItems="center" gap="$gap4">
+              <NetworkLogo chainId={logoFrom} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {direction === BitcoinBridgeDirection.BitcoinToCitrea ? 'Bitcoin' : 'Citrea'}
+              </Text>
+              <Arrow direction="e" color="$neutral3" size={iconSizes.icon16} />
+              <NetworkLogo chainId={logoTo} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {direction === BitcoinBridgeDirection.BitcoinToCitrea ? 'Citrea' : 'Bitcoin'}
+              </Text>
+            </Flex>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+      {isPending ? (
+        <Flex position="absolute" top="$spacing24" right="$spacing16">
+          <LoaderV3 color={colors.accent1.variable} size="20px" />
+        </Flex>
+      ) : (
+        <Flex position="absolute" right="$spacing16" top="$spacing16" data-testid={TestID.ActivityPopupCloseIcon}>
+          <TouchableArea onPress={onClose}>
+            <X color="$neutral2" size={16} />
+          </TouchableArea>
+        </Flex>
+      )}
+    </Flex>
+  )
+}
+export function RefundableSwapsPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
+  const navigate = useNavigate()
+  const shadowProps = useShadowPropsMedium()
+
+  const handleClick = (): void => {
+    navigate('/bridge-swaps')
+    onClose()
+  }
+
+  return (
+    <Flex
+      row
+      alignItems="center"
+      animation="300ms"
+      backgroundColor="$surface1"
+      borderColor="$surface3"
+      borderRadius="$rounded16"
+      borderWidth="$spacing1"
+      justifyContent="space-between"
+      left={0}
+      mx="auto"
+      {...shadowProps}
+      p="$spacing16"
+      position="relative"
+      width={POPUP_MAX_WIDTH}
+      opacity={1}
+      $sm={{
+        maxWidth: '100%',
+        mx: 'auto',
+      }}
+    >
+      <TouchableArea onPress={handleClick} flex={1}>
+        <Flex row alignItems="center" gap="$gap12" flex={1}>
+          <Flex>
+            <AlertTriangleFilledUI color="$DEP_accentWarning" size="$icon.28" />
+          </Flex>
+          <Flex gap="$gap4" flex={1}>
+            <Text variant="body2" color="$neutral1">
+              Swaps Available for Refund ({count})
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              These swaps have timed out and can be refunded to recover your funds.
+            </Text>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+    </Flex>
+  )
+}
+
+export function RefundsInProgressPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
+  const navigate = useNavigate()
+  const colors = useSporeColors()
+  const shadowProps = useShadowPropsMedium()
+
+  const handleClick = (): void => {
+    navigate('/bridge-swaps')
+    onClose()
+  }
+
+  return (
+    <Flex
+      row
+      alignItems="center"
+      animation="300ms"
+      backgroundColor="$surface1"
+      borderColor="$surface3"
+      borderRadius="$rounded16"
+      borderWidth="$spacing1"
+      justifyContent="space-between"
+      left={0}
+      mx="auto"
+      {...shadowProps}
+      p="$spacing16"
+      position="relative"
+      width={POPUP_MAX_WIDTH}
+      opacity={1}
+      $sm={{
+        maxWidth: '100%',
+        mx: 'auto',
+      }}
+    >
+      <TouchableArea onPress={handleClick} flex={1}>
+        <Flex row alignItems="center" gap="$gap12" flex={1}>
+          <Flex position="relative">
+            <AlertTriangleFilledUI color="$DEP_accentWarning" size="$icon.28" />
+            <Flex position="absolute" top={-4} right={-4}>
+              <LoaderV3 color={colors.accent1.variable} size="16px" />
+            </Flex>
+          </Flex>
+          <Flex gap="$gap4" flex={1}>
+            <Text variant="body2" color="$neutral1">
+              Refunds In Progress ({count})
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              Your refunds are being processed. Click to view details.
+            </Text>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+    </Flex>
+  )
+}
+
+export function RefundsCompletedPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
+  const navigate = useNavigate()
+  const shadowProps = useShadowPropsMedium()
+
+  const handleClick = (): void => {
+    navigate('/bridge-swaps')
+    onClose()
+  }
+
+  return (
+    <Flex
+      row
+      alignItems="center"
+      animation="300ms"
+      backgroundColor="$surface1"
+      borderColor="$surface3"
+      borderRadius="$rounded16"
+      borderWidth="$spacing1"
+      justifyContent="space-between"
+      left={0}
+      mx="auto"
+      {...shadowProps}
+      p="$spacing16"
+      position="relative"
+      width={POPUP_MAX_WIDTH}
+      opacity={1}
+      $sm={{
+        maxWidth: '100%',
+        mx: 'auto',
+      }}
+    >
+      <TouchableArea onPress={handleClick} flex={1}>
+        <Flex row alignItems="center" gap="$gap12" flex={1}>
+          <Flex>
+            <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
+          </Flex>
+          <Flex gap="$gap4" flex={1}>
+            <Text variant="body2" color="$neutral1">
+              Refunds Completed ({count})
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              Your refunds have been successfully processed. Click to view details.
+            </Text>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+    </Flex>
+  )
 }

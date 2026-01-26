@@ -15,6 +15,7 @@ import { InterfaceEventName, LiquidityEventName } from 'uniswap/src/features/tel
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import type { UniverseEventProperties } from 'uniswap/src/features/telemetry/types'
 import type { CollectFeesTransactionStep } from 'uniswap/src/features/transactions/liquidity/steps/collectFees'
+import type { CreatePoolTransactionStep } from 'uniswap/src/features/transactions/liquidity/steps/createPool'
 import type { DecreasePositionTransactionStep } from 'uniswap/src/features/transactions/liquidity/steps/decreasePosition'
 import { generateLPTransactionSteps } from 'uniswap/src/features/transactions/liquidity/steps/generateLPTransactionSteps'
 import type {
@@ -156,6 +157,45 @@ function* handlePositionTransactionStep(params: HandlePositionStepParams) {
   popupRegistry.addPopup({ type: PopupType.Transaction, hash }, hash)
 }
 
+interface HandleCreatePoolStepParams extends Omit<HandleOnChainStepParams, 'step' | 'info'> {
+  step: CreatePoolTransactionStep
+}
+
+/**
+ * Handles the CreatePool transaction step for Gateway new pool flow.
+ * This creates and initializes the svJUSD pool on the NonfungiblePositionManager
+ * before the Gateway.addLiquidity() call can succeed.
+ */
+function* handleCreatePoolStep(params: HandleCreatePoolStepParams) {
+  const { step, account, setCurrentStep } = params
+
+  const info: CreatePoolTransactionInfo = {
+    type: TransactionType.CreatePool,
+    // CreatePool doesn't have specific token info since it's just pool initialization
+    currency0Id: '',
+    currency1Id: '',
+    currency0AmountRaw: '0',
+    currency1AmountRaw: '0',
+  }
+
+  try {
+    const hash = yield* call(handleOnChainStep, {
+      account,
+      step,
+      setCurrentStep,
+      info,
+      shouldWaitForConfirmation: true, // Wait for pool creation to complete before Gateway tx
+    })
+
+    popupRegistry.addPopup({ type: PopupType.Transaction, hash }, hash)
+  } catch (e) {
+    logger.error(e, {
+      tags: { file: 'liquiditySaga', function: 'handleCreatePoolStep' },
+    })
+    throw e
+  }
+}
+
 function* modifyLiquidity(params: LiquidityParams & { steps: TransactionStep[] }) {
   const {
     account,
@@ -183,6 +223,11 @@ function* modifyLiquidity(params: LiquidityParams & { steps: TransactionStep[] }
         }
         case TransactionStepType.Permit2Transaction: {
           yield* call(handlePermitTransactionStep, { account, step, setCurrentStep })
+          break
+        }
+        case TransactionStepType.CreatePoolTransaction: {
+          // CreatePool step creates the svJUSD pool before adding liquidity via Gateway
+          yield* call(handleCreatePoolStep, { account, step, setCurrentStep })
           break
         }
         case TransactionStepType.IncreasePositionTransaction:

@@ -11,6 +11,7 @@ import bundlesize from 'vite-plugin-bundlesize'
 import commonjs from 'vite-plugin-commonjs'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import svgr from 'vite-plugin-svgr'
+import wasm from 'vite-plugin-wasm'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { cspMetaTagPlugin } from './vite/vite.plugins.js'
 
@@ -87,6 +88,7 @@ export default defineConfig(({ mode }) => {
         '@uniswap/uniswapx-sdk',
         '@uniswap/permit2-sdk',
         'jsbi',
+        'buffer',
         'ethers',
         'react',
         'react-dom',
@@ -157,8 +159,9 @@ export default defineConfig(({ mode }) => {
         globals: {
           process: true,
         },
-        include: ['path', 'buffer'],
+        include: ['path', 'buffer', 'crypto', 'stream'],
       }),
+      wasm(),
       commonjs({
         dynamic: {
           loose: false,
@@ -203,6 +206,7 @@ export default defineConfig(({ mode }) => {
         'expo-modules-core',
         'react-native-web',
         'react-native-gesture-handler',
+        'buffer',
         'tamagui',
         '@tamagui/web',
         'ui',
@@ -234,6 +238,7 @@ export default defineConfig(({ mode }) => {
     },
 
     build: {
+      target: 'es2022',
       outDir: 'build',
       sourcemap: isProduction ? false : 'hidden',
       minify: isProduction ? 'esbuild' : undefined,

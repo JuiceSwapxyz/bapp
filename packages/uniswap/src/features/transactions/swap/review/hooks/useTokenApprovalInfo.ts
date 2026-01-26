@@ -1,12 +1,13 @@
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useMemo } from 'react'
+import { ApprovalRequestWithRouting } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { useCheckApprovalQuery } from 'uniswap/src/data/apiClients/tradingApi/useCheckApprovalQuery'
-import { ApprovalRequest, Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
+import { Routing } from 'uniswap/src/data/tradingApi/__generated__/index'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { convertGasFeeToDisplayValue, useActiveGasStrategy } from 'uniswap/src/features/gas/hooks'
 import { GasFeeResult } from 'uniswap/src/features/gas/types'
 import { ApprovalAction, TokenApprovalInfo } from 'uniswap/src/features/transactions/swap/types/trade'
-import { isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { TradeRouting, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 import {
   getTokenAddressForApi,
   toTradingApiSupportedChainId,
@@ -21,7 +22,7 @@ export interface TokenApprovalInfoParams {
   wrapType: WrapType
   currencyInAmount: Maybe<CurrencyAmount<Currency>>
   currencyOutAmount?: Maybe<CurrencyAmount<Currency>>
-  routing: Routing | undefined
+  routing: TradeRouting | undefined
   account?: AccountDetails
 }
 
@@ -44,14 +45,14 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
 
   const tokenInAddress = getTokenAddressForApi(currencyIn)
 
-  // Only used for bridging
-  const isBridge = routing === Routing.BRIDGE
+  // Only used for bridging (includes ERC20 chain swaps via Boltz)
+  const isBridge = routing === Routing.BRIDGE || routing === Routing.ERC20_CHAIN_SWAP
   const currencyOut = currencyOutAmount?.currency
   const tokenOutAddress = getTokenAddressForApi(currencyOut)
 
   const gasStrategy = useActiveGasStrategy(chainId, 'general')
 
-  const approvalRequestArgs: ApprovalRequest | undefined = useMemo(() => {
+  const approvalRequestArgs: ApprovalRequestWithRouting | undefined = useMemo(() => {
     const tokenInChainId = toTradingApiSupportedChainId(chainId)
     const tokenOutChainId = toTradingApiSupportedChainId(currencyOut?.chainId)
 
@@ -71,6 +72,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
       tokenOut: tokenOutAddress,
       tokenOutChainId,
       gasStrategies: [gasStrategy],
+      routing, // Pass routing to determine correct spender (Gateway vs SwapRouter02)
     }
   }, [
     gasStrategy,
@@ -82,6 +84,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
     isBridge,
     tokenInAddress,
     tokenOutAddress,
+    routing,
   ])
 
   const shouldSkip = !approvalRequestArgs || isWrap || !address
@@ -141,6 +144,13 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
         }
       }
     }
+    if (isBridge) {
+      return {
+        action: ApprovalAction.None,
+        txRequest: null,
+        cancelTxRequest: null,
+      }
+    }
 
     // No valid approval type found
     return {
@@ -148,7 +158,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
       txRequest: null,
       cancelTxRequest: null,
     }
-  }, [address, approvalRequestArgs, data, error, isWrap])
+  }, [address, approvalRequestArgs, data, error, isWrap, isBridge])
 
   const result = useMemo(() => {
     const gasEstimate = data?.gasEstimates?.[0]

@@ -5,6 +5,7 @@ import { getNativeAddress } from 'uniswap/src/constants/addresses'
 import type { TradeableAsset } from 'uniswap/src/entities/assets'
 import { AssetType } from 'uniswap/src/entities/assets'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 import type { SwapFormState } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/types'
 import { CurrencyField } from 'uniswap/src/types/currency'
 
@@ -15,18 +16,10 @@ const getDefaultInputCurrency = (chainId: UniverseChainId): TradeableAsset => ({
 })
 
 const getDefaultOutputCurrency = (chainId: UniverseChainId): TradeableAsset | undefined => {
-  // For Citrea Testnet, default output to cUSD
-  if (chainId === UniverseChainId.CitreaTestnet) {
+  const jusdAddress = JUSD_ADDRESSES[chainId]
+  if (jusdAddress) {
     return {
-      address: '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0', // cUSD on Citrea Testnet
-      chainId,
-      type: AssetType.Currency,
-    }
-  }
-  // For Sepolia, default output to cUSD
-  if (chainId === UniverseChainId.Sepolia) {
-    return {
-      address: '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0', // cUSD on Sepolia
+      address: jusdAddress,
       chainId,
       type: AssetType.Currency,
     }

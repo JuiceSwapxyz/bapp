@@ -11,7 +11,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 const API_BASE_URL =
   process.env.REACT_APP_TRADING_API_URL_OVERRIDE ||
   process.env.REACT_APP_UNISWAP_GATEWAY_DNS ||
-  'https://api.juiceswap.xyz'
+  'https://api.juiceswap.com'
 
 // First Squeezer NFT Contract ABI (minimal - only claim function)
 const FIRST_SQUEEZER_NFT_ABI = [

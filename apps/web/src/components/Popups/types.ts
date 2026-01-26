@@ -11,6 +11,11 @@ export enum PopupType {
   Mismatch = 'mismatch',
   FORTransaction = 'forTransaction',
   CampaignTaskCompleted = 'campaignTaskCompleted',
+  LightningBridge = 'lightningBridge',
+  BitcoinBridge = 'bitcoinBridge',
+  RefundableSwaps = 'refundableSwaps',
+  RefundsInProgress = 'refundsInProgress',
+  RefundsCompleted = 'refundsCompleted',
 }
 
 export enum SwitchNetworkAction {
@@ -21,6 +26,22 @@ export enum SwitchNetworkAction {
   Limit = 'limit',
   LP = 'lp',
   PoolFinder = 'poolFinder',
+}
+
+export enum LightningBridgeDirection {
+  Submarine = 'submarine',
+  Reverse = 'reverse',
+}
+
+export enum BitcoinBridgeDirection {
+  BitcoinToCitrea = 'bitcoin-to-citrea',
+  CitreaToBitcoin = 'citrea-to-bitcoin',
+}
+
+export enum LdsBridgeStatus {
+  Pending = 'pending',
+  Confirmed = 'confirmed',
+  Failed = 'failed',
 }
 
 export type PopupContent =
@@ -58,4 +79,28 @@ export type PopupContent =
       type: PopupType.CampaignTaskCompleted
       taskName: string
       progress: number
+    }
+  | {
+      type: PopupType.LightningBridge
+      id: string
+      direction: LightningBridgeDirection
+      status: LdsBridgeStatus
+    }
+  | {
+      type: PopupType.BitcoinBridge
+      id: string
+      status: LdsBridgeStatus
+      direction: BitcoinBridgeDirection
+    }
+  | {
+      type: PopupType.RefundableSwaps
+      count: number
+    }
+  | {
+      type: PopupType.RefundsInProgress
+      count: number
+    }
+  | {
+      type: PopupType.RefundsCompleted
+      count: number
     }

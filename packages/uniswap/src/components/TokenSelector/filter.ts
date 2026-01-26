@@ -1,6 +1,7 @@
 import Fuse from 'fuse.js'
 import { TokenOption } from 'uniswap/src/components/lists/items/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { isSvJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 
 const searchOptions: Fuse.IFuseOptions<TokenOption> = {
   includeMatches: true,
@@ -57,6 +58,28 @@ const getNameSearchPattern = (
     : null
 
 /**
+ * Filter out svJUSD tokens from the list.
+ * Users should see JUSD, not svJUSD (the internal yield-bearing token).
+ */
+function filterOutSvJusd(tokenOptions: TokenOption[]): TokenOption[] {
+  return tokenOptions.filter((option) => {
+    const currency = option.currencyInfo.currency
+    if (currency.isNative) {
+      return true
+    }
+    if (!('address' in currency)) {
+      return true
+    }
+
+    const chainId = currency.chainId as UniverseChainId
+    const address = currency.address as string
+
+    // Hide svJUSD from token selector
+    return !isSvJusdAddress(chainId, address)
+  })
+}
+
+/**
  * Returns a flat list of `TokenOption`s filtered by chainFilter and searchFilter
  * @param tokenOptions list of `TokenOption`s to filter
  * @param chainFilter chain id to keep
@@ -74,8 +97,12 @@ export function filter({
   if (!tokenOptions || !tokenOptions.length) {
     return []
   }
+
+  // Always filter out svJUSD - users should see JUSD instead
+  const filteredTokens = filterOutSvJusd(tokenOptions)
+
   if (!chainFilter && !searchFilter) {
-    return tokenOptions
+    return filteredTokens
   }
 
   const andPatterns: Fuse.Expression[] = []
@@ -114,7 +141,7 @@ export function filter({
     ],
   }
 
-  const fuse = new Fuse(tokenOptions, searchOptions)
+  const fuse = new Fuse(filteredTokens, searchOptions)
 
   const r = fuse.search(searchPattern)
   return r.map((result) => result.item)

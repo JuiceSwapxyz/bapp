@@ -1,5 +1,6 @@
 import { Routing } from 'uniswap/src/data/tradingApi/__generated__'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { TradeRouting } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { isMobileApp } from 'utilities/src/platform'
 import { ONE_SECOND_MS } from 'utilities/src/time/time'
 
@@ -15,4 +16,4 @@ export const CHAIN_TO_UNIVERSAL_ROUTER_ADDRESS: Partial<Record<UniverseChainId, 
   ],
 }
 
-export const FLASHBLOCKS_UI_SKIP_ROUTES: Routing[] = [Routing.WRAP, Routing.UNWRAP, Routing.BRIDGE]
+export const FLASHBLOCKS_UI_SKIP_ROUTES: TradeRouting[] = [Routing.WRAP, Routing.UNWRAP, Routing.BRIDGE]

@@ -47,6 +47,7 @@ const swapState: DerivedSwapInfo = {
   },
   outputAmountUserWillReceive: undefined,
   exactCurrencyField: CurrencyField.INPUT,
+  limits: null,
   trade: {
     isLoading: false,
     error: null,
@@ -77,6 +78,7 @@ const insufficientBalanceState: DerivedSwapInfo = {
   },
   outputAmountUserWillReceive: CurrencyAmount.fromRawAmount(DAI, '200000'),
   exactCurrencyField: CurrencyField.INPUT,
+  limits: null,
   trade: {
     isLoading: false,
     error: null,
@@ -100,6 +102,7 @@ const blockedTokenState: DerivedSwapInfo = {
 
 const tradeErrorState: DerivedSwapInfo = {
   ...emptySwapInfo,
+  limits: null,
   currencyAmounts: {
     [CurrencyField.INPUT]: CurrencyAmount.fromRawAmount(DAI, '1000'),
     [CurrencyField.OUTPUT]: null,

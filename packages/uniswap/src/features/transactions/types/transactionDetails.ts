@@ -288,6 +288,12 @@ export enum TransactionType {
   LPIncentivesClaimRewards = 'lp-incentives-claim-rewards',
   UniswapXOrder = 'uniswapx-order',
 
+  // Launchpad
+  LaunchpadCreateToken = 'launchpad-create-token',
+  LaunchpadBuy = 'launchpad-buy',
+  LaunchpadSell = 'launchpad-sell',
+  LaunchpadGraduate = 'launchpad-graduate',
+
   // Smart Wallet
   RemoveDelegation = 'remove-delegation',
 }
@@ -538,6 +544,30 @@ export interface MigrateV2LiquidityToV3TransactionInfo extends BaseTransactionIn
   isFork: boolean
 }
 
+export interface LaunchpadCreateTokenTransactionInfo extends BaseTransactionInfo {
+  type: TransactionType.LaunchpadCreateToken
+  tokenAddress?: string
+  dappInfo?: DappInfoTransactionDetails
+}
+
+export interface LaunchpadBuyTransactionInfo extends BaseTransactionInfo {
+  type: TransactionType.LaunchpadBuy
+  tokenAddress?: string
+  dappInfo?: DappInfoTransactionDetails
+}
+
+export interface LaunchpadSellTransactionInfo extends BaseTransactionInfo {
+  type: TransactionType.LaunchpadSell
+  tokenAddress?: string
+  dappInfo?: DappInfoTransactionDetails
+}
+
+export interface LaunchpadGraduateTransactionInfo extends BaseTransactionInfo {
+  type: TransactionType.LaunchpadGraduate
+  tokenAddress?: string
+  dappInfo?: DappInfoTransactionDetails
+}
+
 export type TransactionTypeInfo =
   | ApproveTransactionInfo
   | Permit2ApproveTransactionInfo
@@ -569,6 +599,10 @@ export type TransactionTypeInfo =
   | MigrateV2LiquidityToV3TransactionInfo
   | MigrateV3LiquidityToV4TransactionInfo
   | LpIncentivesClaimTransactionInfo
+  | LaunchpadCreateTokenTransactionInfo
+  | LaunchpadBuyTransactionInfo
+  | LaunchpadSellTransactionInfo
+  | LaunchpadGraduateTransactionInfo
 
 export enum TransactionDetailsType {
   Transaction = 'TransactionDetails',

@@ -51,3 +51,100 @@ export type CustomSwapDataForRequest = {
   type?: string
   slippageTolerance?: string
 }
+
+export enum LightningBridgeDirection {
+  Submarine = 'submarine',
+  Reverse = 'reverse',
+}
+
+export enum BitcoinBridgeDirection {
+  BitcoinToCitrea = 'bitcoin-to-citrea',
+  CitreaToBitcoin = 'citrea-to-bitcoin',
+}
+
+export enum Erc20ChainSwapDirection {
+  PolygonToCitrea = 'PolygonToCitrea',
+  CitreaToPolygon = 'CitreaToPolygon',
+  EthereumToCitrea = 'EthereumToCitrea',
+  CitreaToEthereum = 'CitreaToEthereum',
+}
+
+export interface LightningInvoice {
+  requestId: string
+  invoice: {
+    paymentRequest: string
+    paymentHash: string
+    satoshi: number
+    timestamp: number
+    expiry: number
+    createdDate: string
+    expiryDate: string
+  }
+}
+
+export interface PoolDetailsRequestBody {
+  address: string
+  chain: string
+}
+
+interface TokenInfo {
+  id: string
+  address: string
+  chain: string
+  decimals: number
+  name: string
+  standard: string
+  symbol: string
+  isBridged: null | unknown
+  bridgedWithdrawalInfo: null | unknown
+  project: {
+    id: string
+    isSpam: boolean
+    logoUrl: string | null
+    name: string
+    safetyLevel: string
+    markets: unknown[]
+    logo: {
+      id: string
+      url: string
+    } | null
+  }
+  feeData: null | unknown
+  protectionInfo: null | unknown
+  market: {
+    id: string
+    price: {
+      id: string
+      value: number
+    }
+  }
+}
+
+export interface PoolDetailsResponse {
+  data: {
+    v3Pool: {
+      id: string
+      protocolVersion: string
+      address: string
+      feeTier: number
+      token0: TokenInfo
+      token0Supply: number
+      token1: TokenInfo
+      token1Supply: number
+      txCount: number
+      volume24h: {
+        value: number
+      }
+      historicalVolume: Array<{
+        value: number
+        timestamp: number
+      }>
+      totalLiquidity: {
+        value: number
+      }
+      totalLiquidityPercentChange24h: {
+        value: number
+      }
+    }
+  }
+}

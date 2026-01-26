@@ -1,9 +1,11 @@
+/* eslint-disable max-lines */
 import type { providers } from 'ethers/lib/ethers'
 import { useMemo } from 'react'
 import type {
   BridgeQuoteResponse,
   ClassicQuoteResponse,
   DiscriminatedQuoteResponse,
+  GatewayJusdQuoteResponse,
   WrapQuoteResponse,
 } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { getTradeSettingsDeadline } from 'uniswap/src/data/apiClients/tradingApi/utils/getTradeSettingsDeadline'
@@ -28,15 +30,19 @@ import type { SwapData } from 'uniswap/src/features/transactions/swap/review/ser
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import {
   BaseSwapTxAndGasInfo,
+  BitcoinBridgeSwapTxAndGasInfo,
   BridgeSwapTxAndGasInfo,
   ClassicSwapTxAndGasInfo,
+  LightningBridgeSwapTxAndGasInfo,
   PermitMethod,
   SwapGasFeeEstimation,
   WrapSwapTxAndGasInfo,
 } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import type {
+  BitcoinBridgeTrade,
   BridgeTrade,
   ClassicTrade,
+  LightningBridgeTrade,
   TokenApprovalInfo,
   UnwrapTrade,
   WrapTrade,
@@ -317,8 +323,14 @@ export function createGasFields({
 }): Pick<BaseSwapTxAndGasInfo, 'gasFee' | 'gasFeeEstimation'> {
   const { approvalGasFeeResult, revokeGasFeeResult } = approvalTxInfo
   // Gas fees for: swap from quote response directly, wrap from Gas Fee API, approvals from checkApprovalQuery
+  // For bridge swaps, if swap gas fee is undefined, use '0' as fallback since mergeGasFeeResults requires all values to be defined
+  const swapGasFeeResult =
+    swapTxInfo.gasFeeResult.value === undefined && !swapTxInfo.gasFeeResult.error
+      ? { ...swapTxInfo.gasFeeResult, value: '0', displayValue: '0' }
+      : swapTxInfo.gasFeeResult
+
   const gasFee = mergeGasFeeResults(
-    swapTxInfo.gasFeeResult,
+    swapGasFeeResult,
     approvalGasFeeResult,
     revokeGasFeeResult,
     permitTxInfo.gasFeeResult,
@@ -401,7 +413,11 @@ const EMPTY_PERMIT_TX_INFO: PermitTxInfo = {
   },
 }
 
-export function usePermitTxInfo({ quote }: { quote?: DiscriminatedQuoteResponse }): PermitTxInfo {
+export function usePermitTxInfo({
+  quote,
+}: {
+  quote?: DiscriminatedQuoteResponse | GatewayJusdQuoteResponse
+}): PermitTxInfo {
   const classicQuote = quote && isClassic(quote) ? quote : undefined
   const gasStrategy = useActiveGasStrategy(classicQuote?.quote.chainId, 'swap')
 
@@ -453,6 +469,54 @@ export function getBridgeSwapTxAndGasInfo({
     ...createApprovalFields({ approvalTxInfo }),
     txRequests,
     includesDelegation: swapTxInfo.includesDelegation,
+  }
+}
+
+export function getBitcoinBridgeSwapTxAndGasInfo({
+  trade,
+  swapTxInfo,
+  approvalTxInfo,
+  destinationAddress,
+}: {
+  trade: BitcoinBridgeTrade
+  swapTxInfo: TransactionRequestInfo
+  approvalTxInfo: ApprovalTxInfo
+  destinationAddress?: string
+}): BitcoinBridgeSwapTxAndGasInfo {
+  const txRequests = validateTransactionRequests(swapTxInfo.txRequests)
+
+  return {
+    routing: trade.routing,
+    trade,
+    ...createGasFields({ swapTxInfo, approvalTxInfo }),
+    ...createApprovalFields({ approvalTxInfo }),
+    txRequests,
+    includesDelegation: swapTxInfo.includesDelegation,
+    destinationAddress,
+  }
+}
+
+export function getLightningBridgeSwapTxAndGasInfo({
+  trade,
+  swapTxInfo,
+  approvalTxInfo,
+  destinationAddress,
+}: {
+  trade: LightningBridgeTrade
+  swapTxInfo: TransactionRequestInfo
+  approvalTxInfo: ApprovalTxInfo
+  destinationAddress?: string
+}): LightningBridgeSwapTxAndGasInfo {
+  const txRequests = validateTransactionRequests(swapTxInfo.txRequests)
+
+  return {
+    routing: trade.routing,
+    trade,
+    ...createGasFields({ swapTxInfo, approvalTxInfo }),
+    ...createApprovalFields({ approvalTxInfo }),
+    txRequests,
+    includesDelegation: swapTxInfo.includesDelegation,
+    destinationAddress,
   }
 }
 

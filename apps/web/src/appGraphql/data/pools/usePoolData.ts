@@ -2,11 +2,11 @@ import { FeeData } from 'components/Liquidity/Create/types'
 import ms from 'ms'
 import { useMemo } from 'react'
 import { DEFAULT_TICK_SPACING, V2_DEFAULT_FEE_TIER } from 'uniswap/src/constants/pools'
+import { useV3PoolDetails } from 'uniswap/src/data/apiClients/tradingApi/useV3PoolDetails'
 import {
   ProtocolVersion,
   Token,
   useV2PairQuery,
-  useV3PoolQuery,
   useV4PoolQuery,
 } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -99,22 +99,16 @@ export function usePoolData(
   } = useV4PoolQuery({
     variables: { chain, poolId: poolIdOrAddress },
     errorPolicy: 'all',
+    skip: true,
   })
-  const {
-    loading: loadingV3,
-    error: errorV3,
-    data: dataV3,
-  } = useV3PoolQuery({
-    variables: { chain, address: poolIdOrAddress },
-    errorPolicy: 'all',
-  })
+  const { data: dataV3, isLoading: loadingV3, error: errorV3 } = useV3PoolDetails({ address: poolIdOrAddress, chainId })
   const {
     loading: loadingV2,
     error: errorV2,
     data: dataV2,
   } = useV2PairQuery({
     variables: { chain, address: poolIdOrAddress },
-    skip: !chainId,
+    skip: true,
     errorPolicy: 'all',
   })
 
@@ -122,26 +116,30 @@ export function usePoolData(
     const anyError = Boolean(errorV4 || errorV3 || errorV2)
     const anyLoading = Boolean(loadingV4 || loadingV3 || loadingV2)
 
-    const pool = dataV4?.v4Pool ?? dataV3?.v3Pool ?? dataV2?.v2Pair ?? undefined
+    const pool = dataV4?.v4Pool ?? dataV3?.data.v3Pool ?? dataV2?.v2Pair ?? undefined
     const feeTier: FeeData = {
-      feeAmount: dataV4?.v4Pool?.feeTier ?? dataV3?.v3Pool?.feeTier ?? V2_DEFAULT_FEE_TIER,
+      feeAmount: dataV4?.v4Pool?.feeTier ?? dataV3?.data.v3Pool.feeTier ?? V2_DEFAULT_FEE_TIER,
       tickSpacing: DEFAULT_TICK_SPACING,
       isDynamic: dataV4?.v4Pool?.isDynamicFee ?? false,
     }
-    const poolId = dataV4?.v4Pool?.poolId ?? dataV3?.v3Pool?.address ?? dataV2?.v2Pair?.address ?? poolIdOrAddress
+    const poolId = dataV4?.v4Pool?.poolId ?? dataV3?.data.v3Pool.address ?? dataV2?.v2Pair?.address ?? poolIdOrAddress
 
     return {
       data: pool
         ? {
             idOrAddress: poolId,
             txCount: pool.txCount,
-            protocolVersion: pool.protocolVersion,
+            protocolVersion: pool.protocolVersion as ProtocolVersion,
             token0: pool.token0 as Token,
             tvlToken0: pool.token0Supply,
-            token0Price: pool.token0?.project?.markets?.[0]?.price?.value ?? pool.token0?.market?.price?.value,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            token0Price:
+              (pool.token0 as any)?.project?.markets?.[0]?.price?.value ?? (pool.token0 as any)?.market?.price?.value,
             token1: pool.token1 as Token,
             tvlToken1: pool.token1Supply,
-            token1Price: pool.token1?.project?.markets?.[0]?.price?.value ?? pool.token1?.market?.price?.value,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            token1Price:
+              (pool.token1 as any)?.project?.markets?.[0]?.price?.value ?? (pool.token1 as any)?.market?.price?.value,
             feeTier,
             volumeUSD24H: pool.volume24h?.value,
             volumeUSD24HChange: calc24HVolChange(pool.historicalVolume?.concat()),
@@ -156,7 +154,7 @@ export function usePoolData(
     }
   }, [
     dataV2?.v2Pair,
-    dataV3?.v3Pool,
+    dataV3?.data.v3Pool,
     dataV4?.v4Pool,
     errorV2,
     errorV3,

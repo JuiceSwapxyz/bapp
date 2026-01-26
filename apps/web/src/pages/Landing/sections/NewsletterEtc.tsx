@@ -182,14 +182,19 @@ function FAQList() {
 
   const faqs = [
     {
-      id: 'faq-juice-token',
-      question: t('faq.juiceToken.question'),
-      answer: t('faq.juiceToken.answer'),
+      id: 'faq-what-is-juice',
+      question: t('faq.whatIsJuice.question'),
+      answer: t('faq.whatIsJuice.answer'),
     },
     {
-      id: 'faq-new-questions',
-      question: t('faq.newQuestions.question'),
-      answer: t('faq.newQuestions.answer'),
+      id: 'faq-supported-chains',
+      question: t('faq.supportedChains.question'),
+      answer: t('faq.supportedChains.answer'),
+    },
+    {
+      id: 'faq-fees',
+      question: t('faq.fees.question'),
+      answer: t('faq.fees.answer'),
     },
   ]
 

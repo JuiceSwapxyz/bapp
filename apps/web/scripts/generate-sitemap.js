@@ -33,7 +33,11 @@ const chains = [
   'WORLDCHAIN',
   'ZKSYNC',
   'ZORA',
+  'CITREA_TESTNET',
 ]
+
+const JUICESWAP_APP_URL = 'https://bapp.juiceswap.com'
+const JUICESWAP_API_URL = 'https://api.juiceswap.com'
 
 fs.readFile('./public/tokens-sitemap.xml', 'utf8', async (_err, data) => {
   const tokenURLs = {}
@@ -49,34 +53,37 @@ fs.readFile('./public/tokens-sitemap.xml', 'utf8', async (_err, data) => {
       })
     }
 
-    const tokensResponse = await fetch(
-      'https://interface.gateway.uniswap.org/v2/uniswap.explore.v1.ExploreStatsService/TokenRankings?connect=v1&encoding=json&message=' +
-        encodeURIComponent(JSON.stringify({ chainId: 'ALL_NETWORKS' })),
-      {
-        method: 'GET',
-        headers: {
-          accept: '*/*',
-          origin: 'https://app.uniswap.org',
-          'content-type': 'application/json',
-        },
+    const tokensResponse = await fetch(`${JUICESWAP_API_URL}/v1/graphql`, {
+      method: 'POST',
+      headers: {
+        accept: '*/*',
+        origin: JUICESWAP_APP_URL,
+        'content-type': 'application/json',
       },
-    )
+      body: JSON.stringify({
+        query: `query { tokens(first: 50) { id address symbol } }`,
+      }),
+    }).catch(() => null)
 
-    const tokensJSON = await tokensResponse.json()
-    const tokenAddresses = tokensJSON.tokenRankings.TRENDING.tokens.map((token) => {
-      return { chainName: token.chain.toLowerCase(), address: token.address ? token.address.toLowerCase() : 'NATIVE' }
-    })
+    if (tokensResponse && tokensResponse.ok) {
+      const tokensJSON = await tokensResponse.json()
+      const tokens = tokensJSON?.data?.tokens || []
 
-    tokenAddresses.forEach(({ chainName, address }) => {
-      const tokenURL = `https://app.uniswap.org/explore/tokens/${chainName}/${address}`
-      if (!(tokenURL in tokenURLs)) {
-        sitemap.urlset.url.push({
-          loc: [tokenURL],
-          lastmod: [nowISO],
-          priority: [0.8],
-        })
-      }
-    })
+      tokens.forEach((token) => {
+        const chainName = (token.chain || 'citrea_testnet').toLowerCase()
+        const address = token.address ? token.address.toLowerCase() : 'NATIVE'
+        const tokenURL = `${JUICESWAP_APP_URL}/explore/tokens/${chainName}/${address}`
+        if (!(tokenURL in tokenURLs)) {
+          sitemap.urlset.url.push({
+            loc: [tokenURL],
+            lastmod: [nowISO],
+            priority: [0.8],
+          })
+        }
+      })
+    } else {
+      console.log('Token rankings API not available, skipping token sitemap updates')
+    }
 
     const builder = new Builder()
     const xml = builder.buildObject(sitemap)
@@ -113,30 +120,36 @@ fs.readFile('./public/pools-sitemap.xml', 'utf8', async (_err, data) => {
       })
     }
 
+    // JuiceSwap pools - using Ponder API
     for (const chainName of chains) {
-      const poolsResponse = await fetch('https://api.uniswap.org/v1/graphql', {
+      const poolsResponse = await fetch(`${JUICESWAP_API_URL}/v1/graphql`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Origin: 'https://app.uniswap.org',
+          Origin: JUICESWAP_APP_URL,
         },
         body: JSON.stringify({ query: getTopPoolsQuery(chainName) }),
-      })
-      const poolsJSON = await poolsResponse.json()
-      const v3PoolAddresses = poolsJSON.data.topV3Pools?.map((pool) => pool.address.toLowerCase()) ?? []
-      const v2PoolAddresses = poolsJSON.data.topV2Pairs?.map((pool) => pool.address.toLowerCase()) ?? []
-      const poolAddresses = v3PoolAddresses.concat(v2PoolAddresses)
+      }).catch(() => null)
 
-      poolAddresses.forEach((address) => {
-        const poolUrl = `https://app.uniswap.org/explore/pools/${chainName.toLowerCase()}/${address}`
-        if (!(poolUrl in poolURLs)) {
-          sitemap.urlset.url.push({
-            loc: [poolUrl],
-            lastmod: [nowISO],
-            priority: [0.8],
-          })
-        }
-      })
+      if (poolsResponse && poolsResponse.ok) {
+        const poolsJSON = await poolsResponse.json()
+        const v3PoolAddresses = poolsJSON.data?.topV3Pools?.map((pool) => pool.address.toLowerCase()) ?? []
+        const v2PoolAddresses = poolsJSON.data?.topV2Pairs?.map((pool) => pool.address.toLowerCase()) ?? []
+        const poolAddresses = v3PoolAddresses.concat(v2PoolAddresses)
+
+        poolAddresses.forEach((address) => {
+          const poolUrl = `${JUICESWAP_APP_URL}/explore/pools/${chainName.toLowerCase()}/${address}`
+          if (!(poolUrl in poolURLs)) {
+            sitemap.urlset.url.push({
+              loc: [poolUrl],
+              lastmod: [nowISO],
+              priority: [0.8],
+            })
+          }
+        })
+      } else {
+        console.log(`Pools API not available for ${chainName}, skipping`)
+      }
     }
 
     const builder = new Builder()

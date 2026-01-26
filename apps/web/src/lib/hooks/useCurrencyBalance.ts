@@ -125,7 +125,7 @@ function useGqlCurrencyBalances(
   account?: string,
   currencies?: (Currency | undefined)[],
 ): (CurrencyAmount<Currency> | undefined)[] {
-  const { balanceMap } = useTokenBalances({ cacheOnly: true })
+  const { balanceMap } = useTokenBalances()
 
   return useMemo(() => {
     if (!account || !currencies) {

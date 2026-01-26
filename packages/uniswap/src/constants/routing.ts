@@ -49,8 +49,38 @@ import { CITREA_TESTNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo, TokenList } from 'uniswap/src/features/dataApi/types'
 import { buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
+import { getJusdAddress, isJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { isNativeCurrencyAddress } from 'uniswap/src/utils/currencyId'
 import { isSameAddress } from 'utilities/src/addresses'
+
+// JUSD token for Citrea Testnet - used in COMMON_BASES
+const JUSD_CITREA_ADDRESS = getJusdAddress(UniverseChainId.CitreaTestnet)
+const JUSD_CITREA = JUSD_CITREA_ADDRESS
+  ? new Token(UniverseChainId.CitreaTestnet, JUSD_CITREA_ADDRESS, 18, 'JUSD', 'Juice Dollar')
+  : undefined
+
+// L0 bridged tokens on Citrea (from Ethereum via LayerZero)
+const WBTC_E_CITREA = new Token(
+  UniverseChainId.CitreaTestnet,
+  '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d',
+  8,
+  'WBTC.e',
+  'Wrapped BTC (LayerZero)',
+)
+const USDC_E_CITREA = new Token(
+  UniverseChainId.CitreaTestnet,
+  '0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839',
+  6,
+  'USDC.e',
+  'USD Coin (LayerZero)',
+)
+const USDT_E_CITREA = new Token(
+  UniverseChainId.CitreaTestnet,
+  '0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4',
+  6,
+  'USDT.e',
+  'Tether USD (LayerZero)',
+)
 
 type ChainCurrencyList = {
   readonly [chainId: number]: CurrencyInfo[]
@@ -166,6 +196,21 @@ export const COMMON_BASES: ChainCurrencyList = {
     nativeOnChain(UniverseChainId.CitreaTestnet),
     WRAPPED_NATIVE_CURRENCY[UniverseChainId.CitreaTestnet] as Token,
     CITREA_TESTNET_CHAIN_INFO.tokens.USDC,
+    ...(JUSD_CITREA ? [JUSD_CITREA] : []),
+    // L0 bridged tokens
+    WBTC_E_CITREA,
+    USDC_E_CITREA,
+    USDT_E_CITREA,
+  ].map(buildPartialCurrencyInfo),
+
+  [UniverseChainId.Bitcoin]: [
+    nativeOnChain(UniverseChainId.Bitcoin),
+    WRAPPED_NATIVE_CURRENCY[UniverseChainId.Bitcoin] as Token,
+  ].map(buildPartialCurrencyInfo),
+
+  [UniverseChainId.LightningNetwork]: [
+    nativeOnChain(UniverseChainId.LightningNetwork),
+    WRAPPED_NATIVE_CURRENCY[UniverseChainId.LightningNetwork] as Token,
   ].map(buildPartialCurrencyInfo),
 }
 
@@ -198,6 +243,24 @@ function getTokenLogoURI(chainId: UniverseChainId, address: string): ImageSource
   }
   if (chainId === UniverseChainId.Celo && isSameAddress(address, PORTAL_ETH_CELO.address)) {
     return ETH_LOGO as ImageSourcePropType
+  }
+
+  // JuiceSwap tokens - use custom logo URLs
+  if (isJusdAddress(chainId, address)) {
+    return 'https://docs.juiceswap.com/media/icons/jusd.png'
+  }
+
+  // L0 bridged tokens on Citrea - use CoinGecko logos
+  if (chainId === UniverseChainId.CitreaTestnet) {
+    if (isSameAddress(address, WBTC_E_CITREA.address)) {
+      return 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png'
+    }
+    if (isSameAddress(address, USDC_E_CITREA.address)) {
+      return 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png'
+    }
+    if (isSameAddress(address, USDT_E_CITREA.address)) {
+      return 'https://assets.coingecko.com/coins/images/325/large/Tether.png'
+    }
   }
 
   return networkName

@@ -4,13 +4,14 @@ require('@uniswap/eslint-config/load')
 module.exports = {
   root: true,
   extends: ['@uniswap/eslint-config/interface', 'plugin:storybook/recommended'],
+  ignorePatterns: ['e2e/**'],
   parserOptions: {
     project: 'tsconfig.eslint.json',
     tsconfigRootDir: __dirname,
     ecmaFeatures: {
       jsx: true,
     },
-    EXPERIMENTAL_useProjectService: true,
+    EXPERIMENTAL_useProjectService: false,
   },
   rules: {
     // let prettier do things:

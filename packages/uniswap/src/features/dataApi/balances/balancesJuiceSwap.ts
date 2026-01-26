@@ -101,6 +101,23 @@ async function fetchJuiceSwapPortfolio(
   return balancesById
 }
 
+const PORTFOLIO_CHAIN_IDS = [UniverseChainId.CitreaTestnet, UniverseChainId.Polygon]
+
+async function fetchMultiChainPortfolio(
+  address: string,
+  chainIds: UniverseChainId[],
+): Promise<Record<CurrencyId, PortfolioBalance>> {
+  const results = await Promise.allSettled(chainIds.map((chainId) => fetchJuiceSwapPortfolio(address, chainId)))
+
+  const merged: Record<CurrencyId, PortfolioBalance> = {}
+  results.forEach((result) => {
+    if (result.status === 'fulfilled') {
+      Object.assign(merged, result.value)
+    }
+  })
+  return merged
+}
+
 export function useJuiceSwapPortfolioData({
   address,
   pollInterval,
@@ -112,28 +129,25 @@ export function useJuiceSwapPortfolioData({
   onCompleted?: () => void
   skip?: boolean
 }): PortfolioDataResult {
-  // Default to Citrea Testnet
-  const chainId = UniverseChainId.CitreaTestnet
-
   const {
     data,
     isLoading,
     error,
     refetch: queryRefetch,
   } = useQuery<Record<CurrencyId, PortfolioBalance>, Error>({
-    queryKey: ['juiceswap-portfolio', address, chainId],
+    queryKey: ['juiceswap-portfolio', address, PORTFOLIO_CHAIN_IDS],
     queryFn: () => {
       if (!address) {
         return Promise.resolve({})
       }
-      return fetchJuiceSwapPortfolio(address, chainId)
+      return fetchMultiChainPortfolio(address, PORTFOLIO_CHAIN_IDS)
     },
     enabled: Boolean(address) && !skip,
     refetchInterval: pollInterval,
-    staleTime: 30_000, // Consider data fresh for 30 seconds
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes (renamed from cacheTime)
-    retry: 3, // Retry failed requests up to 3 times
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff: 1s, 2s, 4s, max 30s
+    staleTime: 30_000,
+    gcTime: 5 * 60 * 1000,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 
   // Call onCompleted when data is available

@@ -1,15 +1,15 @@
 import { Routing, CreateSwapRequest } from "uniswap/src/data/tradingApi/__generated__/index"
 import { GasEstimate } from "uniswap/src/data/tradingApi/types"
 import { GasFeeResult, ValidatedGasFeeResult, validateGasFeeResult } from "uniswap/src/features/gas/types"
-import { BridgeTrade, ClassicTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
-import { isBridge, isClassic, isUniswapX, isWrap } from "uniswap/src/features/transactions/swap/utils/routing"
+import { BridgeTrade, BitcoinBridgeTrade, LightningBridgeTrade, ClassicTrade, GatewayJusdTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
+import { isBridge, isBitcoinBridge, isErc20ChainSwap, isLightningBridge, isClassic, isGatewayJusd, isUniswapX, isWrap, GatewayJusdRouting } from "uniswap/src/features/transactions/swap/utils/routing"
 import { isInterface } from "utilities/src/platform"
 import { Prettify } from "viem"
 import { ValidatedPermit } from "uniswap/src/features/transactions/swap/utils/trade"
 import { PopulatedTransactionRequestArray, ValidatedTransactionRequest } from "uniswap/src/features/transactions/types/transactionRequests"
 
-export type SwapTxAndGasInfo = ClassicSwapTxAndGasInfo | UniswapXSwapTxAndGasInfo | BridgeSwapTxAndGasInfo | WrapSwapTxAndGasInfo
-export type ValidatedSwapTxContext = ValidatedClassicSwapTxAndGasInfo | ValidatedUniswapXSwapTxAndGasInfo | ValidatedBridgeSwapTxAndGasInfo | ValidatedWrapSwapTxAndGasInfo
+export type SwapTxAndGasInfo = ClassicSwapTxAndGasInfo | GatewayJusdSwapTxAndGasInfo | UniswapXSwapTxAndGasInfo | BridgeSwapTxAndGasInfo | BitcoinBridgeSwapTxAndGasInfo | LightningBridgeSwapTxAndGasInfo | WrapSwapTxAndGasInfo
+export type ValidatedSwapTxContext = ValidatedClassicSwapTxAndGasInfo | ValidatedGatewayJusdSwapTxAndGasInfo | ValidatedUniswapXSwapTxAndGasInfo | ValidatedBridgeSwapTxAndGasInfo | ValidatedBitcoinBridgeSwapTxAndGasInfo | ValidatedLightningBridgeSwapTxAndGasInfo | ValidatedWrapSwapTxAndGasInfo
 
 export function isValidSwapTxContext(swapTxContext: SwapTxAndGasInfo): swapTxContext is ValidatedSwapTxContext {
   // Validation fn prevents/future-proofs typeguard against illicit casts
@@ -30,7 +30,7 @@ export type UniswapXGasBreakdown = {
 
 export interface BaseSwapTxAndGasInfo {
   routing: Routing
-  trade?: ClassicTrade | UniswapXTrade | BridgeTrade | WrapTrade | UnwrapTrade
+  trade?: ClassicTrade | GatewayJusdTrade | UniswapXTrade | BridgeTrade | BitcoinBridgeTrade | LightningBridgeTrade | WrapTrade | UnwrapTrade
   approveTxRequest: ValidatedTransactionRequest | undefined
   revocationTxRequest: ValidatedTransactionRequest | undefined
   gasFee: GasFeeResult
@@ -66,6 +66,19 @@ export interface ClassicSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
   txRequests: PopulatedTransactionRequestArray | undefined
 }
 
+/**
+ * Gateway JUSD swaps route through JuiceSwapGateway contract for JUSD/svJUSD abstraction and JUICE equity swaps.
+ * These behave like classic swaps but use custom Gateway routing types.
+ */
+export interface GatewayJusdSwapTxAndGasInfo extends Omit<BaseSwapTxAndGasInfo, 'routing'> {
+  routing: GatewayJusdRouting
+  trade?: GatewayJusdTrade
+  permit: PermitTransaction | PermitTypedData | undefined
+  swapRequestArgs: CreateSwapRequest | undefined
+  unsigned: boolean
+  txRequests: PopulatedTransactionRequestArray | undefined
+}
+
 export interface WrapSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
   routing: Routing.WRAP | Routing.UNWRAP
   trade: WrapTrade | UnwrapTrade
@@ -80,9 +93,23 @@ export interface UniswapXSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
 }
 
 export interface BridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
-  routing: Routing.BRIDGE
+  routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP
   trade: BridgeTrade
   txRequests: PopulatedTransactionRequestArray | undefined
+}
+
+export interface BitcoinBridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
+  routing: Routing.BITCOIN_BRIDGE
+  trade: BitcoinBridgeTrade
+  txRequests: PopulatedTransactionRequestArray | undefined
+  destinationAddress?: string
+}
+
+export interface LightningBridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
+  routing: Routing.LN_BRIDGE
+  trade: LightningBridgeTrade
+  txRequests: PopulatedTransactionRequestArray | undefined
+  destinationAddress?: string
 }
 
 interface BaseRequiredSwapTxContextFields {
@@ -99,18 +126,58 @@ export type ValidatedClassicSwapTxAndGasInfo =  Prettify<Required<Omit<ClassicSw
   txRequests: PopulatedTransactionRequestArray
 }) & Pick<ClassicSwapTxAndGasInfo, 'includesDelegation'>>
 
+export type ValidatedGatewayJusdSwapTxAndGasInfo = Prettify<Required<Omit<GatewayJusdSwapTxAndGasInfo, 'includesDelegation'>> & BaseRequiredSwapTxContextFields & ({
+  unsigned: true
+  permit: PermitTypedData
+  txRequests: undefined
+} | {
+  unsigned: false
+  permit: PermitTransaction | undefined
+  txRequests: PopulatedTransactionRequestArray
+}) & Pick<GatewayJusdSwapTxAndGasInfo, 'includesDelegation'>>
+
 export type ValidatedWrapSwapTxAndGasInfo =  Prettify<Required<Omit<WrapSwapTxAndGasInfo, 'includesDelegation'>> & BaseRequiredSwapTxContextFields & {
   txRequests: PopulatedTransactionRequestArray
 } & Pick<WrapSwapTxAndGasInfo, 'includesDelegation'>>
 
-export type ValidatedBridgeSwapTxAndGasInfo =  Prettify<Required<Omit<BridgeSwapTxAndGasInfo, 'includesDelegation'>> & BaseRequiredSwapTxContextFields & ({
-  txRequests: PopulatedTransactionRequestArray
+export type ValidatedBridgeSwapTxAndGasInfo =  Prettify<Required<Omit<BridgeSwapTxAndGasInfo, 'includesDelegation' | 'txRequests'>> & BaseRequiredSwapTxContextFields & ({
+  txRequests: PopulatedTransactionRequestArray | undefined
 }) & Pick<BridgeSwapTxAndGasInfo, 'includesDelegation'>>
+
+export type ValidatedBitcoinBridgeSwapTxAndGasInfo = Prettify<Required<Omit<BitcoinBridgeSwapTxAndGasInfo, 'includesDelegation' | 'txRequests' | 'destinationAddress'>> & BaseRequiredSwapTxContextFields & ({
+  txRequests: PopulatedTransactionRequestArray | undefined
+  destinationAddress: string | undefined
+}) & Pick<BitcoinBridgeSwapTxAndGasInfo, 'includesDelegation'>>
+
+export type ValidatedLightningBridgeSwapTxAndGasInfo = Prettify<Required<Omit<LightningBridgeSwapTxAndGasInfo, 'includesDelegation' | 'txRequests' | 'destinationAddress'>> & BaseRequiredSwapTxContextFields & ({
+  txRequests: PopulatedTransactionRequestArray | undefined
+  destinationAddress: string | undefined
+}) & Pick<LightningBridgeSwapTxAndGasInfo, 'includesDelegation'>>
 
 export type ValidatedUniswapXSwapTxAndGasInfo =  Prettify<Required<Omit<UniswapXSwapTxAndGasInfo, 'includesDelegation'>> & BaseRequiredSwapTxContextFields & {
   // Permit should always be defined for UniswapX orders
   permit: PermitTypedData
 } & Pick<UniswapXSwapTxAndGasInfo, 'includesDelegation'>>
+
+/** Helper to validate Classic-style swaps (Classic and Gateway both use this pattern) */
+function validateClassicStyleSwap<T extends ClassicSwapTxAndGasInfo | GatewayJusdSwapTxAndGasInfo, V>(params: {
+  swapTxContext: SwapTxAndGasInfo
+  context: T
+  gasFee: ValidatedGasFeeResult
+}): V | undefined {
+  const { swapTxContext, context, gasFee } = params
+  const { trade, unsigned, permit, txRequests, includesDelegation } = context
+  if (unsigned) {
+    // SwapTxContext should only ever be unsigned / still require a signature on interface.
+    if (!isInterface || !permit || permit.method !== PermitMethod.TypedData) {
+      return undefined
+    }
+    return { ...swapTxContext, trade, gasFee, unsigned, txRequests: undefined, permit, includesDelegation } as V
+  } else if (txRequests) {
+    return { ...swapTxContext, trade, gasFee, unsigned, txRequests, permit: undefined, includesDelegation } as V
+  }
+  return undefined
+}
 
 /**
  * Validates a SwapTxAndGasInfo object without any casting and returns a ValidatedSwapTxContext object if the object is valid.
@@ -118,36 +185,45 @@ export type ValidatedUniswapXSwapTxAndGasInfo =  Prettify<Required<Omit<UniswapX
  * @returns A ValidatedSwapTxContext object if the object is valid, otherwise undefined.
  */
 function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTxContext | undefined {
-
   const gasFee = validateGasFeeResult(swapTxContext.gasFee)
   if (!gasFee) {
     return undefined
   }
-  
-
+  // Main validation logic
   if (swapTxContext.trade) {
+    // Gateway JUSD trades are validated like Classic trades (require txRequests)
     if (isClassic(swapTxContext)) {
-      const { trade, unsigned, permit, txRequests, includesDelegation } = swapTxContext
-
-      if (unsigned) {
-        // SwapTxContext should only ever be unsigned / still require a signature on interface.
-        if (!isInterface || !permit || permit.method !== PermitMethod.TypedData) {
-          return undefined
-        }
-        return { ...swapTxContext, trade, gasFee, unsigned, txRequests: undefined, permit, includesDelegation }
-      } else if (txRequests) {
-        return { ...swapTxContext, trade, gasFee, unsigned, txRequests, permit: undefined, includesDelegation }
-      } else {
-        return undefined
-      }
-
+      return validateClassicStyleSwap<ClassicSwapTxAndGasInfo, ValidatedClassicSwapTxAndGasInfo>({
+        swapTxContext, context: swapTxContext, gasFee
+      })
+    } else if (isGatewayJusd(swapTxContext)) {
+      return validateClassicStyleSwap<GatewayJusdSwapTxAndGasInfo, ValidatedGatewayJusdSwapTxAndGasInfo>({
+        swapTxContext, context: swapTxContext as GatewayJusdSwapTxAndGasInfo, gasFee
+      })
+    } else if (isBitcoinBridge(swapTxContext)) {
+      const { trade, txRequests, includesDelegation, destinationAddress } = swapTxContext
+        return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }
+    } else if (isLightningBridge(swapTxContext)) {
+      const { trade, txRequests, includesDelegation, destinationAddress } = swapTxContext
+      return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }
     } else if (isBridge(swapTxContext)) {
       const { trade, txRequests, includesDelegation } = swapTxContext
+      
+      // ERC20 chain swaps don't require txRequests since Boltz handles the swap
+      if (isErc20ChainSwap(swapTxContext)) {
+        return {
+          ...swapTxContext,
+          trade,
+          gasFee,
+          txRequests: txRequests as PopulatedTransactionRequestArray | undefined,
+          includesDelegation,
+        } as ValidatedBridgeSwapTxAndGasInfo
+      }
+      
       if (txRequests) {
         return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation }
-      } else {
-        return undefined
       }
+      return undefined
     } else if (isUniswapX(swapTxContext) && swapTxContext.permit) {
       const { trade, permit } = swapTxContext
       return { ...swapTxContext, trade, gasFee, permit, includesDelegation: false }
@@ -164,4 +240,15 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
   } else {
     return undefined
   }
+}
+
+/**
+ * Returns the first EVM txRequest in a SwapTxAndGasInfo object if it exists.
+ * Moved here from routing.ts to avoid circular dependency.
+ */
+export function getEVMTxRequest(swapTxContext: SwapTxAndGasInfo): ValidatedTransactionRequest | undefined {
+  if (isUniswapX(swapTxContext)) {
+    return undefined
+  }
+  return (swapTxContext as ClassicSwapTxAndGasInfo | GatewayJusdSwapTxAndGasInfo | WrapSwapTxAndGasInfo | BridgeSwapTxAndGasInfo).txRequests?.[0]
 }

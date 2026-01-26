@@ -21,17 +21,12 @@ import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/u
 import { getCurrencySafetyInfo } from 'uniswap/src/features/dataApi/utils/getCurrencySafetyInfo'
 import { createEthersProvider } from 'uniswap/src/features/providers/createEthersProvider'
 import { PoolSearchResult, SearchResultType } from 'uniswap/src/features/search/SearchResult'
+import { transformSvJusdCurrencyInfo } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { buildCurrencyId, currencyId, isNativeCurrencyAddress } from 'uniswap/src/utils/currencyId'
 
-/**
- * Wrapper around Tanstack useQuery for the Uniswap REST BE service SearchTokens
- * This includes data for both token search AND pool search
- * @param input - The search request parameters including search query, chain IDs, search type, page and size
- * @returns data, error, isPending, and refetch
- */
 export function useSearchTokensAndPoolsQuery<TSelectType>({
   input,
-  enabled = true,
+  enabled: _enabled = true,
   select,
 }: {
   input?: PartialMessage<SearchTokensRequest>
@@ -40,7 +35,7 @@ export function useSearchTokensAndPoolsQuery<TSelectType>({
 }): UseQueryResult<TSelectType, ConnectError> {
   return useQuery(searchTokens, input, {
     transport: uniswapPostTransport,
-    enabled: !!input && enabled,
+    enabled: false,
     select,
   })
 }
@@ -67,7 +62,10 @@ export function searchTokenToCurrencyInfo(token: SearchToken): CurrencyInfo | nu
     return null
   }
 
-  return buildCurrencyInfo({ currency, currencyId: currencyId(currency), logoUrl, safetyInfo })
+  const currencyInfo = buildCurrencyInfo({ currency, currencyId: currencyId(currency), logoUrl, safetyInfo })
+
+  // Transform svJUSD to JUSD for display - users should only see JUSD
+  return transformSvJusdCurrencyInfo(currencyInfo)
 }
 
 export function searchPoolToPoolSearchResult(pool: Pool): PoolSearchResult | undefined {

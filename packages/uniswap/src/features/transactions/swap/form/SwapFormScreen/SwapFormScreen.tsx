@@ -83,7 +83,17 @@ function SwapFormContent(): JSX.Element {
 
   return (
     <Flex grow gap="$spacing8" justifyContent="space-between">
-      <Flex gap="$spacing4" animation="quick" exitStyle={EXIT_STYLE} grow={isExtension}>
+      <Flex
+        p="$padding8"
+        borderRadius="$rounded24"
+        backgroundColor="$surface1"
+        width="100%"
+        maxWidth="100%"
+        gap="$spacing4"
+        animation="quick"
+        exitStyle={EXIT_STYLE}
+        grow={isExtension}
+      >
         <Flex gap="$spacing2">
           <SwapFormCurrencyInputPanel />
           <SwitchCurrenciesButton />

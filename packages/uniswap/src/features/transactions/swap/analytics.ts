@@ -21,7 +21,12 @@ import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/typ
 import type { ClassicTrade, Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { SwapEventType, timestampTracker } from 'uniswap/src/features/transactions/swap/utils/SwapEventTimestampTracker'
 import { getSwapFeeUsd } from 'uniswap/src/features/transactions/swap/utils/getSwapFeeUsd'
-import { isClassic, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import {
+  GATEWAY_JUSD_ROUTING,
+  TradeRouting,
+  isClassic,
+  isUniswapX,
+} from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { TransactionOriginType } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
@@ -95,7 +100,7 @@ export function getRouteAnalyticsData({
   routing,
   routes,
 }: {
-  routing?: Routing
+  routing?: TradeRouting
   routes?: ClassicTrade['routes']
 }): SwapRoutesAnalyticsData | undefined {
   if (!routing) {
@@ -371,11 +376,16 @@ export function tradeRoutingToFillType({
   routing,
   indicative,
 }: {
-  routing: Routing
+  routing: TradeRouting
   indicative: boolean
 }): SwapRouting {
   if (indicative) {
     return 'none'
+  }
+
+  // Handle custom routing types first
+  if (routing === GATEWAY_JUSD_ROUTING) {
+    return 'classic' // GATEWAY_JUSD is a same-chain swap, report as classic
   }
 
   switch (routing) {

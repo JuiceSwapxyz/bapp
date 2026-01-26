@@ -3,7 +3,7 @@ import { TouchableArea, useMedia, useSporeColors } from 'ui/src'
 import { iconSizes } from 'ui/src/theme'
 import { TokenLogo } from 'uniswap/src/components/CurrencyLogo/TokenLogo'
 import { OnSelectCurrency } from 'uniswap/src/components/TokenSelector/types'
-import type { OnchainItemSection } from 'uniswap/src/components/lists/OnchainItemList/types'
+import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/components/lists/OnchainItemList/types'
 import { TokenOption } from 'uniswap/src/components/lists/items/types'
 import { Pill } from 'uniswap/src/components/pill/Pill'
 import { getSymbolDisplayText } from 'uniswap/src/utils/currency'
@@ -22,6 +22,7 @@ function _TokenPill({
   const { currency, logoUrl } = token.currencyInfo
   const colors = useSporeColors()
   const media = useMedia()
+  const isBridgingToken = section.sectionKey === OnchainItemSectionName.BridgingTokens
 
   const onPress = (): void => {
     onSelectCurrency(token.currencyInfo, section, index)
@@ -46,6 +47,7 @@ function _TokenPill({
             size={iconSizes.icon24}
             symbol={currency.symbol}
             url={logoUrl}
+            alwaysShowNetworkLogo={isBridgingToken}
           />
         }
         label={getSymbolDisplayText(currency.symbol)}

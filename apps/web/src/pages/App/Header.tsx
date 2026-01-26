@@ -38,7 +38,16 @@ export const Header = memo(function Header() {
       <Flex position="relative" zIndex={zIndexes.sticky} pointerEvents="auto">
         {firstSqueezerEligible && <FirstSqueezerBanner />}
         {extensionEligible && <MobileAppPromoBanner />}
-        {renderUkBanner && <UkBanner />}
+        <Flex
+          overflow="hidden"
+          maxHeight={renderUkBanner ? 100 : 0}
+          opacity={renderUkBanner ? 1 : 0}
+          $platform-web={{
+            transition: 'max-height 250ms ease-out, opacity 200ms ease-out',
+          }}
+        >
+          <UkBanner />
+        </Flex>
       </Flex>
       <Flex
         width="100%"

@@ -11,6 +11,7 @@ import { useTransactionSettingsStore } from 'uniswap/src/features/transactions/c
 import { useUSDCValue } from 'uniswap/src/features/transactions/hooks/useUSDCPrice'
 import { usePriceUXEnabled } from 'uniswap/src/features/transactions/swap/hooks/usePriceUXEnabled'
 import { useTrade } from 'uniswap/src/features/transactions/swap/hooks/useTrade'
+import { useBridgeLimits } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/hooks/useBridgeLimits'
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { getWrapType } from 'uniswap/src/features/transactions/swap/utils/wrap'
 import type { TransactionState } from 'uniswap/src/features/transactions/types/transactionState'
@@ -134,6 +135,8 @@ export function useDerivedSwapInfo({
     }
   }, [inputCurrencyUSDValue, outputCurrencyUSDValue])
 
+  const limits = useBridgeLimits({ currencyIn, currencyOut })
+
   const currencyBalances = useMemo(() => {
     return {
       [CurrencyField.INPUT]: tokenInBalance,
@@ -157,6 +160,7 @@ export function useDerivedSwapInfo({
       selectingCurrencyField,
       txId,
       outputAmountUserWillReceive: displayableTrade?.quoteOutputAmountUserWillReceive,
+      limits,
     }
   }, [
     chainId,
@@ -173,5 +177,6 @@ export function useDerivedSwapInfo({
     txId,
     wrapType,
     displayableTrade,
+    limits,
   ])
 }

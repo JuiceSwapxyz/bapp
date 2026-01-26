@@ -12,6 +12,8 @@ import {
   currencyIdToContractInput,
 } from 'uniswap/src/features/dataApi/utils/currencyIdToContractInput'
 import { gqlTokenToCurrencyInfo } from 'uniswap/src/features/dataApi/utils/gqlTokenToCurrencyInfo'
+import { isSvJusdAddress, transformSvJusdCurrencyInfo } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { useLocalCurrencyInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/hooks/useLocalCurrencyInfo'
 import {
   buildNativeCurrencyId,
   buildWrappedNativeCurrencyId,
@@ -111,11 +113,23 @@ function useCurrencyInfoQuery(
 }
 
 export function useCurrencyInfo(
-  _currencyId?: string,
+  currencyId?: string,
   options?: { refetch?: boolean; skip?: boolean },
 ): Maybe<CurrencyInfo> {
-  const { currencyInfo } = useCurrencyInfoQuery(_currencyId, options)
-  return currencyInfo
+  const localCurrencyInfo = useLocalCurrencyInfo(currencyId)
+  const { currencyInfo } = useCurrencyInfoQuery(currencyId, options)
+
+  // Transform svJUSD to JUSD for user-facing display
+  const result = localCurrencyInfo || currencyInfo
+  if (result && currencyId) {
+    const chainId = currencyIdToChain(currencyId) as UniverseChainId
+    const address = currencyIdToAddress(currencyId)
+    if (address && isSvJusdAddress(chainId, address)) {
+      return transformSvJusdCurrencyInfo(result, chainId)
+    }
+  }
+
+  return result
 }
 
 export function useCurrencyInfoWithLoading(
@@ -126,7 +140,28 @@ export function useCurrencyInfoWithLoading(
   loading: boolean
   error?: Error
 } {
-  return useCurrencyInfoQuery(_currencyId, options)
+  const queryResult = useCurrencyInfoQuery(_currencyId, options)
+
+  const transformedCurrencyInfo = useMemo(() => {
+    if (queryResult.currencyInfo && _currencyId) {
+      try {
+        const chainId = currencyIdToChain(_currencyId) as UniverseChainId
+        const address = currencyIdToAddress(_currencyId)
+        if (address && isSvJusdAddress(chainId, address)) {
+          return transformSvJusdCurrencyInfo(queryResult.currencyInfo, chainId)
+        }
+      } catch {
+        // Address parsing failed, return original
+      }
+    }
+    return queryResult.currencyInfo
+  }, [queryResult.currencyInfo, _currencyId])
+
+  return {
+    currencyInfo: transformedCurrencyInfo,
+    loading: queryResult.loading,
+    error: queryResult.error,
+  }
 }
 
 const fetchTokens = (contracts: { chainId: UniverseChainId; address: Address }[]): Promise<{ tokens: unknown[] }> => {
@@ -146,8 +181,56 @@ export function useCurrencyInfos(
   })
 
   return useMemo(() => {
-    return data?.tokens.map((token) => (token ? gqlTokenToCurrencyInfo(token as never) : null)) ?? []
-  }, [data])
+    if (!data?.tokens) {
+      return []
+    }
+    return data.tokens.map((token, index) => {
+      const currencyId = _currencyIds[index]
+      let chainId: UniverseChainId | undefined
+      let address: string | undefined
+
+      // Parse chainId and address upfront for fallback logic
+      if (currencyId) {
+        try {
+          chainId = currencyIdToChain(currencyId) as UniverseChainId
+          address = currencyIdToAddress(currencyId)
+        } catch {
+          // Address parsing failed
+        }
+      }
+
+      // If Ponder API returned null, try getCommonBase fallback
+      if (!token) {
+        if (chainId && address) {
+          const commonBase = getCommonBase(chainId, address)
+          if (commonBase) {
+            return commonBase
+          }
+        }
+        return null
+      }
+
+      const currencyInfo = gqlTokenToCurrencyInfo(token as never)
+
+      // If gqlTokenToCurrencyInfo failed, try getCommonBase fallback
+      if (!currencyInfo) {
+        if (chainId && address) {
+          const commonBase = getCommonBase(chainId, address)
+          if (commonBase) {
+            return commonBase
+          }
+        }
+        return null
+      }
+
+      // Transform svJUSD to JUSD for user-facing display
+      if (address && chainId && isSvJusdAddress(chainId, address)) {
+        return transformSvJusdCurrencyInfo(currencyInfo, chainId)
+      }
+
+      return currencyInfo
+    })
+  }, [data, _currencyIds])
 }
 
 export function useNativeCurrencyInfo(chainId: UniverseChainId): Maybe<CurrencyInfo> {

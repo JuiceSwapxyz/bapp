@@ -279,6 +279,9 @@ export function generateCreatePositionTxRequest({
     return undefined
   }
 
+  // Validate createPool transaction if present (Gateway new pool flow)
+  const validatedCreatePoolRequest = validateTransactionRequest(createCalldata.createPool)
+
   const queryParams: CreateLPPositionRequest | undefined =
     protocolVersion === ProtocolVersion.V4
       ? { ...createCalldataQueryParams, batchPermitData: validatedPermitRequest }
@@ -305,6 +308,7 @@ export function generateCreatePositionTxRequest({
     token0PermitTransaction: validatedToken0PermitTransaction,
     token1PermitTransaction: validatedToken1PermitTransaction,
     positionTokenPermitTransaction: undefined,
+    createPoolTxRequest: validatedCreatePoolRequest,
   } satisfies CreatePositionTxAndGasInfo
 }
 

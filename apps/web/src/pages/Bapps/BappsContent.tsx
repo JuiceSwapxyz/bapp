@@ -141,9 +141,9 @@ interface BappsContentProps {
 }
 
 const TASK_SWAP_URLS = {
-  1: 'https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001',
-  2: 'https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001',
-  3: 'https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=NATIVE&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001',
+  1: 'https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x9B28B690550522608890C3C7e63c0b4A7eBab9AA&value=0.00001',
+  2: 'https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0&value=0.00001',
+  3: 'https://bapp.juiceswap.com/swap?chain=citrea_testnet&inputCurrency=cBTC&outputCurrency=0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F&value=0.00000000001',
 }
 
 export default function BappsContent({ account, campaignProgress, isLoading }: BappsContentProps) {

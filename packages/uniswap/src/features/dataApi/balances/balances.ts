@@ -21,7 +21,6 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { useJuiceSwapPortfolioData } from 'uniswap/src/features/dataApi/balances/balancesJuiceSwap'
 import {
-  useRESTPortfolioData,
   useRESTPortfolioTotalValue,
   useRestPortfolioCacheUpdater,
 } from 'uniswap/src/features/dataApi/balances/balancesRest'
@@ -73,13 +72,8 @@ export function usePortfolioBalances({
 }: {
   address?: Address
 } & QueryHookOptions<PortfolioBalancesQuery, PortfolioBalancesQueryVariables>): PortfolioDataResult {
-  const { defaultChainId } = useEnabledChains()
-  const isRestEnabled = useFeatureFlag(FeatureFlags.GqlToRestBalances)
-
-  // Use JuiceSwap API for Citrea Testnet (not supported by Uniswap Data API)
-  const isJuiceSwapChain = defaultChainId === UniverseChainId.CitreaTestnet
-
-  const juiceSwapResult = useJuiceSwapPortfolioData({
+  // Always use JuiceSwap API for multi-chain support (Citrea + Polygon)
+  return useJuiceSwapPortfolioData({
     address,
     pollInterval: queryOptions.pollInterval,
     onCompleted: queryOptions.onCompleted
@@ -88,29 +82,8 @@ export function usePortfolioBalances({
           queryOptions.onCompleted?.(undefined as any)
         }
       : undefined,
-    skip: !isJuiceSwapChain || queryOptions.skip,
+    skip: queryOptions.skip,
   })
-
-  const graphqlResult = useGraphQLPortfolioData({
-    address,
-    ...queryOptions,
-    skip: isRestEnabled || isJuiceSwapChain || queryOptions.skip,
-  })
-
-  const restResult = useRESTPortfolioData({
-    evmAddress: address || '',
-    ...queryOptions,
-    skip: !address || !isRestEnabled || isJuiceSwapChain || queryOptions.skip,
-  })
-
-  // Return appropriate result based on chain
-  if (isJuiceSwapChain) {
-    return juiceSwapResult
-  }
-
-  const result = isRestEnabled ? restResult : graphqlResult
-
-  return result
 }
 /**
  * Returns all balances indexed by checksummed currencyId for a given address

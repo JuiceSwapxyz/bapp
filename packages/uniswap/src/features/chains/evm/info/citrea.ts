@@ -1,5 +1,8 @@
-import { CurrencyAmount } from '@uniswap/sdk-core'
+import { ADDRESS } from '@juicedollar/jusd'
+import { ChainId, WETH9 } from '@juiceswapxyz/sdk-core'
+import { CurrencyAmount, Token } from '@uniswap/sdk-core'
 import { CITREA_LOGO } from 'ui/src/assets'
+import { config } from 'uniswap/src/config'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { DEFAULT_NATIVE_ADDRESS_LEGACY } from 'uniswap/src/features/chains/evm/rpc'
 import { buildChainTokens } from 'uniswap/src/features/chains/evm/tokens'
@@ -15,10 +18,19 @@ import { ElementName } from 'uniswap/src/features/telemetry/constants'
 import { buildCUSD, buildUSDC } from 'uniswap/src/features/tokens/stablecoin'
 import { defineChain } from 'viem'
 
+const CITREA_TESTNET_EXPLORER_URL = config.citreaTestnetExplorerUrl
+
 const testnetTokens = buildChainTokens({
   stables: {
     USDC: buildUSDC('0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F', UniverseChainId.CitreaTestnet),
     CUSD: buildCUSD('0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0', UniverseChainId.CitreaTestnet),
+    JUSD: new Token(
+      UniverseChainId.CitreaTestnet,
+      ADDRESS[5115]!.juiceDollar,
+      18,
+      'JUSD',
+      'JuiceSwap USD',
+    ),
   },
 })
 
@@ -33,17 +45,17 @@ const citreaTestnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
     public: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
   },
   blockExplorers: {
     default: {
       name: 'Citrea Testnet Explorer',
-      url: 'https://testnet.citreascan.com',
-      apiUrl: 'https://testnet.citreascan.com/api',
+      url: CITREA_TESTNET_EXPLORER_URL,
+      apiUrl: `${CITREA_TESTNET_EXPLORER_URL}/api`,
     },
   },
   contracts: {},
@@ -67,8 +79,8 @@ export const CITREA_TESTNET_CHAIN_INFO = {
   elementName: ElementName.ChainCitreaTestnet,
   explorer: {
     name: 'Citrea Testnet Explorer',
-    url: 'https://testnet.citreascan.com/',
-    apiURL: 'https://testnet.citreascan.com/api',
+    url: `${CITREA_TESTNET_EXPLORER_URL}/`,
+    apiURL: `${CITREA_TESTNET_EXPLORER_URL}/api`,
   },
   interfaceName: 'citrea_testnet',
   label: 'Citrea Testnet',
@@ -78,23 +90,23 @@ export const CITREA_TESTNET_CHAIN_INFO = {
     symbol: 'cBTC',
     decimals: 18,
     address: DEFAULT_NATIVE_ADDRESS_LEGACY,
-    explorerLink: 'https://testnet.citreascan.com/',
+    explorerLink: `${CITREA_TESTNET_EXPLORER_URL}/`,
     logo: CITREA_LOGO,
   },
   networkLayer: NetworkLayer.L2, // Citrea is a Bitcoin rollup (L2)
   pendingTransactionsRetryOptions: undefined,
   rpcUrls: {
     [RPCType.Public]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
     [RPCType.Default]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
     [RPCType.Fallback]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
     [RPCType.Interface]: {
-      http: ['https://rpc.testnet.juiceswap.com'],
+      http: ['https://dev.rpc.testnet.juiceswap.com'],
     },
   },
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(testnetTokens.USDC, 100e6),
@@ -106,7 +118,8 @@ export const CITREA_TESTNET_CHAIN_INFO = {
     name: 'Wrapped Citrea BTC',
     symbol: 'WcBTC',
     decimals: 18,
-    address: '0x4370e27F7d91D9341bFf232d7Ee8bdfE3a9933a0',
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    address: WETH9[ChainId.CITREA_TESTNET]!.address,
   },
   faucetUrl: 'https://citrea.xyz/faucet',
   tradingApiPollingIntervalMs: 500,

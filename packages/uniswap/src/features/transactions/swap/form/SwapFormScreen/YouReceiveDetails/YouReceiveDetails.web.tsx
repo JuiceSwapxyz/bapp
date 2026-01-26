@@ -5,7 +5,7 @@ import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled
 import { AnglesDownUp } from 'ui/src/components/icons/AnglesDownUp'
 import { SortVertical } from 'ui/src/components/icons/SortVertical'
 import { AnimatedUniswapX } from 'ui/src/components/icons/UniswapX'
-import { AcrossLogo } from 'ui/src/components/logos/AcrossLogo'
+import { LdsLogo } from 'ui/src/components/logos/LdsLogo'
 import type { WarningWithStyle } from 'uniswap/src/components/modals/WarningModal/types'
 import { WarningLabel } from 'uniswap/src/components/modals/WarningModal/types'
 import { InfoTooltip } from 'uniswap/src/components/tooltip/InfoTooltip'
@@ -214,8 +214,8 @@ function RouteDisplay({
       <SwapDetailsRow.Label label={t('common.bestRoute')} analyticsTitle="Route" tooltip={tooltip} />
       {isBridge ? (
         <Flex row gap="$spacing6" alignItems="center">
-          <AcrossLogo size="$icon.16" />
-          <SwapDetailsRow.ValueLabel color={loading ? '$neutral2' : '$neutral1'} value="Across API" />
+          <LdsLogo size={16} />
+          <SwapDetailsRow.ValueLabel color={loading ? '$neutral2' : '$neutral1'} value="Lightning.Space" />
         </Flex>
       ) : isUniswapXContext ? (
         <Flex row gap="$spacing1">

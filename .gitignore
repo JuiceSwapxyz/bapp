@@ -7,6 +7,9 @@ node_modules
 
 # testing
 coverage
+test-results/
+.cache-synpress/
+playwright-metamask-report/
 
 # utility script output
 scripts/dist
@@ -28,6 +31,8 @@ yarn-error.log*
 
 # local env files
 .env
+.env.local
+.env*.local
 .env.defaults.local
 
 # turbo

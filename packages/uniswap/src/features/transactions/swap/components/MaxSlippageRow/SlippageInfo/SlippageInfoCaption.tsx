@@ -73,7 +73,7 @@ export function SlippageInfoCaption({
           : t('swap.settings.slippage.output.message')}{' '}
         {isWeb && (
           <Flex display="inline-flex">
-            {/* TODO: Re-enable once support.juiceswap.xyz is configured
+            {/* TODO: Re-enable once support.juiceswap.com is configured
             
             */}
           </Flex>

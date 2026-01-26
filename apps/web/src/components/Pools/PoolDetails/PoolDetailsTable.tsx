@@ -35,7 +35,7 @@ export function PoolDetailsTableTab({
   token1?: Token
   protocolVersion?: ProtocolVersion
 }) {
-  const [activeTable, setActiveTable] = useState<PoolDetailsTableTabs>(PoolDetailsTableTabs.TRANSACTIONS)
+  const [activeTable, setActiveTable] = useState<PoolDetailsTableTabs>(PoolDetailsTableTabs.POSITIONS)
   const account = useAccount()
   const { data } = useGetPositionsQuery({ address: account.address, poolId: poolAddress })
   const positions = useMemo(

@@ -1,17 +1,20 @@
 import type { Currency } from '@juiceswapxyz/sdk-core'
 import { PrefetchBalancesWrapper } from 'appGraphql/data/apollo/AdaptiveTokenBalancesProvider'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
-import { SwapBottomCard } from 'components/SwapBottomCard'
+import { popupRegistry } from 'components/Popups/registry'
+import { PopupType } from 'components/Popups/types'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
-import { PageType, useIsPage } from 'hooks/useIsPage'
+import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { useModalState } from 'hooks/useModalState'
+import { useRefundableSwaps } from 'hooks/useRefundableSwaps'
+import { RiseIn } from 'pages/Landing/components/animations'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { useResetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap'
 import { useWebSwapSettings } from 'pages/Swap/settings/useWebSwapSettings'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router'
 import { MultichainContextProvider } from 'state/multichain/MultichainContext'
@@ -23,7 +26,6 @@ import type { CurrencyState } from 'state/swap/types'
 import { Flex, Text, Tooltip, styled } from 'ui/src'
 import { zIndexes } from 'ui/src/theme'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
-import { useIsModeMismatch } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
@@ -47,6 +49,25 @@ import { isMobileWeb } from 'utilities/src/platform'
 import noop from 'utilities/src/react/noop'
 import { isIFramed } from 'utils/isIFramed'
 
+const SwapBackground = styled(Flex, {
+  name: 'SwapBackground',
+  position: 'absolute' as const,
+  top: 200,
+  left: 0,
+  right: 0,
+  height: '70vh',
+  zIndex: 0,
+  pointerEvents: 'none',
+
+  '$platform-web': {
+    position: 'fixed' as const,
+    backgroundImage: `url(/images/landing_page/LandingHero-bg.svg)`,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: '100% 100%',
+    backgroundPosition: 'top center',
+  },
+})
+
 export default function SwapPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -64,6 +85,9 @@ export default function SwapPage() {
     triggerConnect,
   } = useInitialCurrencyState()
 
+  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
+  const { data: refundableSwaps = [] } = useRefundableSwaps(crossChainSwapsEnabled)
+
   useEffect(() => {
     if (triggerConnect) {
       accountDrawer.open()
@@ -71,19 +95,45 @@ export default function SwapPage() {
     }
   }, [accountDrawer, triggerConnect, navigate, location.pathname])
 
+  useEffect(() => {
+    if (refundableSwaps.length > 0) {
+      popupRegistry.addPopup(
+        {
+          type: PopupType.RefundableSwaps,
+          count: refundableSwaps.length,
+        },
+        'refundable-swaps',
+        Infinity,
+      )
+    }
+  }, [refundableSwaps.length])
+
   return (
     <Trace logImpression page={InterfacePageName.SwapPage}>
-      <PageWrapper>
-        <Swap
-          chainId={initialChainId}
-          initialInputCurrency={initialInputCurrency}
-          initialOutputCurrency={initialOutputCurrency}
-          initialTypedValue={initialTypedValue}
-          initialIndependentField={initialField}
-          syncTabToUrl={true}
-          usePersistedFilteredChainIds
-        />
-      </PageWrapper>
+      <Flex position="relative" width="100%" flex={1} alignItems="center">
+        <SwapBackground />
+        <PageWrapper>
+          <RiseIn delay={0.2}>
+            <Swap
+              chainId={initialChainId}
+              initialInputCurrency={initialInputCurrency}
+              initialOutputCurrency={initialOutputCurrency}
+              initialTypedValue={initialTypedValue}
+              initialIndependentField={initialField}
+              syncTabToUrl={true}
+              usePersistedFilteredChainIds
+            />
+          </RiseIn>
+          <RiseIn delay={0.4}>
+            <Flex flexDirection="column" alignItems="center" gap="$gap4" mt="$spacing16">
+              <Text variant="body2" color="$neutral2">
+                <Trans i18nKey="hero.subtitle" />
+              </Text>
+              <img src="/images/logos/Citrea_Full_Logo.svg" alt="Citrea Logo" width={200} height="auto" />
+            </Flex>
+          </RiseIn>
+        </PageWrapper>
+      </Flex>
     </Trace>
   )
 }
@@ -123,10 +173,6 @@ export function Swap({
   usePersistedFilteredChainIds?: boolean
   passkeyAuthStatus?: PasskeyAuthStatus
 }) {
-  const isExplorePage = useIsPage(PageType.EXPLORE)
-  const isModeMismatch = useIsModeMismatch(chainId)
-  const isSharedSwapDisabled = isModeMismatch && isExplorePage
-
   const input = currencyToAsset(initialInputCurrency)
   const output = currencyToAsset(initialOutputCurrency)
 
@@ -157,8 +203,7 @@ export function Swap({
               hideSettings={hideHeader}
               hideFooter={hideFooter}
             >
-              <Flex position="relative" gap="$spacing16" opacity={isSharedSwapDisabled ? 0.6 : 1}>
-                {isSharedSwapDisabled && <DisabledSwapOverlay />}
+              <Flex position="relative" gap="$spacing16" opacity={1}>
                 <UniversalSwapFlow
                   hideHeader={hideHeader}
                   hideFooter={hideFooter}
@@ -293,9 +338,12 @@ function UniversalSwapFlow({
               onSubmitSwap={handleSubmitSwap}
             />
           </SwapDependenciesStoreContextProvider>
-          <CitreaCampaignProgress />
-          <BAppsCard />
-          <SwapBottomCard />
+          {!hideFooter && (
+            <>
+              <CitreaCampaignProgress />
+              <BAppsCard />
+            </>
+          )}
         </Flex>
       )}
       {/* Removed Limit, Buy, and Sell tabs as we only support Swap now */}
@@ -310,7 +358,7 @@ const DisabledOverlay = styled(Flex, {
   zIndex: zIndexes.overlay,
 })
 
-const DisabledSwapOverlay = () => {
+const _DisabledSwapOverlay = () => {
   const { t } = useTranslation()
 
   return (

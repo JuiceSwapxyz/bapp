@@ -7,9 +7,9 @@ import type {
   PrepareSwapCallback,
 } from 'uniswap/src/features/transactions/swap/types/swapHandlers'
 import type { SwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
-import { isValidSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
+import { getEVMTxRequest, isValidSwapTxContext } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import type { WrapCallback, WrapCallbackParams } from 'uniswap/src/features/transactions/swap/types/wrapCallback'
-import { getEVMTxRequest, isWrap } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isWrap } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { AccountDetails, isSignerMnemonicAccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 import { CurrencyField } from 'uniswap/src/types/currency'
 

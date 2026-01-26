@@ -1,5 +1,7 @@
 import { providers as ethersProviders } from 'ethers/lib/ethers'
+import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { RPCType, UniverseChainId } from 'uniswap/src/features/chains/types'
+import { Platform } from 'uniswap/src/features/platforms/types/Platform'
 import { SignerInfo } from 'uniswap/src/features/providers/FlashbotsCommon'
 import { FlashbotsRpcProvider } from 'uniswap/src/features/providers/FlashbotsRpcProvider'
 import { selectRpcUrl } from 'uniswap/src/features/providers/rpcUrlSelector'
@@ -16,6 +18,12 @@ export function createEthersProvider({
   signerInfo?: SignerInfo
 }): ethersProviders.JsonRpcProvider | null {
   try {
+    const chainInfo = getChainInfo(chainId)
+
+    if (chainInfo.platform !== Platform.EVM) {
+      return null
+    }
+
     // Use the shared RPC URL selector
     const rpcConfig = selectRpcUrl(chainId, rpcType)
     if (!rpcConfig) {

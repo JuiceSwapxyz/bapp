@@ -29,6 +29,7 @@ type GetValidAddressParams = {
 const VALIDATION_CACHE_KEY_FN_MAP = {
   [Platform.EVM]: (params: GetValidAddressParams) =>
     `${Platform.EVM}-${params.address}-${Boolean(params.withEVMChecksum)}`,
+  [Platform.NonEvm]: (params: GetValidAddressParams) => `${Platform.NonEvm}-${params.address}`,
 } as const
 
 const ADDRESS_VALIDATION_CACHE = new Map<string, string | null>()
@@ -45,6 +46,7 @@ function getCachedAddress(params: GetValidAddressParams): {
 
 const VALIDATION_FN_MAP = {
   [Platform.EVM]: getValidEVMAddress,
+  [Platform.NonEvm]: ({ address }: { address: string }) => address,
 } as const
 
 /**

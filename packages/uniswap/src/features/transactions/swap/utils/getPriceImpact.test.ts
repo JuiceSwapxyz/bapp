@@ -64,6 +64,7 @@ describe('getPriceImpact', () => {
     overrides: Partial<DerivedSwapInfo> = {},
   ): DerivedSwapInfo => ({
     chainId: UniverseChainId.Mainnet,
+    limits: null,
     currencies: {
       [CurrencyField.INPUT]: null,
       [CurrencyField.OUTPUT]: null,

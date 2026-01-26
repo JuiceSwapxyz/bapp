@@ -11,7 +11,7 @@ import Apollo
 public class Network {
   public static let shared = Network()
   
-  private let UNISWAP_API_URL = "https://ios.wallet.gateway.uniswap.org/v1/graphql"
+  private let JUICESWAP_API_URL = "https://\(Env.JUICESWAP_API_URL)/v1/graphql"
   
   public lazy var apollo: ApolloClient = {
     let cache = InMemoryNormalizedCache()
@@ -19,7 +19,7 @@ public class Network {
     let client = URLSessionClient()
     
     let provider = NetworkInterceptorProvider(store: store, client: client)
-    let url = URL(string: UNISWAP_API_URL)!
+    let url = URL(string: JUICESWAP_API_URL)!
     let transport = RequestChainNetworkTransport(interceptorProvider: provider, endpointURL: url)
     return ApolloClient(networkTransport: transport, store: store)
   }()
@@ -60,7 +60,7 @@ class AuthorizationInterceptor: ApolloInterceptor {
   ) where Operation : GraphQLOperation {
     request.addHeader(name: "X-API-KEY", value: Env.UNISWAP_API_KEY)
     request.addHeader(name: "Content-Type", value: "application/json")
-    request.addHeader(name: "Origin", value: "https://app.uniswap.org")
+    request.addHeader(name: "Origin", value: "https://bapp.juiceswap.com")
     
     chain.proceedAsync(request: request,
                        response: response,

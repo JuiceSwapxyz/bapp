@@ -18,6 +18,7 @@ interface TokenLogoProps {
   loading?: boolean
   webFontSize?: number
   lineHeight?: TextProps['lineHeight']
+  alwaysShowNetworkLogo?: boolean
 }
 
 const TESTNET_BORDER_DIVISOR = 15
@@ -34,6 +35,7 @@ export const TokenLogo = memo(function _TokenLogo({
   loading,
   webFontSize = 10,
   lineHeight = 14,
+  alwaysShowNetworkLogo: _alwaysShowNetworkLogo = false,
 }: TokenLogoProps): JSX.Element {
   const isTestnetToken = !!chainId && isTestnetChain(chainId)
 
@@ -47,6 +49,10 @@ export const TokenLogo = memo(function _TokenLogo({
       NUSD: 'https://docs.juiceswap.com/media/icons/nusd.png',
       TFC: 'https://docs.juiceswap.com/media/icons/tfc.png',
       USDC: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+      // L0 bridged tokens (LayerZero)
+      'WBTC.e': 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
+      'USDC.e': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+      'USDT.e': 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
     }
     if (symbol && tokenLogoOverrides[symbol]) {
       logoUrl = tokenLogoOverrides[symbol]
@@ -61,7 +67,7 @@ export const TokenLogo = memo(function _TokenLogo({
 
   const borderWidth = isTestnetToken ? size / TESTNET_BORDER_DIVISOR : 0
 
-  const showNetworkLogo = !hideNetworkLogo && chainId && chainId !== UniverseChainId.Mainnet
+  const showNetworkLogo = !hideNetworkLogo && chainId
   const networkLogoSize = Math.round(size * STATUS_RATIO)
 
   const borderOffset = isTestnetToken ? BORDER_OFFSET : 0
