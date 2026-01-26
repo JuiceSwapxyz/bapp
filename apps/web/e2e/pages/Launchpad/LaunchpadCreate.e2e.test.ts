@@ -231,6 +231,82 @@ test.describe('Launchpad Create Page', () => {
     })
   })
 
+  test.describe('Connect Wallet Flow', () => {
+    test('should open wallet modal when Connect Wallet button is clicked', async ({ page }) => {
+      await page.setViewportSize(DESKTOP_VIEWPORT)
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Dark"')
+      })
+
+      await page.goto(`/launchpad/create${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+
+      // Verify Connect Wallet button is visible
+      const connectButton = page.getByText('Connect Wallet')
+      await expect(connectButton).toBeVisible()
+
+      // Take screenshot before clicking
+      await expect(page).toHaveScreenshot('launchpad-create-before-connect.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
+
+      // Click Connect Wallet button
+      await connectButton.click()
+
+      // Wait for wallet modal to appear
+      await page.waitForTimeout(500)
+
+      // Verify account drawer / wallet modal is visible
+      await expect(page.getByTestId('wallet-modal')).toBeVisible()
+
+      // Take screenshot with wallet modal open
+      await expect(page).toHaveScreenshot('launchpad-create-wallet-modal-open.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
+    })
+
+    test('should open wallet modal on mobile', async ({ page }) => {
+      await page.setViewportSize(MOBILE_VIEWPORT)
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Dark"')
+      })
+
+      await page.goto(`/launchpad/create${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+
+      // Click Connect Wallet button
+      await page.getByText('Connect Wallet').click()
+
+      await page.waitForTimeout(500)
+
+      // Verify wallet modal is visible
+      await expect(page.getByTestId('wallet-modal')).toBeVisible()
+
+      // Take screenshot with wallet modal open on mobile
+      await expect(page).toHaveScreenshot('launchpad-create-wallet-modal-mobile.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
+    })
+
+    test('should show wallet options in the modal', async ({ page }) => {
+      await page.setViewportSize(DESKTOP_VIEWPORT)
+
+      await page.goto(`/launchpad/create${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+
+      // Click Connect Wallet button
+      await page.getByText('Connect Wallet').click()
+
+      await page.waitForTimeout(500)
+
+      // Verify option grid is visible (contains wallet options)
+      await expect(page.getByTestId('option-grid')).toBeVisible()
+    })
+  })
+
   test.describe('TapTap Token Creation', () => {
     test('should fill form with TapTap token data and upload logo', async ({ page }) => {
       await page.setViewportSize(DESKTOP_VIEWPORT)
