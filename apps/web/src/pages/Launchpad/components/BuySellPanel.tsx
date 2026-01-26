@@ -1,5 +1,6 @@
 import { CurrencyAmount, Token } from '@juiceswapxyz/sdk-core'
 import { useQueryClient } from '@tanstack/react-query'
+import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { useAccount } from 'hooks/useAccount'
 import { useBondingCurveBalance, useCalculateBuy, useCalculateSell } from 'hooks/useBondingCurveToken'
@@ -133,6 +134,10 @@ const ActionButton = styled(Flex, {
         backgroundColor: '$statusCritical',
         hoverStyle: { opacity: 0.9 },
       },
+      connect: {
+        backgroundColor: '$accent1',
+        hoverStyle: { opacity: 0.9 },
+      },
       disabled: {
         backgroundColor: '$surface3',
         cursor: 'not-allowed',
@@ -182,6 +187,7 @@ export function BuySellPanel({
 
   const navigate = useNavigate()
   const account = useAccount()
+  const accountDrawer = useAccountDrawer()
   const chainId = UniverseChainId.CitreaTestnet
   const addTransaction = useTransactionAdder()
   const queryClient = useQueryClient()
@@ -467,7 +473,16 @@ export function BuySellPanel({
     return isBuy ? 'Buy' : 'Sell'
   }, [account.address, isLoading, parsedAmount, isBuy, needsBaseApproval, needsTokenApproval, tokenSymbol])
 
-  const isButtonDisabled = !account.address || isLoading || !parsedAmount || parsedAmount === 0n
+  const isWalletConnected = !!account.address
+  const isButtonDisabled = isWalletConnected && (isLoading || !parsedAmount || parsedAmount === 0n)
+
+  const handleButtonPress = useCallback(() => {
+    if (!isWalletConnected) {
+      accountDrawer.open()
+    } else {
+      handleAction()
+    }
+  }, [isWalletConnected, accountDrawer, handleAction])
 
   if (graduated) {
     return (
@@ -560,8 +575,8 @@ export function BuySellPanel({
       )}
 
       <ActionButton
-        variant={isButtonDisabled ? 'disabled' : isBuy ? 'buy' : 'sell'}
-        onPress={isButtonDisabled ? undefined : handleAction}
+        variant={isButtonDisabled ? 'disabled' : isWalletConnected ? (isBuy ? 'buy' : 'sell') : 'connect'}
+        onPress={isButtonDisabled ? undefined : handleButtonPress}
       >
         <Text variant="buttonLabel2" color="$white">
           {buttonText}
