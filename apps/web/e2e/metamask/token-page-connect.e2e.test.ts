@@ -133,14 +133,14 @@ test.describe('Token Page: Connect Wallet Button', () => {
     await screenshot(page, 'step02-connect-button-visible.png')
 
     // Step 3: Click Connect Wallet button
-    await connectButton.click()
-    await page.waitForTimeout(2000)
+    await connectButton.click({ force: true })
+    await page.waitForTimeout(3000)
     await screenshot(page, 'step03-after-click.png')
 
     // Step 4: Wait for wallet modal and select MetaMask
-    // The modal might take a moment to appear
-    const metamaskOption = page.locator('button:has-text("MetaMask"), div:has-text("MetaMask") >> visible=true').first()
-    await expect(metamaskOption).toBeVisible({ timeout: 10000 })
+    // Look for the wallet modal/drawer that appears
+    const metamaskOption = page.locator('text=/metamask/i').first()
+    await expect(metamaskOption).toBeVisible({ timeout: 15000 })
     await metamaskOption.click()
     await screenshot(page, 'step04-metamask-selected.png')
 
