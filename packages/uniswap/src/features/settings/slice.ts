@@ -22,8 +22,8 @@ export const initialUserSettingsState: UserSettingsState = {
   currentCurrency: FiatCurrency.UnitedStatesDollar,
   hideSmallBalances: true,
   hideSpamTokens: true,
-  isTestnetModeEnabled: true,
-  isCitreaOnlyEnabled: true,
+  isTestnetModeEnabled: false,
+  isCitreaOnlyEnabled: false,
   hapticsEnabled: true,
 }
 
@@ -43,13 +43,8 @@ const slice = createSlice({
     setCurrentFiatCurrency: (state, action: PayloadAction<FiatCurrency>) => {
       state.currentCurrency = action.payload
     },
-    /**
-     * IMPORTANT: Testnet mode is now always enabled and cannot be toggled off
-     */
     setIsTestnetModeEnabled: (state) => {
-      // Always keep testnet mode enabled
-      state.isTestnetModeEnabled = true
-      analytics.setTestnetMode(true, WALLET_TESTNET_CONFIG)
+      state.isTestnetModeEnabled = !state.isTestnetModeEnabled
     },
     setCitreaOnlyEnabled: (state, { payload }: PayloadAction<boolean>) => {
       state.isCitreaOnlyEnabled = true

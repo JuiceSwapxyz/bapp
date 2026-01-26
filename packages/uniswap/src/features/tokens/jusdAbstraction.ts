@@ -20,6 +20,7 @@ import { currencyId } from 'uniswap/src/utils/currencyId'
 // Map UniverseChainId to numeric chainId for package lookups
 const CHAIN_ID_MAP: Partial<Record<UniverseChainId, number>> = {
   [UniverseChainId.CitreaTestnet]: ChainId.CITREA_TESTNET,
+  [UniverseChainId.CitreaMainnet]: ChainId.CITREA_MAINNET,
 }
 
 // Build address maps from canonical packages

@@ -41,6 +41,7 @@ export interface Config {
   apiBaseUrlV2Override: string
   appsflyerApiKey: string
   appsflyerAppId: string
+  citreaMainnetExplorerUrl: string
   citreaTestnetExplorerUrl: string
   isE2ETest: boolean
   forApiUrlOverride: string
@@ -77,6 +78,8 @@ const _config: Config = {
   apiBaseUrlV2Override: process.env.API_BASE_URL_V2_OVERRIDE || API_BASE_URL_V2_OVERRIDE,
   appsflyerApiKey: process.env.APPSFLYER_API_KEY || APPSFLYER_API_KEY,
   appsflyerAppId: process.env.APPSFLYER_APP_ID || APPSFLYER_APP_ID,
+  citreaMainnetExplorerUrl:
+    process.env.REACT_APP_CITREA_MAINNET_EXPLORER_URL || process.env.CITREA_MAINNET_EXPLORER_URL || '',
   citreaTestnetExplorerUrl:
     process.env.REACT_APP_CITREA_TESTNET_EXPLORER_URL ||
     process.env.CITREA_TESTNET_EXPLORER_URL ||

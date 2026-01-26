@@ -1,22 +1,15 @@
 import { SettingsToggle } from 'components/AccountDrawer/SettingsToggle'
 import { useCallback } from 'react'
-import { isCitreaMainnetAvailable } from 'uniswap/src/features/chains/utils'
+import { useDispatch } from 'react-redux'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
+import { setIsTestnetModeEnabled } from 'uniswap/src/features/settings/slice'
 
 export function TestnetModeToggle() {
+  const dispatch = useDispatch()
+  const { isTestnetModeEnabled } = useEnabledChains()
   const handleToggle = useCallback(() => {
-    // Toggle does nothing - always stays on
-  }, [])
+    dispatch(setIsTestnetModeEnabled())
+  }, [dispatch])
 
-  // Disable testnet toggle until CitreaMainnet is available
-  const isDisabled = !isCitreaMainnetAvailable()
-
-  return (
-    <SettingsToggle
-      title="Testnet mode"
-      isActive={true}
-      toggle={handleToggle}
-      disabled={isDisabled}
-      description={isDisabled ? 'Available when Citrea Mainnet launches' : undefined}
-    />
-  )
+  return <SettingsToggle title="Testnet mode" isActive={isTestnetModeEnabled} toggle={handleToggle} />
 }
