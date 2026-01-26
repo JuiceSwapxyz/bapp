@@ -1,3 +1,4 @@
+import path from 'path'
 import { expect, test } from '../../fixtures'
 
 // Viewport sizes for visual regression testing
@@ -6,6 +7,14 @@ const TABLET_VIEWPORT = { width: 768, height: 1024 }
 const MOBILE_VIEWPORT = { width: 375, height: 667 }
 
 const UNCONNECTED_USER_PARAM = '?eagerlyConnect=false'
+
+// Test data for TapTap token
+const TAPTAP_TOKEN = {
+  name: 'TapTap',
+  symbol: 'TAPTAP',
+  description: "I'm the tap and tap around here.",
+  logoPath: path.join(__dirname, 'taptap-logo.jpg'),
+}
 
 test.describe('Launchpad Create Page', () => {
   test.describe('Visual Regression - Desktop', () => {
@@ -216,6 +225,70 @@ test.describe('Launchpad Create Page', () => {
       await page.waitForTimeout(300)
 
       await expect(page).toHaveScreenshot('launchpad-create-filled-form.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
+    })
+  })
+
+  test.describe('TapTap Token Creation', () => {
+    test('should fill form with TapTap token data and upload logo', async ({ page }) => {
+      await page.setViewportSize(DESKTOP_VIEWPORT)
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Dark"')
+      })
+
+      await page.goto(`/launchpad/create${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+
+      // Fill in TapTap token data
+      await page.getByPlaceholder('My Awesome Token').fill(TAPTAP_TOKEN.name)
+      await page.getByPlaceholder('TOKEN', { exact: true }).fill(TAPTAP_TOKEN.symbol)
+      await page.getByPlaceholder('Describe your token project...').fill(TAPTAP_TOKEN.description)
+
+      // Upload logo image
+      const fileInput = page.locator('input[type="file"]')
+      await fileInput.setInputFiles(TAPTAP_TOKEN.logoPath)
+
+      // Wait for image preview to load
+      await page.waitForTimeout(500)
+
+      // Verify form data
+      await expect(page.getByPlaceholder('My Awesome Token')).toHaveValue(TAPTAP_TOKEN.name)
+      await expect(page.getByPlaceholder('TOKEN', { exact: true })).toHaveValue(TAPTAP_TOKEN.symbol)
+      await expect(page.getByPlaceholder('Describe your token project...')).toHaveValue(TAPTAP_TOKEN.description)
+
+      // Verify image preview is visible
+      await expect(page.locator('img[alt="Token logo preview"]')).toBeVisible()
+
+      // Take screenshot with TapTap data
+      await expect(page).toHaveScreenshot('launchpad-create-taptap-token.png', {
+        fullPage: true,
+        animations: 'disabled',
+      })
+    })
+
+    test('should show TapTap form in light mode', async ({ page }) => {
+      await page.setViewportSize(DESKTOP_VIEWPORT)
+      await page.addInitScript(() => {
+        localStorage.setItem('interface_color_theme', '"Light"')
+      })
+
+      await page.goto(`/launchpad/create${UNCONNECTED_USER_PARAM}`)
+      await page.waitForLoadState('networkidle')
+
+      // Fill in TapTap token data
+      await page.getByPlaceholder('My Awesome Token').fill(TAPTAP_TOKEN.name)
+      await page.getByPlaceholder('TOKEN', { exact: true }).fill(TAPTAP_TOKEN.symbol)
+      await page.getByPlaceholder('Describe your token project...').fill(TAPTAP_TOKEN.description)
+
+      // Upload logo image
+      const fileInput = page.locator('input[type="file"]')
+      await fileInput.setInputFiles(TAPTAP_TOKEN.logoPath)
+
+      await page.waitForTimeout(500)
+
+      await expect(page).toHaveScreenshot('launchpad-create-taptap-token-light.png', {
         fullPage: true,
         animations: 'disabled',
       })
