@@ -356,6 +356,7 @@ export const colorsLight = {
   chain_1301: networkColors.unichain.light,
   chain_10143: networkColors.monad.light,
   chain_5115: '#F7931A', // Citrea testnet - Bitcoin orange
+  chain_4114: '#F7931A', // Citrea testnet - Bitcoin orange
 
   pinkThemed: colors.pinkLight,
 }
@@ -447,6 +448,7 @@ export const colorsDark = {
   chain_1301: networkColors.unichain.dark,
   chain_10143: networkColors.monad.dark,
   chain_5115: '#F7931A', // Citrea testnet - Bitcoin orange
+  chain_4114: '#F7931A', // Citrea testnet - Bitcoin orange
 
   pinkThemed: colors.pinkDark,
 }
