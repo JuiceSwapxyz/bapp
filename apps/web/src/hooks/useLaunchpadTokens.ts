@@ -2,6 +2,7 @@
  * Hook for fetching launchpad tokens from API (which proxies to Ponder)
  */
 import { useQuery } from '@tanstack/react-query'
+import { BLOCKED_LAUNCHPAD_TOKENS } from 'constants/launchpad'
 
 // API URL with failover - API proxies to Ponder with automatic retry/failover
 const API_URL =
@@ -101,7 +102,11 @@ export function useLaunchpadTokens(options: UseLaunchpadTokensOptions = {}) {
       if (!response.ok) {
         throw new Error('Failed to fetch launchpad tokens')
       }
-      return response.json()
+      const data: LaunchpadTokensResponse = await response.json()
+      // Filter out blocked tokens (e.g. created with wrong baseAsset)
+      const blockedSet = new Set(BLOCKED_LAUNCHPAD_TOKENS.map((a) => a.toLowerCase()))
+      data.tokens = data.tokens.filter((t) => !blockedSet.has(t.address.toLowerCase()))
+      return data
     },
     staleTime: 10_000, // 10 seconds
     refetchInterval: 30_000, // 30 seconds

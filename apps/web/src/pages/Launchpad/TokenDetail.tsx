@@ -1,4 +1,5 @@
 import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
+import { BLOCKED_LAUNCHPAD_TOKENS } from 'constants/launchpad'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
 import { useGraduate } from 'hooks/useLaunchpadActions'
 import { useLaunchpadToken } from 'hooks/useLaunchpadTokens'
@@ -270,6 +271,26 @@ export default function TokenDetail() {
         <ContentWrapper>
           <Text variant="body1" color="$neutral2">
             Token not found
+          </Text>
+        </ContentWrapper>
+      </PageContainer>
+    )
+  }
+
+  // Check if token is blocked
+  const isBlocked = BLOCKED_LAUNCHPAD_TOKENS.some((a) => a.toLowerCase() === tokenAddress.toLowerCase())
+  if (isBlocked) {
+    return (
+      <PageContainer>
+        <ContentWrapper>
+          <BackButton onPress={handleBack}>
+            <BackArrow size="$icon.20" color="$neutral2" />
+            <Text variant="body2" color="$neutral2">
+              Back to Launchpad
+            </Text>
+          </BackButton>
+          <Text variant="body1" color="$neutral2" marginTop="$spacing24">
+            This token is no longer available.
           </Text>
         </ContentWrapper>
       </PageContainer>
