@@ -219,35 +219,16 @@ export function getEnabledChains({
   isCitreaOnlyEnabled?: boolean
 }): EnabledChainsInfo {
   const enabledChainInfos = ORDERED_CHAINS.filter((chainInfo) => {
-    // Filter by platform - removed conditional as all chains are EVM now
-    if (platform !== undefined) {
-      // All chains are now Platform.EVM, so no filtering needed
-    }
-
-    if (ALWAYS_ENABLED_CHAIN_IDS.includes(chainInfo.id)) {
-      return true
-    }
-
-    // Filter mainnet vs testnet based on mode
-    const isTestnet = isTestnetChain(chainInfo.id)
-    if (isTestnetModeEnabled) {
-      // In testnet mode, only show testnets
-      if (!isTestnet) {
-        return false
-      }
-    } else {
-      // In mainnet mode, show mainnets, or also testnets if includeTestnets is true
-      if (isTestnet && !includeTestnets) {
-        return false
-      }
-    }
-
     // Filter by connected wallet chains if provided
     if (connectedWalletChainIds && !connectedWalletChainIds.includes(chainInfo.id)) {
       return false
     }
 
-    return false
+    if(isTestnetModeEnabled) {
+      return isTestnetChain(chainInfo.id)
+    } else {
+      return ALWAYS_ENABLED_CHAIN_IDS.includes(chainInfo.id) && !isTestnetChain(chainInfo.id)
+    }
   })
 
   // Extract chain IDs and GQL chains from filtered results
