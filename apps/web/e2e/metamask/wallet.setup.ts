@@ -18,13 +18,26 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
  * - WALLET_PASSWORD: Password for MetaMask (can be any password for testing)
  */
 
-// Wallet credentials from environment - no hardcoded fallbacks
-export const SEED_PHRASE = process.env.WALLET_SEED_PHRASE || ''
-export const WALLET_PASSWORD = process.env.WALLET_PASSWORD || ''
+// Wallet credentials from environment - NO FALLBACKS ALLOWED
+// Tests MUST fail if these are not properly set
+export const SEED_PHRASE = process.env.WALLET_SEED_PHRASE ?? ''
+export const WALLET_PASSWORD = process.env.WALLET_PASSWORD ?? ''
 
-// Derive wallet address from seed phrase
-const wallet = Wallet.fromMnemonic(SEED_PHRASE)
-export const WALLET_ADDRESS = wallet.address
+// Derive wallet address from seed phrase (only if valid)
+function deriveWalletAddress(seedPhrase: string): string {
+  if (!seedPhrase || seedPhrase.split(' ').length !== 12) {
+    // Return empty string - tests will validate and fail appropriately
+    return ''
+  }
+  try {
+    const wallet = Wallet.fromMnemonic(seedPhrase)
+    return wallet.address
+  } catch {
+    return ''
+  }
+}
+
+export const WALLET_ADDRESS = deriveWalletAddress(SEED_PHRASE)
 
 // Chain configurations
 export const CHAIN_CONFIG = {
