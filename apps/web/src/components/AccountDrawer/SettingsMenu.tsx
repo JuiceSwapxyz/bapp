@@ -1,6 +1,5 @@
 import { AnalyticsToggle } from 'components/AccountDrawer/AnalyticsToggle'
 import { AppVersionRow } from 'components/AccountDrawer/AppVersionRow'
-import { CitreaOnlyToggle } from 'components/AccountDrawer/CitreaOnlyToggle'
 import { SlideOutMenu } from 'components/AccountDrawer/SlideOutMenu'
 import { TestnetModeToggle } from 'components/AccountDrawer/TestnetModeToggle'
 import Column from 'components/deprecated/Column'
@@ -81,7 +80,8 @@ export default function SettingsMenu({
           />
         </Flex>
         <TestnetModeToggle />
-        <CitreaOnlyToggle />
+        {/* Citrea-only mode is now always enabled - toggle hidden */}
+        {/* <CitreaOnlyToggle /> */}
         <AnalyticsToggle />
       </Container>
     </SlideOutMenu>

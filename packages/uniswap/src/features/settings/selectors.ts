@@ -11,5 +11,5 @@ export const selectCurrentLanguage = (state: UniswapState): Language => state.us
 export const selectIsTestnetModeEnabled = (state: UniswapState): boolean =>
   state.userSettings.isTestnetModeEnabled ?? false // TODO: remove this once we have a way to toggle testnet mode
 
-export const selectIsCitreaOnlyEnabled = (state: UniswapState): boolean =>
-  state.userSettings.isCitreaOnlyEnabled ?? false
+// TODO: Allow toggle when Citrea Mainnet exists
+export const selectIsCitreaOnlyEnabled = (): boolean => true

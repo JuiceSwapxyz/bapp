@@ -6,6 +6,7 @@ import { SmartWallet } from 'ui/src/components/icons/SmartWallet'
 import { Wrench } from 'ui/src/components/icons/Wrench'
 import { iconSizes } from 'ui/src/theme'
 import { Modal } from 'uniswap/src/components/modals/Modal'
+import { isCitreaMainnetAvailable } from 'uniswap/src/features/chains/utils'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { isMobileApp } from 'utilities/src/platform'
 
@@ -62,6 +63,7 @@ export function SmartWalletAdvancedSettingsModal({
           }
           title={t('settings.setting.wallet.testnetMode.title')}
           isHoverable={false}
+          disabled={!isCitreaMainnetAvailable()}
           onCheckedChange={onTestnetModeToggled}
         />
         <AdvancedSettingsOptions
@@ -83,6 +85,7 @@ interface AdvancedSettingsOptionsProps {
   onCheckedChange?: (isChecked: boolean) => void
   onPress?: () => void
   isHoverable: boolean
+  disabled?: boolean
 }
 
 function AdvancedSettingsOptions({
@@ -92,6 +95,7 @@ function AdvancedSettingsOptions({
   onCheckedChange,
   onPress,
   isHoverable,
+  disabled,
 }: AdvancedSettingsOptionsProps): JSX.Element {
   const colors = useSporeColors()
 
@@ -122,6 +126,7 @@ function AdvancedSettingsOptions({
         <Switch
           checked={active ?? false}
           variant="branded"
+          disabled={disabled}
           onCheckedChange={(isChecked: boolean) => {
             onCheckedChange(isChecked)
           }}
