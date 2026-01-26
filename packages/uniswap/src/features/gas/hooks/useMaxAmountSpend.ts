@@ -90,6 +90,7 @@ function useGetMinAmount(chainId?: UniverseChainId, txType?: TransactionType): J
     case UniverseChainId.Soneium:
       return MIN_L2_FOR_GAS
     case UniverseChainId.CitreaTestnet:
+    case UniverseChainId.CitreaMainnet:
       return MIN_CITREA_TESTNET_FOR_GAS
     default:
       logger.error(new Error('unhandled chain when getting min gas amount'), {

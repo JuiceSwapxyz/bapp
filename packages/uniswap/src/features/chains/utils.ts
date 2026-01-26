@@ -58,7 +58,7 @@ export function isL2ChainId(chainId?: UniverseChainId): boolean {
 }
 
 export function isMainnetChainId(chainId?: UniverseChainId): boolean {
-  return chainId === UniverseChainId.Mainnet || chainId === UniverseChainId.Sepolia
+  return chainId === UniverseChainId.CitreaMainnet
 }
 
 export function toGraphQLChain(chainId: UniverseChainId): GqlChainId {
@@ -223,12 +223,6 @@ export function getEnabledChains({
       // All chains are now Platform.EVM, so no filtering needed
     }
 
-    if (isCitreaOnlyEnabled) {
-      if (chainInfo.id !== UniverseChainId.CitreaTestnet) {
-        return false
-      }
-    }
-
     if (ALWAYS_ENABLED_CHAIN_IDS.includes(chainInfo.id)) {
       return true
     }
@@ -283,17 +277,11 @@ function getDefaultChainId({
   isTestnetModeEnabled: boolean
   isCitreaOnlyEnabled?: boolean
 }): UniverseChainId {
-  // If Citrea only is enabled, return CitreaTestnet as default
-  if (isCitreaOnlyEnabled) {
+  if (isTestnetModeEnabled) {
     return UniverseChainId.CitreaTestnet
   }
 
-  // Return default based on testnet mode
-  if (isTestnetModeEnabled) {
-    return UniverseChainId.Sepolia
-  }
-
-  return UniverseChainId.CitreaTestnet
+  return UniverseChainId.CitreaMainnet
 }
 
 /** Returns all stablecoins for a given chainId. */
@@ -315,7 +303,5 @@ export function isUniverseChainId(chainId?: number | UniverseChainId | null): ch
  * @returns true when CitreaMainnet chain is added to ORDERED_CHAINS
  */
 export function isCitreaMainnetAvailable(): boolean {
-  // Check if UniverseChainId.CitreaMainnet exists and is in ORDERED_CHAINS
-  // @ts-expect-error - CitreaMainnet doesn't exist yet, will exist when added
   return ORDERED_CHAINS.some((chain) => chain.id === UniverseChainId.CitreaMainnet)
 }

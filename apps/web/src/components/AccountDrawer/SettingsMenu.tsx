@@ -80,8 +80,6 @@ export default function SettingsMenu({
           />
         </Flex>
         <TestnetModeToggle />
-        {/* Citrea-only mode is now always enabled - toggle hidden */}
-        {/* <CitreaOnlyToggle /> */}
         <AnalyticsToggle />
       </Container>
     </SlideOutMenu>

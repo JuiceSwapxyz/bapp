@@ -317,6 +317,20 @@ export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } =
     'WETH',
     'Wrapped Ether',
   ),
+  [UniverseChainId.CitreaMainnet]: new Token(
+    UniverseChainId.CitreaMainnet,
+    WETH9[UniverseChainId.CitreaMainnet as unknown as number]?.address || '0x0000000000000000000000000000000000000000',
+    18,
+    'WcBTC',
+    'Wrapped Citrea BTC',
+  ),
+  [UniverseChainId.CitreaTestnet]: new Token(
+    UniverseChainId.CitreaTestnet,
+    WETH9[UniverseChainId.CitreaTestnet as unknown as number]?.address || '0x0000000000000000000000000000000000000000',
+    18,
+    'WcBTC',
+    'Wrapped Citrea BTC',
+  ),
   [UniverseChainId.Bitcoin]: new Token(
     UniverseChainId.Bitcoin,
     '0x0000000000000000000000000000000000000000',

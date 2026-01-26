@@ -45,7 +45,7 @@ import {
 } from 'uniswap/src/constants/tokens'
 import { ProtectionResult } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
-import { CITREA_TESTNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/citrea'
+import { CITREA_TESTNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/citrea-testnet'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo, TokenList } from 'uniswap/src/features/dataApi/types'
 import { buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
@@ -53,10 +53,15 @@ import { getJusdAddress, isJusdAddress } from 'uniswap/src/features/tokens/jusdA
 import { isNativeCurrencyAddress } from 'uniswap/src/utils/currencyId'
 import { isSameAddress } from 'utilities/src/addresses'
 
-// JUSD token for Citrea Testnet - used in COMMON_BASES
-const JUSD_CITREA_ADDRESS = getJusdAddress(UniverseChainId.CitreaTestnet)
-const JUSD_CITREA = JUSD_CITREA_ADDRESS
-  ? new Token(UniverseChainId.CitreaTestnet, JUSD_CITREA_ADDRESS, 18, 'JUSD', 'Juice Dollar')
+// JUSD token for Citrea chains - used in COMMON_BASES
+const JUSD_CITREA_MAINNET_ADDRESS = getJusdAddress(UniverseChainId.CitreaMainnet)
+const JUSD_CITREA_MAINNET = JUSD_CITREA_MAINNET_ADDRESS
+  ? new Token(UniverseChainId.CitreaMainnet, JUSD_CITREA_MAINNET_ADDRESS, 18, 'JUSD', 'Juice Dollar')
+  : undefined
+
+const JUSD_CITREA_TESTNET_ADDRESS = getJusdAddress(UniverseChainId.CitreaTestnet)
+const JUSD_CITREA_TESTNET = JUSD_CITREA_TESTNET_ADDRESS
+  ? new Token(UniverseChainId.CitreaTestnet, JUSD_CITREA_TESTNET_ADDRESS, 18, 'JUSD', 'Juice Dollar')
   : undefined
 
 // L0 bridged tokens on Citrea (from Ethereum via LayerZero)
@@ -192,11 +197,17 @@ export const COMMON_BASES: ChainCurrencyList = {
     USDC_ZORA,
   ].map(buildPartialCurrencyInfo),
 
+  [UniverseChainId.CitreaMainnet]: [
+    nativeOnChain(UniverseChainId.CitreaMainnet),
+    WRAPPED_NATIVE_CURRENCY[UniverseChainId.CitreaMainnet] as Token,
+    ...(JUSD_CITREA_MAINNET ? [JUSD_CITREA_MAINNET] : []),
+  ].map(buildPartialCurrencyInfo),
+
   [UniverseChainId.CitreaTestnet]: [
     nativeOnChain(UniverseChainId.CitreaTestnet),
     WRAPPED_NATIVE_CURRENCY[UniverseChainId.CitreaTestnet] as Token,
     CITREA_TESTNET_CHAIN_INFO.tokens.USDC,
-    ...(JUSD_CITREA ? [JUSD_CITREA] : []),
+    ...(JUSD_CITREA_TESTNET ? [JUSD_CITREA_TESTNET] : []),
     // L0 bridged tokens
     WBTC_E_CITREA,
     USDC_E_CITREA,
