@@ -206,7 +206,7 @@ export function getEnabledChains({
    */
   includeTestnets = false,
   isTestnetModeEnabled,
-  featureFlaggedChainIds,
+  featureFlaggedChainIds: _featureFlaggedChainIds,
   connectedWalletChainIds,
   isCitreaOnlyEnabled = false,
 }: {
@@ -241,17 +241,12 @@ export function getEnabledChains({
       }
     }
 
-    // Filter by feature flags
-    if (!featureFlaggedChainIds.includes(chainInfo.id)) {
-      return false
-    }
-
     // Filter by connected wallet chains if provided
     if (connectedWalletChainIds && !connectedWalletChainIds.includes(chainInfo.id)) {
       return false
     }
 
-    return true
+    return false
   })
 
   // Extract chain IDs and GQL chains from filtered results
