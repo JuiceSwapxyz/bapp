@@ -75,12 +75,12 @@ export const CITREA_MAINNET_CHAIN_INFO = {
   docs: 'https://docs.citrea.xyz/',
   elementName: ElementName.ChainCitreaTestnet,
   explorer: {
-    name: 'Citrea Testnet Explorer',
+    name: 'Citrea Mainnet Explorer',
     url: `${CITREA_MAINNET_EXPLORER_URL}/`,
     apiURL: `${CITREA_MAINNET_EXPLORER_URL}/api`,
   },
-  interfaceName: 'citrea_testnet',
-  label: 'Citrea Testnet',
+  interfaceName: 'citrea_mainnet',
+  label: 'Citrea Mainnet',
   logo: CITREA_LOGO,
   nativeCurrency: {
     name: 'Citrea BTC',
@@ -110,7 +110,7 @@ export const CITREA_MAINNET_CHAIN_INFO = {
   tokens: mainnetTokens,
   statusPage: undefined,
   supportsV4: false,
-  urlParam: 'citrea',
+  urlParam: 'citrea_mainnet',
   wrappedNativeCurrency: {
     name: 'Wrapped Citrea BTC',
     symbol: 'WcBTC',
