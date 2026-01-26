@@ -293,6 +293,26 @@ export function BuySellPanel({
     return BigInt(tokenAllowance.quotient.toString()) < parsedAmount
   }, [isBuy, tokenAllowance, parsedAmount])
 
+  // Check if user has sufficient balance
+  const hasInsufficientBalance = useMemo(() => {
+    if (!parsedAmount || parsedAmount === 0n) {
+      return false
+    }
+    if (isBuy) {
+      // Check JUSD balance for buying
+      if (!baseBalance) {
+        return true
+      }
+      return baseBalance.value < parsedAmount
+    } else {
+      // Check token balance for selling
+      if (!tokenBalance) {
+        return true
+      }
+      return tokenBalance < parsedAmount
+    }
+  }, [isBuy, parsedAmount, baseBalance, tokenBalance])
+
   // Action hooks
   const buy = useBuy(tokenAddress, chainId)
   const sell = useSell(tokenAddress, chainId)
@@ -428,7 +448,19 @@ export function BuySellPanel({
       queryClient.invalidateQueries({ queryKey: ['launchpad-tokens'] })
       queryClient.invalidateQueries({ queryKey: ['launchpad-token', tokenAddress] })
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Transaction failed'
+      let message = err instanceof Error ? err.message : 'Transaction failed'
+      // Parse common contract errors for better UX
+      if (message.includes('ERC20InsufficientBalance') || message.includes('insufficient balance')) {
+        message = isBuy ? 'Insufficient JUSD balance' : `Insufficient ${tokenSymbol} balance`
+      } else if (message.includes('ERC20InsufficientAllowance') || message.includes('insufficient allowance')) {
+        message = isBuy ? 'Please approve JUSD first' : `Please approve ${tokenSymbol} first`
+      } else if (message.includes('InsufficientOutput') || message.includes('slippage')) {
+        message = 'Price changed too much. Try increasing slippage or reducing amount.'
+      } else if (message.includes('User rejected') || message.includes('user rejected')) {
+        message = 'Transaction cancelled'
+      } else if (message.includes('execution reverted')) {
+        message = 'Transaction failed. Please check your balance and try again.'
+      }
       setError(message)
     } finally {
       setIsLoading(false)
@@ -464,6 +496,9 @@ export function BuySellPanel({
     if (!parsedAmount || parsedAmount === 0n) {
       return 'Enter amount'
     }
+    if (hasInsufficientBalance) {
+      return isBuy ? 'Insufficient JUSD balance' : `Insufficient ${tokenSymbol} balance`
+    }
     if (isBuy && needsBaseApproval) {
       return 'Approve JUSD'
     }
@@ -471,10 +506,20 @@ export function BuySellPanel({
       return `Approve ${tokenSymbol}`
     }
     return isBuy ? 'Buy' : 'Sell'
-  }, [account.address, isLoading, parsedAmount, isBuy, needsBaseApproval, needsTokenApproval, tokenSymbol])
+  }, [
+    account.address,
+    isLoading,
+    parsedAmount,
+    isBuy,
+    hasInsufficientBalance,
+    needsBaseApproval,
+    needsTokenApproval,
+    tokenSymbol,
+  ])
 
   const isWalletConnected = !!account.address
-  const isButtonDisabled = isWalletConnected && (isLoading || !parsedAmount || parsedAmount === 0n)
+  const isButtonDisabled =
+    isWalletConnected && (isLoading || !parsedAmount || parsedAmount === 0n || hasInsufficientBalance)
 
   const handleButtonPress = useCallback(() => {
     if (!isWalletConnected) {
