@@ -7,7 +7,7 @@ import { useBondingCurveBalance, useCalculateBuy, useCalculateSell } from 'hooks
 import { calculateMinOutput, useBuy, useSell } from 'hooks/useLaunchpadActions'
 import { useTokenAllowance, useUpdateTokenAllowance } from 'hooks/useTokenAllowance'
 import styledComponents from 'lib/styled-components'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { useTransactionAdder } from 'state/transactions/hooks'
@@ -184,6 +184,7 @@ export function BuySellPanel({
   const [amount, setAmount] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isUsingMaxRef = useRef(false)
 
   const navigate = useNavigate()
   const account = useAccount()
@@ -346,6 +347,7 @@ export function BuySellPanel({
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      isUsingMaxRef.current = false
       setAmount(value)
       setError(null)
     }
@@ -353,11 +355,30 @@ export function BuySellPanel({
 
   const handleMaxClick = useCallback(() => {
     if (isBuy && baseBalance) {
+      isUsingMaxRef.current = true
       setAmount(formatUnits(baseBalance.value, 18))
     } else if (!isBuy && tokenBalance) {
+      isUsingMaxRef.current = true
       setAmount(formatUnits(tokenBalance, 18))
     }
   }, [isBuy, baseBalance, tokenBalance])
+
+  // Auto-update amount when user is using MAX and balance changes
+  useEffect(() => {
+    if (!isUsingMaxRef.current || !parsedAmount) {
+      return
+    }
+
+    const currentBalance = isBuy ? baseBalance?.value : tokenBalance
+    if (!currentBalance) {
+      return
+    }
+
+    // If the entered amount exceeds the current balance, update to the new max
+    if (parsedAmount > currentBalance) {
+      setAmount(formatUnits(currentBalance, 18))
+    }
+  }, [isBuy, baseBalance?.value, tokenBalance, parsedAmount])
 
   const handleAction = useCallback(async () => {
     if (!parsedAmount || parsedAmount === 0n || !account.address) {
@@ -441,6 +462,7 @@ export function BuySellPanel({
         )
       }
       setAmount('')
+      isUsingMaxRef.current = false
       refetchTokenBalance()
       refetchBaseBalance()
       onTransactionComplete?.()
