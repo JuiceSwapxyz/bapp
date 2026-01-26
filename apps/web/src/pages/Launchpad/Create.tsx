@@ -1,3 +1,4 @@
+import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { useAccount } from 'hooks/useAccount'
 import { useCreateToken, useUploadTokenMetadata } from 'hooks/useLaunchpadActions'
 import { useTokenFactory } from 'hooks/useTokenFactory'
@@ -182,6 +183,7 @@ const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp
 export default function CreateToken() {
   const navigate = useNavigate()
   const account = useAccount()
+  const accountDrawer = useAccountDrawer()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Form state
@@ -372,10 +374,19 @@ export default function CreateToken() {
     addTransaction,
   ])
 
-  const isButtonDisabled =
-    !account.address || isLoading || !name.trim() || !symbol.trim() || !description.trim() || !imageFile
+  const isWalletConnected = !!account.address
+  const isFormComplete = !!name.trim() && !!symbol.trim() && !!description.trim() && !!imageFile
+  const isButtonDisabled = isWalletConnected && (isLoading || !isFormComplete)
 
-  const buttonText = !account.address ? 'Connect Wallet' : isLoading ? loadingStatus || 'Creating...' : 'Create Token'
+  const buttonText = !isWalletConnected ? 'Connect Wallet' : isLoading ? loadingStatus || 'Creating...' : 'Create Token'
+
+  const handleButtonPress = useCallback(() => {
+    if (!isWalletConnected) {
+      accountDrawer.open()
+    } else {
+      handleCreate()
+    }
+  }, [isWalletConnected, accountDrawer, handleCreate])
 
   // Format initial liquidity
   const initialLiquidity = initialVirtualBaseReserves
@@ -513,7 +524,7 @@ export default function CreateToken() {
 
             {error && <ErrorText>{error}</ErrorText>}
 
-            <CreateButton disabled={isButtonDisabled} onPress={isButtonDisabled ? undefined : handleCreate}>
+            <CreateButton disabled={isButtonDisabled} onPress={isButtonDisabled ? undefined : handleButtonPress}>
               <Text variant="buttonLabel2" color="$white">
                 {buttonText}
               </Text>
