@@ -19,6 +19,7 @@ import { useSporeColors } from 'ui/src'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import { useTokenWebQuery } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { usePortfolioBalances } from 'uniswap/src/features/dataApi/balances/balances'
@@ -50,7 +51,8 @@ function useTDPCurrency({
   isNative: boolean
 }) {
   const { chainId } = useAccount()
-  const appChainId = chainId ?? UniverseChainId.Mainnet
+  const { defaultChainId } = useEnabledChains()
+  const appChainId = chainId ?? defaultChainId
 
   const queryCurrency = useMemo(() => {
     if (isNative) {
