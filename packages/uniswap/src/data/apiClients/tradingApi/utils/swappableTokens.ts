@@ -29,7 +29,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
         name: 'Lightning BTC',
         project: {
           logo: {
-            url: 'https://docs.juiceswap.com/media/icons/lightning.png',
+            url: 'https://docs.juiceswap.com/media/icons/cbtc.png',
           },
           safetyLevel: SafetyLevel.VERIFIED,
           isSpam: false,
