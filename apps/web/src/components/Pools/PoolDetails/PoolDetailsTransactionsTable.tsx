@@ -19,7 +19,7 @@ import { ExternalLink } from 'theme/components/Links'
 import { Flex, Text, useMedia } from 'ui/src'
 import { WRAPPED_NATIVE_CURRENCY } from 'uniswap/src/constants/tokens'
 import { ProtocolVersion, Token } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useAppFiatCurrency } from 'uniswap/src/features/fiatCurrency/hooks'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
@@ -73,7 +73,8 @@ export function PoolDetailsTransactionsTable({
   token1?: Token
   protocolVersion?: ProtocolVersion
 }) {
-  const chainId = useChainIdFromUrlParam() ?? UniverseChainId.Mainnet
+  const { defaultChainId } = useEnabledChains()
+  const chainId = useChainIdFromUrlParam() ?? defaultChainId
   const activeLocalCurrency = useAppFiatCurrency()
   const { convertFiatAmountFormatted, formatNumberOrString } = useLocalizationContext()
   const [filterModalIsOpen, toggleFilterModal] = useReducer((s) => !s, false)

@@ -43,7 +43,7 @@ const StyledDropdown = {
 export default function TableNetworkFilter({ showMultichainOption = true }: { showMultichainOption?: boolean }) {
   const [isMenuOpen, toggleMenu] = useState(false)
   const isSupportedChainCallback = useIsSupportedChainIdCallback()
-  const { isTestnetModeEnabled } = useEnabledChains()
+  const { isTestnetModeEnabled, defaultChainId } = useEnabledChains()
   const { chains: enabledChainIds } = useEnabledChains({ includeTestnets: true })
   const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
 
@@ -84,9 +84,7 @@ export default function TableNetworkFilter({ showMultichainOption = true }: { sh
                 <NetworkLogo chainId={null} />
               ) : (
                 <ChainLogo
-                  chainId={
-                    isCitreaOnlyEnabled ? UniverseChainId.CitreaTestnet : currentChainId ?? UniverseChainId.Mainnet
-                  }
+                  chainId={isCitreaOnlyEnabled ? UniverseChainId.CitreaTestnet : currentChainId ?? defaultChainId}
                   size={20}
                   testId={TestID.TokensNetworkFilterSelected}
                 />
