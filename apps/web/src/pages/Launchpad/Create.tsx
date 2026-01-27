@@ -14,7 +14,8 @@ import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
-import { formatUnits } from 'viem'
+import { formatUnits, parseEther } from 'viem'
+import { useBalance } from 'wagmi'
 
 const PageContainer = styled(Flex, {
   width: '100%',
@@ -219,6 +220,16 @@ export default function CreateToken() {
   const { initialVirtualBaseReserves } = useTokenFactory(launchpadChainId)
   const addTransaction = useTransactionAdder()
 
+  // Check native balance for gas fees
+  const { data: nativeBalance } = useBalance({
+    address: account.address as `0x${string}` | undefined,
+    chainId: launchpadChainId as number,
+  })
+
+  // Minimum gas threshold (0.0001 cBTC should be enough for token creation)
+  const MIN_GAS_THRESHOLD = parseEther('0.0001')
+  const hasInsufficientGas = account.address && nativeBalance && nativeBalance.value < MIN_GAS_THRESHOLD
+
   const handleBack = useCallback(() => {
     navigate('/launchpad')
   }, [navigate])
@@ -389,9 +400,15 @@ export default function CreateToken() {
 
   const isWalletConnected = !!account.address
   const isFormComplete = !!name.trim() && !!symbol.trim() && !!description.trim() && !!imageFile
-  const isButtonDisabled = isWalletConnected && (isLoading || !isFormComplete)
+  const isButtonDisabled = isWalletConnected && (isLoading || !isFormComplete || hasInsufficientGas)
 
-  const buttonText = !isWalletConnected ? 'Connect Wallet' : isLoading ? loadingStatus || 'Creating...' : 'Create Token'
+  const buttonText = !isWalletConnected
+    ? 'Connect Wallet'
+    : hasInsufficientGas
+      ? 'Insufficient cBTC for gas'
+      : isLoading
+        ? loadingStatus || 'Creating...'
+        : 'Create Token'
 
   const handleButtonPress = useCallback(() => {
     if (!isWalletConnected) {
@@ -537,6 +554,10 @@ export default function CreateToken() {
 
             {!isOnSupportedChain && account.address && (
               <ErrorText>Please switch to Citrea Mainnet or Citrea Testnet to continue</ErrorText>
+            )}
+
+            {hasInsufficientGas && (
+              <ErrorText>You need cBTC to pay for gas fees. Please add cBTC to your wallet.</ErrorText>
             )}
 
             {error && <ErrorText>{error}</ErrorText>}
