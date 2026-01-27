@@ -18,13 +18,16 @@ function useTokenSectionsForSwap({
 }: TokenSectionsHookProps): GqlResult<OnchainItemSection<TokenSelectorOption>[]> {
   const { defaultChainId } = useEnabledChains()
 
+  // Compute effective chain filter once, use for all hooks to ensure consistent filtering
+  const effectiveChainFilter = chainFilter ?? oppositeSelectedToken?.chainId ?? defaultChainId
+
   const {
     data: commonTokenOptions,
     refetch: refetchCommonTokenOptions,
     loading: commonTokenOptionsLoading,
   } = useCommonTokensOptionsWithFallback(
     activeAccountAddress as `0x${string}` | undefined,
-    chainFilter ?? oppositeSelectedToken?.chainId ?? defaultChainId,
+    effectiveChainFilter,
   )
 
   const {
@@ -32,7 +35,7 @@ function useTokenSectionsForSwap({
     loading: portfolioTokenOptionsLoading,
   } = usePortfolioTokenOptions({
     address: activeAccountAddress as `0x${string}` | undefined,
-    chainFilter,
+    chainFilter: effectiveChainFilter,
   })
 
   const {
