@@ -13,7 +13,6 @@ import { toast } from 'sonner'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, Text, styled } from 'ui/src'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { assume0xAddress } from 'utils/wagmi'
 import { formatUnits, parseUnits } from 'viem'
@@ -205,7 +204,8 @@ export function BuySellPanel({
   const navigate = useNavigate()
   const account = useAccount()
   const accountDrawer = useAccountDrawer()
-  const chainId = UniverseChainId.CitreaTestnet
+  // Use the user's current chain ID instead of hardcoded testnet
+  const chainId = account.chainId
   const addTransaction = useTransactionAdder()
   const queryClient = useQueryClient()
 
@@ -250,14 +250,14 @@ export function BuySellPanel({
 
   // Create Token objects for allowance hook
   const baseToken = useMemo(() => {
-    if (!baseAsset) {
+    if (!baseAsset || !chainId) {
       return undefined
     }
     return new Token(chainId, assume0xAddress(baseAsset), 18, 'JUSD', 'Juice Dollar')
   }, [baseAsset, chainId])
 
   const launchpadToken = useMemo(() => {
-    if (!tokenAddress) {
+    if (!tokenAddress || !chainId) {
       return undefined
     }
     return new Token(chainId, assume0xAddress(tokenAddress), 18, tokenSymbol, tokenSymbol)

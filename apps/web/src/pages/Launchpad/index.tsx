@@ -1,3 +1,4 @@
+import { useAccount } from 'hooks/useAccount'
 import { useLaunchpadStats, useLaunchpadTokens, type LaunchpadFilterType } from 'hooks/useLaunchpadTokens'
 import { TokenCard } from 'pages/Launchpad/components/TokenCard'
 import { useCallback, useState } from 'react'
@@ -201,12 +202,21 @@ function TokenCardSkeleton() {
 
 export default function Launchpad() {
   const navigate = useNavigate()
+  const account = useAccount()
   const [filter, setFilter] = useState<LaunchpadFilterType>('all')
   const [page, setPage] = useState(0)
 
-  // Fetch tokens from Ponder API with filtering
-  const { data: tokensData, isLoading: tokensLoading } = useLaunchpadTokens({ filter, page, limit: TOKENS_PER_PAGE })
-  const { data: stats, isLoading: statsLoading } = useLaunchpadStats()
+  // Use the user's current chain ID to filter tokens by network
+  const chainId = account.chainId
+
+  // Fetch tokens from Ponder API with filtering by current chain
+  const { data: tokensData, isLoading: tokensLoading } = useLaunchpadTokens({
+    filter,
+    page,
+    limit: TOKENS_PER_PAGE,
+    chainId,
+  })
+  const { data: stats, isLoading: statsLoading } = useLaunchpadStats(chainId)
 
   const tokens = tokensData?.tokens || []
   const pagination = tokensData?.pagination

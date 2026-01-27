@@ -81,15 +81,18 @@ export interface UseLaunchpadTokensOptions {
   page?: number
   limit?: number
   sort?: 'newest' | 'volume' | 'trades'
+  /** Chain ID to filter tokens by. Required to show only tokens for the current network. */
+  chainId?: number
 }
 
 /**
  * Fetch launchpad tokens with filtering and pagination
+ * @param options - Fetch options including chainId for network filtering
  */
 export function useLaunchpadTokens(options: UseLaunchpadTokensOptions = {}) {
-  const { filter = 'all', page = 0, limit = 20, sort = 'newest' } = options
+  const { filter = 'all', page = 0, limit = 20, sort = 'newest', chainId } = options
   return useQuery({
-    queryKey: ['launchpad-tokens', filter, page, limit, sort],
+    queryKey: ['launchpad-tokens', filter, page, limit, sort, chainId],
     queryFn: async (): Promise<LaunchpadTokensResponse> => {
       const params = new URLSearchParams({
         filter,
@@ -97,11 +100,30 @@ export function useLaunchpadTokens(options: UseLaunchpadTokensOptions = {}) {
         limit: limit.toString(),
         sort,
       })
+      // Send chainId to API if provided (for future backend filtering support)
+      if (chainId) {
+        params.set('chainId', chainId.toString())
+      }
       const response = await fetch(`${API_URL}/v1/launchpad/tokens?${params}`)
       if (!response.ok) {
         throw new Error('Failed to fetch launchpad tokens')
       }
-      return response.json()
+      const data: LaunchpadTokensResponse = await response.json()
+
+      // Frontend filtering by chainId (ensures correct filtering even if backend doesn't support it yet)
+      if (chainId) {
+        const filteredTokens = data.tokens.filter((token) => token.chainId === chainId)
+        return {
+          tokens: filteredTokens,
+          pagination: {
+            ...data.pagination,
+            total: filteredTokens.length,
+            totalPages: Math.ceil(filteredTokens.length / limit),
+          },
+        }
+      }
+
+      return data
     },
     staleTime: 10_000, // 10 seconds
     refetchInterval: 30_000, // 30 seconds
@@ -129,12 +151,19 @@ export function useLaunchpadToken(address: string | undefined) {
 
 /**
  * Fetch launchpad stats
+ * @param chainId - Optional chain ID to filter stats by network
  */
-export function useLaunchpadStats() {
+export function useLaunchpadStats(chainId?: number) {
   return useQuery({
-    queryKey: ['launchpad-stats'],
+    queryKey: ['launchpad-stats', chainId],
     queryFn: async (): Promise<LaunchpadStatsResponse> => {
-      const response = await fetch(`${API_URL}/v1/launchpad/stats`)
+      const params = new URLSearchParams()
+      if (chainId) {
+        params.set('chainId', chainId.toString())
+      }
+      const queryString = params.toString()
+      const url = queryString ? `${API_URL}/v1/launchpad/stats?${queryString}` : `${API_URL}/v1/launchpad/stats`
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error('Failed to fetch launchpad stats')
       }

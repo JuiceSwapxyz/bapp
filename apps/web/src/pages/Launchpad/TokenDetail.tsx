@@ -1,3 +1,4 @@
+import { useAccount } from 'hooks/useAccount'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
 import { useLaunchpadToken } from 'hooks/useLaunchpadTokens'
 import { useTokenInfo } from 'hooks/useTokenFactory'
@@ -22,7 +23,6 @@ import { CopyAlt } from 'ui/src/components/icons/CopyAlt'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 import { InfoCircle } from 'ui/src/components/icons/InfoCircle'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
@@ -111,6 +111,10 @@ const AddressLink = styled(Flex, {
 export default function TokenDetail() {
   const { tokenAddress } = useParams<{ tokenAddress: string }>()
   const navigate = useNavigate()
+  const account = useAccount()
+
+  // Use the user's current chain ID for all operations
+  const chainId = account.chainId
 
   const {
     name,
@@ -123,9 +127,9 @@ export default function TokenDetail() {
     v2Pair,
     isLoading,
     refetch: refetchBondingCurve,
-  } = useBondingCurveToken(tokenAddress)
+  } = useBondingCurveToken(tokenAddress, chainId)
 
-  const { tokenInfo } = useTokenInfo(tokenAddress)
+  const { tokenInfo } = useTokenInfo(tokenAddress, chainId)
   const { data: launchpadData } = useLaunchpadToken(tokenAddress)
   const { data: metadata } = useTokenMetadata(launchpadData?.token.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
@@ -141,15 +145,15 @@ export default function TokenDetail() {
   }, [tokenAddress])
 
   const handleOpenExplorer = useCallback(() => {
-    if (tokenAddress) {
+    if (tokenAddress && chainId) {
       const url = getExplorerLink({
-        chainId: UniverseChainId.CitreaTestnet,
+        chainId,
         data: tokenAddress,
         type: ExplorerDataType.ADDRESS,
       })
       window.open(url, '_blank')
     }
-  }, [tokenAddress])
+  }, [tokenAddress, chainId])
 
   // Format values
   const liquidity = useMemo(() => {
@@ -352,9 +356,9 @@ export default function TokenDetail() {
                   <StatLabel variant="body2">Creator</StatLabel>
                   <AddressLink
                     onPress={() => {
-                      if (tokenInfo?.creator) {
+                      if (tokenInfo?.creator && chainId) {
                         const url = getExplorerLink({
-                          chainId: UniverseChainId.CitreaTestnet,
+                          chainId,
                           data: tokenInfo.creator,
                           type: ExplorerDataType.ADDRESS,
                         })
@@ -372,13 +376,13 @@ export default function TokenDetail() {
                     <StatValue variant="body2">{createdDate}</StatValue>
                   </StatRow>
                 )}
-                {graduated && v2Pair && (
+                {graduated && v2Pair && chainId && (
                   <StatRow paddingVertical="$spacing4">
                     <StatLabel variant="body2">V2 Pair</StatLabel>
                     <AddressLink
                       onPress={() => {
                         const url = getExplorerLink({
-                          chainId: UniverseChainId.CitreaTestnet,
+                          chainId,
                           data: v2Pair,
                           type: ExplorerDataType.ADDRESS,
                         })
