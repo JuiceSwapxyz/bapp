@@ -1,18 +1,13 @@
 import { ADDRESS } from '@juicedollar/jusd'
 import { ChainId, GetSwappableTokensResponse, SafetyLevel } from 'uniswap/src/data/tradingApi/__generated__'
 
-// Temporal mapping of swappable tokens for bridges (Citrea, Bitcoin, Lightning Network)
-// TODO: remove this once the backend API is updated
-
-const USE_SWAPPABLE_TOKENS_MAPPING = true
-
-const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
+const JUSD_CITREA_MAINNET = ADDRESS[4114]!.juiceDollar
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
 const USDT_ETHEREUM = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 const USDC_ETHEREUM = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
 
 export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = {
-  [ChainId._5115]: {
+  [ChainId._4114]: {
     '0x0000000000000000000000000000000000000000': [
       {
         address: '0x0000000000000000000000000000000000000000',
@@ -20,7 +15,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
         name: 'Bitcoin',
         project: {
           logo: {
-            url: 'https://docs.juiceswap.com/media/icons/cbtc.png', // TODO: add logo
+            url: 'https://docs.juiceswap.com/media/icons/cbtc.png',
           },
           safetyLevel: SafetyLevel.VERIFIED,
           isSpam: false,
@@ -34,7 +29,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
         name: 'Lightning BTC',
         project: {
           logo: {
-            url: 'https://docs.juiceswap.com/media/icons/lightning.png', // TODO: add logo
+            url: 'https://docs.juiceswap.com/media/icons/lightning.png',
           },
           safetyLevel: SafetyLevel.VERIFIED,
           isSpam: false,
@@ -43,7 +38,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
         decimals: 18,
       },
     ],
-    [JUSD_CITREA_TESTNET]: [
+    [JUSD_CITREA_MAINNET]: [
       {
         address: USDT_POLYGON,
         chainId: ChainId._137,
@@ -92,7 +87,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
     '0x0000000000000000000000000000000000000000': [
       {
         address: '0x0000000000000000000000000000000000000000',
-        chainId: ChainId._5115,
+        chainId: ChainId._4114,
         name: 'Citrea BTC',
         project: {
           logo: {
@@ -110,7 +105,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
     '0x0000000000000000000000000000000000000000': [
       {
         address: '0x0000000000000000000000000000000000000000',
-        chainId: ChainId._5115,
+        chainId: ChainId._4114,
         name: 'Citrea BTC',
         project: {
           logo: {
@@ -127,9 +122,9 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
   [ChainId._137]: {
     [USDT_POLYGON]: [
       {
-        address: JUSD_CITREA_TESTNET,
-        chainId: ChainId._5115,
-        name: 'JuiceSwap USD',
+        address: JUSD_CITREA_MAINNET,
+        chainId: ChainId._4114,
+        name: 'JuiceDollar',
         project: {
           logo: {
             url: 'https://docs.juiceswap.com/media/icons/jusd.png',
@@ -145,9 +140,9 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
   [ChainId._1]: {
     [USDT_ETHEREUM]: [
       {
-        address: JUSD_CITREA_TESTNET,
-        chainId: ChainId._5115,
-        name: 'JuiceSwap USD',
+        address: JUSD_CITREA_MAINNET,
+        chainId: ChainId._4114,
+        name: 'JuiceDollar',
         project: {
           logo: {
             url: 'https://docs.juiceswap.com/media/icons/jusd.png',
@@ -161,9 +156,9 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
     ],
     [USDC_ETHEREUM]: [
       {
-        address: JUSD_CITREA_TESTNET,
-        chainId: ChainId._5115,
-        name: 'JuiceSwap USD',
+        address: JUSD_CITREA_MAINNET,
+        chainId: ChainId._4114,
+        name: 'JuiceDollar',
         project: {
           logo: {
             url: 'https://docs.juiceswap.com/media/icons/jusd.png',
@@ -176,8 +171,7 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
       },
     ],
   },
+
 }
 
-export const swappableTokensMappping: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> =
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  USE_SWAPPABLE_TOKENS_MAPPING ? swappableTokensData : {}
+export const swappableTokensMappping: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = swappableTokensData
