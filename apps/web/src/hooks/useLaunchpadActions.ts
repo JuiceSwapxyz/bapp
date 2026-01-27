@@ -29,7 +29,7 @@ export function useBondingCurveContract(tokenAddress: string | undefined, chainI
 /**
  * Hook to get the TokenFactory contract instance
  */
-export function useTokenFactoryContract(chainId: UniverseChainId = UniverseChainId.CitreaTestnet) {
+export function useTokenFactoryContract(chainId: UniverseChainId = UniverseChainId.CitreaMainnet) {
   const factoryAddress = useMemo(() => {
     const addresses = LAUNCHPAD_ADDRESSES[chainId]
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -70,7 +70,7 @@ export interface CreateTokenParams {
  */
 export function useBuy(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): (params: BuyParams) => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
   const account = useAccount()
@@ -86,7 +86,7 @@ export function useBuy(
       if (currentAccount.chainId !== chainId) {
         const switched = await selectChain(chainId)
         if (!switched) {
-          throw new Error('Please switch to Citrea Testnet to continue')
+          throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
         }
       }
 
@@ -125,7 +125,7 @@ export function useBuy(
  */
 export function useSell(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): (params: SellParams) => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
   const account = useAccount()
@@ -141,7 +141,7 @@ export function useSell(
       if (currentAccount.chainId !== chainId) {
         const switched = await selectChain(chainId)
         if (!switched) {
-          throw new Error('Please switch to Citrea Testnet to continue')
+          throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
         }
       }
 
@@ -178,7 +178,7 @@ export function useSell(
  * @param chainId - Chain ID
  */
 export function useCreateToken(
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): (params: CreateTokenParams) => Promise<{ tx: ContractTransaction; tokenAddress: string | null }> {
   const contract = useTokenFactoryContract(chainId)
   const account = useAccount()
@@ -198,7 +198,7 @@ export function useCreateToken(
       if (currentAccount.chainId !== chainId) {
         const switched = await selectChain(chainId)
         if (!switched) {
-          throw new Error('Please switch to Citrea Testnet to continue')
+          throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
         }
       }
 
@@ -264,7 +264,7 @@ export function useCreateToken(
  */
 export function useGraduate(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): () => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
   const account = useAccount()
@@ -279,7 +279,7 @@ export function useGraduate(
     if (currentAccount.chainId !== chainId) {
       const switched = await selectChain(chainId)
       if (!switched) {
-        throw new Error('Please switch to Citrea Testnet to continue')
+        throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
       }
     }
 

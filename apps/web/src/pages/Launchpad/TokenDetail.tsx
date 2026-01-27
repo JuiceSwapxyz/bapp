@@ -130,6 +130,10 @@ export default function TokenDetail() {
   const { data: metadata } = useTokenMetadata(launchpadData?.token.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
 
+  // Use token's chainId from API when available, default to testnet while loading
+  // This ensures viewing works without wallet connection
+  const chainId = (launchpadData?.token.chainId as UniverseChainId) ?? UniverseChainId.CitreaTestnet
+
   const handleBack = useCallback(() => {
     navigate('/launchpad')
   }, [navigate])
@@ -143,13 +147,13 @@ export default function TokenDetail() {
   const handleOpenExplorer = useCallback(() => {
     if (tokenAddress) {
       const url = getExplorerLink({
-        chainId: UniverseChainId.CitreaTestnet,
+        chainId,
         data: tokenAddress,
         type: ExplorerDataType.ADDRESS,
       })
       window.open(url, '_blank')
     }
-  }, [tokenAddress])
+  }, [tokenAddress, chainId])
 
   // Format values
   const liquidity = useMemo(() => {
@@ -354,7 +358,7 @@ export default function TokenDetail() {
                     onPress={() => {
                       if (tokenInfo?.creator) {
                         const url = getExplorerLink({
-                          chainId: UniverseChainId.CitreaTestnet,
+                          chainId,
                           data: tokenInfo.creator,
                           type: ExplorerDataType.ADDRESS,
                         })
@@ -378,7 +382,7 @@ export default function TokenDetail() {
                     <AddressLink
                       onPress={() => {
                         const url = getExplorerLink({
-                          chainId: UniverseChainId.CitreaTestnet,
+                          chainId,
                           data: v2Pair,
                           type: ExplorerDataType.ADDRESS,
                         })

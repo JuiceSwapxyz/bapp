@@ -1,13 +1,15 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { isLaunchpadChainSupported } from 'constants/launchpad'
 import { useAccount } from 'hooks/useAccount'
 import { useCreateToken, useUploadTokenMetadata } from 'hooks/useLaunchpadActions'
 import { useTokenFactory } from 'hooks/useTokenFactory'
 import styledComponents from 'lib/styled-components'
 import { BackButton, StatLabel, StatRow, StatValue } from 'pages/Launchpad/components/shared'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, Text, styled } from 'ui/src'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
@@ -186,6 +188,17 @@ export default function CreateToken() {
   const accountDrawer = useAccountDrawer()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Determine the launchpad chain based on user's current chain
+  const launchpadChainId = useMemo(() => {
+    if (account.chainId && isLaunchpadChainSupported(account.chainId)) {
+      return account.chainId as UniverseChainId
+    }
+    // Default to mainnet if user isn't on a supported chain
+    return UniverseChainId.CitreaMainnet
+  }, [account.chainId])
+
+  const isOnSupportedChain = account.chainId ? isLaunchpadChainSupported(account.chainId) : false
+
   // Form state
   const [name, setName] = useState('')
   const [symbol, setSymbol] = useState('')
@@ -201,9 +214,9 @@ export default function CreateToken() {
   const [loadingStatus, setLoadingStatus] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const createToken = useCreateToken()
+  const createToken = useCreateToken(launchpadChainId)
   const uploadMetadata = useUploadTokenMetadata()
-  const { initialVirtualBaseReserves } = useTokenFactory()
+  const { initialVirtualBaseReserves } = useTokenFactory(launchpadChainId)
   const addTransaction = useTransactionAdder()
 
   const handleBack = useCallback(() => {
@@ -521,6 +534,10 @@ export default function CreateToken() {
                 maxLength={100}
               />
             </InputGroup>
+
+            {!isOnSupportedChain && account.address && (
+              <ErrorText>Please switch to Citrea Mainnet or Citrea Testnet to continue</ErrorText>
+            )}
 
             {error && <ErrorText>{error}</ErrorText>}
 
