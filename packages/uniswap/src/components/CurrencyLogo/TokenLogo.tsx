@@ -38,7 +38,7 @@ export const TokenLogo = memo(function _TokenLogo({
   alwaysShowNetworkLogo: _alwaysShowNetworkLogo = false,
 }: TokenLogoProps): JSX.Element {
   const isTestnetToken = !!chainId && isTestnetChain(chainId)
-
+  
   // Override logo URLs for Citrea Testnet tokens
   let logoUrl = url
   if (chainId === UniverseChainId.CitreaTestnet || chainId === UniverseChainId.CitreaMainnet) {
@@ -50,6 +50,7 @@ export const TokenLogo = memo(function _TokenLogo({
       TFC: 'https://docs.juiceswap.com/media/icons/tfc.png',
       USDC: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
       ctUSD: 'https://dev.docs.juiceswap.com/media/icons/ctUSD.png',
+      lnBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
       // L0 bridged tokens (LayerZero)
       'WBTC.e': 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
       'USDC.e': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
