@@ -84,7 +84,7 @@ function useTokenSectionsForSwap({
       return undefined
     }
 
-    return [...(suggestedSection ?? []), ...(yourTokensSection ?? []), ...(bridgingSection ?? [])]
+    return [...(suggestedSection ?? []), ...(bridgingSection ?? []), ...(yourTokensSection ?? [])]
   }, [commonTokenOptionsLoading, portfolioTokenOptionsLoading, suggestedSection, yourTokensSection, bridgingSection])
 
   return useMemo(
