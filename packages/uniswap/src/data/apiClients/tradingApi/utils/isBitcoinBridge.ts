@@ -4,7 +4,7 @@ import { ChainId, QuoteRequest } from 'uniswap/src/data/tradingApi/__generated__
 // Citrea chain IDs (Mainnet and Testnet)
 const CITREA_CHAIN_IDS = [ChainId._4114, ChainId._5115]
 
-const isCitreaChainId = (chainId: ChainId | undefined): boolean => {
+export const isCitreaChainId = (chainId: ChainId | undefined): boolean => {
   return chainId !== undefined && CITREA_CHAIN_IDS.includes(chainId)
 }
 
