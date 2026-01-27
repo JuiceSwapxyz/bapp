@@ -106,8 +106,8 @@ export const SearchModal = memo(function _SearchModal(): JSX.Element {
             endAdornment={
               <Flex row alignItems="center">
                 <NetworkFilter
-                  includeAllNetworks={!isCitreaOnlyEnabled}
-                  chainIds={isCitreaOnlyEnabled ? [UniverseChainId.CitreaTestnet] : enabledChains}
+                  includeAllNetworks={false}
+                  chainIds={enabledChains}
                   selectedChain={chainFilter}
                   onPressChain={onChangeChainFilter}
                 />
