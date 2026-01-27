@@ -190,14 +190,8 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
   })
 }
 
-export const ALWAYS_ENABLED_CHAIN_IDS = [
-  UniverseChainId.CitreaMainnet,
-  UniverseChainId.Bitcoin,
-  UniverseChainId.LightningNetwork,
-  UniverseChainId.CitreaTestnet,
-  UniverseChainId.Polygon,
-  UniverseChainId.Mainnet,
-]
+// JuiceSwap only supports Citrea chains
+export const ALWAYS_ENABLED_CHAIN_IDS = [UniverseChainId.CitreaMainnet, UniverseChainId.CitreaTestnet]
 
 export function getEnabledChains({
   platform,
@@ -224,10 +218,13 @@ export function getEnabledChains({
       return false
     }
 
-    if(isTestnetModeEnabled) {
-      return isTestnetChain(chainInfo.id)
+    // JuiceSwap only supports Citrea chains:
+    // - Mainnet mode: only CitreaMainnet
+    // - Testnet mode: CitreaMainnet AND CitreaTestnet
+    if (isTestnetModeEnabled) {
+      return chainInfo.id === UniverseChainId.CitreaMainnet || chainInfo.id === UniverseChainId.CitreaTestnet
     } else {
-      return ALWAYS_ENABLED_CHAIN_IDS.includes(chainInfo.id) && !isTestnetChain(chainInfo.id)
+      return chainInfo.id === UniverseChainId.CitreaMainnet
     }
   })
 

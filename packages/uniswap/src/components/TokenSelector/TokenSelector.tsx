@@ -313,15 +313,13 @@ export function TokenSelectorContent({
               <Flex row alignItems="center">
                 {hasClipboardString && <PasteButton inline textVariant="buttonLabel3" onPress={handlePaste} />}
                 <NetworkFilter
-                  includeAllNetworks={!isCitreaOnlyEnabled}
-                  chainIds={isCitreaOnlyEnabled ? [UniverseChainId.CitreaTestnet] : chainIds || enabledChains}
+                  includeAllNetworks={false}
+                  chainIds={chainIds || enabledChains}
                   selectedChain={chainFilter}
                   styles={isExtension || isMobileWeb ? { dropdownZIndex: zIndexes.overlay } : undefined}
                   onPressChain={(newChainId) => {
-                    if (!isCitreaOnlyEnabled) {
-                      onChangeChainFilter(newChainId)
-                      onSelectChain?.(newChainId)
-                    }
+                    onChangeChainFilter(newChainId)
+                    onSelectChain?.(newChainId)
                   }}
                 />
               </Flex>

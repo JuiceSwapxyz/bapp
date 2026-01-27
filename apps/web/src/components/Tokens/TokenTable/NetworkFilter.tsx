@@ -58,15 +58,8 @@ export default function TableNetworkFilter({ showMultichainOption = true }: { sh
         return null
       }
       const chainInfo = getChainInfo(chainId)
-      const supported = isBackendSupportedChainId(chainId)
       return (
-        <TableNetworkItem
-          key={chainId}
-          chainInfo={chainInfo}
-          toggleMenu={toggleMenu}
-          tab={tab}
-          unsupported={!supported}
-        />
+        <TableNetworkItem key={chainId} chainInfo={chainInfo} toggleMenu={toggleMenu} tab={tab} unsupported={false} />
       )
     },
     [isSupportedChainCallback, tab],
