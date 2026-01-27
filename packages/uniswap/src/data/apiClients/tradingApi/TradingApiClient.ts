@@ -695,7 +695,7 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
   return {
     requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
     swap: {
-      chainId: tokenInChainId ?? ChainId._5115,
+      chainId: tokenInChainId ?? ChainId._4114,
       data: response.data,
       from: connectedWallet ?? '',
       to: response.to,
