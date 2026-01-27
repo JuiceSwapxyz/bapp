@@ -42,16 +42,20 @@ export function useChainIdFromUrlParam(): UniverseChainId | undefined {
 }
 
 // Chain name aliases for better URL readability
+// Note: 'citrea' is handled dynamically in getParsedChainId based on testnet mode
 const CHAIN_NAME_ALIASES: Record<string, string> = {
   ethereum: 'mainnet',
   eth: 'mainnet',
-  citrea: 'citrea_testnet',
 }
 
-export function getParsedChainId(
-  parsedQs?: ParsedQs,
-  key: CurrencyField = CurrencyField.INPUT,
-): UniverseChainId | undefined {
+interface GetParsedChainIdOptions {
+  parsedQs?: ParsedQs
+  key?: CurrencyField
+  isTestnetModeEnabled?: boolean
+}
+
+export function getParsedChainId(options: GetParsedChainIdOptions = {}): UniverseChainId | undefined {
+  const { parsedQs, key = CurrencyField.INPUT, isTestnetModeEnabled } = options
   // Handle both camelCase and lowercase variants (browsers may lowercase query params)
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const chain =
@@ -62,9 +66,17 @@ export function getParsedChainId(
     return undefined
   }
 
-  // Resolve aliases (e.g., ethereum -> mainnet)
+  const chainLower = chain.toLowerCase()
+
+  // Handle 'citrea' alias dynamically based on testnet mode
+  // This ensures users are directed to the correct network (mainnet by default, testnet only when enabled)
+  if (chainLower === 'citrea') {
+    return isTestnetModeEnabled ? UniverseChainId.CitreaTestnet : UniverseChainId.CitreaMainnet
+  }
+
+  // Resolve other aliases (e.g., ethereum -> mainnet)
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const normalizedChain = CHAIN_NAME_ALIASES[chain.toLowerCase()] ?? chain
+  const normalizedChain = CHAIN_NAME_ALIASES[chainLower] ?? chain
 
   const chainInfo = Object.values(UNIVERSE_CHAIN_INFO).find((i) => i.interfaceName === normalizedChain)
   return chainInfo?.id
