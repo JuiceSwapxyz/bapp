@@ -28,6 +28,35 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { formatUnits } from 'viem'
 
+type SocialPlatform = 'Twitter' | 'Telegram'
+
+const SOCIAL_URL_PATTERNS: Record<SocialPlatform, { check: (s: string) => boolean; regex: RegExp }> = {
+  Twitter: {
+    check: (s) => s.includes('twitter.com/') || s.includes('x.com/'),
+    regex: /(?:twitter\.com|x\.com)\/(@?[\w]+)/i,
+  },
+  Telegram: {
+    check: (s) => s.includes('t.me/'),
+    regex: /t\.me\/(@?[\w]+)/i,
+  },
+}
+
+// Extract social handle from various formats: @handle, handle, or full URL
+function extractSocialHandle(value: string | null | undefined, platform: SocialPlatform): string | null {
+  if (!value) {
+    return null
+  }
+  const trimmed = value.trim()
+  const { check, regex } = SOCIAL_URL_PATTERNS[platform]
+
+  if (check(trimmed)) {
+    const match = trimmed.match(regex)
+    return match ? match[1].replace('@', '') : null
+  }
+
+  return trimmed.replace('@', '')
+}
+
 const PageContainer = styled(Flex, {
   width: '100%',
   minHeight: '100vh',
@@ -269,8 +298,10 @@ export default function TokenDetail() {
                   {getSocialLink(metadata, 'Twitter') && (
                     <AddressLink
                       onPress={() => {
-                        const handle = getSocialLink(metadata, 'Twitter')?.replace('@', '')
-                        window.open(`https://twitter.com/${handle}`, '_blank', 'noopener')
+                        const handle = extractSocialHandle(getSocialLink(metadata, 'Twitter'), 'Twitter')
+                        if (handle) {
+                          window.open(`https://x.com/${handle}`, '_blank', 'noopener')
+                        }
                       }}
                     >
                       <Text variant="body3" color="$accent1">
@@ -282,8 +313,10 @@ export default function TokenDetail() {
                   {getSocialLink(metadata, 'Telegram') && (
                     <AddressLink
                       onPress={() => {
-                        const handle = getSocialLink(metadata, 'Telegram')?.replace('@', '')
-                        window.open(`https://t.me/${handle}`, '_blank', 'noopener')
+                        const handle = extractSocialHandle(getSocialLink(metadata, 'Telegram'), 'Telegram')
+                        if (handle) {
+                          window.open(`https://t.me/${handle}`, '_blank', 'noopener')
+                        }
                       }}
                     >
                       <Text variant="body3" color="$accent1">
