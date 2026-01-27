@@ -34,9 +34,10 @@ import { getParsedChainId } from 'utils/chainParams'
  * without explicitly specifying chain and outputChain parameters.
  *
  * @param symbol - The currency symbol (e.g., 'BTC', 'cBTC', 'ETH')
+ * @param isTestnetModeEnabled - Whether testnet mode is enabled (determines Citrea mainnet vs testnet)
  * @returns The chain ID where this currency is native, or undefined if unknown
  */
-function getHomeChainForCurrency(symbol: string): UniverseChainId | undefined {
+function getHomeChainForCurrency(symbol: string, isTestnetModeEnabled?: boolean): UniverseChainId | undefined {
   const symbolUpper = symbol.toUpperCase()
 
   switch (symbolUpper) {
@@ -48,9 +49,9 @@ function getHomeChainForCurrency(symbol: string): UniverseChainId | undefined {
     case 'LNBTC':
       return UniverseChainId.LightningNetwork
 
-    // cBTC is native to Citrea (testnet for now, mainnet when available)
+    // cBTC is native to Citrea - use mainnet by default, testnet only when explicitly enabled
     case 'CBTC':
-      return UniverseChainId.CitreaTestnet
+      return isTestnetModeEnabled ? UniverseChainId.CitreaTestnet : UniverseChainId.CitreaMainnet
 
     default:
       return undefined
@@ -135,22 +136,23 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
   }
 
   // L0 bridged tokens on Citrea (from Ethereum via LayerZero)
+  // These addresses are the same on both Citrea Mainnet and Testnet
   if (symbolUpper === 'WBTC.E') {
-    if (chainId === UniverseChainId.CitreaTestnet) {
+    if (chainId === UniverseChainId.CitreaMainnet || chainId === UniverseChainId.CitreaTestnet) {
       return '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d' // Citrea WBTC.e (WBTCOFT)
     }
     return undefined
   }
 
   if (symbolUpper === 'USDC.E') {
-    if (chainId === UniverseChainId.CitreaTestnet) {
+    if (chainId === UniverseChainId.CitreaMainnet || chainId === UniverseChainId.CitreaTestnet) {
       return '0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839' // Citrea USDC.e
     }
     return undefined
   }
 
   if (symbolUpper === 'USDT.E') {
-    if (chainId === UniverseChainId.CitreaTestnet) {
+    if (chainId === UniverseChainId.CitreaMainnet || chainId === UniverseChainId.CitreaTestnet) {
       return '0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4' // Citrea USDT.e
     }
     return undefined
@@ -172,8 +174,7 @@ function getTokenAddressBySymbol(chainId: UniverseChainId | undefined, symbol: s
   return undefined
 }
 
-// TODO: Remove mock tokens when Citrea Mainnet is live and tokens are in chain config
-// L0 bridged token addresses on Citrea (mainnet addresses, mocked for testnet UI)
+// L0 bridged token addresses on Citrea (same addresses on both mainnet and testnet)
 const L0_BRIDGED_TOKENS = {
   'WBTC.e': {
     address: '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d',
@@ -208,8 +209,8 @@ function getCurrencyFromChainInfo(chainId: UniverseChainId, address: string): Cu
   const chainInfo = getChainInfo(chainId)
   const normalizedAddress = address.toLowerCase()
 
-  // Check for L0 bridged tokens on Citrea
-  if (chainId === UniverseChainId.CitreaTestnet) {
+  // Check for L0 bridged tokens on Citrea (both mainnet and testnet)
+  if (chainId === UniverseChainId.CitreaMainnet || chainId === UniverseChainId.CitreaTestnet) {
     for (const [, tokenInfo] of Object.entries(L0_BRIDGED_TOKENS)) {
       if (tokenInfo.address.toLowerCase() === normalizedAddress) {
         return new Token(chainId, tokenInfo.address, tokenInfo.decimals, tokenInfo.symbol, tokenInfo.name)
@@ -416,10 +417,13 @@ export function serializeSwapAddressesToURLParameters({
   )
 }
 
-export function queryParametersToCurrencyState(parsedQs: ParsedQs): SerializedCurrencyState {
+export function queryParametersToCurrencyState(
+  parsedQs: ParsedQs,
+  isTestnetModeEnabled?: boolean,
+): SerializedCurrencyState {
   // Parse explicit chain params from URL
-  const explicitChainId = getParsedChainId(parsedQs)
-  const explicitOutputChainId = getParsedChainId(parsedQs, CurrencyField.OUTPUT)
+  const explicitChainId = getParsedChainId({ parsedQs, key: CurrencyField.INPUT, isTestnetModeEnabled })
+  const explicitOutputChainId = getParsedChainId({ parsedQs, key: CurrencyField.OUTPUT, isTestnetModeEnabled })
 
   // Get raw URL parameters for chain inference (before conversion to NATIVE_CHAIN_ID)
   /* eslint-disable @typescript-eslint/no-unnecessary-condition */
@@ -441,9 +445,11 @@ export function queryParametersToCurrencyState(parsedQs: ParsedQs): SerializedCu
   // Infer chains from currency symbols if not explicitly specified
   // Use raw URL params (BTC, cBTC) not parsed ones (NATIVE_CHAIN_ID) so we can identify the chain
   const inferredInputChainId =
-    !explicitChainId && rawInputCurrency ? getHomeChainForCurrency(rawInputCurrency) : undefined
+    !explicitChainId && rawInputCurrency ? getHomeChainForCurrency(rawInputCurrency, isTestnetModeEnabled) : undefined
   const inferredOutputChainId =
-    !explicitOutputChainId && rawOutputCurrency ? getHomeChainForCurrency(rawOutputCurrency) : undefined
+    !explicitOutputChainId && rawOutputCurrency
+      ? getHomeChainForCurrency(rawOutputCurrency, isTestnetModeEnabled)
+      : undefined
 
   // Use explicit chain if provided, otherwise use inferred chain
   const chainId = explicitChainId ?? inferredInputChainId
@@ -488,8 +494,8 @@ export function useInitialCurrencyState(): {
   const { useParsedQueryString } = useUrlContext()
   const parsedQs = useParsedQueryString()
   const parsedCurrencyState = useMemo(() => {
-    return queryParametersToCurrencyState(parsedQs)
-  }, [parsedQs])
+    return queryParametersToCurrencyState(parsedQs, isTestnetModeEnabled)
+  }, [parsedQs, isTestnetModeEnabled])
 
   // For non-EVM chains like Bitcoin, use the parsed chain directly (they won't be in "supported" EVM chains)
   const evmSupportedChainId = useSupportedChainId(parsedCurrencyState.chainId ?? defaultChainId)
