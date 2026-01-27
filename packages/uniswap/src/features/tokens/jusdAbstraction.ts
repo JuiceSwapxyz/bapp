@@ -50,9 +50,11 @@ export const SUSD_ADDRESSES: Partial<Record<UniverseChainId, string>> = buildAdd
 // Gateway address from @juiceswapxyz/sdk-core CHAIN_TO_ADDRESSES_MAP
 // Type assertion needed as juiceSwapGatewayAddress may not be in older sdk-core types
 type ExtendedChainAddresses = { juiceSwapGatewayAddress?: string }
-const citreaAddresses = CHAIN_TO_ADDRESSES_MAP[ChainId.CITREA_TESTNET] as ExtendedChainAddresses | undefined
+const citreaTestnetAddresses = CHAIN_TO_ADDRESSES_MAP[ChainId.CITREA_TESTNET] as ExtendedChainAddresses | undefined
+const citreaMainnetAddresses = CHAIN_TO_ADDRESSES_MAP[ChainId.CITREA_MAINNET] as ExtendedChainAddresses | undefined
 export const JUICE_SWAP_GATEWAY_ADDRESSES: Partial<Record<UniverseChainId, string | undefined>> = {
-  [UniverseChainId.CitreaTestnet]: citreaAddresses?.juiceSwapGatewayAddress,
+  [UniverseChainId.CitreaTestnet]: citreaTestnetAddresses?.juiceSwapGatewayAddress,
+  [UniverseChainId.CitreaMainnet]: citreaMainnetAddresses?.juiceSwapGatewayAddress,
 }
 
 /**
