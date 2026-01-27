@@ -115,6 +115,11 @@ export default function PositionPageWrapper() {
   )
 }
 
+// TODO: Re-enable when V4 is deployed
+const ENABLE_MIGRATE_TO_V4_BUTTON = false
+// TODO: Re-enable when Rabby wallet multicall issue on Citrea is fixed
+const ENABLE_COLLECT_FEES_BUTTON = false
+
 function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) {
   const { tokenId: tokenIdFromUrl } = useParams<{ tokenId: string }>()
   const tokenId = parseTokenId(tokenIdFromUrl)
@@ -350,27 +355,30 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
             />
             {isOwner && (
               <Flex row gap="$gap12" alignItems="center" flexWrap="wrap">
-                {positionInfo.version === ProtocolVersion.V3 && status !== PositionStatus.CLOSED && (
-                  <MouseoverTooltip
-                    text={t('pool.migrateLiquidityDisabledTooltip')}
-                    disabled={!showV4UnsupportedTooltip}
-                    style={media.sm ? { width: '100%', display: 'block' } : {}}
-                  >
-                    <Button
-                      size="small"
-                      emphasis="secondary"
-                      $sm={{ width: '100%' }}
-                      fill={false}
-                      isDisabled={showV4UnsupportedTooltip}
-                      opacity={showV4UnsupportedTooltip ? 0.5 : 1}
-                      onPress={() => {
-                        navigate(`/migrate/v3/${chainInfo?.urlParam}/${tokenIdFromUrl}`)
-                      }}
+                {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
+                {ENABLE_MIGRATE_TO_V4_BUTTON &&
+                  positionInfo.version === ProtocolVersion.V3 &&
+                  status !== PositionStatus.CLOSED && (
+                    <MouseoverTooltip
+                      text={t('pool.migrateLiquidityDisabledTooltip')}
+                      disabled={!showV4UnsupportedTooltip}
+                      style={media.sm ? { width: '100%', display: 'block' } : {}}
                     >
-                      {t('pool.migrateToV4')}
-                    </Button>
-                  </MouseoverTooltip>
-                )}
+                      <Button
+                        size="small"
+                        emphasis="secondary"
+                        $sm={{ width: '100%' }}
+                        fill={false}
+                        isDisabled={showV4UnsupportedTooltip}
+                        opacity={showV4UnsupportedTooltip ? 0.5 : 1}
+                        onPress={() => {
+                          navigate(`/migrate/v3/${chainInfo?.urlParam}/${tokenIdFromUrl}`)
+                        }}
+                      >
+                        {t('pool.migrateToV4')}
+                      </Button>
+                    </MouseoverTooltip>
+                  )}
                 <Button
                   size="small"
                   emphasis="secondary"
@@ -405,7 +413,8 @@ function PositionPage({ chainId }: { chainId: EVMUniverseChainId | undefined }) 
                     {t('pool.removeLiquidity')}
                   </Button>
                 )}
-                {hasFees && (
+                {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
+                {ENABLE_COLLECT_FEES_BUTTON && hasFees && (
                   <Button
                     size="small"
                     maxWidth="fit-content"
