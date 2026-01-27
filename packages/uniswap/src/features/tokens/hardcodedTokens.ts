@@ -67,6 +67,31 @@ const citreaWrappedNativeMainnetCurrency = {
 // See loadAllPackageTokens() in npmPackageTokens.ts
 // Only hardcode tokens that are NOT in npm packages (like testnet-specific tokens)
 
+// Testnet-only tokens (not in npm package)
+const citreaNusdCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaTestnet,
+    address: '0x9B28B690550522608890C3C7e63c0b4A7eBab9AA',
+    decimals: 18,
+    symbol: 'NUSD',
+    name: 'Nectra USD',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaTestnet}-0x9B28B690550522608890C3C7e63c0b4A7eBab9AA`,
+  logoUrl: 'https://docs.juiceswap.com/media/icons/nusd.png',
+}
+
+const citreaCusdCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaTestnet,
+    address: '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0',
+    decimals: 18,
+    symbol: 'cUSD',
+    name: 'Citrus Dollar',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaTestnet}-0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0`,
+  logoUrl: 'https://docs.juiceswap.com/media/icons/cusd.png',
+}
+
 export function getSuggestedCitreaTokens(chainId: UniverseChainId): CurrencyInfo[] {
   const tokens: CurrencyInfo[] = []
   
@@ -74,6 +99,8 @@ export function getSuggestedCitreaTokens(chainId: UniverseChainId): CurrencyInfo
     tokens.push(citreaNativeCurrency)
     tokens.push(citreaWrappedNativeCurrency)
     tokens.push(...loadAllPackageTokens(UniverseChainId.CitreaTestnet))
+    tokens.push(citreaNusdCurrency)
+    tokens.push(citreaCusdCurrency)
   } else if (chainId === UniverseChainId.CitreaMainnet) {
     tokens.push(citreaNativeMainnetCurrency)
     tokens.push(citreaWrappedNativeMainnetCurrency)
