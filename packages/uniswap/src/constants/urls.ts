@@ -46,7 +46,7 @@ export const uniswapUrls = {
   graphQLUrl: config.graphqlUrlOverride || `${getJuiceSwapApiBaseUrl()}/v1/graphql`,
 
   // Trading API (JuiceSwap)
-  tradingApiUrl: config.tradingApiUrlOverride || 'https://dev.api.juiceswap.com',
+  tradingApiUrl: process.env.REACT_APP_TRADING_API_URL_OVERRIDE || config.tradingApiUrlOverride || 'https://dev.api.juiceswap.com',
 
   // Disabled services (kept for backwards compatibility)
   unitagsApiUrl: config.unitagsApiUrlOverride || '',
