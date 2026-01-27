@@ -1,4 +1,3 @@
-import { useAccount } from 'hooks/useAccount'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
 import { useLaunchpadToken } from 'hooks/useLaunchpadTokens'
 import { useTokenInfo } from 'hooks/useTokenFactory'
@@ -111,10 +110,13 @@ const AddressLink = styled(Flex, {
 export default function TokenDetail() {
   const { tokenAddress } = useParams<{ tokenAddress: string }>()
   const navigate = useNavigate()
-  const account = useAccount()
 
-  // Use the user's current chain ID for all operations
-  const chainId = account.chainId
+  // First, fetch the token data from API to get the correct chainId
+  const { data: launchpadData } = useLaunchpadToken(tokenAddress)
+
+  // Use the token's chainId (from API) for all operations - this ensures we read from the correct chain
+  // even if the user is connected to a different network
+  const chainId = launchpadData?.token.chainId
 
   const {
     name,
@@ -130,7 +132,6 @@ export default function TokenDetail() {
   } = useBondingCurveToken(tokenAddress, chainId)
 
   const { tokenInfo } = useTokenInfo(tokenAddress, chainId)
-  const { data: launchpadData } = useLaunchpadToken(tokenAddress)
   const { data: metadata } = useTokenMetadata(launchpadData?.token.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
 

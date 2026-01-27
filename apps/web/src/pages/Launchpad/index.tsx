@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
 import { Plus } from 'ui/src/components/icons/Plus'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 
@@ -203,11 +204,13 @@ function TokenCardSkeleton() {
 export default function Launchpad() {
   const navigate = useNavigate()
   const account = useAccount()
+  const { defaultChainId } = useEnabledChains()
   const [filter, setFilter] = useState<LaunchpadFilterType>('all')
   const [page, setPage] = useState(0)
 
-  // Use the user's current chain ID to filter tokens by network
-  const chainId = account.chainId
+  // Use the user's connected chain, or fall back to default chain if not connected
+  // This ensures we always filter by a specific chain and never show mixed testnet/mainnet tokens
+  const chainId = account.chainId ?? defaultChainId
 
   // Fetch tokens from Ponder API with filtering by current chain
   const { data: tokensData, isLoading: tokensLoading } = useLaunchpadTokens({
