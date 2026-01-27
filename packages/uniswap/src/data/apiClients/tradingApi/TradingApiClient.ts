@@ -236,10 +236,10 @@ const calculateOutputAmountAfterFees = (params: {
 }
 
 const getBitcoinCrossChainDirection = (params: QuoteRequest): BitcoinBridgeDirection => {
-  if (params.tokenInChainId === ChainId._21_000_000 && params.tokenOutChainId === ChainId._5115) {
+  if (params.tokenInChainId === ChainId._21_000_000 && params.tokenOutChainId === ChainId._4114) {
     return BitcoinBridgeDirection.BitcoinToCitrea
   }
-  if (params.tokenInChainId === ChainId._5115 && params.tokenOutChainId === ChainId._21_000_000) {
+  if (params.tokenInChainId === ChainId._4114 && params.tokenOutChainId === ChainId._21_000_000) {
     return BitcoinBridgeDirection.CitreaToBitcoin
   }
   throw new Error('Invalid bitcoin cross chain direction')
@@ -343,10 +343,10 @@ const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<Discrimi
 }
 
 const getLightningBridgeDirection = (params: QuoteRequest): LightningBridgeDirection => {
-  if (params.tokenInChainId === ChainId._5115 && params.tokenOutChainId === ChainId._21_000_001) {
+  if (params.tokenInChainId === ChainId._4114 && params.tokenOutChainId === ChainId._21_000_001) {
     return LightningBridgeDirection.Submarine
   }
-  if (params.tokenInChainId === ChainId._21_000_001 && params.tokenOutChainId === ChainId._5115) {
+  if (params.tokenInChainId === ChainId._21_000_001 && params.tokenOutChainId === ChainId._4114) {
     return LightningBridgeDirection.Reverse
   }
   throw new Error('Invalid lightning bridge direction')
@@ -568,17 +568,15 @@ export async function fetchQuote({
   isUSDQuote: _isUSDQuote,
   ...params
 }: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  const crossChainSwapsEnabled = isCrossChainSwapsEnabled()
-
-  if (crossChainSwapsEnabled && isBitcoinBridgeQuote(params)) {
+  if (isBitcoinBridgeQuote(params)) {
     return await getBitcoinCrossChainQuote(params)
   }
 
-  if (crossChainSwapsEnabled && isLnBitcoinBridgeQuote(params)) {
+  if (isLnBitcoinBridgeQuote(params)) {
     return await getLightningBridgeQuote(params)
   }
 
-  if (crossChainSwapsEnabled && isErc20ChainSwapQuote(params)) {
+  if (isErc20ChainSwapQuote(params)) {
     return await getErc20ChainSwapQuote(params)
   }
 
