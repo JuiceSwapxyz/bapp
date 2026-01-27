@@ -18,6 +18,7 @@
     "https://lightning.space",
     "https://dev.lightning.space",
     "https://*.lightning.space",
+    "wss://lightning.space",
     "wss://*.lightning.space",
     "https://gateway.pinata.cloud/",
     "https://blockstream.info/"

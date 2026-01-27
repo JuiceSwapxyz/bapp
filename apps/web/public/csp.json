@@ -120,6 +120,7 @@
     "https://lightning.space",
     "https://dev.lightning.space",
     "https://*.lightning.space",
+    "wss://lightning.space",
     "wss://*.lightning.space",
     "wss://*.juiceswap.com",
     "wss://relay.walletconnect.com",
