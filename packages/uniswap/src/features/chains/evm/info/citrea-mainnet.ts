@@ -50,7 +50,7 @@ const citreaMainnet = defineChain({
   },
   blockExplorers: {
     default: {
-      name: 'Citrea Testnet Explorer',
+      name: 'Citrea Mainnet Explorer',
       url: CITREA_MAINNET_EXPLORER_URL,
       apiUrl: `${CITREA_MAINNET_EXPLORER_URL}/api`,
     },
@@ -76,8 +76,8 @@ export const CITREA_MAINNET_CHAIN_INFO = {
   elementName: ElementName.ChainCitreaTestnet,
   explorer: {
     name: 'Citrea Mainnet Explorer',
-    url: `https://explorer.mainnet.citrea.xyz/`,
-    apiURL: `https://explorer.mainnet.citrea.xyz/api`,
+    url: `${CITREA_MAINNET_EXPLORER_URL}/`,
+    apiURL: `${CITREA_MAINNET_EXPLORER_URL}/api`,
   },
   interfaceName: 'citrea_mainnet',
   label: 'Citrea Mainnet',

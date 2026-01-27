@@ -24,7 +24,7 @@ export interface TokenFactoryState {
 /**
  * Get the factory address for a chain
  */
-export function useFactoryAddress(chainId: UniverseChainId = UniverseChainId.CitreaTestnet): string | undefined {
+export function useFactoryAddress(chainId: UniverseChainId = UniverseChainId.CitreaMainnet): string | undefined {
   return useMemo(() => {
     const addresses = LAUNCHPAD_ADDRESSES[chainId]
     if (addresses.factory === '0x0000000000000000000000000000000000000000') {
@@ -36,9 +36,9 @@ export function useFactoryAddress(chainId: UniverseChainId = UniverseChainId.Cit
 
 /**
  * Hook to read token factory state
- * @param chainId - Chain ID (defaults to CitreaTestnet)
+ * @param chainId - Chain ID (defaults to CitreaMainnet)
  */
-export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.CitreaTestnet): TokenFactoryState {
+export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.CitreaMainnet): TokenFactoryState {
   const factoryAddress = useFactoryAddress(chainId)
   const address = factoryAddress ? assume0xAddress(factoryAddress) : undefined
 
@@ -93,7 +93,7 @@ export function useTokenFactory(chainId: UniverseChainId = UniverseChainId.Citre
  */
 export function useTokenAtIndex(
   index: number | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): { tokenAddress: string | undefined; isLoading: boolean } {
   const factoryAddress = useFactoryAddress(chainId)
   const address = factoryAddress ? assume0xAddress(factoryAddress) : undefined
@@ -124,7 +124,7 @@ export function useTokenAtIndex(
  */
 export function useTokenInfo(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): { tokenInfo: TokenInfo | undefined; isLoading: boolean } {
   const factoryAddress = useFactoryAddress(chainId)
   const factory = factoryAddress ? assume0xAddress(factoryAddress) : undefined
@@ -170,7 +170,7 @@ export interface UseTokenListOptions {
  * Hook to get multiple tokens with their info
  */
 export function useTokenList(options: UseTokenListOptions): { tokens: string[]; isLoading: boolean } {
-  const { startIndex, count, chainId = UniverseChainId.CitreaTestnet } = options
+  const { startIndex, count, chainId = UniverseChainId.CitreaMainnet } = options
   const factoryAddress = useFactoryAddress(chainId)
   const address = factoryAddress ? assume0xAddress(factoryAddress) : undefined
 

@@ -27,11 +27,11 @@ export interface BondingCurveTokenState {
 /**
  * Hook to read bonding curve token state
  * @param tokenAddress - The bonding curve token address
- * @param chainId - Chain ID (defaults to CitreaTestnet)
+ * @param chainId - Chain ID (defaults to CitreaMainnet)
  */
 export function useBondingCurveToken(
   tokenAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): BondingCurveTokenState {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
 
@@ -120,7 +120,7 @@ export function useBondingCurveToken(
 export function useCalculateBuy(
   tokenAddress: string | undefined,
   baseIn: bigint | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): { tokensOut: bigint | undefined; isLoading: boolean } {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
   const enabled = !!address && !!baseIn && baseIn > 0n
@@ -153,7 +153,7 @@ export function useCalculateBuy(
 export function useCalculateSell(
   tokenAddress: string | undefined,
   tokensIn: bigint | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): { baseOut: bigint | undefined; isLoading: boolean } {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
   const enabled = !!address && !!tokensIn && tokensIn > 0n
@@ -186,7 +186,7 @@ export function useCalculateSell(
 export function useBondingCurveBalance(
   tokenAddress: string | undefined,
   userAddress: string | undefined,
-  chainId: UniverseChainId = UniverseChainId.CitreaTestnet,
+  chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): { balance: bigint | undefined; isLoading: boolean; refetch: () => void } {
   const address = tokenAddress ? assume0xAddress(tokenAddress) : undefined
   const user = userAddress ? assume0xAddress(userAddress) : undefined

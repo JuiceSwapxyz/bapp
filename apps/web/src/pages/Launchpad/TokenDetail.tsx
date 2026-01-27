@@ -22,11 +22,40 @@ import { CopyAlt } from 'ui/src/components/icons/CopyAlt'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 import { InfoCircle } from 'ui/src/components/icons/InfoCircle'
 import { Modal } from 'uniswap/src/components/modals/Modal'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { formatUnits } from 'viem'
+
+type SocialPlatform = 'Twitter' | 'Telegram'
+
+const SOCIAL_URL_PATTERNS: Record<SocialPlatform, { check: (s: string) => boolean; regex: RegExp }> = {
+  Twitter: {
+    check: (s) => s.includes('twitter.com/') || s.includes('x.com/'),
+    regex: /(?:twitter\.com|x\.com)\/(@?[\w]+)/i,
+  },
+  Telegram: {
+    check: (s) => s.includes('t.me/'),
+    regex: /t\.me\/(@?[\w]+)/i,
+  },
+}
+
+// Extract social handle from various formats: @handle, handle, or full URL
+function extractSocialHandle(value: string | null | undefined, platform: SocialPlatform): string | null {
+  if (!value) {
+    return null
+  }
+  const trimmed = value.trim()
+  const { check, regex } = SOCIAL_URL_PATTERNS[platform]
+
+  if (check(trimmed)) {
+    const match = trimmed.match(regex)
+    return match ? match[1].replace('@', '') : null
+  }
+
+  return trimmed.replace('@', '')
+}
 
 const PageContainer = styled(Flex, {
   width: '100%',
@@ -112,6 +141,13 @@ export default function TokenDetail() {
   const { tokenAddress } = useParams<{ tokenAddress: string }>()
   const navigate = useNavigate()
 
+  // First, fetch the token data from API to get the correct chainId
+  const { data: launchpadData } = useLaunchpadToken(tokenAddress)
+
+  // Use the token's chainId (from API) for all operations - this ensures we read from the correct chain
+  // even if the user is connected to a different network. Default to testnet while loading.
+  const chainId = (launchpadData?.token.chainId as UniverseChainId | undefined) ?? UniverseChainId.CitreaTestnet
+
   const {
     name,
     symbol,
@@ -123,10 +159,9 @@ export default function TokenDetail() {
     v2Pair,
     isLoading,
     refetch: refetchBondingCurve,
-  } = useBondingCurveToken(tokenAddress)
+  } = useBondingCurveToken(tokenAddress, chainId)
 
-  const { tokenInfo } = useTokenInfo(tokenAddress)
-  const { data: launchpadData } = useLaunchpadToken(tokenAddress)
+  const { tokenInfo } = useTokenInfo(tokenAddress, chainId)
   const { data: metadata } = useTokenMetadata(launchpadData?.token.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
 
@@ -143,13 +178,13 @@ export default function TokenDetail() {
   const handleOpenExplorer = useCallback(() => {
     if (tokenAddress) {
       const url = getExplorerLink({
-        chainId: UniverseChainId.CitreaTestnet,
+        chainId,
         data: tokenAddress,
         type: ExplorerDataType.ADDRESS,
       })
       window.open(url, '_blank')
     }
-  }, [tokenAddress])
+  }, [tokenAddress, chainId])
 
   // Format values
   const liquidity = useMemo(() => {
@@ -263,8 +298,10 @@ export default function TokenDetail() {
                   {getSocialLink(metadata, 'Twitter') && (
                     <AddressLink
                       onPress={() => {
-                        const handle = getSocialLink(metadata, 'Twitter')?.replace('@', '')
-                        window.open(`https://twitter.com/${handle}`, '_blank', 'noopener')
+                        const handle = extractSocialHandle(getSocialLink(metadata, 'Twitter'), 'Twitter')
+                        if (handle) {
+                          window.open(`https://x.com/${handle}`, '_blank', 'noopener')
+                        }
                       }}
                     >
                       <Text variant="body3" color="$accent1">
@@ -276,8 +313,10 @@ export default function TokenDetail() {
                   {getSocialLink(metadata, 'Telegram') && (
                     <AddressLink
                       onPress={() => {
-                        const handle = getSocialLink(metadata, 'Telegram')?.replace('@', '')
-                        window.open(`https://t.me/${handle}`, '_blank', 'noopener')
+                        const handle = extractSocialHandle(getSocialLink(metadata, 'Telegram'), 'Telegram')
+                        if (handle) {
+                          window.open(`https://t.me/${handle}`, '_blank', 'noopener')
+                        }
                       }}
                     >
                       <Text variant="body3" color="$accent1">
@@ -354,7 +393,7 @@ export default function TokenDetail() {
                     onPress={() => {
                       if (tokenInfo?.creator) {
                         const url = getExplorerLink({
-                          chainId: UniverseChainId.CitreaTestnet,
+                          chainId,
                           data: tokenInfo.creator,
                           type: ExplorerDataType.ADDRESS,
                         })
@@ -378,7 +417,7 @@ export default function TokenDetail() {
                     <AddressLink
                       onPress={() => {
                         const url = getExplorerLink({
-                          chainId: UniverseChainId.CitreaTestnet,
+                          chainId,
                           data: v2Pair,
                           type: ExplorerDataType.ADDRESS,
                         })
@@ -403,6 +442,7 @@ export default function TokenDetail() {
                   baseAsset={baseAsset}
                   graduated={graduated}
                   canGraduate={canGraduate}
+                  chainId={chainId}
                   onTransactionComplete={refetchBondingCurve}
                   onGraduateComplete={refetchBondingCurve}
                 />

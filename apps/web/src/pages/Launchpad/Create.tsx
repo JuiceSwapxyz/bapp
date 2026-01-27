@@ -1,18 +1,21 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { isLaunchpadChainSupported } from 'constants/launchpad'
 import { useAccount } from 'hooks/useAccount'
 import { useCreateToken, useUploadTokenMetadata } from 'hooks/useLaunchpadActions'
 import { useTokenFactory } from 'hooks/useTokenFactory'
 import styledComponents from 'lib/styled-components'
 import { BackButton, StatLabel, StatRow, StatValue } from 'pages/Launchpad/components/shared'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, Text, styled } from 'ui/src'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
-import { formatUnits } from 'viem'
+import { formatUnits, parseEther } from 'viem'
+import { useBalance } from 'wagmi'
 
 const PageContainer = styled(Flex, {
   width: '100%',
@@ -186,6 +189,17 @@ export default function CreateToken() {
   const accountDrawer = useAccountDrawer()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Determine the launchpad chain based on user's current chain
+  const launchpadChainId = useMemo(() => {
+    if (account.chainId && isLaunchpadChainSupported(account.chainId)) {
+      return account.chainId as UniverseChainId
+    }
+    // Default to mainnet if user isn't on a supported chain
+    return UniverseChainId.CitreaMainnet
+  }, [account.chainId])
+
+  const isOnSupportedChain = account.chainId ? isLaunchpadChainSupported(account.chainId) : false
+
   // Form state
   const [name, setName] = useState('')
   const [symbol, setSymbol] = useState('')
@@ -201,10 +215,20 @@ export default function CreateToken() {
   const [loadingStatus, setLoadingStatus] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const createToken = useCreateToken()
+  const createToken = useCreateToken(launchpadChainId)
   const uploadMetadata = useUploadTokenMetadata()
-  const { initialVirtualBaseReserves } = useTokenFactory()
+  const { initialVirtualBaseReserves } = useTokenFactory(launchpadChainId)
   const addTransaction = useTransactionAdder()
+
+  // Check native balance for gas fees
+  const { data: nativeBalance } = useBalance({
+    address: account.address as `0x${string}` | undefined,
+    chainId: launchpadChainId as number,
+  })
+
+  // Minimum gas threshold (~7x typical token creation fee of ~0.0000007 cBTC)
+  const MIN_GAS_THRESHOLD = parseEther('0.000005')
+  const hasInsufficientGas = Boolean(account.address && nativeBalance && nativeBalance.value < MIN_GAS_THRESHOLD)
 
   const handleBack = useCallback(() => {
     navigate('/launchpad')
@@ -376,9 +400,15 @@ export default function CreateToken() {
 
   const isWalletConnected = !!account.address
   const isFormComplete = !!name.trim() && !!symbol.trim() && !!description.trim() && !!imageFile
-  const isButtonDisabled = isWalletConnected && (isLoading || !isFormComplete)
+  const isButtonDisabled = isWalletConnected && (isLoading || !isFormComplete || hasInsufficientGas)
 
-  const buttonText = !isWalletConnected ? 'Connect Wallet' : isLoading ? loadingStatus || 'Creating...' : 'Create Token'
+  const buttonText = !isWalletConnected
+    ? 'Connect Wallet'
+    : hasInsufficientGas
+      ? 'Insufficient cBTC for gas'
+      : isLoading
+        ? loadingStatus || 'Creating...'
+        : 'Create Token'
 
   const handleButtonPress = useCallback(() => {
     if (!isWalletConnected) {
@@ -521,6 +551,14 @@ export default function CreateToken() {
                 maxLength={100}
               />
             </InputGroup>
+
+            {!isOnSupportedChain && account.address && (
+              <ErrorText>Please switch to Citrea Mainnet or Citrea Testnet to continue</ErrorText>
+            )}
+
+            {hasInsufficientGas && (
+              <ErrorText>You need cBTC to pay for gas fees. Please add cBTC to your wallet.</ErrorText>
+            )}
 
             {error && <ErrorText>{error}</ErrorText>}
 
