@@ -139,6 +139,7 @@ const TableNetworkItem = memo(function TableNetworkItem({
   const navigate = useNavigate()
   const theme = useTheme()
   const { t } = useTranslation()
+  const { defaultChainId } = useEnabledChains()
   const exploreParams = useExploreParams()
   const urlChainId = useChainIdFromUrlParam()
   const currentChainInfo = urlChainId ? getChainInfo(urlChainId) : undefined
@@ -172,11 +173,7 @@ const TableNetworkItem = memo(function TableNetworkItem({
         }}
       >
         <NetworkLabel>
-          {isAllNetworks ? (
-            <NetworkLogo chainId={null} />
-          ) : (
-            <ChainLogo chainId={chainId ?? UniverseChainId.Mainnet} size={20} />
-          )}
+          {isAllNetworks ? <NetworkLogo chainId={null} /> : <ChainLogo chainId={chainId ?? defaultChainId} size={20} />}
           <ElementAfterText
             text={isAllNetworks ? t('transaction.network.all') : chainInfo.label}
             textProps={{ variant: 'body2', ...EllipsisTamaguiStyle }}
