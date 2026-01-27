@@ -23,8 +23,8 @@ import { Button, Circle, Flex, Main, Shine, Text, styled } from 'ui/src'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { useGetPositionQuery } from 'uniswap/src/data/rest/getPosition'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
@@ -85,8 +85,9 @@ function V2PositionPage() {
   const { pairAddress } = useParams<{ pairAddress: string }>()
   const chainId = useChainIdFromUrlParam()
   const account = useAccount()
+  const { defaultChainId } = useEnabledChains()
   const supportedAccountChainId = useSupportedChainId(account.chainId)
-  const chainInfo = getChainInfo(chainId ?? UniverseChainId.Mainnet)
+  const chainInfo = getChainInfo(chainId ?? defaultChainId)
   const isMigrateV2Enabled = useFeatureFlag(FeatureFlags.MigrateV2)
 
   const {

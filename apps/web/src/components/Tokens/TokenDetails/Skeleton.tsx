@@ -19,7 +19,7 @@ import { ClickableTamaguiStyle } from 'theme/components/styles'
 import { capitalize } from 'tsafe'
 import { Anchor, Flex, Text, TextProps, styled } from 'ui/src'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { useChainIdFromUrlParam } from 'utils/chainParams'
 
@@ -274,7 +274,8 @@ function LoadingStats() {
 
 /* Loading State: row component with loading bubbles */
 function TokenDetailsSkeleton() {
-  const { id: chainId, urlParam } = getChainInfo(useChainIdFromUrlParam() ?? UniverseChainId.Mainnet)
+  const { defaultChainId } = useEnabledChains()
+  const { id: chainId, urlParam } = getChainInfo(useChainIdFromUrlParam() ?? defaultChainId)
   const { tokenAddress } = useParams<{ tokenAddress?: string }>()
   const token = useCurrency({
     address: tokenAddress === NATIVE_CHAIN_ID ? 'ETH' : tokenAddress,

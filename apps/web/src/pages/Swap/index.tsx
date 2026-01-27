@@ -5,6 +5,7 @@ import { popupRegistry } from 'components/Popups/registry'
 import { PopupType } from 'components/Popups/types'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
+import { useAccount } from 'hooks/useAccount'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { useModalState } from 'hooks/useModalState'
@@ -249,6 +250,7 @@ function UniversalSwapFlow({
 }) {
   const [currentTab, setCurrentTab] = useState(SwapTab.Swap)
   const { pathname } = useLocation()
+  const account = useAccount()
   // Store onSubmitSwap callback ref for access in swapCallback
   const onSubmitSwapRef = useRef<
     ((txHash?: string, inputToken?: string, outputToken?: string) => Promise<void> | void) | undefined
@@ -302,16 +304,16 @@ function UniversalSwapFlow({
       resetDisableOneClickSwap()
 
       // Store transaction details for blockchain confirmation tracking
-      if (txHash && inputToken && outputToken) {
+      if (txHash && inputToken && outputToken && account.chainId) {
         setCurrentTransaction({
           txHash,
-          chainId: 5115, // Citrea Testnet
+          chainId: account.chainId,
           inputToken,
           outputToken,
         })
       }
     },
-    [resetDisableOneClickSwap],
+    [resetDisableOneClickSwap, account.chainId],
   )
 
   // Store the callback in ref for access in swapCallback
