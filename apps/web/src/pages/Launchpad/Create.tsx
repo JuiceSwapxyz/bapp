@@ -226,9 +226,9 @@ export default function CreateToken() {
     chainId: launchpadChainId as number,
   })
 
-  // Minimum gas threshold (0.0001 cBTC should be enough for token creation)
-  const MIN_GAS_THRESHOLD = parseEther('0.0001')
-  const hasInsufficientGas = account.address && nativeBalance && nativeBalance.value < MIN_GAS_THRESHOLD
+  // Minimum gas threshold (~7x typical token creation fee of ~0.0000007 cBTC)
+  const MIN_GAS_THRESHOLD = parseEther('0.000005')
+  const hasInsufficientGas = Boolean(account.address && nativeBalance && nativeBalance.value < MIN_GAS_THRESHOLD)
 
   const handleBack = useCallback(() => {
     navigate('/launchpad')
