@@ -6,15 +6,16 @@ import { CROSS_CHAIN_SWAPS_STORAGE_KEY } from 'uniswap/src/utils/featureFlags'
 /**
  * Hook to handle URL-based cross-chain swaps override
  * Detects ?cross-chain-swaps=true/false and manages localStorage
+ * Returns true if explicitly disabled via URL/localStorage, false otherwise
  * @internal
  */
-function useUrlCrossChainSwapsOverride(): boolean {
+function useUrlCrossChainSwapsDisabled(): boolean {
   const queryClient = useQueryClient()
-  const [overrideActive, setOverrideActive] = useState(() => {
+  const [overrideDisabled, setOverrideDisabled] = useState(() => {
     if (typeof window === 'undefined') {
       return false
     }
-    return localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY) === 'true'
+    return localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY) === 'false'
   })
 
   useEffect(() => {
@@ -23,20 +24,20 @@ function useUrlCrossChainSwapsOverride(): boolean {
       const param = urlParams.get('cross-chain-swaps')
 
       if (param === 'true' || param === 'false') {
-        const newValue = param === 'true'
-        const currentValue = localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY) === 'true'
+        const shouldDisable = param === 'false'
+        const currentlyDisabled = localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY) === 'false'
 
         // Only update if value changed
-        if (newValue !== currentValue) {
-          if (newValue) {
-            localStorage.setItem(CROSS_CHAIN_SWAPS_STORAGE_KEY, 'true')
+        if (shouldDisable !== currentlyDisabled) {
+          if (shouldDisable) {
+            localStorage.setItem(CROSS_CHAIN_SWAPS_STORAGE_KEY, 'false')
           } else {
             localStorage.removeItem(CROSS_CHAIN_SWAPS_STORAGE_KEY)
           }
 
           // Invalidate all queries to refetch with new flag status
           queryClient.invalidateQueries()
-          setOverrideActive(newValue)
+          setOverrideDisabled(shouldDisable)
 
           // Remove query param from URL without full page refresh
           const url = new URL(window.location.href)
@@ -52,8 +53,8 @@ function useUrlCrossChainSwapsOverride(): boolean {
     // Listen for manual localStorage changes (from other tabs/windows)
     const handleStorageChange = (e: StorageEvent): void => {
       if (e.key === CROSS_CHAIN_SWAPS_STORAGE_KEY) {
-        const newValue = e.newValue === 'true'
-        setOverrideActive(newValue)
+        const isDisabled = e.newValue === 'false'
+        setOverrideDisabled(isDisabled)
         // Invalidate queries when another tab changes the setting
         queryClient.invalidateQueries()
       }
@@ -73,7 +74,7 @@ function useUrlCrossChainSwapsOverride(): boolean {
     }
   }, [queryClient])
 
-  return overrideActive
+  return overrideDisabled
 }
 
 /**
@@ -81,8 +82,8 @@ function useUrlCrossChainSwapsOverride(): boolean {
  * Checks both env variable and URL override
  */
 export function useCrossChainSwapsEnabled(): boolean {
-  const hasUrlOverride = useUrlCrossChainSwapsOverride()
+  const isUrlDisabled = useUrlCrossChainSwapsDisabled()
 
-  // URL override takes priority, otherwise check env variable
-  return hasUrlOverride || FeatureFlags.CROSS_CHAIN_SWAPS
+  // URL override to disable takes priority, otherwise check env variable
+  return !isUrlDisabled && FeatureFlags.CROSS_CHAIN_SWAPS
 }

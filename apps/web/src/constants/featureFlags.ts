@@ -13,7 +13,7 @@ export const FeatureFlags = {
   CEX_TRANSFER_ENABLED: process.env.REACT_APP_CEX_TRANSFER_ENABLED === 'true', // Default to false unless explicitly enabled
 
   // Enable/disable Cross-Chain Swaps (Bitcoin, Lightning, ERC20 bridges)
-  // Set REACT_APP_CROSS_CHAIN_SWAPS=true in .env to enable
-  // Or use ?cross-chain-swaps=true in URL to enable temporarily
-  CROSS_CHAIN_SWAPS: process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true', // Default to false unless explicitly enabled
+  // Set REACT_APP_CROSS_CHAIN_SWAPS=false in .env to disable
+  // Or use ?cross-chain-swaps=false in URL to disable temporarily
+  CROSS_CHAIN_SWAPS: process.env.REACT_APP_CROSS_CHAIN_SWAPS !== 'false', // Default to true unless explicitly disabled
 } as const
