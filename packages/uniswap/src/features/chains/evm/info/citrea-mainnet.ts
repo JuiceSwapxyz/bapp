@@ -76,7 +76,7 @@ export const CITREA_MAINNET_CHAIN_INFO = {
   elementName: ElementName.ChainCitreaTestnet,
   explorer: {
     name: 'Citrea Mainnet Explorer',
-    url: `https://explorer.mainnet.citrea.xyz`,
+    url: `https://explorer.mainnet.citrea.xyz/`,
     apiURL: `https://explorer.mainnet.citrea.xyz/api`,
   },
   interfaceName: 'citrea_mainnet',
