@@ -186,6 +186,9 @@ export default function CreateToken() {
   const accountDrawer = useAccountDrawer()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Use the user's current chain ID for all operations
+  const chainId = account.chainId
+
   // Form state
   const [name, setName] = useState('')
   const [symbol, setSymbol] = useState('')
@@ -201,9 +204,9 @@ export default function CreateToken() {
   const [loadingStatus, setLoadingStatus] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const createToken = useCreateToken()
+  const createToken = useCreateToken(chainId)
   const uploadMetadata = useUploadTokenMetadata()
-  const { initialVirtualBaseReserves } = useTokenFactory()
+  const { initialVirtualBaseReserves } = useTokenFactory(chainId)
   const addTransaction = useTransactionAdder()
 
   const handleBack = useCallback(() => {
