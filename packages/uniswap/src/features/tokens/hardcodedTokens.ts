@@ -3,6 +3,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
 import { JUICE_ADDRESSES, JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { loadAllPackageTokens } from 'uniswap/src/features/tokens/npmPackageTokens'
 
 // Addresses from canonical packages - single source of truth
 const JUSD_ADDRESS = JUSD_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
@@ -62,219 +63,109 @@ const citreaWrappedNativeMainnetCurrency = {
   logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
 }
 
-const citreaUsdcCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: '0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F',
-    decimals: 6,
-    symbol: 'USDC',
-    name: 'USDC (Satsuma)',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-0x36c16eaC6B0Ba6c50f494914ff015fCa95B7835F`,
-  logoUrl: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-}
+// Most Citrea tokens are now loaded dynamically from npm packages.
+// See loadAllPackageTokens() in npmPackageTokens.ts
+// Only hardcode tokens that are NOT in npm packages (like testnet-specific tokens)
 
-const citreaCusdCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0',
-    decimals: 18,
-    symbol: 'cUSD',
-    name: 'Citrus Dollar',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0`,
-  logoUrl: 'https://docs.juiceswap.com/media/icons/cusd.png',
-}
-
-const citreaNusdCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: '0x9B28B690550522608890C3C7e63c0b4A7eBab9AA',
-    decimals: 18,
-    symbol: 'NUSD',
-    name: 'Nectra USD',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-0x9B28B690550522608890C3C7e63c0b4A7eBab9AA`,
-  logoUrl: 'https://docs.juiceswap.com/media/icons/nusd.png',
-}
-
-// JuiceDollar tokens - addresses from @juicedollar/jusd package
-const citreaJusdCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: JUSD_ADDRESS,
-    decimals: 18,
-    symbol: 'JUSD',
-    name: 'Juice Dollar',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-${JUSD_ADDRESS}`,
-  logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
-}
-
-const citreaJusdMainnetCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaMainnet,
-    address: JUSD_MAINNET_ADDRESS,
-    decimals: 18,
-    symbol: 'JUSD',
-    name: 'Juice Dollar',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaMainnet}-${JUSD_MAINNET_ADDRESS}`,
-  logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
-}
-
-// svJUSD is intentionally NOT exposed to users - they only see JUSD
-// The Gateway handles JUSD <-> svJUSD conversions internally for LP yields
-
-const citreaJuiceCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: JUICE_ADDRESS,
-    decimals: 18,
-    symbol: 'JUICE',
-    name: 'JUICE Equity',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-${JUICE_ADDRESS}`,
-  logoUrl: 'https://docs.juiceswap.com/media/icons/juice.png',
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const polygonUsdtCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.Polygon,
-    address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
-    decimals: 6,
-    symbol: 'USDT',
-    name: 'Tether USD',
-  }) as Currency,
-  currencyId: `${UniverseChainId.Polygon}-0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
-  logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
-}
-
-// L0 bridged tokens on Citrea (from Ethereum via LayerZero)
-const citreaWbtceCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: '0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d',
-    decimals: 8,
-    symbol: 'WBTC.e',
-    name: 'Wrapped BTC (LayerZero)',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-0xDF240DC08B0FdaD1d93b74d5048871232f6BEA3d`,
-  logoUrl: 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
-}
-
-const citreaUsdceCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: '0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839',
-    decimals: 6,
-    symbol: 'USDC.e',
-    name: 'USD Coin (LayerZero)',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-0xE045e6c36cF77FAA2CfB54466D71A3aEF7bbE839`,
-  logoUrl: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-}
-
-const citreaUsdteCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: '0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4',
-    decimals: 6,
-    symbol: 'USDT.e',
-    name: 'Tether USD (LayerZero)',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-0x9f3096Bac87e7F03DC09b0B416eB0DF837304dc4`,
-  logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+export function getSuggestedCitreaTokens(chainId: UniverseChainId): CurrencyInfo[] {
+  const tokens: CurrencyInfo[] = []
+  
+  if (chainId === UniverseChainId.CitreaTestnet) {
+    tokens.push(citreaNativeCurrency)
+    tokens.push(citreaWrappedNativeCurrency)
+    tokens.push(...loadAllPackageTokens(UniverseChainId.CitreaTestnet))
+  } else if (chainId === UniverseChainId.CitreaMainnet) {
+    tokens.push(citreaNativeMainnetCurrency)
+    tokens.push(citreaWrappedNativeMainnetCurrency)
+    tokens.push(...loadAllPackageTokens(UniverseChainId.CitreaMainnet))
+  }
+  
+  return tokens
 }
 
 export const suggestedCitreaTokens: CurrencyInfo[] = [
-  citreaNativeCurrency,
-  citreaNativeMainnetCurrency,
-  citreaWrappedNativeCurrency,
-  citreaWrappedNativeMainnetCurrency,
-  citreaJusdCurrency,
-  // svJUSD intentionally excluded - users should only see JUSD
-  // The Gateway handles JUSD <-> svJUSD conversions internally
-  citreaJuiceCurrency,
-  citreaUsdcCurrency,
-  citreaCusdCurrency,
-  citreaNusdCurrency,
-  // L0 bridged tokens
-  citreaWbtceCurrency,
-  citreaUsdceCurrency,
-  citreaUsdteCurrency,
-  citreaJusdCurrency,
-  citreaJusdMainnetCurrency
+  ...getSuggestedCitreaTokens(UniverseChainId.CitreaTestnet),
+  ...getSuggestedCitreaTokens(UniverseChainId.CitreaMainnet),
 ]
 
-export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [
-  {
-    currency: buildCurrency({
-      chainId: UniverseChainId.Sepolia,
-      address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
-      decimals: 18,
-      symbol: 'USDC',
-      name: 'USDC',
-    }) as Currency,
-    currencyId: `${UniverseChainId.Sepolia}-0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238`,
-    logoUrl: 'https://assets.coingecko.com/coins/images/957/large/usd-coin.png?1547042194',
-  },
-  {
-    currency: buildCurrency({
-      chainId: UniverseChainId.Sepolia,
-      address: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
-      decimals: 18,
-      symbol: 'WETH',
-      name: 'WETH',
-    }) as Currency,
-    currencyId: `${UniverseChainId.Sepolia}-0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14`,
-    logoUrl: 'https://assets.coingecko.com/coins/images/2518/large/weth.png?1696501628',
-  },
-  {
-    currency: buildCurrency({
-      chainId: UniverseChainId.Sepolia,
-      address: '0x14ADf6B87096Ef750a956756BA191fc6BE94e473',
-      decimals: 18,
-      symbol: 'TFC',
-      name: 'TaprootFreakCoin',
-    }) as Currency,
-    currencyId: `${UniverseChainId.Sepolia}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
-    logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
-  },
-  citreaWrappedNativeCurrency,
-  citreaJusdCurrency,
-  citreaJuiceCurrency,
-  citreaUsdcCurrency,
-  citreaCusdCurrency,
-  citreaNusdCurrency,
-  {
-    currency: buildCurrency({
-      chainId: UniverseChainId.CitreaTestnet,
-      address: '0x14ADf6B87096Ef750a956756BA191fc6BE94e473',
-      decimals: 18,
-      symbol: 'TFC',
-      name: 'TaprootFreakCoin',
-    }) as Currency,
-    currencyId: `${UniverseChainId.CitreaTestnet}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
-    logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
-  },
-  {
-    currency: buildCurrency({
-      chainId: UniverseChainId.Polygon,
-      address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
-      decimals: 6,
-      symbol: 'USDT',
-      name: 'Tether USD',
-    }) as Currency,
-    currencyId: `${UniverseChainId.Polygon}-0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
-    logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
-  },
-  // L0 bridged tokens on Citrea
-  citreaWbtceCurrency,
-  citreaUsdceCurrency,
-  citreaUsdteCurrency,
-]
+/**
+ * Get common base currencies for token selection.
+ * Dynamically includes all tokens from npm packages for Citrea chains.
+ */
+export function getHardcodedCommonBaseCurrencies(): CurrencyInfo[] {
+  const baseTokens: CurrencyInfo[] = [
+    // Sepolia testnet tokens
+    {
+      currency: buildCurrency({
+        chainId: UniverseChainId.Sepolia,
+        address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+        decimals: 18,
+        symbol: 'USDC',
+        name: 'USDC',
+      }) as Currency,
+      currencyId: `${UniverseChainId.Sepolia}-0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238`,
+      logoUrl: 'https://assets.coingecko.com/coins/images/957/large/usd-coin.png?1547042194',
+    },
+    {
+      currency: buildCurrency({
+        chainId: UniverseChainId.Sepolia,
+        address: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
+        decimals: 18,
+        symbol: 'WETH',
+        name: 'WETH',
+      }) as Currency,
+      currencyId: `${UniverseChainId.Sepolia}-0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14`,
+      logoUrl: 'https://assets.coingecko.com/coins/images/2518/large/weth.png?1696501628',
+    },
+    {
+      currency: buildCurrency({
+        chainId: UniverseChainId.Sepolia,
+        address: '0x14ADf6B87096Ef750a956756BA191fc6BE94e473',
+        decimals: 18,
+        symbol: 'TFC',
+        name: 'TaprootFreakCoin',
+      }) as Currency,
+      currencyId: `${UniverseChainId.Sepolia}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
+      logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
+    },
+    
+    // Citrea native/wrapped tokens (not in npm packages)
+    citreaWrappedNativeCurrency,
+    
+    // TFC on Citrea testnet
+    {
+      currency: buildCurrency({
+        chainId: UniverseChainId.CitreaTestnet,
+        address: '0x14ADf6B87096Ef750a956756BA191fc6BE94e473',
+        decimals: 18,
+        symbol: 'TFC',
+        name: 'TaprootFreakCoin',
+      }) as Currency,
+      currencyId: `${UniverseChainId.CitreaTestnet}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
+      logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
+    },
+    
+    // Polygon tokens
+    {
+      currency: buildCurrency({
+        chainId: UniverseChainId.Polygon,
+        address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+        decimals: 6,
+        symbol: 'USDT',
+        name: 'Tether USD',
+      }) as Currency,
+      currencyId: `${UniverseChainId.Polygon}-0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
+      logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+    },
+  ]
+  
+  baseTokens.push(...getSuggestedCitreaTokens(UniverseChainId.CitreaTestnet))
+  baseTokens.push(...getSuggestedCitreaTokens(UniverseChainId.CitreaMainnet))
+  
+  return baseTokens
+}
+
+export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = getHardcodedCommonBaseCurrencies()
 
 /**
  * Checks if a given currency is a hardcoded trusted token that should not show safety warnings

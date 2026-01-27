@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo, useRef } from 'react'
 import { TokenSelectorList } from 'uniswap/src/components/TokenSelector/TokenSelectorList'
 import { useCommonTokensOptionsWithFallback } from 'uniswap/src/components/TokenSelector/hooks/useCommonTokensOptionsWithFallback'
-import { useCurrencyInfosToTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/useCurrencyInfosToTokenOptions'
+import { usePortfolioTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/usePortfolioTokenOptions'
 import { OnSelectCurrency, TokenSectionsHookProps } from 'uniswap/src/components/TokenSelector/types'
 import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/components/lists/OnchainItemList/types'
 import { TokenSelectorOption } from 'uniswap/src/components/lists/items/types'
@@ -10,24 +10,30 @@ import { GqlResult } from 'uniswap/src/data/types'
 import { useBridgingTokensOptions } from 'uniswap/src/features/bridging/hooks/tokens'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { suggestedCitreaTokens } from 'uniswap/src/features/tokens/hardcodedTokens'
 
 function useTokenSectionsForSwap({
   activeAccountAddress,
   chainFilter,
   oppositeSelectedToken,
 }: TokenSectionsHookProps): GqlResult<OnchainItemSection<TokenSelectorOption>[]> {
-  const { defaultChainId, isTestnetModeEnabled } = useEnabledChains()
+  const { defaultChainId } = useEnabledChains()
 
   const {
     data: commonTokenOptions,
     refetch: refetchCommonTokenOptions,
     loading: commonTokenOptionsLoading,
-    // if there is no chain filter, first check if the input token has a chainId, fallback to defaultChainId
   } = useCommonTokensOptionsWithFallback(
     activeAccountAddress as `0x${string}` | undefined,
     chainFilter ?? oppositeSelectedToken?.chainId ?? defaultChainId,
   )
+
+  const {
+    data: portfolioTokenOptions,
+    loading: portfolioTokenOptionsLoading,
+  } = usePortfolioTokenOptions({
+    address: activeAccountAddress as `0x${string}` | undefined,
+    chainFilter,
+  })
 
   const {
     data: bridgingTokenOptions,
@@ -49,29 +55,15 @@ function useTokenSectionsForSwap({
     refetchAllRef.current()
   }, [])
 
-  // we draw the Suggested pills as a single item of a section list, so `data` is TokenOption[][]
-
   const suggestedSectionOptions = useMemo(() => [commonTokenOptions ?? []], [commonTokenOptions])
   const suggestedSection = useOnchainItemListSection({
     sectionKey: OnchainItemSectionName.SuggestedTokens,
     options: suggestedSectionOptions,
   })
 
-  const suggestions = useMemo(() => {
-    if (isTestnetModeEnabled) {
-      return suggestedCitreaTokens.filter((token) => token.currency.chainId === UniverseChainId.CitreaTestnet)
-    }
-    return suggestedCitreaTokens.filter((token) => token.currency.chainId === UniverseChainId.CitreaMainnet)
-  }, [isTestnetModeEnabled])
-
-  const yourTokensSectionOptions = useCurrencyInfosToTokenOptions({
-    currencyInfos: suggestions,
-    portfolioBalancesById: {},
-  })
-
   const yourTokensSection = useOnchainItemListSection({
     sectionKey: OnchainItemSectionName.YourTokens,
-    options: yourTokensSectionOptions,
+    options: portfolioTokenOptions,
   })
 
   const bridgingSectionTokenOptions: TokenSelectorOption[] = useMemo(
@@ -85,21 +77,21 @@ function useTokenSectionsForSwap({
   })
 
   const sections = useMemo(() => {
-    if (commonTokenOptionsLoading) {
+    if (commonTokenOptionsLoading || portfolioTokenOptionsLoading) {
       return undefined
     }
 
-    return [...(suggestedSection ?? []), ...(bridgingSection ?? []), ...(yourTokensSection ?? [])]
-  }, [commonTokenOptionsLoading, suggestedSection, yourTokensSection, bridgingSection])
+    return [...(suggestedSection ?? []), ...(yourTokensSection ?? []), ...(bridgingSection ?? [])]
+  }, [commonTokenOptionsLoading, portfolioTokenOptionsLoading, suggestedSection, yourTokensSection, bridgingSection])
 
   return useMemo(
     () => ({
       data: sections,
-      loading,
+      loading: loading || portfolioTokenOptionsLoading,
       error: undefined,
       refetch,
     }),
-    [loading, refetch, sections],
+    [loading, portfolioTokenOptionsLoading, refetch, sections],
   )
 }
 
