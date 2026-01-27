@@ -14,7 +14,6 @@ import { ALL_NETWORKS_ARG } from 'uniswap/src/data/rest/base'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
 import { GqlResult } from 'uniswap/src/data/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { getHardcodedCitreaPoolsOptions } from 'uniswap/src/features/pools/hardcodedPools'
 import { ClearRecentSearchesButton } from 'uniswap/src/features/search/ClearRecentSearchesButton'
 import { SearchModalList, SearchModalListProps } from 'uniswap/src/features/search/SearchModal/SearchModalList'
 import {
@@ -103,18 +102,8 @@ function useSectionsForNoQuerySearch({
     enabled: isWeb && (activeTab === SearchTab.All || activeTab === SearchTab.Pools),
   })
 
-  // Always call the hook but may not use its result
-  const poolOptionsFromApi = usePoolStatsToPoolOptions(topPools)
-
-  // Use hardcoded pools for Citrea when no API data is available
-  const citreaFallbackPools = useMemo(() => {
-    if (chainFilter === UniverseChainId.CitreaTestnet && (!topPools || topPools.length === 0)) {
-      return getHardcodedCitreaPoolsOptions()
-    }
-    return undefined
-  }, [chainFilter, topPools])
-
-  const trendingPoolOptions = citreaFallbackPools || poolOptionsFromApi
+  // Pools come from API/Ponder only - no hardcoded fallbacks
+  const trendingPoolOptions = usePoolStatsToPoolOptions(topPools)
   const trendingPoolSection = useOnchainItemListSection({
     sectionKey: OnchainItemSectionName.TrendingPools,
     options: trendingPoolOptions,
@@ -156,9 +145,8 @@ function useSectionsForNoQuerySearch({
         sections = [...(recentSearchSection ?? []), ...(trendingPoolSection ?? [])]
         return {
           data: sections,
-          loading:
-            (topPoolsLoading && !citreaFallbackPools) || Boolean(topPools?.length && !trendingPoolOptions.length),
-          error: citreaFallbackPools ? undefined : topPoolsError ?? undefined,
+          loading: topPoolsLoading || Boolean(topPools?.length && !trendingPoolOptions.length),
+          error: topPoolsError ?? undefined,
           refetch: refetchPools,
         }
       case SearchTab.Wallets:
@@ -208,7 +196,6 @@ function useSectionsForNoQuerySearch({
     trendingPoolSection,
     trendingTokenSection,
     citreaFallbackTokens,
-    citreaFallbackPools,
   ])
 }
 

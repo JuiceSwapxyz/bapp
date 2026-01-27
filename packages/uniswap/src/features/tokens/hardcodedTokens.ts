@@ -2,14 +2,7 @@ import { ChainId, Currency, WETH9 } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
-import { JUICE_ADDRESSES, JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jusdAbstraction'
 import { loadAllPackageTokens } from 'uniswap/src/features/tokens/npmPackageTokens'
-
-// Addresses from canonical packages - single source of truth
-const JUSD_ADDRESS = JUSD_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
-const JUICE_ADDRESS = JUICE_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
-
-const JUSD_MAINNET_ADDRESS = JUSD_ADDRESSES[UniverseChainId.CitreaMainnet] ?? ''
 
 const citreaNativeCurrency = {
   currency: buildCurrency({
@@ -65,48 +58,20 @@ const citreaWrappedNativeMainnetCurrency = {
 
 // Most Citrea tokens are now loaded dynamically from npm packages.
 // See loadAllPackageTokens() in npmPackageTokens.ts
-// Only hardcode tokens that are NOT in npm packages (like testnet-specific tokens)
-
-// Testnet-only tokens (not in npm package)
-const citreaNusdCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: '0x9B28B690550522608890C3C7e63c0b4A7eBab9AA',
-    decimals: 18,
-    symbol: 'NUSD',
-    name: 'Nectra USD',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-0x9B28B690550522608890C3C7e63c0b4A7eBab9AA`,
-  logoUrl: 'https://docs.juiceswap.com/media/icons/nusd.png',
-}
-
-const citreaCusdCurrency = {
-  currency: buildCurrency({
-    chainId: UniverseChainId.CitreaTestnet,
-    address: '0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0',
-    decimals: 18,
-    symbol: 'cUSD',
-    name: 'Citrus Dollar',
-  }) as Currency,
-  currencyId: `${UniverseChainId.CitreaTestnet}-0x2fFC18aC99D367b70dd922771dF8c2074af4aCE0`,
-  logoUrl: 'https://docs.juiceswap.com/media/icons/cusd.png',
-}
 
 export function getSuggestedCitreaTokens(chainId: UniverseChainId): CurrencyInfo[] {
   const tokens: CurrencyInfo[] = []
-  
+
   if (chainId === UniverseChainId.CitreaTestnet) {
     tokens.push(citreaNativeCurrency)
     tokens.push(citreaWrappedNativeCurrency)
     tokens.push(...loadAllPackageTokens(UniverseChainId.CitreaTestnet))
-    tokens.push(citreaNusdCurrency)
-    tokens.push(citreaCusdCurrency)
   } else if (chainId === UniverseChainId.CitreaMainnet) {
     tokens.push(citreaNativeMainnetCurrency)
     tokens.push(citreaWrappedNativeMainnetCurrency)
     tokens.push(...loadAllPackageTokens(UniverseChainId.CitreaMainnet))
   }
-  
+
   return tokens
 }
 
@@ -144,31 +109,6 @@ export function getHardcodedCommonBaseCurrencies(): CurrencyInfo[] {
       currencyId: `${UniverseChainId.Sepolia}-0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14`,
       logoUrl: 'https://assets.coingecko.com/coins/images/2518/large/weth.png?1696501628',
     },
-    {
-      currency: buildCurrency({
-        chainId: UniverseChainId.Sepolia,
-        address: '0x14ADf6B87096Ef750a956756BA191fc6BE94e473',
-        decimals: 18,
-        symbol: 'TFC',
-        name: 'TaprootFreakCoin',
-      }) as Currency,
-      currencyId: `${UniverseChainId.Sepolia}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
-      logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
-    },
-    
-    // TFC on Citrea testnet
-    {
-      currency: buildCurrency({
-        chainId: UniverseChainId.CitreaTestnet,
-        address: '0x14ADf6B87096Ef750a956756BA191fc6BE94e473',
-        decimals: 18,
-        symbol: 'TFC',
-        name: 'TaprootFreakCoin',
-      }) as Currency,
-      currencyId: `${UniverseChainId.CitreaTestnet}-0x14ADf6B87096Ef750a956756BA191fc6BE94e473`,
-      logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
-    },
-    
     // Polygon tokens
     {
       currency: buildCurrency({

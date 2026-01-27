@@ -38,7 +38,7 @@ const TOKEN_METADATA: Record<string, {
     name: 'StartUSD',
     decimals: 18,
     logoUrl: 'https://docs.juiceswap.com/media/icons/susd.png',
-    displayInUI: true,
+    displayInUI: false,
   },
   USDC: {
     symbol: 'USDC',
