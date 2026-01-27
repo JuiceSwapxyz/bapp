@@ -12,6 +12,7 @@ import { PoolStat } from 'state/explore/types'
 import { Flex, useMedia } from 'ui/src'
 import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 
@@ -20,6 +21,7 @@ export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
   const media = useMedia()
   const isBelowXlScreen = !media.xl
   const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
+  const { isTestnetModeEnabled } = useEnabledChains()
 
   // Call hooks before any conditional returns
   const {
@@ -35,8 +37,9 @@ export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
     sortState: { sortDirection: OrderDirection.Desc, sortBy: PoolSortFields.TVL },
   })
 
-  // If Citrea Only is enabled or Citrea testnet is selected, show hardcoded pools
-  if (isCitreaOnlyEnabled || chainId === UniverseChainId.CitreaTestnet) {
+  // If testnet mode is enabled, Citrea Only is enabled, or Citrea testnet is selected, show hardcoded pools
+  // This prevents mainnet/testnet mixing since the API doesn't support testnet chains
+  if (isTestnetModeEnabled || isCitreaOnlyEnabled || chainId === UniverseChainId.CitreaTestnet) {
     if (!isBelowXlScreen) {
       return null
     }

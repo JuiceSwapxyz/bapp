@@ -58,16 +58,16 @@ const isChainBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): bo
   return currencyIn?.chainId === UniverseChainId.Bitcoin || currencyOut?.chainId === UniverseChainId.Bitcoin
 }
 
+const isCitreaChainId = (chainId: UniverseChainId | undefined): boolean => {
+  return chainId === UniverseChainId.CitreaMainnet || chainId === UniverseChainId.CitreaTestnet
+}
+
 const isSubmarineBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): boolean => {
-  return (
-    currencyIn?.chainId === UniverseChainId.CitreaMainnet && currencyOut?.chainId === UniverseChainId.LightningNetwork
-  )
+  return isCitreaChainId(currencyIn?.chainId) && currencyOut?.chainId === UniverseChainId.LightningNetwork
 }
 
 const isReverseBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): boolean => {
-  return (
-    currencyIn?.chainId === UniverseChainId.LightningNetwork && currencyOut?.chainId === UniverseChainId.CitreaMainnet
-  )
+  return currencyIn?.chainId === UniverseChainId.LightningNetwork && isCitreaChainId(currencyOut?.chainId)
 }
 
 const isErc20ChainBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): boolean => {
@@ -75,8 +75,8 @@ const isErc20ChainBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams
     currencyIn?.chainId === UniverseChainId.Mainnet || currencyIn?.chainId === UniverseChainId.Polygon
   const isToEthereumOrPolygon =
     currencyOut?.chainId === UniverseChainId.Mainnet || currencyOut?.chainId === UniverseChainId.Polygon
-  const isFromCitrea = currencyIn?.chainId === UniverseChainId.CitreaMainnet
-  const isToCitrea = currencyOut?.chainId === UniverseChainId.CitreaMainnet
+  const isFromCitrea = isCitreaChainId(currencyIn?.chainId)
+  const isToCitrea = isCitreaChainId(currencyOut?.chainId)
 
   // Ethereum/Polygon → Citrea or Citrea → Ethereum/Polygon
   return (isFromEthereumOrPolygon && isToCitrea) || (isFromCitrea && isToEthereumOrPolygon)
@@ -103,7 +103,7 @@ const getErc20ApiSymbol = (symbol: string | undefined, chainId: UniverseChainId 
   if (symbol === 'USDC' && chainId === UniverseChainId.Mainnet) {
     return 'USDC_ETH'
   }
-  if (symbol === 'JUSD' && chainId === UniverseChainId.CitreaMainnet) {
+  if (symbol === 'JUSD' && isCitreaChainId(chainId)) {
     return 'JUSD_CITREA'
   }
 
@@ -167,7 +167,7 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
 
   // Limits are displayed on the non-Citrea side (source for outgoing, destination for incoming)
   // The API returns limits in the native decimals of the source token
-  const isInputSide = currencyIn.chainId !== UniverseChainId.CitreaMainnet
+  const isInputSide = !isCitreaChainId(currencyIn.chainId)
   const limitsCurrency = isInputSide ? currencyIn : currencyOut
 
   const { minimal, maximal } = limits
