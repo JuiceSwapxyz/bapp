@@ -24,6 +24,7 @@ import { InfoCircle } from 'ui/src/components/icons/InfoCircle'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { formatUnits } from 'viem'
 
@@ -115,8 +116,8 @@ export default function TokenDetail() {
   const { data: launchpadData } = useLaunchpadToken(tokenAddress)
 
   // Use the token's chainId (from API) for all operations - this ensures we read from the correct chain
-  // even if the user is connected to a different network
-  const chainId = launchpadData?.token.chainId
+  // even if the user is connected to a different network. Default to testnet while loading.
+  const chainId = (launchpadData?.token.chainId as UniverseChainId | undefined) ?? UniverseChainId.CitreaTestnet
 
   const {
     name,
@@ -135,10 +136,6 @@ export default function TokenDetail() {
   const { data: metadata } = useTokenMetadata(launchpadData?.token.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
 
-  // Use token's chainId from API when available, default to testnet while loading
-  // This ensures viewing works without wallet connection
-  const chainId = (launchpadData?.token.chainId as UniverseChainId) ?? UniverseChainId.CitreaTestnet
-
   const handleBack = useCallback(() => {
     navigate('/launchpad')
   }, [navigate])
@@ -150,7 +147,7 @@ export default function TokenDetail() {
   }, [tokenAddress])
 
   const handleOpenExplorer = useCallback(() => {
-    if (tokenAddress && chainId) {
+    if (tokenAddress) {
       const url = getExplorerLink({
         chainId,
         data: tokenAddress,
@@ -361,7 +358,7 @@ export default function TokenDetail() {
                   <StatLabel variant="body2">Creator</StatLabel>
                   <AddressLink
                     onPress={() => {
-                      if (tokenInfo?.creator && chainId) {
+                      if (tokenInfo?.creator) {
                         const url = getExplorerLink({
                           chainId,
                           data: tokenInfo.creator,
@@ -381,7 +378,7 @@ export default function TokenDetail() {
                     <StatValue variant="body2">{createdDate}</StatValue>
                   </StatRow>
                 )}
-                {graduated && v2Pair && chainId && (
+                {graduated && v2Pair && (
                   <StatRow paddingVertical="$spacing4">
                     <StatLabel variant="body2">V2 Pair</StatLabel>
                     <AddressLink
