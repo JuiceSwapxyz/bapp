@@ -4,9 +4,10 @@
 
 import { NetworkStatus } from '@apollo/client'
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import { uniswapUrls } from 'uniswap/src/constants/urls'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { PortfolioBalance } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
@@ -101,8 +102,6 @@ async function fetchJuiceSwapPortfolio(
   return balancesById
 }
 
-const PORTFOLIO_CHAIN_IDS = [UniverseChainId.CitreaTestnet, UniverseChainId.Polygon]
-
 async function fetchMultiChainPortfolio(
   address: string,
   chainIds: UniverseChainId[],
@@ -129,18 +128,28 @@ export function useJuiceSwapPortfolioData({
   onCompleted?: () => void
   skip?: boolean
 }): PortfolioDataResult {
+  const { isTestnetModeEnabled } = useEnabledChains()
+
+  // Dynamically determine which chain IDs to fetch based on testnet mode
+  const chainIds = useMemo(() => {
+    if (isTestnetModeEnabled) {
+      return [UniverseChainId.CitreaTestnet]
+    }
+    return [UniverseChainId.CitreaMainnet]
+  }, [isTestnetModeEnabled])
+
   const {
     data,
     isLoading,
     error,
     refetch: queryRefetch,
   } = useQuery<Record<CurrencyId, PortfolioBalance>, Error>({
-    queryKey: ['juiceswap-portfolio', address, PORTFOLIO_CHAIN_IDS],
+    queryKey: ['juiceswap-portfolio', address, chainIds],
     queryFn: () => {
       if (!address) {
         return Promise.resolve({})
       }
-      return fetchMultiChainPortfolio(address, PORTFOLIO_CHAIN_IDS)
+      return fetchMultiChainPortfolio(address, chainIds)
     },
     enabled: Boolean(address) && !skip,
     refetchInterval: pollInterval,
