@@ -8,14 +8,17 @@ import {
   useV4TransactionsQuery,
 } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
+import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import i18n from 'uniswap/src/i18n'
 
-const useV3Transactions = () => {
+const useV3Transactions = (chain: Chain) => {
+  const chainId = fromGraphQLChain(chain)
   const {
     data,
     isLoading: loadingV3,
     error: errorV3,
   } = useExploreStatsQuery<{ stats: { transactionStats: unknown[] } }>({
+    chainId: chainId ?? undefined,
     enabled: true,
   })
 
@@ -69,7 +72,7 @@ export function useAllTransactions(
     skip: true,
   })
 
-  const { data: dataV3, loading: loadingV3, error: errorV3 } = useV3Transactions()
+  const { data: dataV3, loading: loadingV3, error: errorV3 } = useV3Transactions(chain)
 
   const {
     data: dataV2,

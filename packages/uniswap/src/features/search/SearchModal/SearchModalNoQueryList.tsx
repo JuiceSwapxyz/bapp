@@ -99,6 +99,7 @@ function useSectionsForNoQuerySearch({
     error: topPoolsError,
     refetch: refetchPools,
   } = useExploreStatsQuery<PoolStats[] | undefined>({
+    chainId: chainFilter ?? undefined,
     enabled: isWeb && (activeTab === SearchTab.All || activeTab === SearchTab.Pools),
   })
 
