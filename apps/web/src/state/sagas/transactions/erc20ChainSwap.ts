@@ -62,20 +62,41 @@ const USDC_ETHEREUM_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
 const USDT_ETHEREUM_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 const USDT_POLYGON_ADDRESS = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
 const JUSD_CITREA_MAINNET = ADDRESS[4114]!.juiceDollar
+const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
 
 // Swap contract addresses (same contract handles multiple tokens on each chain)
 const SWAP_CONTRACTS = {
   ethereum: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
   polygon: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
-  citrea: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
+  citreaMainnet: '0x7397f25f230f7d5a83c18e1b68b32511bf35f860',
+  citreaTestnet: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
 }
 
-// Token configurations by API symbol
-const TOKEN_CONFIGS: Record<string, { address: string; decimals: number; chainId: UniverseChainId }> = {
+// Token configurations by API symbol - mainnet
+const TOKEN_CONFIGS_MAINNET: Record<string, { address: string; decimals: number; chainId: UniverseChainId }> = {
   USDT_ETH: { address: USDT_ETHEREUM_ADDRESS, decimals: 6, chainId: UniverseChainId.Mainnet },
   USDC_ETH: { address: USDC_ETHEREUM_ADDRESS, decimals: 6, chainId: UniverseChainId.Mainnet },
   USDT_POLYGON: { address: USDT_POLYGON_ADDRESS, decimals: 6, chainId: UniverseChainId.Polygon },
   JUSD_CITREA: { address: JUSD_CITREA_MAINNET, decimals: 18, chainId: UniverseChainId.CitreaMainnet },
+}
+
+// Token configurations by API symbol - testnet
+const TOKEN_CONFIGS_TESTNET: Record<string, { address: string; decimals: number; chainId: UniverseChainId }> = {
+  USDT_ETH: { address: USDT_ETHEREUM_ADDRESS, decimals: 6, chainId: UniverseChainId.Mainnet },
+  USDC_ETH: { address: USDC_ETHEREUM_ADDRESS, decimals: 6, chainId: UniverseChainId.Mainnet },
+  USDT_POLYGON: { address: USDT_POLYGON_ADDRESS, decimals: 6, chainId: UniverseChainId.Polygon },
+  JUSD_CITREA: { address: JUSD_CITREA_TESTNET, decimals: 18, chainId: UniverseChainId.CitreaTestnet },
+}
+
+// Helper to get the right config based on trade's Citrea chain
+function getTokenConfigs(
+  citreaChainId: UniverseChainId,
+): Record<string, { address: string; decimals: number; chainId: UniverseChainId }> {
+  return citreaChainId === UniverseChainId.CitreaTestnet ? TOKEN_CONFIGS_TESTNET : TOKEN_CONFIGS_MAINNET
+}
+
+function getCitreaSwapContract(citreaChainId: UniverseChainId): string {
+  return citreaChainId === UniverseChainId.CitreaTestnet ? SWAP_CONTRACTS.citreaTestnet : SWAP_CONTRACTS.citreaMainnet
 }
 
 const BOLTZ_DECIMALS = 8 // Boltz uses 8 decimals internally
@@ -113,6 +134,13 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   const isEthereumToCitrea = step.direction === Erc20ChainSwapDirection.EthereumToCitrea
   const isCitreaToPolygon = step.direction === Erc20ChainSwapDirection.CitreaToPolygon
   const isCitreaToEthereum = step.direction === Erc20ChainSwapDirection.CitreaToEthereum
+
+  // Determine Citrea chain ID from the trade (input for Citrea→X, output for X→Citrea)
+  const citreaChainId =
+    isCitreaToPolygon || isCitreaToEthereum
+      ? (trade.inputAmount.currency.chainId as UniverseChainId)
+      : (trade.outputAmount.currency.chainId as UniverseChainId)
+  const TOKEN_CONFIGS = getTokenConfigs(citreaChainId)
 
   // Detect if input token is USDC (for Ethereum direction)
   const inputTokenAddress = trade.inputAmount.currency.isToken
@@ -152,7 +180,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     ? UniverseChainId.Polygon
     : isEthereumToCitrea
       ? UniverseChainId.Mainnet
-      : UniverseChainId.CitreaMainnet
+      : citreaChainId
 
   const ldsBridge = getLdsBridgeManager()
 
@@ -223,11 +251,17 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
   const sourceSigner = sourceProvider.getSigner(account.address)
 
+  // Get the correct swap contract address (dynamic for Citrea based on mainnet/testnet)
+  const swapContractAddress =
+    sourceChain === 'citrea'
+      ? getCitreaSwapContract(citreaChainId)
+      : SWAP_CONTRACTS[sourceChain as 'ethereum' | 'polygon']
+
   let lockResult
   try {
     lockResult = yield* call(buildErc20LockupTx, {
       signer: sourceSigner,
-      contractAddress: SWAP_CONTRACTS[sourceChain as keyof typeof SWAP_CONTRACTS],
+      contractAddress: swapContractAddress,
       tokenAddress: TOKEN_CONFIGS[from].address,
       preimageHash: chainSwap.preimageHash,
       amount: BigInt(inputAmount),
