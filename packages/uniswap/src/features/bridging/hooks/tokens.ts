@@ -5,6 +5,7 @@ import { createEmptyTokenOptionFromBridgingToken } from 'uniswap/src/components/
 import { OnchainItemListOptionType, TokenOption } from 'uniswap/src/components/lists/items/types'
 import { useTradingApiSwappableTokensQuery } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import { tradingApiSwappableTokenToCurrencyInfo } from 'uniswap/src/data/apiClients/tradingApi/utils/tradingApiSwappableTokenToCurrencyInfo'
+import { getAllSwappableTokens } from 'uniswap/src/data/apiClients/tradingApi/utils/swappableTokens'
 import { useCrossChainBalances } from 'uniswap/src/data/balances/hooks/useCrossChainBalances'
 import { useTokenProjectsQuery } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { GetSwappableTokensResponse } from 'uniswap/src/data/tradingApi/__generated__'
@@ -21,6 +22,7 @@ import {
   toTradingApiSupportedChainId,
 } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { buildCurrencyId, buildNativeCurrencyId } from 'uniswap/src/utils/currencyId'
+import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 import { logger } from 'utilities/src/logger/logger'
 
 export function useBridgingTokenWithHighestBalance({
@@ -132,9 +134,11 @@ export function useBridgingTokensOptions({
     ? getTokenAddressFromChainForTradingApi(oppositeSelectedToken.address, oppositeSelectedToken.chainId)
     : undefined
   const tokenInChainId = toTradingApiSupportedChainId(oppositeSelectedToken?.chainId)
+
+  // Query for specific tokens matching the selected input token
   const {
-    data: bridgingTokens,
-    isLoading: loadingBridgingTokens,
+    data: specificBridgingTokens,
+    isLoading: loadingSpecificBridgingTokens,
     error: errorBridgingTokens,
     refetch: refetchBridgingTokens,
   } = useTradingApiSwappableTokensQuery({
@@ -147,6 +151,41 @@ export function useBridgingTokensOptions({
         : undefined,
   })
 
+  // Always get all swappable tokens to show complete cross-chain options
+  const allSwappableTokens = useMemo(() => {
+    if (!isCrossChainSwapsEnabled()) {
+      return []
+    }
+    return getAllSwappableTokens()
+  }, [])
+
+  // Merge specific tokens with all swappable tokens, prioritizing specific ones
+  const bridgingTokens = useMemo(() => {
+    const specificTokens = specificBridgingTokens?.tokens ?? []
+    const seenKeys = new Set<string>()
+
+    // Add specific tokens first (they match the selected input)
+    const result: GetSwappableTokensResponse['tokens'] = []
+    for (const token of specificTokens) {
+      const key = `${token.address.toLowerCase()}-${token.chainId}`
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key)
+        result.push(token)
+      }
+    }
+
+    // Add remaining tokens from all swappable tokens
+    for (const token of allSwappableTokens) {
+      const key = `${token.address.toLowerCase()}-${token.chainId}`
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key)
+        result.push(token)
+      }
+    }
+
+    return result
+  }, [specificBridgingTokens?.tokens, allSwappableTokens])
+
   // Get portfolio balance for returned tokens
   const {
     data: portfolioBalancesById,
@@ -155,7 +194,7 @@ export function useBridgingTokensOptions({
     loading: loadingPorfolioBalancesById,
   } = usePortfolioBalancesForAddressById(walletAddress)
 
-  const tokenOptions = useBridgingTokensToTokenOptions(bridgingTokens?.tokens, portfolioBalancesById)
+  const tokenOptions = useBridgingTokensToTokenOptions(bridgingTokens, portfolioBalancesById)
   // Filter out tokens that are not on the current chain, unless the input token is the same as the current chain
   const isSameChain = oppositeSelectedToken?.chainId === chainFilter
   const shouldFilterByChain = chainFilter !== null && !isSameChain
@@ -173,7 +212,7 @@ export function useBridgingTokensOptions({
 
   return {
     data: filteredTokenOptions,
-    loading: loadingBridgingTokens || loadingPorfolioBalancesById,
+    loading: loadingSpecificBridgingTokens || loadingPorfolioBalancesById,
     error: error || undefined,
     refetch,
     shouldNest: !shouldFilterByChain,
