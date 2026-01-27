@@ -129,9 +129,6 @@ export function getHardcodedCommonBaseCurrencies(): CurrencyInfo[] {
       logoUrl: 'https://docs.juiceswap.com/media/icons/tfc.png',
     },
     
-    // Citrea native/wrapped tokens (not in npm packages)
-    citreaWrappedNativeCurrency,
-    
     // TFC on Citrea testnet
     {
       currency: buildCurrency({
