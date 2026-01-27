@@ -9,6 +9,7 @@ import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
   isBitcoinBridgeQuote,
+  isCitreaChainId,
   isErc20ChainSwapQuote,
   isLnBitcoinBridgeQuote,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
@@ -236,10 +237,10 @@ const calculateOutputAmountAfterFees = (params: {
 }
 
 const getBitcoinCrossChainDirection = (params: QuoteRequest): BitcoinBridgeDirection => {
-  if (params.tokenInChainId === ChainId._21_000_000 && params.tokenOutChainId === ChainId._4114) {
+  if (params.tokenInChainId === ChainId._21_000_000 && isCitreaChainId(params.tokenOutChainId)) {
     return BitcoinBridgeDirection.BitcoinToCitrea
   }
-  if (params.tokenInChainId === ChainId._4114 && params.tokenOutChainId === ChainId._21_000_000) {
+  if (isCitreaChainId(params.tokenInChainId) && params.tokenOutChainId === ChainId._21_000_000) {
     return BitcoinBridgeDirection.CitreaToBitcoin
   }
   throw new Error('Invalid bitcoin cross chain direction')
@@ -343,10 +344,10 @@ const getBitcoinCrossChainQuote = async (params: QuoteRequest): Promise<Discrimi
 }
 
 const getLightningBridgeDirection = (params: QuoteRequest): LightningBridgeDirection => {
-  if (params.tokenInChainId === ChainId._4114 && params.tokenOutChainId === ChainId._21_000_001) {
+  if (isCitreaChainId(params.tokenInChainId) && params.tokenOutChainId === ChainId._21_000_001) {
     return LightningBridgeDirection.Submarine
   }
-  if (params.tokenInChainId === ChainId._21_000_001 && params.tokenOutChainId === ChainId._4114) {
+  if (params.tokenInChainId === ChainId._21_000_001 && isCitreaChainId(params.tokenOutChainId)) {
     return LightningBridgeDirection.Reverse
   }
   throw new Error('Invalid lightning bridge direction')
@@ -695,7 +696,7 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
   return {
     requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
     swap: {
-      chainId: tokenInChainId ?? ChainId._5115,
+      chainId: tokenInChainId ?? ChainId._4114,
       data: response.data,
       from: connectedWallet ?? '',
       to: response.to,

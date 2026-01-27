@@ -182,7 +182,7 @@
     "@graphql-codegen/typescript-resolvers": "3.2.1",
     "@juggle/resize-observer": "3.4.0",
     "@juicedollar/jusd": "3.0.1",
-    "@juiceswapxyz/launchpad": "2.1.2",
+    "@juiceswapxyz/launchpad": "3.0.0",
     "@juiceswapxyz/router-sdk": "3.0.2",
     "@juiceswapxyz/sdk-core": "3.0.2",
     "@juiceswapxyz/smart-order-router": "3.0.3",
