@@ -11,7 +11,7 @@ const juiceSwapApiClient = createApiClient({
 
 async function fetchPositionFromCustomServer(input?: PartialMessage<GetPositionRequest>): Promise<GetPositionResponse> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = await juiceSwapApiClient.get<any>(`/v1/positions/${input?.tokenId}`)
+  const data = await juiceSwapApiClient.get<any>(`/v1/positions/${input?.tokenId}?chainId=${input?.chainId}`)
 
   const transformedData = {
     position: data.position

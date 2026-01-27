@@ -58,7 +58,7 @@ export function isL2ChainId(chainId?: UniverseChainId): boolean {
 }
 
 export function isMainnetChainId(chainId?: UniverseChainId): boolean {
-  return chainId === UniverseChainId.Mainnet || chainId === UniverseChainId.Sepolia
+  return chainId === UniverseChainId.CitreaMainnet
 }
 
 export function toGraphQLChain(chainId: UniverseChainId): GqlChainId {
@@ -191,6 +191,7 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
 }
 
 export const ALWAYS_ENABLED_CHAIN_IDS = [
+  UniverseChainId.CitreaMainnet,
   UniverseChainId.Bitcoin,
   UniverseChainId.LightningNetwork,
   UniverseChainId.CitreaTestnet,
@@ -206,7 +207,7 @@ export function getEnabledChains({
    */
   includeTestnets = false,
   isTestnetModeEnabled,
-  featureFlaggedChainIds,
+  featureFlaggedChainIds: _featureFlaggedChainIds,
   connectedWalletChainIds,
   isCitreaOnlyEnabled = false,
 }: {
@@ -218,45 +219,16 @@ export function getEnabledChains({
   isCitreaOnlyEnabled?: boolean
 }): EnabledChainsInfo {
   const enabledChainInfos = ORDERED_CHAINS.filter((chainInfo) => {
-    // Filter by platform - removed conditional as all chains are EVM now
-    if (platform !== undefined) {
-      // All chains are now Platform.EVM, so no filtering needed
-    }
-
-    if (ALWAYS_ENABLED_CHAIN_IDS.includes(chainInfo.id)) {
-      return true
-    }
-
-    // Filter mainnet vs testnet based on mode
-    const isTestnet = isTestnetChain(chainInfo.id)
-    if (isTestnetModeEnabled) {
-      // In testnet mode, only show testnets
-      if (!isTestnet) {
-        return false
-      }
-    } else {
-      // In mainnet mode, show mainnets, or also testnets if includeTestnets is true
-      if (isTestnet && !includeTestnets) {
-        return false
-      }
-    }
-
-    // If Citrea only is enabled, only show CitreaTestnet
-    if (isCitreaOnlyEnabled && chainInfo.id !== UniverseChainId.CitreaTestnet) {
-      return false
-    }
-
-    // Filter by feature flags
-    if (!featureFlaggedChainIds.includes(chainInfo.id)) {
-      return false
-    }
-
     // Filter by connected wallet chains if provided
     if (connectedWalletChainIds && !connectedWalletChainIds.includes(chainInfo.id)) {
       return false
     }
 
-    return true
+    if(isTestnetModeEnabled) {
+      return isTestnetChain(chainInfo.id)
+    } else {
+      return ALWAYS_ENABLED_CHAIN_IDS.includes(chainInfo.id) && !isTestnetChain(chainInfo.id)
+    }
   })
 
   // Extract chain IDs and GQL chains from filtered results
@@ -282,17 +254,11 @@ function getDefaultChainId({
   isTestnetModeEnabled: boolean
   isCitreaOnlyEnabled?: boolean
 }): UniverseChainId {
-  // If Citrea only is enabled, return CitreaTestnet as default
-  if (isCitreaOnlyEnabled) {
+  if (isTestnetModeEnabled) {
     return UniverseChainId.CitreaTestnet
   }
 
-  // Return default based on testnet mode
-  if (isTestnetModeEnabled) {
-    return UniverseChainId.Sepolia
-  }
-
-  return UniverseChainId.CitreaTestnet
+  return UniverseChainId.CitreaMainnet
 }
 
 /** Returns all stablecoins for a given chainId. */
@@ -307,4 +273,12 @@ export function getPrimaryStablecoin(chainId: UniverseChainId): Token {
 
 export function isUniverseChainId(chainId?: number | UniverseChainId | null): chainId is UniverseChainId {
   return !!chainId && ALL_CHAIN_IDS.includes(chainId as UniverseChainId)
+}
+
+/**
+ * Check if Citrea Mainnet is available in the system
+ * @returns true when CitreaMainnet chain is added to ORDERED_CHAINS
+ */
+export function isCitreaMainnetAvailable(): boolean {
+  return ORDERED_CHAINS.some((chain) => chain.id === UniverseChainId.CitreaMainnet)
 }

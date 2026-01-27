@@ -8,6 +8,8 @@ import { JUICE_ADDRESSES, JUSD_ADDRESSES } from 'uniswap/src/features/tokens/jus
 const JUSD_ADDRESS = JUSD_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
 const JUICE_ADDRESS = JUICE_ADDRESSES[UniverseChainId.CitreaTestnet] ?? ''
 
+const JUSD_MAINNET_ADDRESS = JUSD_ADDRESSES[UniverseChainId.CitreaMainnet] ?? ''
+
 const citreaNativeCurrency = {
   currency: buildCurrency({
     chainId: UniverseChainId.CitreaTestnet,
@@ -17,6 +19,18 @@ const citreaNativeCurrency = {
     name: 'cBTC',
   }) as Currency,
   currencyId: `${UniverseChainId.CitreaTestnet}-0x0000000000000000000000000000000000000000`,
+  logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
+}
+
+const citreaNativeMainnetCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaMainnet,
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    symbol: 'cBTC',
+    name: 'cBTC',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaMainnet}-0x0000000000000000000000000000000000000000`,
   logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
 }
 
@@ -31,6 +45,20 @@ const citreaWrappedNativeCurrency = {
   }) as Currency,
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   currencyId: `${UniverseChainId.CitreaTestnet}-${WETH9[ChainId.CITREA_TESTNET]!.address}`,
+  logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
+}
+
+const citreaWrappedNativeMainnetCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaMainnet,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    address: WETH9[ChainId.CITREA_MAINNET]!.address,
+    decimals: 18,
+    symbol: 'WcBTC',
+    name: 'Wrapped Citrea BTC',
+  }) as Currency,
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  currencyId: `${UniverseChainId.CitreaMainnet}-${WETH9[ChainId.CITREA_MAINNET]!.address}`,
   logoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
 }
 
@@ -80,6 +108,18 @@ const citreaJusdCurrency = {
     name: 'Juice Dollar',
   }) as Currency,
   currencyId: `${UniverseChainId.CitreaTestnet}-${JUSD_ADDRESS}`,
+  logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
+}
+
+const citreaJusdMainnetCurrency = {
+  currency: buildCurrency({
+    chainId: UniverseChainId.CitreaMainnet,
+    address: JUSD_MAINNET_ADDRESS,
+    decimals: 18,
+    symbol: 'JUSD',
+    name: 'Juice Dollar',
+  }) as Currency,
+  currencyId: `${UniverseChainId.CitreaMainnet}-${JUSD_MAINNET_ADDRESS}`,
   logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
 }
 
@@ -150,7 +190,9 @@ const citreaUsdteCurrency = {
 
 export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaNativeCurrency,
+  citreaNativeMainnetCurrency,
   citreaWrappedNativeCurrency,
+  citreaWrappedNativeMainnetCurrency,
   citreaJusdCurrency,
   // svJUSD intentionally excluded - users should only see JUSD
   // The Gateway handles JUSD <-> svJUSD conversions internally
@@ -162,6 +204,8 @@ export const suggestedCitreaTokens: CurrencyInfo[] = [
   citreaWbtceCurrency,
   citreaUsdceCurrency,
   citreaUsdteCurrency,
+  citreaJusdCurrency,
+  citreaJusdMainnetCurrency
 ]
 
 export const hardcodedCommonBaseCurrencies: CurrencyInfo[] = [

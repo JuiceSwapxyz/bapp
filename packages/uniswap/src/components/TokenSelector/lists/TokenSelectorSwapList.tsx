@@ -17,7 +17,7 @@ function useTokenSectionsForSwap({
   chainFilter,
   oppositeSelectedToken,
 }: TokenSectionsHookProps): GqlResult<OnchainItemSection<TokenSelectorOption>[]> {
-  const { defaultChainId } = useEnabledChains()
+  const { defaultChainId, isTestnetModeEnabled } = useEnabledChains()
 
   const {
     data: commonTokenOptions,
@@ -57,8 +57,15 @@ function useTokenSectionsForSwap({
     options: suggestedSectionOptions,
   })
 
+  const suggestions = useMemo(() => {
+    if (isTestnetModeEnabled) {
+      return suggestedCitreaTokens.filter((token) => token.currency.chainId === UniverseChainId.CitreaTestnet)
+    }
+    return suggestedCitreaTokens.filter((token) => token.currency.chainId === UniverseChainId.CitreaMainnet)
+  }, [isTestnetModeEnabled])
+
   const yourTokensSectionOptions = useCurrencyInfosToTokenOptions({
-    currencyInfos: suggestedCitreaTokens,
+    currencyInfos: suggestions,
     portfolioBalancesById: {},
   })
 

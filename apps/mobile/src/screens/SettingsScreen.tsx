@@ -49,6 +49,7 @@ import {
 } from 'ui/src/components/icons'
 import { iconSizes } from 'ui/src/theme'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
+import { isCitreaMainnetAvailable } from 'uniswap/src/features/chains/utils'
 import { useAppFiatCurrencyInfo } from 'uniswap/src/features/fiatCurrency/hooks'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
@@ -249,6 +250,7 @@ export function SettingsScreen(): JSX.Element {
                   text: t('settings.setting.wallet.testnetMode.title'),
                   icon: <Wrench {...iconProps} size="$icon.20" />,
                   isToggleEnabled: isTestnetModeEnabled,
+                  disabled: !isCitreaMainnetAvailable(),
                   onToggle: handleTestnetModeToggle,
                 },
               ]),

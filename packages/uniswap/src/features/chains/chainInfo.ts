@@ -4,7 +4,8 @@ import { BASE_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/base'
 import { BLAST_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/blast'
 import { BNB_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/bnb'
 import { CELO_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/celo'
-import { CITREA_TESTNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/citrea'
+import { CITREA_MAINNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/citrea-mainnet'
+import { CITREA_TESTNET_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/citrea-testnet'
 import { MAINNET_CHAIN_INFO, SEPOLIA_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/mainnet'
 import { OPTIMISM_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/optimism'
 import { POLYGON_CHAIN_INFO } from 'uniswap/src/features/chains/evm/info/polygon'
@@ -24,6 +25,7 @@ export function getChainInfo(chainId: UniverseChainId): UniverseChainInfo {
 }
 
 export const ORDERED_CHAINS = [
+  CITREA_MAINNET_CHAIN_INFO,
   MAINNET_CHAIN_INFO,
   UNICHAIN_CHAIN_INFO,
   POLYGON_CHAIN_INFO,
@@ -70,6 +72,7 @@ type AllChainsMap = {
 
 export const UNIVERSE_CHAIN_INFO = {
   // MAINNETS
+  [UniverseChainId.CitreaMainnet]: CITREA_MAINNET_CHAIN_INFO,
   [UniverseChainId.Mainnet]: MAINNET_CHAIN_INFO,
   [UniverseChainId.Unichain]: UNICHAIN_CHAIN_INFO,
   [UniverseChainId.Polygon]: POLYGON_CHAIN_INFO,

@@ -1,6 +1,4 @@
-import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
-import { useGraduate } from 'hooks/useLaunchpadActions'
 import { useLaunchpadToken } from 'hooks/useLaunchpadTokens'
 import { useTokenInfo } from 'hooks/useTokenFactory'
 import { getSocialLink, useTokenMetadata } from 'hooks/useTokenMetadata'
@@ -18,11 +16,8 @@ import {
 } from 'pages/Launchpad/components/shared'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { toast } from 'sonner'
-import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, ModalCloseIcon, Text, styled } from 'ui/src'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
-import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { CopyAlt } from 'ui/src/components/icons/CopyAlt'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 import { InfoCircle } from 'ui/src/components/icons/InfoCircle'
@@ -30,10 +25,7 @@ import { Modal } from 'uniswap/src/components/modals/Modal'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
-import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
-import { logger } from 'utilities/src/logger/logger'
-import { assume0xAddress } from 'utils/wagmi'
 import { formatUnits } from 'viem'
 
 const PageContainer = styled(Flex, {
@@ -116,18 +108,6 @@ const AddressLink = styled(Flex, {
   },
 })
 
-const GraduateButton = styled(Flex, {
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingVertical: '$spacing16',
-  backgroundColor: '$accent1',
-  borderRadius: '$rounded12',
-  cursor: 'pointer',
-  hoverStyle: {
-    backgroundColor: '$accent2',
-  },
-})
-
 export default function TokenDetail() {
   const { tokenAddress } = useParams<{ tokenAddress: string }>()
   const navigate = useNavigate()
@@ -149,10 +129,6 @@ export default function TokenDetail() {
   const { data: launchpadData } = useLaunchpadToken(tokenAddress)
   const { data: metadata } = useTokenMetadata(launchpadData?.token.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
-  const [isGraduating, setIsGraduating] = useState(false)
-
-  const graduate = useGraduate(tokenAddress)
-  const addTransaction = useTransactionAdder()
 
   const handleBack = useCallback(() => {
     navigate('/launchpad')
@@ -174,46 +150,6 @@ export default function TokenDetail() {
       window.open(url, '_blank')
     }
   }, [tokenAddress])
-
-  const handleGraduate = useCallback(async () => {
-    setIsGraduating(true)
-    try {
-      const tx = await graduate()
-      addTransaction(tx, {
-        type: TransactionType.LaunchpadGraduate,
-        tokenAddress: assume0xAddress(tokenAddress ?? ''),
-        dappInfo: { name: `Graduated ${symbol} to JuiceSwap V2` },
-      })
-      // Wait for confirmation
-      await tx.wait()
-      // Show success toast
-      toast(
-        <ToastRegularSimple
-          icon={<CheckCircleFilled color="$statusSuccess" size="$icon.28" />}
-          text={
-            <Flex gap="$gap4" flexWrap="wrap" flex={1}>
-              <Text variant="body2" color="$neutral1">
-                Graduated
-              </Text>
-              <Text variant="body3" color="$neutral2">
-                {symbol} to JuiceSwap V2
-              </Text>
-            </Flex>
-          }
-          onDismiss={() => toast.dismiss()}
-        />,
-        { duration: 5000 },
-      )
-      // Refresh token data to show graduated state
-      refetchBondingCurve()
-    } catch (error) {
-      logger.error(error instanceof Error ? error : new Error(String(error)), {
-        tags: { file: 'TokenDetail', function: 'handleGraduate' },
-      })
-    } finally {
-      setIsGraduating(false)
-    }
-  }, [graduate, addTransaction, symbol, tokenAddress, refetchBondingCurve])
 
   // Format values
   const liquidity = useMemo(() => {
@@ -395,19 +331,6 @@ export default function TokenDetail() {
                     </Text>
                     <InfoCircle size={14} color="$neutral3" />
                   </Flex>
-
-                  {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
-                  {canGraduate && !graduated && (
-                    <GraduateButton
-                      onPress={isGraduating ? undefined : handleGraduate}
-                      opacity={isGraduating ? 0.6 : 1}
-                      cursor={isGraduating ? 'not-allowed' : 'pointer'}
-                    >
-                      <Text variant="buttonLabel2" color="$white">
-                        {isGraduating ? 'Graduating...' : 'Graduate to JuiceSwap V2'}
-                      </Text>
-                    </GraduateButton>
-                  )}
                 </Card>
               )}
 
@@ -479,7 +402,9 @@ export default function TokenDetail() {
                   tokenSymbol={symbol || '???'}
                   baseAsset={baseAsset}
                   graduated={graduated}
+                  canGraduate={canGraduate}
                   onTransactionComplete={refetchBondingCurve}
+                  onGraduateComplete={refetchBondingCurve}
                 />
               )}
             </RightColumn>

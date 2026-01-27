@@ -14,8 +14,11 @@
     "https://ponder.juiceswap.com",
     "https://dev.ponder.juiceswap.com",
     "https://dev.rpc.testnet.juiceswap.com",
+    "https://rpc.citreascan.com",
+    "https://lightning.space",
     "https://dev.lightning.space",
     "https://*.lightning.space",
+    "wss://lightning.space",
     "wss://*.lightning.space",
     "https://gateway.pinata.cloud/",
     "https://blockstream.info/"
