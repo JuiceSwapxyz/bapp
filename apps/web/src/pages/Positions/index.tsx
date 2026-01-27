@@ -223,7 +223,11 @@ export default function Pool() {
       ...loadedPositions,
       ...savedPositions
         .filter((position) => {
-          const matchesChain = !chainFilter || position.data?.position?.chainId === chainFilter
+          // Filter by chainFilter if set, otherwise filter by currentModeChains to prevent testnet/mainnet mixing
+          const positionChainId = position.data?.position?.chainId
+          const matchesChain = chainFilter
+            ? positionChainId === chainFilter
+            : positionChainId !== undefined && currentModeChains.includes(positionChainId)
           const matchesStatus = position.data?.position?.status && statusFilter.includes(position.data.position.status)
           const matchesVersion =
             position.data?.position?.protocolVersion && position.data.position.protocolVersion === ProtocolVersion.V3
@@ -246,7 +250,7 @@ export default function Pool() {
       }
       return unique
     }, [])
-  }, [hardcodedPositions, loadedPositions, savedPositions, chainFilter, statusFilter])
+  }, [hardcodedPositions, loadedPositions, savedPositions, chainFilter, currentModeChains, statusFilter])
 
   const { visiblePositions, hiddenPositions } = useMemo(() => {
     const visiblePositions: PositionInfo[] = []

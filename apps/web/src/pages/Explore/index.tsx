@@ -18,7 +18,7 @@ import { useExploreParams } from 'pages/Explore/redirects'
 import RecentTransactions from 'pages/Explore/tables/RecentTransactions'
 import { NamedExoticComponent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { setOpenModal } from 'state/application/reducer'
 import { ExploreContextProvider } from 'state/explore'
@@ -29,7 +29,6 @@ import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { isBackendSupportedChain, toGraphQLChain } from 'uniswap/src/features/chains/utils'
-import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
 import { getChainUrlParam, useChainIdFromUrlParam } from 'utils/chainParams'
@@ -103,7 +102,6 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
   const tabNavRef = useRef<HTMLDivElement>(null)
   const resetManualOutage = useResetAtom(manualChainOutageAtom)
   const Pages = usePages()
-  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
   const [params] = useSearchParams()
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -237,9 +235,7 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
                   </Button>
                 </Flex>
               )}
-              <TableNetworkFilter
-                showMultichainOption={currentKey !== ExploreTab.Transactions && !isCitreaOnlyEnabled}
-              />
+              <TableNetworkFilter showMultichainOption={false} />
               {currentKey === ExploreTab.Tokens && <VolumeTimeFrameSelector />}
               {currentKey === ExploreTab.Pools && <ProtocolFilter />}
               <SearchBar tab={currentKey} />

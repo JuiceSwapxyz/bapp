@@ -6,20 +6,24 @@ import { ExternalArrowLink } from 'components/Liquidity/ExternalArrowLink'
 import { HARDCODED_CITREA_POOLS } from 'constants/hardcodedPools'
 import { TopPoolsSection } from 'pages/Positions/TopPoolsSection'
 import { useTranslation } from 'react-i18next'
-import { useSelector } from 'react-redux'
 import { useTopPools } from 'state/explore/topPools'
 import { PoolStat } from 'state/explore/types'
 import { Flex, useMedia } from 'ui/src'
 import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 
 export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
   const { t } = useTranslation()
   const media = useMedia()
   const isBelowXlScreen = !media.xl
-  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
+  const { isTestnetModeEnabled } = useEnabledChains()
+
+  // Determine the effective chainId for the API call
+  // Use CitreaMainnet as default when no chain is selected and not in testnet mode
+  const effectiveChainId =
+    chainId ?? (isTestnetModeEnabled ? UniverseChainId.CitreaTestnet : UniverseChainId.CitreaMainnet)
 
   // Call hooks before any conditional returns
   const {
@@ -27,6 +31,7 @@ export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
     isLoading: exploreStatsLoading,
     error: exploreStatsError,
   } = useExploreStatsQuery<ExploreStatsResponse>({
+    chainId: effectiveChainId,
     enabled: true,
   })
 
@@ -35,8 +40,9 @@ export function TopPools({ chainId }: { chainId: UniverseChainId | null }) {
     sortState: { sortDirection: OrderDirection.Desc, sortBy: PoolSortFields.TVL },
   })
 
-  // If Citrea Only is enabled or Citrea testnet is selected, show hardcoded pools
-  if (isCitreaOnlyEnabled || chainId === UniverseChainId.CitreaTestnet) {
+  // If testnet mode is enabled or Citrea testnet is selected, show hardcoded pools
+  // Mainnet uses real API data
+  if (isTestnetModeEnabled || chainId === UniverseChainId.CitreaTestnet) {
     if (!isBelowXlScreen) {
       return null
     }
