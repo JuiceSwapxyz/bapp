@@ -26,6 +26,7 @@ import { ClickableTamaguiStyle } from 'theme/components/styles'
 import { Button, Flex, Text, styled as tamaguiStyled, useMedia } from 'ui/src'
 import { Plus } from 'ui/src/components/icons/Plus'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { isBackendSupportedChain, toGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
@@ -151,9 +152,12 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
   const tab = tabName ?? ExploreTab.Tokens
 
   const urlChainId = useChainIdFromUrlParam()
+  const { defaultChainId } = useEnabledChains()
+  // Use URL chain or fall back to default chain (ensures we never show mixed chain data)
+  const exploreChainId = urlChainId ?? defaultChainId
   const chainInfo = useMemo(() => {
-    return urlChainId ? getChainInfo(urlChainId) : undefined
-  }, [urlChainId])
+    return getChainInfo(exploreChainId)
+  }, [exploreChainId])
   useEffect(() => {
     const tabIndex = Pages.findIndex((page) => page.key === tab)
     if (tabIndex !== -1) {
@@ -177,8 +181,8 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
   )
 
   return (
-    <Trace logImpression page={InterfacePageName.ExplorePage} properties={{ chainName: chainInfo?.backendChain.chain }}>
-      <ExploreContextProvider chainId={5115}>
+    <Trace logImpression page={InterfacePageName.ExplorePage} properties={{ chainName: chainInfo.backendChain.chain }}>
+      <ExploreContextProvider chainId={exploreChainId}>
         <Flex width="100%" minWidth={320} pt="$spacing24" pb="$spacing48" px="$spacing40" $md={{ p: '$spacing16' }}>
           <ExploreStatsSection />
           <Flex
@@ -209,7 +213,7 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
               {Pages.map(({ title, loggingElementName, key }, index) => {
                 const url = getTokenExploreURL({
                   tab: key,
-                  chainUrlParam: chainInfo ? getChainUrlParam(chainInfo.id) : '',
+                  chainUrlParam: getChainUrlParam(chainInfo.id),
                 })
                 return (
                   <Trace

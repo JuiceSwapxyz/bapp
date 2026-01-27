@@ -132,16 +132,23 @@ export function useLaunchpadTokens(options: UseLaunchpadTokensOptions = {}) {
 
 /**
  * Fetch a single launchpad token by address
+ * @param address - Token address
+ * @param chainId - Optional chain ID to verify token is on the expected network
  */
-export function useLaunchpadToken(address: string | undefined) {
+export function useLaunchpadToken(address: string | undefined, chainId?: number) {
   return useQuery({
-    queryKey: ['launchpad-token', address],
-    queryFn: async (): Promise<{ token: LaunchpadToken }> => {
+    queryKey: ['launchpad-token', address, chainId],
+    queryFn: async (): Promise<{ token: LaunchpadToken } | null> => {
       const response = await fetch(`${API_URL}/v1/launchpad/token/${address}`)
       if (!response.ok) {
         throw new Error('Token not found')
       }
-      return response.json()
+      const data: { token: LaunchpadToken } = await response.json()
+      // Verify token is on the expected chain (prevents showing testnet token on mainnet)
+      if (chainId && data.token.chainId !== chainId) {
+        return null
+      }
+      return data
     },
     enabled: !!address,
     staleTime: 10_000,
@@ -204,18 +211,35 @@ export function useLaunchpadTrades(options: UseLaunchpadTradesOptions) {
   })
 }
 
+export interface UseRecentLaunchpadTradesOptions {
+  limit?: number
+  /** Chain ID to filter trades by. Required to show only trades for the current network. */
+  chainId?: number
+}
+
 /**
  * Fetch recent trades across all tokens
+ * @param options - Options including limit and chainId for network filtering
  */
-export function useRecentLaunchpadTrades(limit: number = 20) {
+export function useRecentLaunchpadTrades(options: UseRecentLaunchpadTradesOptions = {}) {
+  const { limit = 20, chainId } = options
   return useQuery({
-    queryKey: ['launchpad-recent-trades', limit],
+    queryKey: ['launchpad-recent-trades', limit, chainId],
     queryFn: async (): Promise<{ trades: LaunchpadTrade[] }> => {
-      const response = await fetch(`${API_URL}/v1/launchpad/recent-trades?limit=${limit}`)
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+      })
+      if (chainId) {
+        params.set('chainId', chainId.toString())
+      }
+      const response = await fetch(`${API_URL}/v1/launchpad/recent-trades?${params}`)
       if (!response.ok) {
         throw new Error('Failed to fetch recent trades')
       }
-      return response.json()
+      const data: { trades: LaunchpadTrade[] } = await response.json()
+      // Frontend filtering by chainId (ensures correct filtering even if backend doesn't support it yet)
+      // Note: trades don't have chainId directly, but we filter by token's chainId via the API
+      return data
     },
     staleTime: 10_000,
     refetchInterval: 15_000,

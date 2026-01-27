@@ -50,7 +50,7 @@ import { Arrow } from 'ui/src/components/arrow/Arrow'
 import { iconSizes } from 'ui/src/theme'
 import Badge from 'uniswap/src/components/badge/Badge'
 import { WRAPPED_NATIVE_CURRENCY } from 'uniswap/src/constants/tokens'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, LiquidityEventName } from 'uniswap/src/features/telemetry/constants'
@@ -237,6 +237,7 @@ function V2PairMigration({
 }) {
   const { t } = useTranslation()
   const account = useAccount()
+  const { defaultChainId } = useEnabledChains()
   const colors = useSporeColors()
   const v2FactoryAddress = account.chainId ? V2_FACTORY_ADDRESSES[account.chainId] : undefined
   const trace = useTrace()
@@ -540,7 +541,7 @@ function V2PairMigration({
           <ExternalLink
             key="migration-contract"
             href={getExplorerLink({
-              chainId: account.chainId ?? UniverseChainId.Mainnet,
+              chainId: account.chainId ?? defaultChainId,
               data: migrator?.address ?? '',
               type: ExplorerDataType.ADDRESS,
             })}
