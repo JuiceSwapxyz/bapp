@@ -408,6 +408,7 @@ export default function TokenDetail() {
                   baseAsset={baseAsset}
                   graduated={graduated}
                   canGraduate={canGraduate}
+                  chainId={chainId}
                   onTransactionComplete={refetchBondingCurve}
                   onGraduateComplete={refetchBondingCurve}
                 />

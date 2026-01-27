@@ -182,6 +182,8 @@ interface BuySellPanelProps {
   baseAsset: string
   graduated: boolean
   canGraduate: boolean
+  /** The token's chain ID - used for reading data and executing transactions */
+  chainId: number | undefined
   onTransactionComplete?: () => void
   onGraduateComplete?: () => void
 }
@@ -192,6 +194,7 @@ export function BuySellPanel({
   baseAsset,
   graduated,
   canGraduate,
+  chainId,
   onTransactionComplete,
   onGraduateComplete,
 }: BuySellPanelProps) {
@@ -204,8 +207,6 @@ export function BuySellPanel({
   const navigate = useNavigate()
   const account = useAccount()
   const accountDrawer = useAccountDrawer()
-  // Use the user's current chain ID instead of hardcoded testnet
-  const chainId = account.chainId
   const addTransaction = useTransactionAdder()
   const queryClient = useQueryClient()
 
