@@ -9,6 +9,7 @@ import { useClearFlashblocksSwapNotifications } from 'uniswap/src/features/trans
 import { useIsUnichainFlashblocksEnabled } from 'uniswap/src/features/transactions/swap/hooks/useIsUnichainFlashblocksEnabled'
 import { SwapErrorScreen } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapErrorScreen'
 import { SwapBtcBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapBtcBridgeDetails'
+import { SwapErc20ChainSwapDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapErc20ChainSwapDetails'
 import { SwapLnBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapLnBridgeDetails'
 import { SwapReviewFooter } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/SwapReviewFooter'
 import { SwapReviewLoadingView } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewLoadingView'
@@ -95,12 +96,13 @@ export function SwapReviewScreenProviders({ hideContent, onSubmitSwap }: SwapRev
 }
 
 function SwapReviewContent(): JSX.Element | null {
-  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, isBtcBridge, newTradeRequiresAcceptance } =
+  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, isBtcBridge, isErc20ChainSwap, newTradeRequiresAcceptance } =
     useSwapReviewTransactionStore((s) => ({
       acceptedDerivedSwapInfo: s.acceptedDerivedSwapInfo,
       isWrap: s.isWrap,
       isLnBridge: s.isLnBridge,
       isBtcBridge: s.isBtcBridge,
+      isErc20ChainSwap: s.isErc20ChainSwap,
       newTradeRequiresAcceptance: s.newTradeRequiresAcceptance,
     }))
 
@@ -168,6 +170,8 @@ function SwapReviewContent(): JSX.Element | null {
             <SwapLnBridgeDetails />
           ) : isBtcBridge ? (
             <SwapBtcBridgeDetails />
+          ) : isErc20ChainSwap ? (
+            <SwapErc20ChainSwapDetails />
           ) : null}
         </Flex>
       </SwapReviewContentWrapper>
