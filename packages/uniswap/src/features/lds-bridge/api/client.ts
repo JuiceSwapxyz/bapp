@@ -15,6 +15,8 @@ import type {
   LightningBridgeSubmarineGetResponse,
   LightningBridgeSubmarineLockResponse,
   LockupCheckResponse,
+  RegisterPreimageRequest,
+  RegisterPreimageResponse,
 } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
@@ -34,6 +36,8 @@ export type {
   LightningBridgeSubmarineGetResponse,
   LightningBridgeSubmarineLockResponse,
   LockupCheckResponse,
+  RegisterPreimageRequest,
+  RegisterPreimageResponse,
 }
 
 const LdsApiClient = createApiClient({
@@ -64,6 +68,12 @@ export async function createReverseSwap(params: CreateReverseSwapRequest): Promi
 
 export async function helpMeClaim(params: HelpMeClaimRequest): Promise<HelpMeClaimResponse> {
   return await LdsApiClient.post<HelpMeClaimResponse>('/claim/help-me-claim', {
+    body: JSON.stringify(params),
+  })
+}
+
+export async function registerPreimage(params: RegisterPreimageRequest): Promise<RegisterPreimageResponse> {
+  return await LdsApiClient.post<RegisterPreimageResponse>('/claim/register-preimage', {
     body: JSON.stringify(params),
   })
 }
