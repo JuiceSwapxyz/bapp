@@ -639,13 +639,13 @@ export async function signatureToActivity(
   }
 }
 
-export function useLocalActivities(account: string): ActivityMap {
+export function useLocalActivities(account: string): { data: ActivityMap; isLoading: boolean } {
   const allTransactions = useMultichainTransactions(account)
   const allSignatures = useAllSignatures()
   const { formatNumberOrString } = useLocalizationContext()
   const { chains } = useEnabledChains()
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: [ReactQueryCacheKey.LocalActivities, account, allTransactions, allSignatures],
     queryFn: async () => {
       const transactions = Object.values(allTransactions)
@@ -669,5 +669,5 @@ export function useLocalActivities(account: string): ActivityMap {
     },
   })
 
-  return data ?? {}
+  return { data: data ?? {}, isLoading }
 }
