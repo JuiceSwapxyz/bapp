@@ -502,9 +502,16 @@ export function useInitialCurrencyState(): {
   const isNonEvmChain =
     parsedCurrencyState.chainId === UniverseChainId.Bitcoin ||
     parsedCurrencyState.chainId === UniverseChainId.LightningNetwork
+  // For cross-chain swaps to Citrea, allow the source chain even if not in enabled chains
+  const isCrossChainToCitrea =
+    parsedCurrencyState.chainId &&
+    parsedCurrencyState.outputChainId &&
+    ALWAYS_ENABLED_CHAIN_IDS.includes(parsedCurrencyState.outputChainId)
   const supportedChainId: UniverseChainId = isNonEvmChain
     ? (parsedCurrencyState.chainId as UniverseChainId)
-    : evmSupportedChainId ?? UniverseChainId.Mainnet
+    : isCrossChainToCitrea
+      ? (parsedCurrencyState.chainId as UniverseChainId)
+      : evmSupportedChainId ?? UniverseChainId.Mainnet
   const supportedChainInfo = getChainInfo(supportedChainId)
   const isChainExplicitlySpecified = !!parsedCurrencyState.chainId
   const isSupportedChainCompatible =
