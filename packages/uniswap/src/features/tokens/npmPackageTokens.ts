@@ -1,3 +1,10 @@
+/**
+ * @deprecated This module is deprecated in favor of tokenRegistry.ts
+ * Use getAllKnownTokens() from tokenRegistry.ts instead.
+ *
+ * This module loads tokens from the @juicedollar/jusd npm package.
+ * It's kept for backwards compatibility but will be removed in a future version.
+ */
 import { ADDRESS, ChainAddress } from '@juicedollar/jusd/exports/address.config'
 import { ChainId } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
