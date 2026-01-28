@@ -43,6 +43,7 @@ import { ElementName, ModalName } from 'uniswap/src/features/telemetry/constants
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import i18next from 'uniswap/src/i18n'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
+import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { shortenAddress } from 'utilities/src/addresses'
 import { NumberType } from 'utilities/src/format/types'
 
@@ -78,6 +79,16 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
     accountDrawer.close()
     navigate(`/buy`, { replace: true })
   }, [accountDrawer, navigate])
+
+  const explorerUrl = connectedAccount.chainId
+    ? getExplorerLink({ chainId: connectedAccount.chainId, data: account, type: ExplorerDataType.ADDRESS })
+    : undefined
+
+  const handleAddressClick = useCallback(() => {
+    if (explorerUrl) {
+      window.open(explorerUrl, '_blank', 'noopener,noreferrer')
+    }
+  }, [explorerUrl])
 
   const { data, networkStatus, loading } = usePortfolioTotalValue({
     address: account,
@@ -141,7 +152,7 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
             </Trace>
           </Flex>
         </Flex>
-        <Flex gap="$spacing4">
+        <Flex gap="$spacing4" cursor="pointer" onPress={handleAddressClick} hoverStyle={{ opacity: 0.8 }}>
           <MultiBlockchainAddressDisplay enableCopyAddress={!showAddress} wallet={wallet} />
           {showAddress && (
             <CopyHelper iconSize={14} iconPosition="right" toCopy={account}>
