@@ -3,22 +3,20 @@ import PortfolioDrawer from 'components/AccountDrawer'
 import { usePendingActivity } from 'components/AccountDrawer/MiniPortfolio/Activity/hooks'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import StatusIcon from 'components/Identicon/StatusIcon'
-import { RecentlyConnectedModal } from 'components/Web3Status/RecentlyConnectedModal'
 import { useAccountIdentifier } from 'components/Web3Status/useAccountIdentifier'
 import { useShowPendingAfterDelay } from 'components/Web3Status/useShowPendingAfterDelay'
 import { useAccount } from 'hooks/useAccount'
-import { useModalState } from 'hooks/useModalState'
 import { atom, useAtom } from 'jotai'
 import styled from 'lib/styled-components'
 import { Portal } from 'nft/components/common/Portal'
 import { RefObject, forwardRef, useCallback, useEffect, useRef } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { useAppSelector } from 'state/hooks'
-import { AnimatePresence, Button, ButtonProps, Flex, Popover, Text } from 'ui/src'
+import { AnimatePresence, Button, ButtonProps, Flex, Text } from 'ui/src'
 import { Unitag } from 'ui/src/components/icons/Unitag'
 import { breakpoints } from 'ui/src/theme'
 import Trace from 'uniswap/src/features/telemetry/Trace'
-import { ElementName, InterfaceEventName, ModalName } from 'uniswap/src/features/telemetry/constants'
+import { ElementName, InterfaceEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 import { isIFramed } from 'utils/isIFramed'
@@ -190,21 +188,9 @@ function Web3StatusInner() {
 }
 
 export default function Web3Status() {
-  const { isOpen: recentlyConnectedModalIsOpen } = useModalState(ModalName.RecentlyConnectedModal)
   return (
     <PrefetchBalancesWrapper>
-      <Popover
-        placement="bottom"
-        stayInFrame
-        allowFlip
-        open={recentlyConnectedModalIsOpen}
-        offset={{ mainAxis: 8, crossAxis: -4 }}
-      >
-        <Popover.Trigger>
-          <Web3StatusInner />
-        </Popover.Trigger>
-        <RecentlyConnectedModal />
-      </Popover>
+      <Web3StatusInner />
       <Portal>
         <PortfolioDrawer />
       </Portal>

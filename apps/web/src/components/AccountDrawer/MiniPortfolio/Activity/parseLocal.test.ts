@@ -343,13 +343,13 @@ describe('parseLocalActivity', () => {
 
     await act(async () => {
       await waitFor(() => {
-        expect(result.current[mockHash('0xswap_exact_input')]).toBeDefined()
+        expect(result.current.data[mockHash('0xswap_exact_input')]).toBeDefined()
       })
     })
 
-    expect(result.current[mockHash('0xswap_exact_input', TransactionStatus.Pending)]?.title).toEqual('Swapping')
-    expect(result.current[mockHash('0xswap_exact_input', TransactionStatus.Success)]?.title).toEqual('Swapped')
-    expect(result.current[mockHash('0xswap_exact_input', TransactionStatus.Failed)]?.title).toEqual('Swap failed')
+    expect(result.current.data[mockHash('0xswap_exact_input', TransactionStatus.Pending)]?.title).toEqual('Swapping')
+    expect(result.current.data[mockHash('0xswap_exact_input', TransactionStatus.Success)]?.title).toEqual('Swapped')
+    expect(result.current.data[mockHash('0xswap_exact_input', TransactionStatus.Failed)]?.title).toEqual('Swap failed')
   })
 
   it('Adapts Swap exact input to Activity type', async () => {
@@ -358,11 +358,11 @@ describe('parseLocalActivity', () => {
 
     await act(async () => {
       await waitFor(() => {
-        expect(result.current[hash]).toBeDefined()
+        expect(result.current.data[hash]).toBeDefined()
       })
     })
 
-    expect(result.current[hash]).toMatchObject({
+    expect(result.current.data[hash]).toMatchObject({
       chainId: mockChainId,
       currencies: [MockUSDC_MAINNET, MockDAI],
       title: 'Swapped',
@@ -379,11 +379,11 @@ describe('parseLocalActivity', () => {
 
     await act(async () => {
       await waitFor(() => {
-        expect(result.current[hash]).toBeDefined()
+        expect(result.current.data[hash]).toBeDefined()
       })
     })
 
-    expect(result.current[hash]).toMatchObject({
+    expect(result.current.data[hash]).toMatchObject({
       chainId: mockChainId,
       currencies: [MockUSDC_MAINNET, MockDAI],
       title: 'Swapped',
@@ -400,11 +400,11 @@ describe('parseLocalActivity', () => {
 
     await act(async () => {
       await waitFor(() => {
-        expect(result.current[hash]).toBeDefined()
+        expect(result.current.data[hash]).toBeDefined()
       })
     })
 
-    expect(result.current[hash]).toMatchObject({
+    expect(result.current.data[hash]).toMatchObject({
       chainId: mockChainId,
       currencies: [MockDAI],
       title: 'Approved',
@@ -421,11 +421,11 @@ describe('parseLocalActivity', () => {
 
     await act(async () => {
       await waitFor(() => {
-        expect(result.current[hash]).toBeDefined()
+        expect(result.current.data[hash]).toBeDefined()
       })
     })
 
-    expect(result.current[hash]).toMatchObject({
+    expect(result.current.data[hash]).toMatchObject({
       chainId: mockChainId,
       currencies: [MockUSDT],
       title: 'Revoked approval',
@@ -443,11 +443,11 @@ describe('parseLocalActivity', () => {
 
     await act(async () => {
       await waitFor(() => {
-        expect(result.current[hash]).toBeDefined()
+        expect(result.current.data[hash]).toBeDefined()
       })
     })
 
-    expect(result.current[hash]).toMatchObject({
+    expect(result.current.data[hash]).toMatchObject({
       chainId: mockChainId,
       currencies: [native, native.wrapped],
       title: 'Wrapped',
@@ -466,11 +466,11 @@ describe('parseLocalActivity', () => {
 
     await act(async () => {
       await waitFor(() => {
-        expect(result.current[hash]).toBeDefined()
+        expect(result.current.data[hash]).toBeDefined()
       })
     })
 
-    expect(result.current[hash]).toMatchObject({
+    expect(result.current.data[hash]).toMatchObject({
       chainId: mockChainId,
       currencies: [native.wrapped, native],
       title: 'Unwrapped',
@@ -487,11 +487,11 @@ describe('parseLocalActivity', () => {
 
     await act(async () => {
       await waitFor(() => {
-        expect(result.current[hash]).toBeDefined()
+        expect(result.current.data[hash]).toBeDefined()
       })
     })
 
-    expect(result.current[hash]).toMatchObject({
+    expect(result.current.data[hash]).toMatchObject({
       chainId: mockChainId,
       currencies: [MockUSDC_MAINNET, MockDAI],
       title: 'Collected fees',
@@ -508,11 +508,11 @@ describe('parseLocalActivity', () => {
 
     await act(async () => {
       await waitFor(() => {
-        expect(result.current[hash]).toBeDefined()
+        expect(result.current.data[hash]).toBeDefined()
       })
     })
 
-    expect(result.current[hash]).toMatchObject({
+    expect(result.current.data[hash]).toMatchObject({
       chainId: mockChainId,
       currencies: [MockUSDC_MAINNET, MockDAI],
       title: 'Migrated liquidity',

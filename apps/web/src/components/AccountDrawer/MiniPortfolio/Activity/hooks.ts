@@ -78,9 +78,9 @@ function combineActivities(localMap: ActivityMap = {}, remoteMap: ActivityMap = 
 
 export function useAllActivities(account: string) {
   const { formatNumberOrString } = useLocalizationContext()
-  const { activities, loading } = useAssetActivity()
+  const { activities, loading: remoteLoading } = useAssetActivity()
 
-  const localMap = useLocalActivities(account)
+  const { data: localMap, isLoading: localLoading } = useLocalActivities(account)
   const remoteMap = useMemo(
     () => parseRemoteActivities(activities, account, formatNumberOrString),
     [account, activities, formatNumberOrString],
@@ -107,6 +107,9 @@ export function useAllActivities(account: string) {
   }, [account, localMap, remoteMap, updateCancelledTx])
 
   const combinedActivities = useMemo(() => combineActivities(localMap, remoteMap ?? {}), [localMap, remoteMap])
+
+  // Combine both loading states - show loading until both sources are ready
+  const loading = remoteLoading || localLoading
 
   return { loading, activities: combinedActivities }
 }
