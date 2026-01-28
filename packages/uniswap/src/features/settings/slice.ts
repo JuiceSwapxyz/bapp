@@ -2,10 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { FiatCurrency } from 'uniswap/src/features/fiatCurrency/constants'
 import { Language } from 'uniswap/src/features/language/constants'
 import { getCurrentLanguageFromNavigator } from 'uniswap/src/features/language/utils'
-import { WALLET_TESTNET_CONFIG } from 'uniswap/src/features/telemetry/constants'
 import { isInterface } from 'utilities/src/platform'
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { analytics } from 'utilities/src/telemetry/analytics/analytics'
 
 export interface UserSettingsState {
   currentLanguage: Language
@@ -13,7 +10,6 @@ export interface UserSettingsState {
   hideSmallBalances: boolean
   hideSpamTokens: boolean
   isTestnetModeEnabled?: boolean
-  isCitreaOnlyEnabled?: boolean
   hapticsEnabled: boolean
 }
 
@@ -23,7 +19,6 @@ export const initialUserSettingsState: UserSettingsState = {
   hideSmallBalances: true,
   hideSpamTokens: true,
   isTestnetModeEnabled: false,
-  isCitreaOnlyEnabled: false,
   hapticsEnabled: true,
 }
 
@@ -46,9 +41,6 @@ const slice = createSlice({
     setIsTestnetModeEnabled: (state) => {
       state.isTestnetModeEnabled = !state.isTestnetModeEnabled
     },
-    setCitreaOnlyEnabled: (state, { payload }: PayloadAction<boolean>) => {
-      state.isCitreaOnlyEnabled = true
-    },
     setHapticsEnabled: (state, { payload }: PayloadAction<boolean>) => {
       state.hapticsEnabled = payload
     },
@@ -62,7 +54,6 @@ export const {
   setCurrentLanguage,
   setCurrentFiatCurrency,
   setIsTestnetModeEnabled,
-  setCitreaOnlyEnabled,
   setHapticsEnabled,
 } = slice.actions
 

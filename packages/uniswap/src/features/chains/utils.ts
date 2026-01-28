@@ -97,6 +97,8 @@ export function fromGraphQLChain(chain: Chain | string | undefined): UniverseCha
       return UniverseChainId.Zksync
     case Chain.Zora:
       return UniverseChainId.Zora
+    case 'CITREA_MAINNET':
+      return UniverseChainId.CitreaMainnet
     case 'CITREA_TESTNET':
       return UniverseChainId.CitreaTestnet
   }
@@ -203,14 +205,12 @@ export function getEnabledChains({
   isTestnetModeEnabled,
   featureFlaggedChainIds: _featureFlaggedChainIds,
   connectedWalletChainIds,
-  isCitreaOnlyEnabled = false,
 }: {
   platform?: Platform
   isTestnetModeEnabled: boolean
   featureFlaggedChainIds: UniverseChainId[]
   connectedWalletChainIds?: UniverseChainId[]
   includeTestnets?: boolean
-  isCitreaOnlyEnabled?: boolean
 }): EnabledChainsInfo {
   const enabledChainInfos = ORDERED_CHAINS.filter((chainInfo) => {
     // Filter by connected wallet chains if provided
@@ -220,9 +220,9 @@ export function getEnabledChains({
 
     // JuiceSwap only supports Citrea chains:
     // - Mainnet mode: only CitreaMainnet
-    // - Testnet mode: CitreaMainnet AND CitreaTestnet
+    // - Testnet mode: only CitreaTestnet
     if (isTestnetModeEnabled) {
-      return chainInfo.id === UniverseChainId.CitreaMainnet || chainInfo.id === UniverseChainId.CitreaTestnet
+      return chainInfo.id === UniverseChainId.CitreaTestnet
     } else {
       return chainInfo.id === UniverseChainId.CitreaMainnet
     }
@@ -235,7 +235,7 @@ export function getEnabledChains({
   const result = {
     chains,
     gqlChains,
-    defaultChainId: getDefaultChainId({ platform, isTestnetModeEnabled, isCitreaOnlyEnabled }),
+    defaultChainId: getDefaultChainId({ platform, isTestnetModeEnabled }),
     isTestnetModeEnabled,
   }
 
@@ -245,11 +245,9 @@ export function getEnabledChains({
 function getDefaultChainId({
   platform: _platform,
   isTestnetModeEnabled,
-  isCitreaOnlyEnabled = false,
 }: {
   platform?: Platform
   isTestnetModeEnabled: boolean
-  isCitreaOnlyEnabled?: boolean
 }): UniverseChainId {
   if (isTestnetModeEnabled) {
     return UniverseChainId.CitreaTestnet

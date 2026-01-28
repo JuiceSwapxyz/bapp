@@ -27,14 +27,16 @@ export function useSearchTokens({
   const { chains: enabledChainIds } = useEnabledChains()
 
   // Search hardcoded tokens first
+  // Use enabledChainIds[0] as fallback to respect testnet mode when chainFilter is null
+  const effectiveChainFilter = chainFilter ?? enabledChainIds[0] ?? null
   const hardcodedResults = useMemo(() => {
     if (skip || !searchQuery) {
       return []
     }
-    const results = searchHardcodedTokens(searchQuery, chainFilter)
+    const results = searchHardcodedTokens(searchQuery, effectiveChainFilter)
     // Enrich with safety information
     return results.map((token) => enrichHardcodedTokenWithSafety(token))
-  }, [searchQuery, chainFilter, skip])
+  }, [searchQuery, effectiveChainFilter, skip])
 
   const variables = useMemo(
     () => ({

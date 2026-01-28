@@ -1,13 +1,11 @@
 import { useModalState } from 'hooks/useModalState'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSelector } from 'react-redux'
 import { Flex, Text, TouchableArea, useMedia, useScrollbarStyles, useSporeColors } from 'ui/src'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import { useUpdateScrollLock } from 'uniswap/src/components/modals/ScrollLock'
 import { NetworkFilter } from 'uniswap/src/components/network/NetworkFilter'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { useFeatureFlag } from 'uniswap/src/features/gating/hooks'
 import { SearchModalNoQueryList } from 'uniswap/src/features/search/SearchModal/SearchModalNoQueryList'
@@ -15,7 +13,6 @@ import { SearchModalResultsList } from 'uniswap/src/features/search/SearchModal/
 import { useFilterCallbacks } from 'uniswap/src/features/search/SearchModal/hooks/useFilterCallbacks'
 import { SearchTab, WEB_SEARCH_TABS } from 'uniswap/src/features/search/SearchModal/types'
 import { SearchTextInput } from 'uniswap/src/features/search/SearchTextInput'
-import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 import { Trace } from 'uniswap/src/features/telemetry/Trace'
 import { ElementName, InterfaceEventName, ModalName, SectionName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
@@ -28,14 +25,12 @@ export const SearchModal = memo(function _SearchModal(): JSX.Element {
   const { t } = useTranslation()
   const media = useMedia()
   const scrollbarStyles = useScrollbarStyles()
-  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
 
   const { isOpen: isModalOpen, toggleModal: toggleSearchModal } = useModalState(ModalName.Search)
 
   const [activeTab, setActiveTab] = useState<SearchTab>(poolSearchEnabled ? SearchTab.All : SearchTab.Tokens)
 
-  // Force Citrea chain filter when Citrea-only mode is enabled
-  const initialChainFilter = isCitreaOnlyEnabled ? UniverseChainId.CitreaTestnet : null
+  const initialChainFilter = null
 
   const { onChangeChainFilter, onChangeText, searchFilter, chainFilter, parsedChainFilter, parsedSearchFilter } =
     useFilterCallbacks(initialChainFilter, ModalName.Search)
@@ -59,13 +54,6 @@ export const SearchModal = memo(function _SearchModal(): JSX.Element {
   }, [onChangeText, onClose])
 
   const { chains: enabledChains } = useEnabledChains()
-
-  // Update chain filter when Citrea-only mode changes
-  useEffect(() => {
-    if (isCitreaOnlyEnabled && chainFilter !== UniverseChainId.CitreaTestnet) {
-      onChangeChainFilter(UniverseChainId.CitreaTestnet)
-    }
-  }, [isCitreaOnlyEnabled, chainFilter, onChangeChainFilter])
 
   // Tamagui Dialog/Sheets should remove background scroll by default but does not work to disable ArrowUp/Down key scrolling
   useUpdateScrollLock({ isModalOpen })

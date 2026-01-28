@@ -10,6 +10,3 @@ export const selectCurrentLanguage = (state: UniswapState): Language => state.us
 
 export const selectIsTestnetModeEnabled = (state: UniswapState): boolean =>
   state.userSettings.isTestnetModeEnabled ?? false
-
-export const selectIsCitreaOnlyEnabled = (state: UniswapState): boolean =>
-  state.userSettings.isCitreaOnlyEnabled ?? false

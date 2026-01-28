@@ -267,7 +267,6 @@ describe(useFilterCallbacks, () => {
         preloadedState: {
           userSettings: {
             isTestnetModeEnabled: false, // Disable testnet mode to enable mainnet chains
-            isCitreaOnlyEnabled: false, // Disable Citrea-only mode
           },
         } as PreloadedState<UniswapState>,
       })
@@ -321,7 +320,6 @@ describe(useFilterCallbacks, () => {
         preloadedState: {
           userSettings: {
             isTestnetModeEnabled: false, // Disable testnet mode to enable mainnet chains
-            isCitreaOnlyEnabled: false, // Disable Citrea-only mode
           },
         } as PreloadedState<UniswapState>,
       })
