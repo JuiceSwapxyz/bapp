@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { applyTokenDisplayRules } from 'uniswap/src/components/TokenSelector/tokenDisplayRules'
 import { useCommonTokensOptions } from 'uniswap/src/components/TokenSelector/hooks/useCommonTokensOptions'
 import { useCurrencyInfosToTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/useCurrencyInfosToTokenOptions'
 import { TokenOption } from 'uniswap/src/components/lists/items/types'
@@ -26,13 +27,21 @@ export function useCommonTokensOptionsWithFallback(
     portfolioBalancesById: {},
   })
 
+  const filteredTokenOptions = useMemo(() => {
+    if (!commonBasesTokenOptions) {
+      return undefined
+    }
+    const tokensWithZeroBalance = commonBasesTokenOptions.map((token) => ({ ...token, quantity: 0 }))
+    return applyTokenDisplayRules(tokensWithZeroBalance)
+  }, [commonBasesTokenOptions])
+
   return useMemo(
     () => ({
-      data: commonBasesTokenOptions?.map((token) => ({ ...token, quantity: 0 })),
+      data: filteredTokenOptions,
       error: undefined,
       refetch,
       loading,
     }),
-    [commonBasesTokenOptions, refetch, loading],
+    [filteredTokenOptions, refetch, loading],
   )
 }
