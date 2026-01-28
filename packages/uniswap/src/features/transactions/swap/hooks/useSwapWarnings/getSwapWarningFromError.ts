@@ -30,6 +30,20 @@ export function getSwapWarningFromError({
       }
     }
 
+    // Check for insufficient bridge liquidity
+    if (
+      error.data?.error === 'INSUFFICIENT_BRIDGE_LIQUIDITY' ||
+      error.data?.errorCode === 'InsufficientBridgeLiquidity'
+    ) {
+      return {
+        type: WarningLabel.LowLiquidity,
+        severity: WarningSeverity.Medium,
+        action: WarningAction.DisableReview,
+        title: t('swap.warning.insufficientBridgeLiquidity.title'),
+        message: t('swap.warning.insufficientBridgeLiquidity.message'),
+      }
+    }
+
     // Map errorCode to Warning
     switch (error.data?.errorCode) {
       case Err404.errorCode.QUOTE_AMOUNT_TOO_LOW_ERROR: {
