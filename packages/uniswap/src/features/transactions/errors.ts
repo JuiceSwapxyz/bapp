@@ -197,6 +197,23 @@ function getStepSpecificErrorContent(
         title: t('common.revoke.approval.failed'),
         message: t('revoke.failed.message'),
       }
+    case TransactionStepType.Erc20ChainSwapStep:
+      return {
+        title: t('common.swap.failed'),
+        message: t('swap.fail.message'),
+      }
+    case TransactionStepType.BitcoinBridgeCitreaToBitcoinStep:
+    case TransactionStepType.BitcoinBridgeBitcoinToCitreaStep:
+      return {
+        title: t('common.swap.failed'),
+        message: t('swap.fail.message'),
+      }
+    case TransactionStepType.LightningBridgeSubmarineStep:
+    case TransactionStepType.LightningBridgeReverseStep:
+      return {
+        title: t('common.swap.failed'),
+        message: t('swap.fail.message'),
+      }
     default:
       return {
         title: t('common.unknownError.error'),
