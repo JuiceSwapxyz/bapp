@@ -35,7 +35,7 @@ const AddressLink = styled(Flex, {
 })
 
 // TODO: Move explorer URL to chain config (getChainInfo) - currently hardcoded for testnet
-const EXPLORER_BASE = 'https://explorer.testnet.citrea.xyz/address/'
+const EXPLORER_BASE = 'https://testnet.citreascan.com/address/'
 
 function ContractAddress({ address }: { address: string }) {
   const handleClick = () => {

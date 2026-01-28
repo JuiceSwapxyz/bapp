@@ -56,7 +56,7 @@ const CONFIG = {
 
   // Target Chain: Citrea Testnet
   citrea: {
-    rpcUrl: 'https://rpc.testnet.citrea.xyz',
+    rpcUrl: 'https://rpc.testnet.citreascan.com',
     chainId: 5115,
     jusd: ADDRESS[5115]!.juiceDollar,
     erc20Swap: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',

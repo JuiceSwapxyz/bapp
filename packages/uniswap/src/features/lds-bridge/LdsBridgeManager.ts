@@ -12,6 +12,7 @@ import {
   fetchSubmarineTransactionsBySwapId,
   fetchSwapCurrentStatus,
   helpMeClaim,
+  registerPreimage,
 } from 'uniswap/src/features/lds-bridge/api/client'
 import { fetchBlockTipHeight } from 'uniswap/src/features/lds-bridge/api/mempool'
 import { createLdsSocketClient } from 'uniswap/src/features/lds-bridge/api/socket'
@@ -109,6 +110,17 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
 
     await this.storageManager.setSwap(reverseInvoiceResponse.id, reverseSwap)
+
+    // Register preimage with ponder_claim for automatic claiming
+    registerPreimage({
+      preimageHash: reverseSwap.preimageHash,
+      preimage: reverseSwap.preimage,
+      swapId: reverseInvoiceResponse.id,
+    }).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('Failed to register preimage:', error)
+    })
+
     this._subscribeToSwapUpdates(reverseInvoiceResponse.id)
     await this._notifySwapChanges()
     await this.waitForSwapUntilState(reverseInvoiceResponse.id, LdsSwapStatus.SwapCreated)
@@ -215,6 +227,17 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
 
     await this.storageManager.setSwap(chainSwapResponse.id, chainSwap)
+
+    // Register preimage with ponder_claim for automatic claiming
+    registerPreimage({
+      preimageHash: chainSwap.preimageHash,
+      preimage: chainSwap.preimage,
+      swapId: chainSwapResponse.id,
+    }).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.error('Failed to register preimage:', error)
+    })
+
     this._subscribeToSwapUpdates(chainSwapResponse.id)
     await this.waitForSwapUntilState(chainSwapResponse.id, LdsSwapStatus.SwapCreated)
     await this._notifySwapChanges()
