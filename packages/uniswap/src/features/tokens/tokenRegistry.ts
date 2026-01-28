@@ -73,7 +73,7 @@ const TOKEN_METADATA: Record<string, TokenMetadata> = {
     displayInUI: false, // Hidden - internal collateral
   },
   CTUSD: {
-    symbol: 'CTUSD',
+    symbol: 'ctUSD',
     name: 'Citrus USD',
     decimals: 18,
     logoUrl: 'https://docs.juiceswap.com/media/icons/cusd.png',
