@@ -34,7 +34,7 @@ const AddressLink = styled(Flex, {
   },
 })
 
-const EXPLORER_BASE = 'https://explorer.testnet.citrea.xyz/address/'
+const EXPLORER_BASE = 'https://testnet.citreascan.com/address/'
 
 function ContractAddress({ address, name: _name }: { address: string; name: string }) {
   const handleClick = () => {
