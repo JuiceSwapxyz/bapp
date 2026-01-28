@@ -57,6 +57,7 @@ const ButtonComponent = forwardRef<TamaguiElement, ButtonProps>(function Button(
       custom-background-color={customBackgroundColor}
       dd-action-name={props['dd-action-name'] ?? (typeof children === 'string' ? children : undefined)}
       {...props}
+      hasOnDisabledPress={Boolean(onDisabledPress)}
       onPress={handleOnPress}
     >
       <ThemedIcon
