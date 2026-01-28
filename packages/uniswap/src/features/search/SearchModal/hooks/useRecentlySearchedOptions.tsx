@@ -78,7 +78,7 @@ export function useRecentlySearchedOptions({
   })
   const tokenCurrencyInfos = useCurrencyInfos(currencyIds)
   const tokenOptions = useCurrencyInfosToTokenOptions({
-    currencyInfos: tokenCurrencyInfos.filter((info): info is CurrencyInfo => info !== undefined),
+    currencyInfos: tokenCurrencyInfos.filter((info): info is CurrencyInfo => info != null),
   })
 
   // Get pool options
