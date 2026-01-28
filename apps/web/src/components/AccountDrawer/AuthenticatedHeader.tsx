@@ -10,6 +10,7 @@ import { LimitedSupportBanner } from 'components/Banner/LimitedSupportBanner'
 import { Power } from 'components/Icons/Power'
 import { Settings } from 'components/Icons/Settings'
 import StatusIcon from 'components/Identicon/StatusIcon'
+import { ExternalLink } from 'react-feather'
 
 import DelegationMismatchModal from 'components/delegation/DelegationMismatchModal'
 import { useAccount } from 'hooks/useAccount'
@@ -84,12 +85,6 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
     ? getExplorerLink({ chainId: connectedAccount.chainId, data: account, type: ExplorerDataType.ADDRESS })
     : undefined
 
-  const handleAddressClick = useCallback(() => {
-    if (explorerUrl) {
-      window.open(explorerUrl, '_blank', 'noopener,noreferrer')
-    }
-  }, [explorerUrl])
-
   const { data, networkStatus, loading } = usePortfolioTotalValue({
     address: account,
   })
@@ -152,14 +147,25 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
             </Trace>
           </Flex>
         </Flex>
-        <Flex gap="$spacing4" cursor="pointer" onPress={handleAddressClick} hoverStyle={{ opacity: 0.8 }}>
-          <MultiBlockchainAddressDisplay enableCopyAddress={!showAddress} wallet={wallet} />
-          {showAddress && (
-            <CopyHelper iconSize={14} iconPosition="right" toCopy={account}>
-              <Text variant="body3" color="neutral3" data-testid={TestID.AddressDisplayCopyHelper}>
-                {shortenAddress(account)}
-              </Text>
-            </CopyHelper>
+        <Flex row gap="$spacing8" alignItems="center">
+          <Flex gap="$spacing4">
+            <MultiBlockchainAddressDisplay enableCopyAddress={!showAddress} wallet={wallet} />
+            {showAddress && (
+              <CopyHelper iconSize={14} iconPosition="right" toCopy={account}>
+                <Text variant="body3" color="neutral3" data-testid={TestID.AddressDisplayCopyHelper}>
+                  {shortenAddress(account)}
+                </Text>
+              </CopyHelper>
+            )}
+          </Flex>
+          {explorerUrl && (
+            <IconButton
+              Icon={ExternalLink}
+              href={explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="wallet-explorer-link"
+            />
           )}
         </Flex>
         <Flex flex={1} mt="$spacing16">
