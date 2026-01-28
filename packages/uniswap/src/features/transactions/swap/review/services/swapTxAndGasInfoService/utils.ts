@@ -216,21 +216,22 @@ export function createProcessSwapResponse({ gasStrategy }: { gasStrategy: GasStr
     isRevokeNeeded: boolean
     permitsDontNeedSignature?: boolean
   }): TransactionRequestInfo {
-    // We use the gasFee estimate from quote, as its more accurate
-    // If quote doesn't have gasFee, we'll need to estimate it separately
+    // Priority for gas fee:
+    // 1. API response gasFee (from fetchSwap) - most accurate for custom endpoints
+    // 2. Quote gasFee - standard Trading API quotes
+    // 3. '0' fallback - gas paid at execution time
+    const gasFeeSource = response?.gasFee ?? swapQuote?.gasFee
     let swapGasFee = {
-      value: swapQuote?.gasFee,
-      displayValue: convertGasFeeToDisplayValue(swapQuote?.gasFee, gasStrategy),
+      value: gasFeeSource,
+      displayValue: convertGasFeeToDisplayValue(gasFeeSource, gasStrategy),
     }
 
-    // If swapQuote doesn't have gasFee, we need to estimate it
-    if (!swapQuote?.gasFee && response?.transactions[0]) {
-      // Use a reasonable fallback gas fee for swaps
-      // This should be replaced with proper gas estimation in the future
-      const fallbackSwapGasFee = '100000000000000' // 0.0001 ETH fallback
+    // If neither API response nor quote has gasFee but we have a transaction, use '0'
+    // The actual gas will be paid at execution time
+    if (!gasFeeSource && response?.transactions[0]) {
       swapGasFee = {
-        value: fallbackSwapGasFee,
-        displayValue: convertGasFeeToDisplayValue(fallbackSwapGasFee, gasStrategy),
+        value: '0',
+        displayValue: convertGasFeeToDisplayValue('0', gasStrategy),
       }
     }
 

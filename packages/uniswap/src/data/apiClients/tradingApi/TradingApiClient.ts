@@ -693,15 +693,26 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
     }
   }
 
+  // Include gasFee from the API response for accurate gas estimation
+  const apiResponse = response as {
+    data: string
+    to: string
+    value: string
+    gasFee?: string
+    gasLimit?: string
+  }
+
   return {
     requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
     swap: {
       chainId: tokenInChainId ?? ChainId._4114,
-      data: response.data,
+      data: apiResponse.data,
       from: connectedWallet ?? '',
-      to: response.to,
-      value: response.value,
+      to: apiResponse.to,
+      value: apiResponse.value,
+      gasLimit: apiResponse.gasLimit,
     },
+    gasFee: apiResponse.gasFee,
   }
 }
 
