@@ -10,6 +10,7 @@ import { createSwapReviewTransactionStore } from 'uniswap/src/features/transacti
 import {
   isBitcoinBridge,
   isClassic,
+  isErc20ChainSwap as isErc20ChainSwapFn,
   isGatewayJusd,
   isLightningBridge,
   isUniswapX,
@@ -45,6 +46,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
   const isWrap = isWrapAction(wrapType)
   const isLnBridge = Boolean(trade && isLightningBridge(trade))
   const isBtcBridge = Boolean(trade && isBitcoinBridge(trade))
+  const isErc20ChainSwap = Boolean(trade && isErc20ChainSwapFn(trade))
   const acceptedTrade = acceptedDerivedSwapInfo?.trade.trade
   const feeOnTransferProps = useFeeOnTransferAmounts(acceptedDerivedSwapInfo)
   const tokenWarningProps = getRelevantTokenWarningSeverity(acceptedDerivedSwapInfo)
@@ -69,6 +71,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
       isWrap,
       isLnBridge,
       isBtcBridge,
+      isErc20ChainSwap,
       blockingWarning,
       reviewScreenWarning,
       txSimulationErrors,
@@ -90,6 +93,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
       isWrap,
       isLnBridge,
       isBtcBridge,
+      isErc20ChainSwap,
       blockingWarning,
       reviewScreenWarning,
       txSimulationErrors,

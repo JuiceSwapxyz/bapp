@@ -1,12 +1,19 @@
+import type { ContractTransaction } from '@ethersproject/contracts'
 import { ADDRESS } from '@juicedollar/jusd'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { call } from 'typed-redux-saga'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { LdsSwapStatus, buildErc20LockupTx, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import {
+  LdsSwapStatus,
+  approveErc20ForLdsBridge,
+  buildErc20LockupTx,
+  checkErc20Allowance,
+  getLdsBridgeManager,
+} from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
-import { Erc20ChainSwapStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
+import { Erc20ChainSwapStep, Erc20ChainSwapSubStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
@@ -135,6 +142,17 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   const isCitreaToPolygon = step.direction === Erc20ChainSwapDirection.CitreaToPolygon
   const isCitreaToEthereum = step.direction === Erc20ChainSwapDirection.CitreaToEthereum
 
+  // Helper to update step with subStep
+  const updateSubStep = (subStep: Erc20ChainSwapSubStep, txHash?: string): void => {
+    setCurrentStep({
+      step: { ...step, subStep, txHash: txHash ?? step.txHash },
+      accepted: subStep === Erc20ChainSwapSubStep.Complete,
+    })
+  }
+
+  // Set initial subStep immediately so UI shows progress
+  updateSubStep(Erc20ChainSwapSubStep.CheckingAllowance)
+
   // Determine Citrea chain ID from the trade (input for Citrea→X, output for X→Citrea)
   const citreaChainId =
     isCitreaToPolygon || isCitreaToEthereum
@@ -213,10 +231,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
-  // Update step to show swap creation is complete, now waiting for lockup
-  setCurrentStep({ step, accepted: false })
-
-  // 2. Lock on source chain - switch chain first, then get signer
+  // 2. Switch to source chain (with UI feedback)
   try {
     const chainSwitched = yield* call(selectChain, sourceChainId)
     if (chainSwitched) {
@@ -257,14 +272,69 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       ? getCitreaSwapContract(citreaChainId)
       : SWAP_CONTRACTS[sourceChain as 'ethereum' | 'polygon']
 
+  const tokenAddress = TOKEN_CONFIGS[from].address
+  const amountBigInt = BigInt(inputAmount)
+
+  // 3. Check allowance
+  updateSubStep(Erc20ChainSwapSubStep.CheckingAllowance)
+  let needsApproval = false
+  try {
+    const allowanceResult = yield* call(checkErc20Allowance, {
+      signer: sourceSigner,
+      contractAddress: swapContractAddress,
+      tokenAddress,
+      amount: amountBigInt,
+    })
+    needsApproval = allowanceResult.needsApproval
+  } catch (error) {
+    logger.error(error instanceof Error ? error : new Error(String(error)), {
+      tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
+      extra: { step: 'checkAllowance' },
+    })
+    // Assume approval is needed if check fails
+    needsApproval = true
+  }
+
+  // 4. If approval needed, request and wait
+  if (needsApproval) {
+    updateSubStep(Erc20ChainSwapSubStep.WaitingForApproval)
+
+    try {
+      const approvalResultUntyped = yield* call(approveErc20ForLdsBridge, {
+        signer: sourceSigner,
+        contractAddress: swapContractAddress,
+        tokenAddress,
+        amount: amountBigInt,
+      })
+      const approveTx = (approvalResultUntyped as { tx: ContractTransaction; hash: string }).tx
+
+      // Wait for approval confirmation
+      updateSubStep(Erc20ChainSwapSubStep.ApprovingToken)
+      yield* call([approveTx, approveTx.wait])
+    } catch (error) {
+      logger.error(error instanceof Error ? error : new Error(String(error)), {
+        tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
+        extra: { step: 'approval' },
+      })
+      throw new TransactionStepFailedError({
+        message: `Token approval failed: ${error instanceof Error ? error.message : String(error)}`,
+        step,
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
+    }
+  }
+
+  // 5. Lock tokens
+  updateSubStep(Erc20ChainSwapSubStep.WaitingForLock)
+
   let lockResult
   try {
     lockResult = yield* call(buildErc20LockupTx, {
       signer: sourceSigner,
       contractAddress: swapContractAddress,
-      tokenAddress: TOKEN_CONFIGS[from].address,
+      tokenAddress,
       preimageHash: chainSwap.preimageHash,
-      amount: BigInt(inputAmount),
+      amount: amountBigInt,
       claimAddress: chainSwap.lockupDetails.claimAddress!,
       timelock: chainSwap.lockupDetails.timeoutBlockHeight,
     })
@@ -284,13 +354,13 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     onTransactionHash(lockResult.hash)
   }
 
-  // Update step to show lockup transaction is submitted, waiting for confirmation
-  setCurrentStep({ step, accepted: false })
+  // Update to locking state with tx hash
+  updateSubStep(Erc20ChainSwapSubStep.LockingTokens, lockResult.hash)
 
-  // 3. Wait for Boltz to lock on target chain
+  // 6. Wait for Boltz to lock on target chain
   try {
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionConfirmed)
-    setCurrentStep({ step, accepted: false })
+    updateSubStep(Erc20ChainSwapSubStep.WaitingForBridge, lockResult.hash)
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerConfirmed)
   } catch (error) {
@@ -305,12 +375,12 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
-  // 4. Auto-claim for both directions (USDT ↔ JUSD)
-  setCurrentStep({ step, accepted: false })
+  // 7. Auto-claim
+  updateSubStep(Erc20ChainSwapSubStep.ClaimingTokens, lockResult.hash)
 
   try {
     yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
-    setCurrentStep({ step, accepted: true })
+    updateSubStep(Erc20ChainSwapSubStep.Complete, lockResult.hash)
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
