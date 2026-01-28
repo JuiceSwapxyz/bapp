@@ -197,6 +197,60 @@ function getStepSpecificErrorContent(
         title: t('common.revoke.approval.failed'),
         message: t('revoke.failed.message'),
       }
+    case TransactionStepType.Erc20ChainSwapStep:
+      return {
+        title: t('common.swap.failed'),
+        message: t('swap.fail.message'),
+      }
+    case TransactionStepType.BitcoinBridgeCitreaToBitcoinStep:
+    case TransactionStepType.BitcoinBridgeBitcoinToCitreaStep:
+      return {
+        title: t('common.swap.failed'),
+        message: t('swap.fail.message'),
+      }
+    case TransactionStepType.LightningBridgeSubmarineStep:
+    case TransactionStepType.LightningBridgeReverseStep:
+      return {
+        title: t('common.swap.failed'),
+        message: t('swap.fail.message'),
+      }
+    case TransactionStepType.Permit2Transaction:
+      return {
+        title: t('permit.approval.fail'),
+        message: t('permit.approval.fail.message'),
+      }
+    case TransactionStepType.CreatePoolTransaction:
+      return {
+        title: t('pool.createdPosition.failed'),
+        message: t('error.tokenApproval.message'),
+      }
+    case TransactionStepType.IncreasePositionTransaction:
+    case TransactionStepType.IncreasePositionTransactionAsync:
+      return {
+        title: t('transaction.status.liquidityIncrease.failed'),
+        message: t('error.tokenApproval.message'),
+      }
+    case TransactionStepType.DecreasePositionTransaction:
+      return {
+        title: t('common.remove.liquidity.failed'),
+        message: t('error.tokenApproval.message'),
+      }
+    case TransactionStepType.MigratePositionTransaction:
+    case TransactionStepType.MigratePositionTransactionAsync:
+      return {
+        title: t('common.migrate.liquidity.failed'),
+        message: t('error.tokenApproval.message'),
+      }
+    case TransactionStepType.CollectFeesTransactionStep:
+      return {
+        title: t('pool.incentives.collectFailed'),
+        message: t('error.tokenApproval.message'),
+      }
+    case TransactionStepType.CollectLpIncentiveRewardsTransactionStep:
+      return {
+        title: t('common.claim.failed'),
+        message: t('error.tokenApproval.message'),
+      }
     default:
       return {
         title: t('common.unknownError.error'),
