@@ -4,6 +4,7 @@ import {
   TokenApprovalTransactionStepRow,
   TokenRevocationTransactionStepRow,
 } from 'uniswap/src/components/ConfirmSwapModal/steps/Approve'
+import { Erc20ChainSwapStepRow } from 'uniswap/src/components/ConfirmSwapModal/steps/Erc20ChainSwap'
 import { LPTransactionStepRow } from 'uniswap/src/components/ConfirmSwapModal/steps/LP'
 import {
   Permit2SignatureStepRow,
@@ -118,6 +119,8 @@ function Step({
     case TransactionStepType.MigratePositionTransactionAsync:
     case TransactionStepType.CollectFeesTransactionStep:
       return <LPTransactionStepRow step={step} status={status} />
+    case TransactionStepType.Erc20ChainSwapStep:
+      return <Erc20ChainSwapStepRow step={step} status={status} />
     default:
       // Return a fallback UI if no matching case is found
       return <></>

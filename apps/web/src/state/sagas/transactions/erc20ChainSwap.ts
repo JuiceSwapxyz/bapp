@@ -1,20 +1,21 @@
 import { ADDRESS } from '@juicedollar/jusd'
-import { popupRegistry } from 'components/Popups/registry'
-import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
-import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
-import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { call } from 'typed-redux-saga'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { LdsSwapStatus, buildErc20LockupTx, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import {
+  LdsSwapStatus,
+  approveErc20ForLdsBridge,
+  buildErc20LockupTx,
+  checkErc20Allowance,
+  getLdsBridgeManager,
+} from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
-import { Erc20ChainSwapStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
+import { Erc20ChainSwapStep, Erc20ChainSwapSubStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
-import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { logger } from 'utilities/src/logger/logger'
 import type { Chain, Client, Transport } from 'viem'
 import { getAccount, getConnectorClient } from 'wagmi/actions'
@@ -31,6 +32,37 @@ async function getConnectorClientForChain(chainId: UniverseChainId): Promise<Cli
   }
 }
 
+async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<void> {
+  const startTime = Date.now()
+
+  const account = getAccount(wagmiConfig)
+  if (account.chainId === targetChainId) {
+    return
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const pollInterval = setInterval(() => {
+      try {
+        const currentAccount = getAccount(wagmiConfig)
+        if (currentAccount.chainId === targetChainId) {
+          clearInterval(pollInterval)
+          resolve()
+        } else if (Date.now() - startTime > timeout) {
+          clearInterval(pollInterval)
+          reject(
+            new Error(
+              `Timeout waiting for network switch to chain ${targetChainId}. Current chain: ${currentAccount.chainId}`,
+            ),
+          )
+        }
+      } catch (error) {
+        clearInterval(pollInterval)
+        reject(error)
+      }
+    }, 200)
+  })
+}
+
 // Token addresses
 const USDC_ETHEREUM_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
 const USDT_ETHEREUM_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
@@ -39,7 +71,7 @@ const JUSD_CITREA_MAINNET = ADDRESS[4114]!.juiceDollar
 const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
 
 // Swap contract addresses (same contract handles multiple tokens on each chain)
-export const SWAP_CONTRACTS = {
+const SWAP_CONTRACTS = {
   ethereum: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
   polygon: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
   citreaMainnet: '0x7397f25f230f7d5a83c18e1b68b32511bf35f860',
@@ -161,51 +193,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   // Get token decimals for source token from TOKEN_CONFIGS
   const sourceDecimals = TOKEN_CONFIGS[from].decimals
 
-  // Chain display names for user-facing messages
-  const CHAIN_DISPLAY_NAMES: Record<string, string> = {
-    polygon: 'Polygon',
-    ethereum: 'Ethereum',
-    citrea: 'Citrea',
-  }
-
-  // 1. FIRST: Switch to source chain (BEFORE creating swap on server)
-  // This ensures user is on correct network before we commit to the swap
-  const currentAccount = getAccount(wagmiConfig)
-  const chainName = CHAIN_DISPLAY_NAMES[sourceChain]
-
-  logger.info('erc20ChainSwap', 'handleErc20ChainSwap', 'Chain check', {
-    currentChainId: currentAccount.chainId,
-    requiredChainId: sourceChainId,
-    needsSwitch: currentAccount.chainId !== sourceChainId,
-  })
-
-  if (currentAccount.chainId !== sourceChainId) {
-    // Trigger chain switch request (fire and forget - non-blocking)
-    // This sends wallet_switchEthereumChain to the wallet which should show a dialog
-    // We don't await this because some wallets don't show the dialog or it's not visible
-    logger.info('erc20ChainSwap', 'handleErc20ChainSwap', `Requesting chain switch to ${chainName}`)
-
-    void selectChain(sourceChainId).catch((error) => {
-      // Log the error but don't throw - we'll detect success/failure via waitForNetwork
-      logger.warn('erc20ChainSwap', 'handleErc20ChainSwap', 'Chain switch request failed', { error })
-    })
-
-    // Wait for the user to switch networks (either via wallet dialog or manually)
-    // This polls the current chain every 200ms until it matches or times out
-    // Using 30 seconds timeout for hardware wallet compatibility
-    try {
-      yield* call(waitForNetwork, sourceChainId, 30000)
-      logger.info('erc20ChainSwap', 'handleErc20ChainSwap', `Successfully switched to ${chainName}`)
-    } catch (error) {
-      throw new TransactionStepFailedError({
-        message: `Please switch your wallet to ${chainName} network and try again.`,
-        step,
-        originalError: error instanceof Error ? error : undefined,
-      })
-    }
-  }
-
-  // 2. NOW create swap on server (user is on correct chain)
+  // 1. Create swap (convert source token decimals → Boltz 8 decimals for API)
   const inputAmount = trade.inputAmount.quotient.toString()
   const userLockAmount = tokenToBoltzDecimals(BigInt(inputAmount), sourceDecimals)
 
@@ -214,8 +202,13 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     to,
     claimAddress: account.address,
     userLockAmount,
-    chainId: citreaChainId,
   }
+
+  // Set initial substep immediately so UI shows progress
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.CheckingAllowance },
+    accepted: false,
+  })
 
   let chainSwap
   try {
@@ -235,7 +228,20 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   // Update step to show swap creation is complete, now waiting for lockup
   setCurrentStep({ step, accepted: false })
 
-  // 3. Lock on source chain - get signer (user already on correct chain from step 1)
+  // 2. Lock on source chain - switch chain first, then get signer
+  try {
+    const chainSwitched = yield* call(selectChain, sourceChainId)
+    if (chainSwitched) {
+      yield* call(waitForNetwork, sourceChainId)
+    } else {
+      yield* call(waitForNetwork, sourceChainId)
+    }
+  } catch (_error) {
+    // Wait for network switch even if selectChain threw
+    yield* call(waitForNetwork, sourceChainId)
+  }
+
+  // Get signer for source chain (now that we're on the correct chain)
   let sourceClient
   try {
     sourceClient = yield* call(getConnectorClientForChain, sourceChainId)
@@ -263,14 +269,80 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       ? getCitreaSwapContract(citreaChainId)
       : SWAP_CONTRACTS[sourceChain as 'ethereum' | 'polygon']
 
+  const tokenAddress = TOKEN_CONFIGS[from].address
+  const amountBigInt = BigInt(inputAmount)
+
+  // Check allowance (substep already set at start of saga)
+  let needsApproval = false
+  try {
+    const allowanceResult = yield* call(checkErc20Allowance, {
+      signer: sourceSigner,
+      contractAddress: swapContractAddress,
+      tokenAddress,
+      amount: amountBigInt,
+    })
+    needsApproval = allowanceResult.needsApproval
+  } catch (error) {
+    logger.error(error instanceof Error ? error : new Error(String(error)), {
+      tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
+      extra: { step: 'checkAllowance' },
+    })
+    throw new TransactionStepFailedError({
+      message: `Failed to check token allowance: ${error instanceof Error ? error.message : String(error)}`,
+      step,
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
+  }
+
+  // 2. Approve if needed
+  if (needsApproval) {
+    setCurrentStep({
+      step: { ...step, subStep: Erc20ChainSwapSubStep.WaitingForApproval },
+      accepted: false,
+    })
+
+    try {
+      const approveResult = yield* call(approveErc20ForLdsBridge, {
+        signer: sourceSigner,
+        contractAddress: swapContractAddress,
+        tokenAddress,
+        amount: amountBigInt,
+      })
+
+      setCurrentStep({
+        step: { ...step, subStep: Erc20ChainSwapSubStep.ApprovingToken },
+        accepted: false,
+      })
+
+      // Wait for approval confirmation
+      yield* call([approveResult.tx, approveResult.tx.wait])
+    } catch (error) {
+      logger.error(error instanceof Error ? error : new Error(String(error)), {
+        tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
+        extra: { step: 'approval' },
+      })
+      throw new TransactionStepFailedError({
+        message: `Failed to approve token: ${error instanceof Error ? error.message : String(error)}`,
+        step,
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
+    }
+  }
+
+  // 3. Lock tokens - show waiting for wallet confirmation
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.WaitingForLock },
+    accepted: false,
+  })
+
   let lockResult
   try {
     lockResult = yield* call(buildErc20LockupTx, {
       signer: sourceSigner,
       contractAddress: swapContractAddress,
-      tokenAddress: TOKEN_CONFIGS[from].address,
+      tokenAddress,
       preimageHash: chainSwap.preimageHash,
-      amount: BigInt(inputAmount),
+      amount: amountBigInt,
       claimAddress: chainSwap.lockupDetails.claimAddress!,
       timelock: chainSwap.lockupDetails.timeoutBlockHeight,
     })
@@ -291,12 +363,19 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   }
 
   // Update step to show lockup transaction is submitted, waiting for confirmation
-  setCurrentStep({ step, accepted: false })
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.LockingTokens, txHash: lockResult.hash },
+    accepted: false,
+  })
 
-  // 3. Wait for Boltz to lock on target chain
+  // 4. Wait for Boltz to lock on target chain
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.WaitingForBridge, txHash: lockResult.hash },
+    accepted: false,
+  })
+
   try {
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionConfirmed)
-    setCurrentStep({ step, accepted: false })
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerConfirmed)
   } catch (error) {
@@ -311,62 +390,19 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
-  // 4. Auto-claim for both directions (USDT ↔ JUSD)
-  setCurrentStep({ step, accepted: false })
-
-  if (onSuccess) {
-    yield* call(onSuccess)
-  }
-  // Show claim in progress notification
-  popupRegistry.addPopup(
-    {
-      type: PopupType.ClaimInProgress,
-      count: 1,
-    },
-    `claim-in-progress-${chainSwap.id}`,
-    DEFAULT_TXN_DISMISS_MS,
-  )
+  // 5. Auto-claim for both directions (USDT ↔ JUSD)
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.ClaimingTokens, txHash: lockResult.hash },
+    accepted: false,
+  })
 
   try {
-    const claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
-    setCurrentStep({ step, accepted: true })
-
-    // Remove claim in progress popup
-    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
-
-    // Determine from and to chain IDs based on swap direction
-    const fromChainId = sourceChainId
-    const toChainId = isPolygonToCitrea
-      ? citreaChainId
-      : isEthereumToCitrea
-        ? citreaChainId
-        : isCitreaToPolygon
-          ? UniverseChainId.Polygon
-          : UniverseChainId.Mainnet
-
-    if (claimedSwap.claimTx) {
-      const explorerUrl = getExplorerLink({
-        chainId: toChainId,
-        data: claimedSwap.claimTx,
-        type: ExplorerDataType.TRANSACTION,
-      })
-
-      popupRegistry.addPopup(
-        {
-          type: PopupType.Erc20ChainSwap,
-          id: claimedSwap.claimTx,
-          fromChainId,
-          toChainId,
-          fromAsset: from,
-          toAsset: to,
-          status: LdsBridgeStatus.Confirmed,
-          url: explorerUrl,
-        },
-        claimedSwap.claimTx,
-      )
-    }
+    yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
+    setCurrentStep({
+      step: { ...step, subStep: Erc20ChainSwapSubStep.Complete },
+      accepted: true,
+    })
   } catch (error) {
-    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
       extra: { swapId: chainSwap.id, step: 'autoClaimSwap' },
@@ -376,5 +412,9 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })
+  }
+
+  if (onSuccess) {
+    yield* call(onSuccess)
   }
 }

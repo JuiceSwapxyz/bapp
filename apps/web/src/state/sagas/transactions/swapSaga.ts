@@ -264,9 +264,9 @@ function* swap(params: SwapParams) {
   const isBitcoinBridgeSwap = isBitcoinBridge(swapTxContext)
   const isErc20ChainSwapSwap = isErc20ChainSwap(swapTxContext)
 
-  // Skip chain switching only for lightning and bitcoin bridges
-  // ERC20 chain swaps need to switch to source chain (input currency chainId) before locking
-  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap
+  // Skip chain switching for lightning bridges, bitcoin bridges, and ERC20 chain swaps
+  // ERC20 chain swaps handle chain switching internally with proper UI feedback
+  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap
   if (changeChain) {
     const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
     if (chainSwitchFailed) {
