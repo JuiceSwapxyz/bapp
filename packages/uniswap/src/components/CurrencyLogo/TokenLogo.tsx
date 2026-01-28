@@ -45,10 +45,6 @@ export const TokenLogo = memo(function _TokenLogo({
     const tokenLogoOverrides: Record<string, string> = {
       WcBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
       cBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
-      cUSD: 'https://docs.juiceswap.com/media/icons/cusd.png',
-      NUSD: 'https://docs.juiceswap.com/media/icons/nusd.png',
-      TFC: 'https://docs.juiceswap.com/media/icons/tfc.png',
-      USDC: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
       ctUSD: 'https://dev.docs.juiceswap.com/media/icons/ctUSD.png',
       lnBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
       // L0 bridged tokens (LayerZero)

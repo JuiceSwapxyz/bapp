@@ -3,7 +3,6 @@ import { Currency } from '@juiceswapxyz/sdk-core'
 import { hasStringAsync } from 'expo-clipboard'
 import { ComponentProps, memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSelector } from 'react-redux'
 import { Flex, ModalCloseIcon, Text, useMedia, useScrollbarStyles, useSporeColors } from 'ui/src'
 import { InfoCircleFilled } from 'ui/src/components/icons/InfoCircleFilled'
 import { spacing, zIndexes } from 'ui/src/theme'
@@ -27,7 +26,6 @@ import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { SearchContext } from 'uniswap/src/features/search/SearchModal/analytics/SearchContext'
 import { useFilterCallbacks } from 'uniswap/src/features/search/SearchModal/hooks/useFilterCallbacks'
 import { SearchTextInput } from 'uniswap/src/features/search/SearchTextInput'
-import { selectIsCitreaOnlyEnabled } from 'uniswap/src/features/settings/selectors'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import {
   ElementName,
@@ -101,10 +99,8 @@ export function TokenSelectorContent({
   onSelectCurrency,
 }: Omit<TokenSelectorProps, 'isModalOpen'>): JSX.Element {
   const { chains: enabledChains, isTestnetModeEnabled } = useEnabledChains()
-  const isCitreaOnlyEnabled = useSelector(selectIsCitreaOnlyEnabled)
 
-  // Force Citrea chain filter when Citrea-only mode is enabled
-  const initialChainFilter = isCitreaOnlyEnabled ? UniverseChainId.CitreaTestnet : chainId ?? null
+  const initialChainFilter = chainId ?? null
 
   const { onChangeChainFilter, onChangeText, searchFilter, chainFilter, parsedChainFilter, parsedSearchFilter } =
     useFilterCallbacks(initialChainFilter, flowToModalName(flow))
@@ -117,13 +113,6 @@ export function TokenSelectorContent({
   const isSmallScreen = (media.sm && isInterface) || isMobileApp || isMobileWeb
 
   const [hasClipboardString, setHasClipboardString] = useState(false)
-
-  // Update chain filter when Citrea-only mode changes
-  useEffect(() => {
-    if (isCitreaOnlyEnabled && chainFilter !== UniverseChainId.CitreaTestnet) {
-      onChangeChainFilter(UniverseChainId.CitreaTestnet)
-    }
-  }, [isCitreaOnlyEnabled, chainFilter, onChangeChainFilter])
 
   // Check if user clipboard has any text to show paste button
   useEffect(() => {
