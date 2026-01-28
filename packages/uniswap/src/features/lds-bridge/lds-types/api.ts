@@ -214,3 +214,13 @@ export interface ClaimChainSwapResponse {
 }
 
 export type ChainPairsResponse = Record<string, Record<string, ChainPairInfo>>
+
+export interface RegisterPreimageRequest {
+  preimageHash: string
+  preimage: string
+  swapId?: string
+}
+
+export interface RegisterPreimageResponse {
+  success: boolean
+}
