@@ -10,7 +10,7 @@ export function clientToProvider(client?: Client<Transport, Chain>, chainId?: nu
   if (!client) {
     return undefined
   }
-  const { chain, transport } = client
+  const { chain } = client
 
   const ensAddress = chain.contracts?.ensRegistry?.address
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -30,7 +30,13 @@ export function clientToProvider(client?: Client<Transport, Chain>, chainId?: nu
   if (providers.has(client)) {
     return providers.get(client)
   } else {
-    const provider = new Web3Provider(transport, network)
+    // Convert viem client to EIP-1193 provider for ethers Web3Provider
+    // The client.request method is EIP-1193 compatible, but we need to wrap it
+    // to handle wallets like Rabby that require proper EIP-1193 provider format
+    const eip1193Provider = {
+      request: client.request.bind(client),
+    }
+    const provider = new Web3Provider(eip1193Provider, network)
     providers.set(client, provider)
     return provider
   }
