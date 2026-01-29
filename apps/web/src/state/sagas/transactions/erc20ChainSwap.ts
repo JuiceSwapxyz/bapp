@@ -252,7 +252,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   // Update step to show swap creation is complete, now waiting for lockup
   setCurrentStep({ step, accepted: false })
 
-  // Get signer for source chain (now that we're on the correct chain)
+  // 3. Lock on source chain - get signer (user already on correct chain from step 1)
   let sourceClient
   try {
     sourceClient = yield* call(getConnectorClientForChain, sourceChainId)
