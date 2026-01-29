@@ -6,7 +6,7 @@ import { TokenRankingsResponse, TokenRankingsStat } from '@uniswap/client-explor
 import { toIncludeSameMembers } from 'jest-extended'
 import { PreloadedState } from 'redux'
 import { useAllCommonBaseCurrencies } from 'uniswap/src/components/TokenSelector/hooks/useAllCommonBaseCurrencies'
-import { useCommonTokensOptionsWithFallback } from 'uniswap/src/components/TokenSelector/hooks/useCommonTokensOptionsWithFallback'
+import { useHardcodedCommonTokensOptions } from 'uniswap/src/components/TokenSelector/hooks/useHardcodedCommonTokensOptions'
 import {
   createEmptyBalanceOption,
   useCurrencyInfosToTokenOptions,
@@ -786,7 +786,7 @@ describe(useTrendingTokensOptions, () => {
   })
 })
 
-describe(useCommonTokensOptionsWithFallback, () => {
+describe(useHardcodedCommonTokensOptions, () => {
   const tokens = [eth, dai, usdc_base]
   const tokenBalances = [ethBalance, daiBalance, usdcBaseBalance]
   const portfolios = [portfolio({ tokenBalances })]
@@ -846,7 +846,7 @@ describe(useCommonTokensOptionsWithFallback, () => {
     const { resolvers } = queryResolvers(
       Object.fromEntries(Object.entries(resolverResults).map(([name, resolver]) => [name, queryResolver(resolver)])),
     )
-    const { result } = renderHook(() => useCommonTokensOptionsWithFallback(SAMPLE_SEED_ADDRESS_1, chainFilter), {
+    const { result } = renderHook(() => useHardcodedCommonTokensOptions(chainFilter), {
       resolvers,
     })
 
