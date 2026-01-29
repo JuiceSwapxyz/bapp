@@ -187,7 +187,43 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   // Get token decimals for source token from TOKEN_CONFIGS
   const sourceDecimals = TOKEN_CONFIGS[from].decimals
 
-  // 1. Create swap (convert source token decimals → Boltz 8 decimals for API)
+  // 1. FIRST: Switch to source chain (BEFORE creating swap on server)
+  // This ensures user is on correct network before we commit to the swap
+  const currentAccount = getAccount(wagmiConfig)
+  const chainName = sourceChain === 'polygon' ? 'Polygon' : sourceChain === 'ethereum' ? 'Ethereum' : 'Citrea'
+
+  logger.info('erc20ChainSwap', 'handleErc20ChainSwap', 'Chain check', {
+    currentChainId: currentAccount.chainId,
+    requiredChainId: sourceChainId,
+    needsSwitch: currentAccount.chainId !== sourceChainId,
+  })
+
+  if (currentAccount.chainId !== sourceChainId) {
+    // Trigger chain switch request (fire and forget - non-blocking)
+    // This sends wallet_switchEthereumChain to the wallet which should show a dialog
+    // We don't await this because some wallets don't show the dialog or it's not visible
+    logger.info('erc20ChainSwap', 'handleErc20ChainSwap', `Requesting chain switch to ${chainName}`)
+
+    selectChain(sourceChainId).catch((error) => {
+      // Log the error but don't throw - we'll detect success/failure via waitForNetwork
+      logger.warn('erc20ChainSwap', 'handleErc20ChainSwap', 'Chain switch request failed', { error })
+    })
+
+    // Wait for the user to switch networks (either via wallet dialog or manually)
+    // This polls the current chain every 200ms until it matches or times out
+    // Using 15 seconds timeout for faster feedback
+    try {
+      yield* call(waitForNetwork, sourceChainId, 15000)
+      logger.info('erc20ChainSwap', 'handleErc20ChainSwap', `Successfully switched to ${chainName}`)
+    } catch {
+      throw new TransactionStepFailedError({
+        message: `Please switch your wallet to ${chainName} network and try again.`,
+        step,
+      })
+    }
+  }
+
+  // 2. NOW create swap on server (user is on correct chain)
   const inputAmount = trade.inputAmount.quotient.toString()
   const userLockAmount = tokenToBoltzDecimals(BigInt(inputAmount), sourceDecimals)
 
@@ -215,19 +251,6 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
   // Update step to show swap creation is complete, now waiting for lockup
   setCurrentStep({ step, accepted: false })
-
-  // 2. Lock on source chain - switch chain first, then get signer
-  try {
-    const chainSwitched = yield* call(selectChain, sourceChainId)
-    if (chainSwitched) {
-      yield* call(waitForNetwork, sourceChainId)
-    } else {
-      yield* call(waitForNetwork, sourceChainId)
-    }
-  } catch (_error) {
-    // Wait for network switch even if selectChain threw
-    yield* call(waitForNetwork, sourceChainId)
-  }
 
   // Get signer for source chain (now that we're on the correct chain)
   let sourceClient
