@@ -1,7 +1,8 @@
 import type { ContractTransaction } from '@ethersproject/contracts'
+import type { ExternalProvider } from '@ethersproject/providers'
+import { Web3Provider } from '@ethersproject/providers'
 import { ADDRESS } from '@juicedollar/jusd'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
-import { clientToProvider } from 'hooks/useEthersProvider'
 import { call } from 'typed-redux-saga'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -18,19 +19,58 @@ import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/s
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 import { logger } from 'utilities/src/logger/logger'
-import type { Chain, Client, Transport } from 'viem'
 import { getAccount, getConnectorClient } from 'wagmi/actions'
 
-async function getConnectorClientForChain(chainId: UniverseChainId): Promise<Client<Transport, Chain> | undefined> {
-  try {
-    return (await getConnectorClient(wagmiConfig, { chainId: chainId as any })) as Client<Transport, Chain> | undefined
-  } catch (error) {
-    logger.error(error instanceof Error ? error : new Error(String(error)), {
-      tags: { file: 'erc20ChainSwap', function: 'getConnectorClientForChain' },
-      extra: { chainId },
-    })
-    throw error
+const MAX_SIGNER_RETRIES = 5
+
+/**
+ * Get a fresh signer for cross-chain swaps.
+ * This creates a new provider without caching to ensure we have the correct chain context
+ * after a chain switch. The shared getSigner/clientToProvider uses WeakMap caching which
+ * can return stale providers after chain switches.
+ *
+ * Uses retry logic because there can be a race condition between:
+ * - waitForNetwork() confirming the chain switch (wagmi account state)
+ * - getConnectorClient() returning the updated client
+ *
+ * @param account - The account address to get the signer for
+ * @param chainId - The target chain ID to ensure we get the correct signer
+ */
+async function getFreshSigner(account: string, chainId: number): Promise<ReturnType<Web3Provider['getSigner']>> {
+  let lastError: Error | undefined
+
+  for (let attempt = 0; attempt < MAX_SIGNER_RETRIES; attempt++) {
+    try {
+      // Request client for the SPECIFIC chain
+      const client = await getConnectorClient(wagmiConfig, { chainId })
+      const { chain } = client
+
+      // Verify we got the correct chain
+      if (chain.id !== chainId) {
+        throw new Error(`Chain mismatch: expected ${chainId}, got ${chain.id}`)
+      }
+
+      // Create provider WITHOUT caching to ensure fresh chain context
+      // Convert viem client to EIP-1193 provider for ethers Web3Provider compatibility
+      const eip1193Provider = {
+        request: client.request.bind(client),
+      } as ExternalProvider
+      const provider = new Web3Provider(eip1193Provider, {
+        chainId: chain.id,
+        name: chain.name,
+      })
+
+      return provider.getSigner(account)
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+      // Wait before retry, increasing delay each attempt
+      if (attempt < MAX_SIGNER_RETRIES - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 200 * (attempt + 1)))
+      }
+    }
   }
+
+  throw lastError ?? new Error(`Failed to get signer for chain ${chainId} after ${MAX_SIGNER_RETRIES} attempts`)
 }
 
 async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<void> {
@@ -245,26 +285,17 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   }
 
   // Get signer for source chain (now that we're on the correct chain)
-  let sourceClient
+  // Use getFreshSigner with explicit chainId to avoid cached provider issues after chain switch
+  let sourceSigner
   try {
-    sourceClient = yield* call(getConnectorClientForChain, sourceChainId)
+    sourceSigner = yield* call(getFreshSigner, account.address, sourceChainId)
   } catch (error) {
     throw new TransactionStepFailedError({
-      message: `Failed to get connector client for chain ${sourceChainId}: ${error instanceof Error ? error.message : String(error)}`,
+      message: `Failed to get signer for chain ${sourceChainId}: ${error instanceof Error ? error.message : String(error)}`,
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })
   }
-
-  const sourceProvider = clientToProvider(sourceClient, sourceChainId)
-  if (!sourceProvider) {
-    throw new TransactionStepFailedError({
-      message: `Failed to get provider for chain ${sourceChainId}`,
-      step,
-    })
-  }
-
-  const sourceSigner = sourceProvider.getSigner(account.address)
 
   // Get the correct swap contract address (dynamic for Citrea based on mainnet/testnet)
   const swapContractAddress =
@@ -289,7 +320,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
-      extra: { step: 'checkAllowance' },
+      extra: { step: 'checkAllowance', message: 'Allowance check failed' },
     })
     // Assume approval is needed if check fails
     needsApproval = true
@@ -314,7 +345,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     } catch (error) {
       logger.error(error instanceof Error ? error : new Error(String(error)), {
         tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
-        extra: { step: 'approval' },
+        extra: { step: 'approval', message: 'Token approval failed' },
       })
       throw new TransactionStepFailedError({
         message: `Token approval failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -341,7 +372,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
-      extra: { step: 'lockup' },
+      extra: { step: 'lockup', message: 'Lock TX failed' },
     })
     throw new TransactionStepFailedError({
       message: `Failed to lock tokens: ${error instanceof Error ? error.message : String(error)}`,
