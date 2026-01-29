@@ -187,10 +187,17 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   // Get token decimals for source token from TOKEN_CONFIGS
   const sourceDecimals = TOKEN_CONFIGS[from].decimals
 
+  // Chain display names for user-facing messages
+  const CHAIN_DISPLAY_NAMES: Record<string, string> = {
+    polygon: 'Polygon',
+    ethereum: 'Ethereum',
+    citrea: 'Citrea',
+  }
+
   // 1. FIRST: Switch to source chain (BEFORE creating swap on server)
   // This ensures user is on correct network before we commit to the swap
   const currentAccount = getAccount(wagmiConfig)
-  const chainName = sourceChain === 'polygon' ? 'Polygon' : sourceChain === 'ethereum' ? 'Ethereum' : 'Citrea'
+  const chainName = CHAIN_DISPLAY_NAMES[sourceChain]
 
   logger.info('erc20ChainSwap', 'handleErc20ChainSwap', 'Chain check', {
     currentChainId: currentAccount.chainId,
@@ -204,21 +211,22 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     // We don't await this because some wallets don't show the dialog or it's not visible
     logger.info('erc20ChainSwap', 'handleErc20ChainSwap', `Requesting chain switch to ${chainName}`)
 
-    selectChain(sourceChainId).catch((error) => {
+    void selectChain(sourceChainId).catch((error) => {
       // Log the error but don't throw - we'll detect success/failure via waitForNetwork
       logger.warn('erc20ChainSwap', 'handleErc20ChainSwap', 'Chain switch request failed', { error })
     })
 
     // Wait for the user to switch networks (either via wallet dialog or manually)
     // This polls the current chain every 200ms until it matches or times out
-    // Using 15 seconds timeout for faster feedback
+    // Using 30 seconds timeout for hardware wallet compatibility
     try {
-      yield* call(waitForNetwork, sourceChainId, 15000)
+      yield* call(waitForNetwork, sourceChainId, 30000)
       logger.info('erc20ChainSwap', 'handleErc20ChainSwap', `Successfully switched to ${chainName}`)
-    } catch {
+    } catch (error) {
       throw new TransactionStepFailedError({
         message: `Please switch your wallet to ${chainName} network and try again.`,
         step,
+        originalError: error instanceof Error ? error : undefined,
       })
     }
   }
