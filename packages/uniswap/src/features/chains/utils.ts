@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { Token } from '@juiceswapxyz/sdk-core'
+import { ChainId, Token } from '@juiceswapxyz/sdk-core'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { ALL_CHAIN_IDS, ORDERED_CHAINS, getChainInfo } from 'uniswap/src/features/chains/chainInfo'
@@ -289,4 +289,31 @@ export function isUniverseChainId(chainId?: number | UniverseChainId | null): ch
  */
 export function isCitreaMainnetAvailable(): boolean {
   return ORDERED_CHAINS.some((chain) => chain.id === UniverseChainId.CitreaMainnet)
+}
+
+// ============================================================================
+// SDK-Core Chain ID Conversions
+// TODO: Consolidate UniverseChainId and sdk-core ChainId into single source of truth
+// ============================================================================
+
+export function toSdkCoreChainId(chainId: UniverseChainId): ChainId | null {
+  switch (chainId) {
+    case UniverseChainId.CitreaMainnet:
+      return ChainId.CITREA_MAINNET
+    case UniverseChainId.CitreaTestnet:
+      return ChainId.CITREA_TESTNET
+    default:
+      return null
+  }
+}
+
+export function fromSdkCoreChainId(chainId: number): UniverseChainId | null {
+  switch (chainId) {
+    case ChainId.CITREA_MAINNET:
+      return UniverseChainId.CitreaMainnet
+    case ChainId.CITREA_TESTNET:
+      return UniverseChainId.CitreaTestnet
+    default:
+      return null
+  }
 }

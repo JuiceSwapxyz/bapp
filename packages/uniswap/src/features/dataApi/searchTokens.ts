@@ -12,10 +12,10 @@ import {
   enrichHardcodedTokenWithSafety,
   searchHardcodedTokens,
 } from 'uniswap/src/features/tokens/searchHardcodedTokens'
+import { toSdkCoreChainId } from 'uniswap/src/features/chains/utils'
 import {
   HIDDEN_TOKEN_SYMBOLS,
   POOL_TOKENS_STALE_TIME_MS,
-  REVERSE_CHAIN_ID_MAP,
   poolTokenToCurrencyInfo,
 } from 'uniswap/src/features/tokens/poolTokenUtils'
 import { useEvent } from 'utilities/src/react/hooks'
@@ -46,7 +46,7 @@ export function useSearchTokens({
   }, [searchQuery, effectiveChainFilter, skip])
 
   // Fetch pool tokens for the chain
-  const numericChainId = effectiveChainFilter ? REVERSE_CHAIN_ID_MAP[effectiveChainFilter] : undefined
+  const numericChainId = effectiveChainFilter ? toSdkCoreChainId(effectiveChainFilter) : undefined
 
   const { data: poolTokensResponse } = useQuery({
     queryKey: ['poolTokens', numericChainId],
@@ -133,13 +133,18 @@ export function useSearchTokens({
     return merged.slice(0, size)
   })
 
+  // Create stable key identifiers for query key (length + first element currencyId)
+  const hardcodedKey =
+    hardcodedResults.length > 0 ? `${hardcodedResults.length}-${hardcodedResults[0]?.currencyId}` : ''
+  const poolKey = poolTokenResults.length > 0 ? `${poolTokenResults.length}-${poolTokenResults[0]?.currencyId}` : ''
+
   const {
     data: tokens,
     error,
     isPending,
     refetch,
   } = useQuery({
-    queryKey: ['searchTokens-custom', variables, hardcodedResults, poolTokenResults],
+    queryKey: ['searchTokens-custom', variables, hardcodedKey, poolKey],
     queryFn: async () => {
       // If we already have hardcoded or pool token results and the query doesn't look like an address,
       // skip the on-chain fetch to improve performance

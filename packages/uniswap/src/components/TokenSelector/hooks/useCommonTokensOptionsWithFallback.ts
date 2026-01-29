@@ -6,7 +6,6 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { hardcodedCommonBaseCurrencies } from 'uniswap/src/features/tokens/hardcodedTokens'
 
 export function useCommonTokensOptionsWithFallback(
-  _address: Address | undefined,
   chainFilter: UniverseChainId | null,
 ): GqlResult<TokenOption[] | undefined> {
   const filteredCurrencies = useMemo(() => {

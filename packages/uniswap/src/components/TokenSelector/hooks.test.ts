@@ -846,7 +846,7 @@ describe(useCommonTokensOptionsWithFallback, () => {
     const { resolvers } = queryResolvers(
       Object.fromEntries(Object.entries(resolverResults).map(([name, resolver]) => [name, queryResolver(resolver)])),
     )
-    const { result } = renderHook(() => useCommonTokensOptionsWithFallback(SAMPLE_SEED_ADDRESS_1, chainFilter), {
+    const { result } = renderHook(() => useCommonTokensOptionsWithFallback(chainFilter), {
       resolvers,
     })
 

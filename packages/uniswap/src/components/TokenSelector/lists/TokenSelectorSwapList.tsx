@@ -25,10 +25,7 @@ function useTokenSectionsForSwap({
     data: commonTokenOptions,
     refetch: refetchCommonTokenOptions,
     loading: commonTokenOptionsLoading,
-  } = useCommonTokensOptionsWithFallback(
-    activeAccountAddress as `0x${string}` | undefined,
-    effectiveChainFilter,
-  )
+  } = useCommonTokensOptionsWithFallback(effectiveChainFilter)
 
   const {
     data: portfolioTokenOptions,
