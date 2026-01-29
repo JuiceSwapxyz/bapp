@@ -1,5 +1,5 @@
 import type { Signer } from '@ethersproject/abstract-signer'
-import type { Contract } from '@ethersproject/contracts'
+import type { Contract, ContractTransaction } from '@ethersproject/contracts'
 import { Contract as EthersContract } from '@ethersproject/contracts'
 import { COIN_SWAP_ABI } from 'uniswap/src/abis/coin_swap'
 import { satoshiToWei } from 'uniswap/src/features/lds-bridge/utils/conversion'
@@ -52,6 +52,56 @@ const ERC20_TOKEN_ABI = [
   'function allowance(address owner, address spender) view returns (uint256)',
 ]
 
+export type CheckErc20AllowanceParams = {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  amount: bigint
+}
+
+export type CheckErc20AllowanceResult = {
+  needsApproval: boolean
+  currentAllowance: bigint
+}
+
+export async function checkErc20Allowance(params: CheckErc20AllowanceParams): Promise<CheckErc20AllowanceResult> {
+  const { signer, contractAddress, tokenAddress, amount } = params
+
+  const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
+  const ownerAddress = await signer.getAddress()
+  const currentAllowance = await tokenContract.allowance(ownerAddress, contractAddress)
+  const currentAllowanceBigInt = currentAllowance.toBigInt()
+
+  return {
+    needsApproval: currentAllowanceBigInt < amount,
+    currentAllowance: currentAllowanceBigInt,
+  }
+}
+
+export type ApproveErc20Params = {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  amount: bigint
+}
+
+export type ApproveErc20Result = {
+  tx: ContractTransaction
+  hash: string
+}
+
+export async function approveErc20ForLdsBridge(params: ApproveErc20Params): Promise<ApproveErc20Result> {
+  const { signer, contractAddress, tokenAddress, amount } = params
+
+  const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
+  const approveTx = await tokenContract.approve(contractAddress, amount)
+
+  return {
+    tx: approveTx,
+    hash: approveTx.hash,
+  }
+}
+
 export async function buildErc20LockupTx(params: {
   signer: Signer
   contractAddress: string
@@ -63,32 +113,9 @@ export async function buildErc20LockupTx(params: {
 }): Promise<{ hash: string }> {
   const { signer, contractAddress, tokenAddress, preimageHash, amount, claimAddress, timelock } = params
 
-  const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
   const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
 
-  // Check current allowance and only approve if needed
-  const ownerAddress = await signer.getAddress()
-  const currentAllowance = await tokenContract.allowance(ownerAddress, contractAddress)
-
-  if (currentAllowance.toBigInt() < amount) {
-    // eslint-disable-next-line no-console
-    console.log('[ERC20 Lock] Allowance insufficient, approving...', {
-      currentAllowance: currentAllowance.toString(),
-      requiredAmount: amount.toString(),
-    })
-    const approveTx = await tokenContract.approve(contractAddress, amount)
-    await approveTx.wait()
-    // eslint-disable-next-line no-console
-    console.log('[ERC20 Lock] Approval confirmed')
-  } else {
-    // eslint-disable-next-line no-console
-    console.log('[ERC20 Lock] Allowance sufficient, skipping approval', {
-      currentAllowance: currentAllowance.toString(),
-      requiredAmount: amount.toString(),
-    })
-  }
-
-  // Lock
+  // Lock (approval should be handled separately before calling this function)
   const lockTx = await swapContract.lock(prefix0x(preimageHash), amount, tokenAddress, claimAddress, timelock)
 
   return { hash: lockTx.hash }

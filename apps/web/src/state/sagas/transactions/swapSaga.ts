@@ -265,9 +265,9 @@ function* swap(params: SwapParams) {
   const isBitcoinBridgeSwap = isBitcoinBridge(swapTxContext)
   const isErc20ChainSwapSwap = isErc20ChainSwap(swapTxContext)
 
-  // Skip chain switching only for lightning and bitcoin bridges
-  // ERC20 chain swaps need to switch to source chain (input currency chainId) before locking
-  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap
+  // Skip chain switching for lightning, bitcoin, and ERC20 chain bridges
+  // ERC20 chain swaps handle chain switching internally with proper UI feedback
+  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap
   if (changeChain) {
     const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
     if (chainSwitchFailed) {
@@ -278,6 +278,12 @@ function* swap(params: SwapParams) {
 
   const steps = yield* call(generateSwapTransactionSteps, swapTxContext, v4Enabled)
   setSteps(steps)
+
+  // If no steps were generated, the swap context is invalid - fail explicitly instead of silently
+  if (steps.length === 0) {
+    onFailure(new Error('Failed to generate swap steps. The quote may have expired or the swap context is invalid.'))
+    return
+  }
 
   let signature: string | undefined
   let step: TransactionStep | undefined
