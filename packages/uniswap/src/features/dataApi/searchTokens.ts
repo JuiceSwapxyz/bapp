@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { SearchTokensResponse, SearchType } from '@uniswap/client-search/dist/search/v1/api_pb'
 import { useMemo } from 'react'
+import { fetchPoolTokens } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { fetchTokenDataDirectly, searchTokenToCurrencyInfo } from 'uniswap/src/data/rest/searchTokensAndPools'
 import { GqlResult } from 'uniswap/src/data/types'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -11,6 +12,12 @@ import {
   enrichHardcodedTokenWithSafety,
   searchHardcodedTokens,
 } from 'uniswap/src/features/tokens/searchHardcodedTokens'
+import {
+  HIDDEN_TOKEN_SYMBOLS,
+  POOL_TOKENS_STALE_TIME_MS,
+  REVERSE_CHAIN_ID_MAP,
+  poolTokenToCurrencyInfo,
+} from 'uniswap/src/features/tokens/poolTokenUtils'
 import { useEvent } from 'utilities/src/react/hooks'
 
 export function useSearchTokens({
@@ -38,6 +45,46 @@ export function useSearchTokens({
     return results.map((token) => enrichHardcodedTokenWithSafety(token))
   }, [searchQuery, effectiveChainFilter, skip])
 
+  // Fetch pool tokens for the chain
+  const numericChainId = effectiveChainFilter ? REVERSE_CHAIN_ID_MAP[effectiveChainFilter] : undefined
+
+  const { data: poolTokensResponse } = useQuery({
+    queryKey: ['poolTokens', numericChainId],
+    queryFn: () => (numericChainId ? fetchPoolTokens(numericChainId) : Promise.resolve({ tokens: [] })),
+    staleTime: POOL_TOKENS_STALE_TIME_MS,
+    enabled: !skip && !!numericChainId,
+  })
+
+  // Filter pool tokens by search query
+  const poolTokenResults = useMemo(() => {
+    if (skip || !searchQuery || !poolTokensResponse?.tokens) {
+      return []
+    }
+    const query = searchQuery.toLowerCase().trim()
+
+    return poolTokensResponse.tokens
+      .filter((token) => {
+        if (HIDDEN_TOKEN_SYMBOLS.has(token.symbol)) {
+          return false
+        }
+        if (token.symbol.toLowerCase().includes(query)) {
+          return true
+        }
+        if (token.name.toLowerCase().includes(query)) {
+          return true
+        }
+        const cleanQuery = query.startsWith('0x') ? query.slice(2) : query
+        const cleanAddress = token.address.toLowerCase().replace('0x', '')
+        if (cleanAddress.includes(cleanQuery)) {
+          return true
+        }
+        return false
+      })
+      .map((token) => poolTokenToCurrencyInfo(token))
+      .filter((c): c is CurrencyInfo => Boolean(c))
+      .map((token) => enrichHardcodedTokenWithSafety(token))
+  }, [searchQuery, poolTokensResponse, skip])
+
   const variables = useMemo(
     () => ({
       searchQuery: searchQuery ?? undefined,
@@ -54,13 +101,21 @@ export function useSearchTokens({
       .map((token) => searchTokenToCurrencyInfo(token))
       .filter((c): c is CurrencyInfo => Boolean(c))
 
-    // Merge results: hardcoded tokens first, then on-chain results
+    // Merge results: hardcoded tokens first, then pool tokens, then on-chain results
     // Remove duplicates based on currencyId
     const seen = new Set<string>()
     const merged: CurrencyInfo[] = []
 
-    // Add hardcoded tokens first (higher priority)
+    // Add hardcoded tokens first (highest priority)
     for (const token of hardcodedResults) {
+      if (!seen.has(token.currencyId)) {
+        seen.add(token.currencyId)
+        merged.push(token)
+      }
+    }
+
+    // Add pool tokens (from Ponder API)
+    for (const token of poolTokenResults) {
       if (!seen.has(token.currencyId)) {
         seen.add(token.currencyId)
         merged.push(token)
@@ -84,18 +139,19 @@ export function useSearchTokens({
     isPending,
     refetch,
   } = useQuery({
-    queryKey: ['searchTokens-custom', variables, hardcodedResults],
+    queryKey: ['searchTokens-custom', variables, hardcodedResults, poolTokenResults],
     queryFn: async () => {
-      // If we already have hardcoded results and the query doesn't look like an address,
+      // If we already have hardcoded or pool token results and the query doesn't look like an address,
       // skip the on-chain fetch to improve performance
       const isLikelyAddress = variables.searchQuery?.startsWith('0x') && variables.searchQuery.length > 10
+      const hasLocalResults = hardcodedResults.length > 0 || poolTokenResults.length > 0
 
-      if (hardcodedResults.length > 0 && !isLikelyAddress) {
-        // Return empty response, hardcoded results will be merged in tokenSelect
+      if (hasLocalResults && !isLikelyAddress) {
+        // Return empty response, hardcoded/pool results will be merged in tokenSelect
         return new SearchTokensResponse({ tokens: [] })
       }
 
-      // Try to fetch on-chain data for addresses or when no hardcoded results
+      // Try to fetch on-chain data for addresses or when no local results
       try {
         const token = await fetchTokenDataDirectly(variables.searchQuery ?? '', variables.chainIds[0] ?? 1)
         return new SearchTokensResponse({ tokens: token ? [token] : [] })

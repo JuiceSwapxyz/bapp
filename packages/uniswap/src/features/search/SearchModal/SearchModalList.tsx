@@ -320,9 +320,9 @@ function key(item: SearchModalOption): string {
     case OnchainItemListOptionType.Pool:
       return `pool-${item.chainId}-${item.poolId}-${item.protocolVersion}-${item.hookAddress}-${item.feeTier}`
     case OnchainItemListOptionType.Token:
-      if (!item.currencyInfo?.currency) {
+      if (!item.currencyInfo.currency) {
         // Use currencyId if available, otherwise fall back to a stable identifier
-        return `token-invalid-${item.currencyInfo?.currencyId ?? 'unknown'}`
+        return `token-invalid-${item.currencyInfo.currencyId ?? 'unknown'}`
       }
       return `token-${item.currencyInfo.currency.chainId}-${item.currencyInfo.currencyId}`
     case OnchainItemListOptionType.WalletByAddress:
