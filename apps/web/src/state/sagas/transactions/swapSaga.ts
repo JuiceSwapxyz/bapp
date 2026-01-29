@@ -279,6 +279,12 @@ function* swap(params: SwapParams) {
   const steps = yield* call(generateSwapTransactionSteps, swapTxContext, v4Enabled)
   setSteps(steps)
 
+  // If no steps were generated, the swap context is invalid - fail explicitly instead of silently
+  if (steps.length === 0) {
+    onFailure(new Error('Failed to generate swap steps. The quote may have expired or the swap context is invalid.'))
+    return
+  }
+
   let signature: string | undefined
   let step: TransactionStep | undefined
 

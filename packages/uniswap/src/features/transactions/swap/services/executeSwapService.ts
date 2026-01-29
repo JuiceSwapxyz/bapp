@@ -61,12 +61,14 @@ export function createExecuteSwapService(ctx: {
   function executeSwap(input: ExecuteSwapInput): void {
     const swapTxContext = ctx.getSwapTxContext?.()
     const account = ctx.getAccount?.()
+
     if (
       !account ||
       !swapTxContext ||
       !isSignerMnemonicAccountDetails(account) ||
       !isValidSwapTxContext(swapTxContext)
     ) {
+      ctx.onFailure(new Error('Invalid account or swap context'))
       return
     }
     const { presetPercentage, preselectAsset } = ctx.getPresetInfo()
@@ -102,12 +104,14 @@ export function createExecuteSwapService(ctx: {
 
     // validate that the account and swapTxContext are defined
     if (!account || !swapTxContext) {
+      ctx.onFailure(new Error('Invalid account or swap context for wrap'))
       return
     }
 
     const txRequest = isWrap(swapTxContext) ? swapTxContext.txRequests?.[0] : undefined
 
     if (!txRequest || !input.inputCurrencyAmount || !input.wrapType) {
+      ctx.onFailure(new Error('Missing wrap transaction parameters'))
       return
     }
 
