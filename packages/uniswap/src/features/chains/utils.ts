@@ -195,6 +195,19 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
 // JuiceSwap only supports Citrea chains
 export const ALWAYS_ENABLED_CHAIN_IDS = [UniverseChainId.CitreaMainnet, UniverseChainId.CitreaTestnet]
 
+// Chains that can be switched to for ERC20 cross-chain swaps
+// These are NOT shown in the UI chain selector but CAN be switched to
+//
+// To add a new cross-chain swap source (e.g., Arbitrum → Citrea):
+// 1. Add chain to this array (e.g., UniverseChainId.ArbitrumOne)
+// 2. Add direction to Erc20ChainSwapDirection enum in isBitcoinBridge.ts
+// 3. Update direction detection in TradingApiClient.ts getErc20ChainSwapQuote()
+// 4. Handle new direction in erc20ChainSwap.ts handleErc20ChainSwap()
+export const ERC20_CHAIN_SWAP_SOURCE_CHAINS: UniverseChainId[] = [
+  UniverseChainId.Polygon, // USDT_POLYGON -> JUSD
+  UniverseChainId.Mainnet, // USDT_ETH/USDC_ETH -> JUSD
+]
+
 export function getEnabledChains({
   platform,
   /**
