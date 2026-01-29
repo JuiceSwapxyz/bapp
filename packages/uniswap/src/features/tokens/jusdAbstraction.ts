@@ -13,25 +13,27 @@
 import { ADDRESS } from '@juicedollar/jusd/exports/address.config'
 import { CHAIN_TO_ADDRESSES_MAP, ChainId, Token as SdkToken } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { toSdkCoreChainId } from 'uniswap/src/features/chains/utils'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
 import { currencyId } from 'uniswap/src/utils/currencyId'
 
-// Map UniverseChainId to numeric chainId for package lookups
-const CHAIN_ID_MAP: Partial<Record<UniverseChainId, number>> = {
-  [UniverseChainId.CitreaTestnet]: ChainId.CITREA_TESTNET,
-  [UniverseChainId.CitreaMainnet]: ChainId.CITREA_MAINNET,
-}
+// Citrea chain IDs for iteration
+const CITREA_CHAIN_IDS = [UniverseChainId.CitreaTestnet, UniverseChainId.CitreaMainnet] as const
 
 // Build address maps from canonical packages
 function buildAddressMap(
   getter: (chainAddresses: (typeof ADDRESS)[number]) => string,
 ): Partial<Record<UniverseChainId, string>> {
   const result: Partial<Record<UniverseChainId, string>> = {}
-  for (const [universeChainId, numericChainId] of Object.entries(CHAIN_ID_MAP)) {
-    const chainAddresses = ADDRESS[numericChainId as unknown as number]
+  for (const universeChainId of CITREA_CHAIN_IDS) {
+    const numericChainId = toSdkCoreChainId(universeChainId)
+    if (numericChainId === null) {
+      continue
+    }
+    const chainAddresses = ADDRESS[numericChainId]
     if (chainAddresses) {
-      result[Number(universeChainId) as UniverseChainId] = getter(chainAddresses)
+      result[universeChainId] = getter(chainAddresses)
     }
   }
   return result

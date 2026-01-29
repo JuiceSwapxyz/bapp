@@ -1153,6 +1153,40 @@ export async function fetchV3PoolDetails(params: { address: string; chainId: num
   })
 }
 
+// ===== Pool Tokens API =====
+
+/**
+ * Token from the pool tokens endpoint (auto-discovered from Ponder + hardcoded)
+ */
+export interface PoolToken {
+  address: string
+  chainId: number
+  decimals: number
+  name: string
+  symbol: string
+  logoURI?: string
+}
+
+/**
+ * Response from the pool tokens endpoint
+ */
+export interface PoolTokensResponse {
+  tokens: PoolToken[]
+}
+
+/**
+ * Fetches all swappable tokens for a chain including auto-discovered pool tokens.
+ * This merges hardcoded tokens with tokens discovered from Ponder (pool contracts).
+ *
+ * @param chainId - The chain ID to fetch tokens for (e.g., 4114 for Citrea Mainnet)
+ * @returns List of all swappable tokens on the chain
+ */
+export async function fetchPoolTokens(chainId: number): Promise<PoolTokensResponse> {
+  return await TradingApiClient.get<PoolTokensResponse>(uniswapUrls.tradingApiPaths.swappableTokens, {
+    params: { tokenInChainId: chainId.toString() },
+  })
+}
+
 // ===== svJUSD Share Price API =====
 
 /**
