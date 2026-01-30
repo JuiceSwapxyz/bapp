@@ -343,6 +343,7 @@ function* swap(params: SwapParams) {
             trade,
             account,
             destinationAddress: swapTxContext.destinationAddress,
+            selectChain: params.selectChain,
             onTransactionHash: params.onTransactionHash,
             onSuccess: params.onSuccess,
           })
@@ -369,6 +370,7 @@ function* swap(params: SwapParams) {
             trade,
             account,
             destinationAddress: swapTxContext.destinationAddress,
+            selectChain: params.selectChain,
             onTransactionHash: params.onTransactionHash,
             onSuccess: params.onSuccess,
           })
