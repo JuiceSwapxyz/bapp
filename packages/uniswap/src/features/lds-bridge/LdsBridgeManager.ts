@@ -499,12 +499,14 @@ class LdsBridgeManager extends SwapEventEmitter {
 
   getPendingSwaps = async (): Promise<SomeSwap[]> => {
     const swaps = await this.storageManager.getSwaps()
-    return Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
+    // Include swaps with missing status so they can be polled and recover
+    return Object.values(swaps).filter((swap) => !swap.status || !swapStatusFinal.includes(swap.status))
   }
 
   updatePendingSwapsStatuses = async (): Promise<void> => {
     const swaps = await this.storageManager.getSwaps()
-    const pendingSwaps = Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
+    // Include swaps with missing status so they can be polled and recover
+    const pendingSwaps = Object.values(swaps).filter((swap) => !swap.status || !swapStatusFinal.includes(swap.status))
 
     if (pendingSwaps.length === 0) {
       return
@@ -522,8 +524,22 @@ class LdsBridgeManager extends SwapEventEmitter {
             state.hasChanges = true
           }
         } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('[LdsBridgeManager] Error updating swap status:', error)
+          // If swap not found on backend (expired/cleaned up), mark as expired
+          // FetchError stores API response in error.data, with error message in error.data.error
+          const apiErrorMessage =
+            error && typeof error === 'object' && 'data' in error
+              ? (error as { data?: { error?: string } }).data?.error
+              : undefined
+          if (apiErrorMessage?.includes('could not find swap')) {
+            // eslint-disable-next-line no-console
+            console.warn(`[LdsBridgeManager] Swap ${swap.id} not found on backend, marking as expired`)
+            swap.status = LdsSwapStatus.SwapExpired
+            await this.storageManager.setSwap(swap.id, swap)
+            state.hasChanges = true
+          } else {
+            // eslint-disable-next-line no-console
+            console.error('[LdsBridgeManager] Error updating swap status:', error)
+          }
         }
       }),
     )
@@ -537,7 +553,8 @@ class LdsBridgeManager extends SwapEventEmitter {
   suscribeAllPendingSwaps = async (): Promise<void> => {
     await this.updatePendingSwapsStatuses()
     const swaps = await this.storageManager.getSwaps()
-    const pendingSwaps = Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
+    // Include swaps with missing status so they can be polled and recover
+    const pendingSwaps = Object.values(swaps).filter((swap) => !swap.status || !swapStatusFinal.includes(swap.status))
     pendingSwaps.forEach((swap) => {
       this._subscribeToSwapUpdates(swap.id)
     })
