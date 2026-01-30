@@ -180,7 +180,7 @@ export function* approveAndSwap(params: SwapParams) {
         submitViaPrivateRpc,
         userSubmissionTimestampMs,
         includesDelegation: swapTxContext.includesDelegation,
-        isSmartWalletTransaction: swapTxContext.txRequests[0]?.to === account.address,
+        isSmartWalletTransaction: swapTxContext.txRequests[0].to === account.address,
       }
       const executeTransactionParams: ExecuteTransactionParams = {
         txId,
