@@ -29,6 +29,7 @@ import { X } from 'ui/src/components/icons/X'
 import { iconSizes } from 'ui/src/theme'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { BridgeIcon } from 'uniswap/src/components/CurrencyLogo/SplitLogo'
+import { TokenLogo } from 'uniswap/src/components/CurrencyLogo/TokenLogo'
 import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useIsSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
@@ -457,6 +458,210 @@ export function BitcoinBridgePopupContent({
     </Flex>
   )
 }
+
+// Split logo component for chain swap (shows two asset logos divided)
+function SplitChainLogo({
+  fromChainId,
+  toChainId,
+  fromAsset,
+  toAsset,
+  size,
+}: {
+  fromChainId: UniverseChainId
+  toChainId: UniverseChainId
+  fromAsset: string
+  toAsset: string
+  size: number
+}) {
+  const iconSize = size / 2
+
+  // Parse asset to get token symbol and logo URL
+  const getTokenInfo = (asset: string): { symbol: string; name: string; logoUrl?: string } => {
+    // Asset format is like 'USDT_ETH', 'JUSD_CITREA', etc.
+    const symbol = asset.split('_')[0]
+
+    switch (symbol) {
+      case 'USDT':
+        return {
+          symbol: 'USDT',
+          name: 'Tether USD',
+          logoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+        }
+      case 'USDC':
+        return {
+          symbol: 'USDC',
+          name: 'USD Coin',
+          logoUrl: 'https://assets.coingecko.com/coins/images/6319/large/usdc.png',
+        }
+      case 'JUSD':
+        return {
+          symbol: 'JUSD',
+          name: 'Juice Dollar',
+          logoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
+        }
+      case 'BTC':
+        return {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          logoUrl: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+        }
+      case 'cBTC':
+        return {
+          symbol: 'cBTC',
+          name: 'Citrea Bitcoin',
+          logoUrl: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+        }
+      default:
+        return { symbol, name: symbol }
+    }
+  }
+
+  const fromToken = getTokenInfo(fromAsset)
+  const toToken = getTokenInfo(toAsset)
+
+  return (
+    <Flex height={size} width={size} position="relative" borderRadius="$roundedFull" overflow="hidden">
+      <Flex left={0} overflow="hidden" position="absolute" top={0} width={iconSize - 1}>
+        <TokenLogo
+          url={fromToken.logoUrl}
+          symbol={fromToken.symbol}
+          name={fromToken.name}
+          chainId={fromChainId}
+          size={size}
+          hideNetworkLogo
+        />
+      </Flex>
+      <Flex flexDirection="row-reverse" overflow="hidden" position="absolute" right={0} top={0} width={iconSize - 1}>
+        <TokenLogo
+          url={toToken.logoUrl}
+          symbol={toToken.symbol}
+          name={toToken.name}
+          chainId={toChainId}
+          size={size}
+          hideNetworkLogo
+        />
+      </Flex>
+    </Flex>
+  )
+}
+
+export function Erc20ChainSwapPopupContent({
+  fromChainId,
+  toChainId,
+  fromAsset,
+  toAsset,
+  status,
+  url,
+  onClose,
+}: {
+  fromChainId: UniverseChainId
+  toChainId: UniverseChainId
+  fromAsset: string
+  toAsset: string
+  status: LdsBridgeStatus
+  url?: string
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const colors = useSporeColors()
+
+  const title = useMemo(() => {
+    switch (status) {
+      case LdsBridgeStatus.Pending:
+        return t('Swapping tokens')
+      case LdsBridgeStatus.Confirmed:
+        return t('Tokens swapped successfully')
+      case LdsBridgeStatus.Failed:
+        return t('Token swap failed')
+      default:
+        return t('Swapping tokens')
+    }
+  }, [status, t])
+
+  const getChainName = (chainId: UniverseChainId): string => {
+    switch (chainId) {
+      case UniverseChainId.Mainnet:
+        return 'Ethereum'
+      case UniverseChainId.Polygon:
+        return 'Polygon'
+      case UniverseChainId.CitreaMainnet:
+      case UniverseChainId.CitreaTestnet:
+        return 'Citrea'
+      default:
+        return 'Unknown'
+    }
+  }
+
+  const isPending = status === LdsBridgeStatus.Pending
+
+  const handlePress = () => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  return (
+    <Flex
+      row
+      width={POPUP_MAX_WIDTH}
+      backgroundColor="$surface1"
+      position="relative"
+      borderWidth={1}
+      borderRadius="$rounded16"
+      borderColor="$surface3"
+      py={2}
+      px={0}
+      animation="300ms"
+      cursor={url ? 'pointer' : 'default'}
+      $sm={{
+        mx: 'auto',
+        width: '100%',
+      }}
+    >
+      <TouchableArea onPress={url ? handlePress : noop} flex={1}>
+        <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
+          <Flex justifyContent="center">
+            <SplitChainLogo
+              fromChainId={fromChainId}
+              toChainId={toChainId}
+              fromAsset={fromAsset}
+              toAsset={toAsset}
+              size={32}
+            />
+          </Flex>
+          <Flex justifyContent="center" gap="$gap4" fill>
+            <Text variant="body2" color="$neutral1">
+              {title}
+            </Text>
+            <Flex row alignItems="center" gap="$gap4">
+              <NetworkLogo chainId={fromChainId} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {getChainName(fromChainId)}
+              </Text>
+              <Arrow direction="e" color="$neutral3" size={iconSizes.icon16} />
+              <NetworkLogo chainId={toChainId} size={16} />
+              <Text variant="body3" color="$neutral2">
+                {getChainName(toChainId)}
+              </Text>
+            </Flex>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+      {isPending ? (
+        <Flex position="absolute" top="$spacing24" right="$spacing16">
+          <LoaderV3 color={colors.accent1.variable} size="20px" />
+        </Flex>
+      ) : (
+        <Flex position="absolute" right="$spacing16" top="$spacing16" data-testid={TestID.ActivityPopupCloseIcon}>
+          <TouchableArea onPress={onClose}>
+            <X color="$neutral2" size={16} />
+          </TouchableArea>
+        </Flex>
+      )}
+    </Flex>
+  )
+}
+
 export function RefundableSwapsPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
   const navigate = useNavigate()
   const shadowProps = useShadowPropsMedium()
@@ -603,6 +808,110 @@ export function RefundsCompletedPopupContent({ count, onClose }: { count: number
             </Text>
             <Text variant="body3" color="$neutral2">
               Your refunds have been successfully processed. Click to view details.
+            </Text>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+    </Flex>
+  )
+}
+
+export function ClaimInProgressPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
+  const navigate = useNavigate()
+  const colors = useSporeColors()
+  const shadowProps = useShadowPropsMedium()
+
+  const handleClick = (): void => {
+    navigate('/bridge-swaps')
+    onClose()
+  }
+
+  return (
+    <Flex
+      row
+      alignItems="center"
+      animation="300ms"
+      backgroundColor="$surface1"
+      borderColor="$surface3"
+      borderRadius="$rounded16"
+      borderWidth="$spacing1"
+      justifyContent="space-between"
+      left={0}
+      mx="auto"
+      {...shadowProps}
+      p="$spacing16"
+      position="relative"
+      width={POPUP_MAX_WIDTH}
+      opacity={1}
+      $sm={{
+        maxWidth: '100%',
+        mx: 'auto',
+      }}
+    >
+      <TouchableArea onPress={handleClick} flex={1}>
+        <Flex row alignItems="center" gap="$gap12" flex={1}>
+          <Flex position="relative">
+            <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
+            <Flex position="absolute" top={-4} right={-4}>
+              <LoaderV3 color={colors.accent1.variable} size="16px" />
+            </Flex>
+          </Flex>
+          <Flex gap="$gap4" flex={1}>
+            <Text variant="body2" color="$neutral1">
+              Claims In Progress ({count})
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              Your claims are being processed. Click to view details.
+            </Text>
+          </Flex>
+        </Flex>
+      </TouchableArea>
+    </Flex>
+  )
+}
+
+export function ClaimCompletedPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
+  const navigate = useNavigate()
+  const shadowProps = useShadowPropsMedium()
+
+  const handleClick = (): void => {
+    navigate('/bridge-swaps')
+    onClose()
+  }
+
+  return (
+    <Flex
+      row
+      alignItems="center"
+      animation="300ms"
+      backgroundColor="$surface1"
+      borderColor="$surface3"
+      borderRadius="$rounded16"
+      borderWidth="$spacing1"
+      justifyContent="space-between"
+      left={0}
+      mx="auto"
+      {...shadowProps}
+      p="$spacing16"
+      position="relative"
+      width={POPUP_MAX_WIDTH}
+      opacity={1}
+      $sm={{
+        maxWidth: '100%',
+        mx: 'auto',
+      }}
+    >
+      <TouchableArea onPress={handleClick} flex={1}>
+        <Flex row alignItems="center" gap="$gap12" flex={1}>
+          <Flex>
+            <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
+          </Flex>
+          <Flex gap="$gap4" flex={1}>
+            <Text variant="body2" color="$neutral1">
+              Claims Completed ({count})
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              Your claims have been successfully processed. Click to view details.
             </Text>
           </Flex>
         </Flex>

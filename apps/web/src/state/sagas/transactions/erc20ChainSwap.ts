@@ -1,5 +1,8 @@
 import { ADDRESS } from '@juicedollar/jusd'
+import { popupRegistry } from 'components/Popups/registry'
+import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
+import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { call } from 'typed-redux-saga'
@@ -11,6 +14,7 @@ import { Erc20ChainSwapStep } from 'uniswap/src/features/transactions/swap/steps
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
+import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { logger } from 'utilities/src/logger/logger'
 import type { Chain, Client, Transport } from 'viem'
 import { getAccount, getConnectorClient } from 'wagmi/actions'
@@ -309,10 +313,59 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   // 4. Auto-claim for both directions (USDT ↔ JUSD)
   setCurrentStep({ step, accepted: false })
 
+  if (onSuccess) {
+    yield* call(onSuccess)
+  }
+  // Show claim in progress notification
+  popupRegistry.addPopup(
+    {
+      type: PopupType.ClaimInProgress,
+      count: 1,
+    },
+    `claim-in-progress-${chainSwap.id}`,
+    DEFAULT_TXN_DISMISS_MS,
+  )
+
   try {
-    yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
+    const claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
     setCurrentStep({ step, accepted: true })
+
+    // Remove claim in progress popup
+    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
+
+    // Determine from and to chain IDs based on swap direction
+    const fromChainId = sourceChainId
+    const toChainId = isPolygonToCitrea
+      ? citreaChainId
+      : isEthereumToCitrea
+        ? citreaChainId
+        : isCitreaToPolygon
+          ? UniverseChainId.Polygon
+          : UniverseChainId.Mainnet
+
+    if (claimedSwap.claimTx) {
+      const explorerUrl = getExplorerLink({
+        chainId: toChainId,
+        data: claimedSwap.claimTx,
+        type: ExplorerDataType.TRANSACTION,
+      })
+
+      popupRegistry.addPopup(
+        {
+          type: PopupType.Erc20ChainSwap,
+          id: claimedSwap.claimTx,
+          fromChainId,
+          toChainId,
+          fromAsset: from,
+          toAsset: to,
+          status: LdsBridgeStatus.Confirmed,
+          url: explorerUrl,
+        },
+        claimedSwap.claimTx,
+      )
+    }
   } catch (error) {
+    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
       extra: { swapId: chainSwap.id, step: 'autoClaimSwap' },
@@ -322,9 +375,5 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })
-  }
-
-  if (onSuccess) {
-    yield* call(onSuccess)
   }
 }

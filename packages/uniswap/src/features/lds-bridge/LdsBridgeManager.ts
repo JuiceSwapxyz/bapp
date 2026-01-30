@@ -35,9 +35,20 @@ import { StorageManager } from 'uniswap/src/features/lds-bridge/storage/StorageM
 import { SwapEventEmitter } from 'uniswap/src/features/lds-bridge/storage/SwapEventEmitter'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 import { pollForLockupConfirmation } from 'uniswap/src/features/lds-bridge/utils/polling'
+import { UniverseChainId } from '../chains/types'
+
+export const ASSET_CHAIN_ID_MAP: Record<string, UniverseChainId> = {
+  'cBTC': UniverseChainId.CitreaMainnet,
+  'USDT_ETH': UniverseChainId.Mainnet,
+  'USDT_POLYGON': UniverseChainId.Polygon,
+  'USDC_ETH': UniverseChainId.Mainnet,
+  'USDC_POLYGON': UniverseChainId.Polygon,
+  'JUSD_CITREA': UniverseChainId.CitreaMainnet,
+  'BTC': UniverseChainId.Bitcoin,
+}
+
 
 /* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type */
-
 class LdsBridgeManager extends SwapEventEmitter {
   private socketClient: ReturnType<typeof createLdsSocketClient>
   private storageManager: StorageManager
@@ -227,7 +238,6 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
 
     await this.storageManager.setSwap(chainSwapResponse.id, chainSwap)
-
     // Register preimage with ponder_claim for automatic claiming
     registerPreimage({
       preimageHash: chainSwap.preimageHash,
@@ -255,7 +265,11 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
 
     // Wait for Ponder to confirm lockup before claiming.
-    const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash)
+    const chainId = ASSET_CHAIN_ID_MAP[swap.assetReceive]
+    if (!chainId) {
+      throw new Error('Chain ID not found')
+    }
+    const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash, chainId)
     await ponderPromise
     cancelPonderPolling()
 
@@ -270,6 +284,7 @@ class LdsBridgeManager extends SwapEventEmitter {
 
     swap.claimTx = txHash
     await this.storageManager.setSwap(swapId, swap)
+    this._notifySwapChanges()
     return swap
   }
 

@@ -13,7 +13,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { swapStatusFinal } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { LdsSwapStatus, swapStatusFinal } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { logger } from 'utilities/src/logger/logger'
 
@@ -170,6 +170,10 @@ export function useOpenLimitOrders(account: string) {
   }
 }
 
+const statusNonFinalSwaps = (swap: SomeSwap) => swap.status && !swapStatusFinal.includes(swap.status)
+const swapsFinalNonClaimed = (swap: SomeSwap) =>
+  !swap.claimTx && swap.status === LdsSwapStatus.TransactionServerConfirmed
+
 export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading: boolean } {
   const [bridgeSwaps, setBridgeSwaps] = useState<SomeSwap[]>([])
   const [loading, setLoading] = useState(true)
@@ -181,9 +185,8 @@ export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading
       try {
         await ldsBridgeManager.suscribeAllPendingSwaps()
         const swaps = await ldsBridgeManager.getSwaps()
-        const pendingSwaps = Object.values(swaps).filter(
-          (swap) => swap.status && !swapStatusFinal.includes(swap.status),
-        )
+        const pendingSwaps = Object.values(swaps).filter(statusNonFinalSwaps).filter(swapsFinalNonClaimed)
+
         setBridgeSwaps(pendingSwaps)
         setLoading(false)
       } catch (error) {
@@ -193,7 +196,7 @@ export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading
     }
 
     const handleSwapChange = (swaps: Record<string, SomeSwap>): void => {
-      const pendingSwaps = Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
+      const pendingSwaps = Object.values(swaps).filter(statusNonFinalSwaps).filter(swapsFinalNonClaimed)
       setBridgeSwaps(pendingSwaps)
     }
 
