@@ -4,8 +4,10 @@ import { constructClaimTransaction } from 'boltz-core'
 import { Buffer } from 'buffer'
 import { popupRegistry } from 'components/Popups/registry'
 import { BitcoinBridgeDirection, LdsBridgeStatus, PopupType } from 'components/Popups/types'
+import { ensureCorrectChain } from 'state/sagas/transactions/chainSwitchUtils'
 import { getSigner } from 'state/sagas/transactions/utils'
 import { call } from 'typed-redux-saga'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import {
   broadcastChainSwap,
   btcToSat,
@@ -29,12 +31,13 @@ interface HandleBitcoinBridgeCitreaToBitcoinParams {
   trade: Trade
   account: AccountDetails
   destinationAddress?: string
+  selectChain: (chainId: UniverseChainId) => Promise<boolean>
   onTransactionHash?: (hash: string) => void
   onSuccess?: () => void
 }
 
 export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeCitreaToBitcoinParams) {
-  const { destinationAddress: claimAddress, trade, account, onSuccess, onTransactionHash } = params
+  const { step, destinationAddress: claimAddress, trade, account, selectChain, onSuccess, onTransactionHash } = params
 
   if (!claimAddress) {
     throw new Error('Claim address is required for Bitcoin bridge swap')
@@ -48,6 +51,15 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
     to: 'BTC',
     claimAddress,
     userLockAmount,
+  })
+
+  // Ensure wallet is on Citrea before signing the lockup transaction
+  const citreaChainId = trade.inputAmount.currency.chainId as UniverseChainId
+  yield* call(ensureCorrectChain, {
+    targetChainId: citreaChainId,
+    selectChain,
+    step,
+    chainDisplayName: 'Citrea',
   })
 
   const signer = yield* call(getSigner, account.address)
