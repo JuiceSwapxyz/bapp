@@ -161,15 +161,17 @@ function ldsStatusToTransactionStatus(status?: LdsSwapStatus): TransactionStatus
 export function swapToActivity(swap: SomeSwap & { id: string }): Activity {
   const status = ldsStatusToTransactionStatus(swap.status)
 
-  // Use persisted chainId first (from when swap was created), then infer from contract,
-  // then fallback to asset-based logic. This ensures the activity passes chain filtering.
-  const inferredChainId = swap.chainId ?? inferChainIdFromSwap(swap)
-  const sourceChain = inferredChainId ?? getAssetChainId(swap.assetSend)
-  const destChain = getAssetChainId(swap.assetReceive)
+  // For filtering: use persisted chainId first, then infer from contract, then fallback.
+  // This ensures the activity passes chain filtering (must be Citrea-related).
+  const activityChainId = swap.chainId ?? inferChainIdFromSwap(swap) ?? getAssetChainId(swap.assetSend)
+
+  // For display: use actual asset chains to show correct source/dest logos
+  const displaySourceChain = getAssetChainId(swap.assetSend)
+  const displayDestChain = getAssetChainId(swap.assetReceive)
 
   const descriptor = getLdsBridgeDescriptor({
-    sourceChain,
-    destChain,
+    sourceChain: displaySourceChain,
+    destChain: displayDestChain,
     sendAmount: formatSatoshiAmount(swap.sendAmount),
     receiveAmount: formatSatoshiAmount(swap.receiveAmount),
     assetSend: swap.assetSend,
@@ -184,8 +186,8 @@ export function swapToActivity(swap: SomeSwap & { id: string }): Activity {
 
   return {
     hash: `${LDS_ACTIVITY_PREFIX}${swap.id}`,
-    chainId: sourceChain,
-    outputChainId: destChain,
+    chainId: activityChainId,
+    outputChainId: displayDestChain,
     status,
     timestamp: swap.date / 1000,
     title: titleMap[status] || 'Bridge',

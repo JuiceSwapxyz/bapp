@@ -48,9 +48,6 @@ export const ASSET_CHAIN_ID_MAP: Record<string, UniverseChainId> = {
 }
 
 /* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type, max-lines */
-
-
-/* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type */
 class LdsBridgeManager extends SwapEventEmitter {
   private socketClient: ReturnType<typeof createLdsSocketClient>
   private storageManager: StorageManager
