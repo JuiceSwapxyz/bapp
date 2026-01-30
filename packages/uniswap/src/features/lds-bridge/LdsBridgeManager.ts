@@ -1,6 +1,7 @@
 import { randomBytes } from '@ethersproject/random'
 import { crypto } from 'bitcoinjs-lib'
 import { Buffer } from 'buffer'
+import { getFetchErrorMessage } from 'uniswap/src/data/apiClients/FetchError'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import {
   createChainSwap,
@@ -56,6 +57,8 @@ class LdsBridgeManager extends SwapEventEmitter {
   private chainPairs: ChainPairsResponse | null = null
   private pollingInterval: ReturnType<typeof setInterval> | null = null
   private lastPollTime: number = 0
+  private visibilityHandler: (() => void) | null = null
+  private wasPollingBeforeHidden: boolean = false
 
   constructor() {
     super()
@@ -89,6 +92,8 @@ class LdsBridgeManager extends SwapEventEmitter {
       return // Already running
     }
 
+    this.setupVisibilityHandling()
+
     this.pollingInterval = setInterval(() => {
       this.pollPendingSwapsIfNeeded().catch(() => {
         // Errors are logged inside pollPendingSwapsIfNeeded
@@ -101,6 +106,26 @@ class LdsBridgeManager extends SwapEventEmitter {
       clearInterval(this.pollingInterval)
       this.pollingInterval = null
     }
+  }
+
+  private setupVisibilityHandling = (): void => {
+    if (typeof document === 'undefined' || this.visibilityHandler) {
+      return
+    }
+
+    this.visibilityHandler = () => {
+      if (document.hidden) {
+        if (this.pollingInterval) {
+          this.wasPollingBeforeHidden = true
+          this.stopBackgroundPolling()
+        }
+      } else if (this.wasPollingBeforeHidden) {
+        this.wasPollingBeforeHidden = false
+        this.startBackgroundPolling()
+      }
+    }
+
+    document.addEventListener('visibilitychange', this.visibilityHandler)
   }
 
   private pollPendingSwapsIfNeeded = async (): Promise<void> => {
@@ -525,11 +550,7 @@ class LdsBridgeManager extends SwapEventEmitter {
           }
         } catch (error) {
           // If swap not found on backend (expired/cleaned up), mark as expired
-          // FetchError stores API response in error.data, with error message in error.data.error
-          const apiErrorMessage =
-            error && typeof error === 'object' && 'data' in error
-              ? (error as { data?: { error?: string } }).data?.error
-              : undefined
+          const apiErrorMessage = getFetchErrorMessage(error)
           if (apiErrorMessage?.includes('could not find swap')) {
             // eslint-disable-next-line no-console
             console.warn(`[LdsBridgeManager] Swap ${swap.id} not found on backend, marking as expired`)
