@@ -83,8 +83,20 @@ function combineActivities({
       // Remote data only contains data of the cancel tx, rather than the original tx, so we prefer local data here
       acc.push(localActivity)
     } else {
-      // Generally prefer remote values to local value because i.e. remote swap amounts are on-chain rather than client-estimated
-      acc.push({ ...localActivity, ...remoteActivity } as Activity)
+      // Prefer remote values for most fields (e.g., on-chain amounts are more accurate)
+      // BUT prefer local status if it's finalized, since local status is updated by on-chain polling
+      // while remote GraphQL cache may be stale
+      const mergedActivity = { ...localActivity, ...remoteActivity }
+
+      // If local has finalized status but remote still shows pending, use local status
+      if (
+        (localActivity.status === TransactionStatus.Success || localActivity.status === TransactionStatus.Failed) &&
+        remoteActivity.status === TransactionStatus.Pending
+      ) {
+        mergedActivity.status = localActivity.status
+      }
+
+      acc.push(mergedActivity as Activity)
     }
 
     return acc

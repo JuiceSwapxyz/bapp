@@ -133,8 +133,25 @@ function getStatusInfo(swap: SomeSwap): {
 
     case LdsSwapStatus.TransactionFailed:
     case LdsSwapStatus.InvoiceFailedToPay:
+    case LdsSwapStatus.TransactionLockupFailed:
       return {
         label: 'Failed',
+        status: 'failed',
+        icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
+      }
+
+    case LdsSwapStatus.SwapExpired:
+    case LdsSwapStatus.InvoiceExpired:
+      return {
+        label: 'Expired',
+        status: 'failed',
+        icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
+      }
+
+    case LdsSwapStatus.TransactionRefunded:
+    case LdsSwapStatus.SwapWaitingForRefund:
+      return {
+        label: 'Awaiting Refund',
         status: 'failed',
         icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
       }

@@ -36,7 +36,7 @@ import { SwapEventEmitter } from 'uniswap/src/features/lds-bridge/storage/SwapEv
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 import { pollForLockupConfirmation } from 'uniswap/src/features/lds-bridge/utils/polling'
 
-/* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type */
+/* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type, max-lines */
 
 class LdsBridgeManager extends SwapEventEmitter {
   private socketClient: ReturnType<typeof createLdsSocketClient>
@@ -44,6 +44,8 @@ class LdsBridgeManager extends SwapEventEmitter {
   private submarinePairs: LightningBridgeSubmarineGetResponse | null = null
   private reversePairs: LightningBridgeReverseGetResponse | null = null
   private chainPairs: ChainPairsResponse | null = null
+  private pollingInterval: ReturnType<typeof setInterval> | null = null
+  private lastPollTime: number = 0
 
   constructor() {
     super()
@@ -70,6 +72,49 @@ class LdsBridgeManager extends SwapEventEmitter {
       this.chainPairs = await fetchChainPairs()
     }
     return this.chainPairs
+  }
+
+  startBackgroundPolling = (): void => {
+    if (this.pollingInterval) {
+      return // Already running
+    }
+
+    this.pollingInterval = setInterval(() => {
+      this.pollPendingSwapsIfNeeded().catch(() => {
+        // Errors are logged inside pollPendingSwapsIfNeeded
+      })
+    }, 30_000) // Check every 30 seconds
+  }
+
+  stopBackgroundPolling = (): void => {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval)
+      this.pollingInterval = null
+    }
+  }
+
+  private pollPendingSwapsIfNeeded = async (): Promise<void> => {
+    const pendingSwaps = await this.getPendingSwaps()
+
+    if (pendingSwaps.length === 0) {
+      this.stopBackgroundPolling()
+      return
+    }
+
+    const now = Date.now()
+    const oldestSwapAge = Math.max(...pendingSwaps.map((s) => now - s.date))
+    const timeSinceLastPoll = now - this.lastPollTime
+
+    // Adaptive polling: more frequent for fresh swaps
+    const shouldPoll =
+      (oldestSwapAge < 5 * 60_000 && timeSinceLastPoll >= 30_000) || // <5min: every 30s
+      (oldestSwapAge < 60 * 60_000 && timeSinceLastPoll >= 60_000) || // <1hr: every 60s
+      timeSinceLastPoll >= 120_000 // >1hr: every 2min
+
+    if (shouldPoll) {
+      this.lastPollTime = now
+      await this.updatePendingSwapsStatuses()
+    }
   }
 
   createReverseSwap = async (params: { invoiceAmount: number; claimAddress: string }): Promise<ReverseSwap> => {
@@ -122,6 +167,7 @@ class LdsBridgeManager extends SwapEventEmitter {
     })
 
     this._subscribeToSwapUpdates(reverseInvoiceResponse.id)
+    this.startBackgroundPolling()
     await this._notifySwapChanges()
     await this.waitForSwapUntilState(reverseInvoiceResponse.id, LdsSwapStatus.SwapCreated)
     return reverseSwap
@@ -163,6 +209,7 @@ class LdsBridgeManager extends SwapEventEmitter {
 
     await this.storageManager.setSwap(lockupResponse.id, submarineSwap)
     this._subscribeToSwapUpdates(lockupResponse.id)
+    this.startBackgroundPolling()
     await this.waitForSwapUntilState(lockupResponse.id, LdsSwapStatus.InvoiceSet)
     await this._notifySwapChanges()
     return submarineSwap
@@ -239,6 +286,7 @@ class LdsBridgeManager extends SwapEventEmitter {
     })
 
     this._subscribeToSwapUpdates(chainSwapResponse.id)
+    this.startBackgroundPolling()
     await this.waitForSwapUntilState(chainSwapResponse.id, LdsSwapStatus.SwapCreated)
     await this._notifySwapChanges()
     return chainSwap
@@ -435,14 +483,33 @@ class LdsBridgeManager extends SwapEventEmitter {
   updatePendingSwapsStatuses = async (): Promise<void> => {
     const swaps = await this.storageManager.getSwaps()
     const pendingSwaps = Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
+
+    if (pendingSwaps.length === 0) {
+      return
+    }
+
+    const state = { hasChanges: false }
+
     await Promise.all(
       pendingSwaps.map(async (swap) => {
-        const status = await fetchSwapCurrentStatus(swap.id)
-        swap.status = status.status
-        await this.storageManager.setSwap(swap.id, swap)
-        await this._notifySwapChanges()
+        try {
+          const status = await fetchSwapCurrentStatus(swap.id)
+          if (swap.status !== status.status) {
+            swap.status = status.status
+            await this.storageManager.setSwap(swap.id, swap)
+            state.hasChanges = true
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('[LdsBridgeManager] Error updating swap status:', error)
+        }
       }),
     )
+
+    // Only notify once at the end if there were changes
+    if (state.hasChanges) {
+      await this._notifySwapChanges()
+    }
   }
 
   suscribeAllPendingSwaps = async (): Promise<void> => {
@@ -452,6 +519,11 @@ class LdsBridgeManager extends SwapEventEmitter {
     pendingSwaps.forEach((swap) => {
       this._subscribeToSwapUpdates(swap.id)
     })
+
+    // Start background polling if there are pending swaps
+    if (pendingSwaps.length > 0) {
+      this.startBackgroundPolling()
+    }
   }
 
   getLockupTransactions = async (

@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { Flex, Text } from 'ui/src'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { swapStatusFailed, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
 interface SwapsTableProps {
   swaps: (SomeSwap & { id: string })[]
@@ -19,15 +19,14 @@ function getSwapStatusCategory(swap: SomeSwap): SwapStatusCategory {
     return SwapStatusCategory.Pending
   }
 
-  if (swap.status === LdsSwapStatus.TransactionClaimed || swap.status === LdsSwapStatus.InvoiceSettled) {
+  const successStatuses = Object.values(swapStatusSuccess)
+  const failedStatuses = Object.values(swapStatusFailed)
+
+  if (successStatuses.includes(swap.status)) {
     return SwapStatusCategory.Completed
   }
 
-  if (
-    swap.status === LdsSwapStatus.SwapRefunded ||
-    swap.status === LdsSwapStatus.TransactionFailed ||
-    swap.status === LdsSwapStatus.InvoiceFailedToPay
-  ) {
+  if (failedStatuses.includes(swap.status)) {
     return SwapStatusCategory.Failed
   }
 
