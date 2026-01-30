@@ -1,6 +1,8 @@
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { Flex, Text, TextProps } from 'ui/src'
+import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { parseNumberForSubscript } from 'utilities/src/format/subscriptNumber'
+import { NumberType } from 'utilities/src/format/types'
 
 type FormattedTokenAmountProps = {
   amount: CurrencyAmount<Currency>
@@ -22,14 +24,21 @@ export function FormattedTokenAmount({
   variant = 'body2',
   color = '$neutral2',
 }: FormattedTokenAmountProps): JSX.Element {
+  const { formatCurrencyAmount } = useLocalizationContext()
+
   const numericValue = parseFloat(amount.toExact())
   const parts = parseNumberForSubscript(numericValue)
   const symbol = amount.currency.symbol
 
   if (!parts.needsSubscript) {
+    // Use locale-aware formatting for normal numbers
+    const formatted = formatCurrencyAmount({
+      value: amount,
+      type: NumberType.TokenNonTx,
+    })
     return (
       <Text variant={variant} color={color}>
-        {parts.formattedValue} {symbol}
+        {formatted} {symbol}
       </Text>
     )
   }
