@@ -36,7 +36,6 @@ import { StorageManager } from 'uniswap/src/features/lds-bridge/storage/StorageM
 import { SwapEventEmitter } from 'uniswap/src/features/lds-bridge/storage/SwapEventEmitter'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 import { pollForLockupConfirmation } from 'uniswap/src/features/lds-bridge/utils/polling'
-import { UniverseChainId } from '../chains/types'
 
 export const ASSET_CHAIN_ID_MAP: Record<string, UniverseChainId> = {
   'cBTC': UniverseChainId.CitreaMainnet,
