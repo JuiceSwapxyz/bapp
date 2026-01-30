@@ -93,6 +93,7 @@ function* refundSwapSaga(action: RefundSwapAction) {
         id: txId,
         status: LdsBridgeStatus.Confirmed,
         direction: BitcoinBridgeDirection.CitreaToBitcoin,
+        url: '/bridge-swaps',
       },
       txId,
     )

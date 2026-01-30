@@ -48,6 +48,7 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
       id: chainSwapResponse.id,
       status: LdsBridgeStatus.Pending,
       direction: BitcoinBridgeDirection.BitcoinToCitrea,
+      url: '/bridge-swaps',
     },
     chainSwapResponse.id,
   )
@@ -61,6 +62,7 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
       id: txHash!,
       status: LdsBridgeStatus.Confirmed,
       direction: BitcoinBridgeDirection.BitcoinToCitrea,
+      url: '/bridge-swaps',
     },
     txHash!,
   )

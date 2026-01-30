@@ -14,6 +14,7 @@ const claimAndNotify = async (swapId: string) => {
       id: claimTx!,
       status: LdsBridgeStatus.Confirmed,
       direction: BitcoinBridgeDirection.BitcoinToCitrea,
+      url: '/bridge-swaps',
     },
     claimTx!,
   )

@@ -94,6 +94,7 @@ export type PopupContent =
       id: string
       status: LdsBridgeStatus
       direction: BitcoinBridgeDirection
+      url?: string
     }
   | {
       type: PopupType.Erc20ChainSwap

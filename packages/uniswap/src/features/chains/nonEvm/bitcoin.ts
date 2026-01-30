@@ -40,8 +40,8 @@ const citreaTestnet = defineChain({
   },
   blockExplorers: {
     default: {
-      name: 'No Explorer',
-      url: 'https://no-explorer.com/',
+      name: 'Mempool.Space',
+      url: 'https://mempool.space/',
     },
   },
   contracts: {},
@@ -63,8 +63,8 @@ export const BITCOIN_CHAIN_INFO = {
   docs: 'https://no-docs.com/',
   elementName: ElementName.DocsLink,
   explorer: {
-    name: 'No Explorer',
-    url: 'https://no-explorer.com/',
+    name: 'Mempool.Space',
+    url: 'https://mempool.space/',
   },
   interfaceName: 'bitcoin',
   label: 'Bitcoin Network',
