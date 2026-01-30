@@ -9,7 +9,7 @@ import {
 } from '@juiceswapxyz/uniswapx-sdk'
 import { useQuery } from '@tanstack/react-query'
 import { permit2Address } from '@uniswap/permit2-sdk'
-import { Activity } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
+import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
 import { getYear, isSameDay, isSameMonth, isSameWeek, isSameYear } from 'date-fns'
 import { ContractTransaction } from 'ethers/lib/ethers'
 import { useAccount } from 'hooks/useAccount'
@@ -18,6 +18,7 @@ import { useEthersWeb3Provider } from 'hooks/useEthersProvider'
 import useSelectChain from 'hooks/useSelectChain'
 import { useCallback } from 'react'
 import store from 'state'
+import { SWAP_CONTRACTS } from 'state/sagas/transactions/erc20ChainSwap'
 import { updateSignature } from 'state/signatures/reducer'
 import { SignatureType, UniswapXOrderDetails } from 'state/signatures/types'
 import { UniswapXOrderStatus } from 'types/uniswapx'
@@ -25,6 +26,7 @@ import PERMIT2_ABI from 'uniswap/src/abis/permit2.json'
 import { Permit2 } from 'uniswap/src/abis/types'
 import { TransactionStatus as TransactionStatusGQL } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { InterfaceEventName } from 'uniswap/src/features/telemetry/constants'
 import { sendAnalyticsEvent } from 'uniswap/src/features/telemetry/send'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
@@ -42,6 +44,39 @@ interface ActivityGroup {
 }
 
 const sortActivities = (a: Activity, b: Activity) => b.timestamp - a.timestamp
+
+const CONTRACT_TO_CHAIN_ID: Record<string, UniverseChainId> = {
+  [SWAP_CONTRACTS.citreaMainnet.toLowerCase()]: UniverseChainId.CitreaMainnet,
+  [SWAP_CONTRACTS.citreaTestnet.toLowerCase()]: UniverseChainId.CitreaTestnet,
+}
+
+export function inferChainIdFromSwap(swap: SomeSwap): UniverseChainId | undefined {
+  if ('claimDetails' in swap && swap.claimDetails.lockupAddress) {
+    const address = swap.claimDetails.lockupAddress.toLowerCase()
+    if (address in CONTRACT_TO_CHAIN_ID) {
+      return CONTRACT_TO_CHAIN_ID[address]
+    }
+  }
+
+  if ('lockupDetails' in swap && swap.lockupDetails.lockupAddress) {
+    const address = swap.lockupDetails.lockupAddress.toLowerCase()
+    if (address in CONTRACT_TO_CHAIN_ID) {
+      return CONTRACT_TO_CHAIN_ID[address]
+    }
+  }
+
+  return undefined
+}
+
+export function keepActivitiesForChains(activities: ActivityMap, allowedChains: UniverseChainId[]): ActivityMap {
+  const filtered: ActivityMap = {}
+  for (const [hash, activity] of Object.entries(activities)) {
+    if (activity && allowedChains.includes(activity.chainId)) {
+      filtered[hash] = activity
+    }
+  }
+  return filtered
+}
 
 export function convertGQLTransactionStatus(status: TransactionStatusGQL): TransactionStatus {
   switch (status) {
