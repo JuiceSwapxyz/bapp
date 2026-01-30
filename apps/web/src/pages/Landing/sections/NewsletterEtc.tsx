@@ -191,11 +191,6 @@ function FAQList() {
       question: t('faq.supportedChains.question'),
       answer: t('faq.supportedChains.answer'),
     },
-    {
-      id: 'faq-fees',
-      question: t('faq.fees.question'),
-      answer: t('faq.fees.answer'),
-    },
   ]
 
   return (
