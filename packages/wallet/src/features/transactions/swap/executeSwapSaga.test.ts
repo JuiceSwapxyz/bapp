@@ -598,6 +598,7 @@ describe('executeSwapSaga', () => {
           pushNotification({
             type: AppNotificationType.SwapPending,
             wrapType: WrapType.NotApplicable,
+            isBridge: true,
           }),
         )
         .call(params.onSuccess)
@@ -651,6 +652,7 @@ describe('executeSwapSaga', () => {
           pushNotification({
             type: AppNotificationType.SwapPending,
             wrapType: WrapType.NotApplicable,
+            isBridge: true,
           }),
         )
         .call(params.onSuccess)

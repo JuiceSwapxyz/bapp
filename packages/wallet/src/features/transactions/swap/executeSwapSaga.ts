@@ -13,7 +13,7 @@ import {
   SwapGasFeeEstimation,
   ValidatedSwapTxContext,
 } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
-import { isWrap } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isBridge, isBitcoinBridge, isLightningBridge, isWrap } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { isFinalizedTx } from 'uniswap/src/features/transactions/types/utils'
 import { WrapType } from 'uniswap/src/features/transactions/types/wrap'
@@ -325,7 +325,8 @@ export function createExecuteSwapSaga(
           !getIsFlashblocksEnabled(chainId) ||
           FLASHBLOCKS_UI_SKIP_ROUTES.includes(preSignedTransaction.swapTxContext.routing)
         ) {
-          yield* put(pushNotification({ type: AppNotificationType.SwapPending, wrapType: WrapType.NotApplicable }))
+          const isBridgeSwap = isBridge(preSignedTransaction.swapTxContext) || isBitcoinBridge(preSignedTransaction.swapTxContext) || isLightningBridge(preSignedTransaction.swapTxContext)
+          yield* put(pushNotification({ type: AppNotificationType.SwapPending, wrapType: WrapType.NotApplicable, isBridge: isBridgeSwap }))
         }
 
         swapResult = yield* executeTransactionStep({
