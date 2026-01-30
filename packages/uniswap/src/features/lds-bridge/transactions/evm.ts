@@ -76,6 +76,18 @@ export async function buildErc20LockupTx(params: {
       currentAllowance: currentAllowance.toString(),
       requiredAmount: amount.toString(),
     })
+
+    // For USDT and similar tokens: reset allowance to 0 first if there's a non-zero allowance
+    // This prevents "execution reverted" errors on tokens that don't allow changing non-zero allowances
+    if (!currentAllowance.isZero()) {
+      // eslint-disable-next-line no-console
+      console.log('[ERC20 Lock] Resetting existing allowance to 0 (required for USDT and similar tokens)')
+      const resetTx = await tokenContract.approve(contractAddress, 0)
+      await resetTx.wait()
+      // eslint-disable-next-line no-console
+      console.log('[ERC20 Lock] Allowance reset confirmed')
+    }
+
     const approveTx = await tokenContract.approve(contractAddress, amount)
     await approveTx.wait()
     // eslint-disable-next-line no-console
