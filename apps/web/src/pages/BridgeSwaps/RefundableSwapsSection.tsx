@@ -1,5 +1,5 @@
 import { AddressInput, RefundButton, RefundableSection, RefundableSwapCard } from 'pages/BridgeSwaps/styles'
-import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
+import { formatAssetAmount } from 'pages/BridgeSwaps/utils'
 import { useCallback, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { refundSwap } from 'state/sagas/transactions/bridgeRefundSaga'
@@ -50,8 +50,8 @@ function RefundableSwapCardItem({
     <RefundableSwapCard>
       <Flex gap="$spacing4">
         <Text variant="body2" color="$neutral1" fontWeight="600">
-          {formatSatoshiAmount(swap.sendAmount)} {swap.assetSend} → {formatSatoshiAmount(swap.receiveAmount)}{' '}
-          {swap.assetReceive}
+          {formatAssetAmount(swap.sendAmount, swap.assetSend)} {swap.assetSend} →{' '}
+          {formatAssetAmount(swap.receiveAmount, swap.assetReceive)} {swap.assetReceive}
         </Text>
         <Text variant="body4" color="$neutral2">
           {new Date(swap.date).toLocaleString()}
