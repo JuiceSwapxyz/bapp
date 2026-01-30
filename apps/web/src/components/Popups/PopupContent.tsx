@@ -232,21 +232,12 @@ export function BridgingPopupContent({ hash, onClose }: { hash: string; onClose:
     return null
   }
 
-  const onClick = () =>
-    window.open(
-      getExplorerLink({ chainId: activity.chainId, data: activity.hash, type: ExplorerDataType.TRANSACTION }),
-      '_blank',
-    )
+  const onClick = () => {
+    window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
+    onClose()
+  }
 
-  const explorerUrlUnavailable = isPendingTx(transaction) && transaction.batchInfo
-
-  return (
-    <ActivityPopupContent
-      activity={activity}
-      onClick={explorerUrlUnavailable ? undefined : onClick}
-      onClose={onClose}
-    />
-  )
+  return <ActivityPopupContent activity={activity} onClick={onClick} onClose={onClose} />
 }
 
 export function LightningBridgePopupContent({
@@ -298,6 +289,11 @@ export function LightningBridgePopupContent({
 
   const isPending = status === LdsBridgeStatus.Pending
 
+  const onClick = () => {
+    window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
+    onClose()
+  }
+
   return (
     <Flex
       row
@@ -315,7 +311,7 @@ export function LightningBridgePopupContent({
         width: '100%',
       }}
     >
-      <TouchableArea onPress={noop} flex={1}>
+      <TouchableArea onPress={onClick} flex={1}>
         <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
           <Flex justifyContent="center">
             <PortfolioLogo chainId={UniverseChainId.Mainnet} images={[bitcoinLogo]} size={32} />
@@ -402,6 +398,11 @@ export function BitcoinBridgePopupContent({
 
   const isPending = status === LdsBridgeStatus.Pending
 
+  const onClick = () => {
+    window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
+    onClose()
+  }
+
   return (
     <Flex
       row
@@ -419,7 +420,7 @@ export function BitcoinBridgePopupContent({
         width: '100%',
       }}
     >
-      <TouchableArea onPress={noop} flex={1}>
+      <TouchableArea onPress={onClick} flex={1}>
         <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
           <Flex justifyContent="center">
             <PortfolioLogo chainId={UniverseChainId.Mainnet} images={[bitcoinLogo]} size={32} />

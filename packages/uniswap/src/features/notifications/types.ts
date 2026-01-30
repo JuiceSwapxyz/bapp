@@ -202,6 +202,7 @@ export interface ChangeAssetVisibilityNotification extends AppNotificationBase {
 export interface SwapPendingNotification extends AppNotificationBase {
   type: AppNotificationType.SwapPending
   wrapType: WrapType
+  isBridge?: boolean
 }
 
 export interface TransferCurrencyPendingNotification extends AppNotificationBase {
