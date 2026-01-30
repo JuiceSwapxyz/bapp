@@ -1,5 +1,6 @@
 import bitcoinLogo from 'assets/images/coins/bitcoin.png'
 import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
+import { inferChainIdFromSwap } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
 import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
 import { Flex, Text, styled } from 'ui/src'
 import { Arrow } from 'ui/src/components/arrow/Arrow'
@@ -160,7 +161,10 @@ function ldsStatusToTransactionStatus(status?: LdsSwapStatus): TransactionStatus
 export function swapToActivity(swap: SomeSwap & { id: string }): Activity {
   const status = ldsStatusToTransactionStatus(swap.status)
 
-  const sourceChain = getAssetChainId(swap.assetSend)
+  // Use persisted chainId first (from when swap was created), then infer from contract,
+  // then fallback to asset-based logic. This ensures the activity passes chain filtering.
+  const inferredChainId = swap.chainId ?? inferChainIdFromSwap(swap)
+  const sourceChain = inferredChainId ?? getAssetChainId(swap.assetSend)
   const destChain = getAssetChainId(swap.assetReceive)
 
   const descriptor = getLdsBridgeDescriptor({
