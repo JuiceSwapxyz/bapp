@@ -232,7 +232,7 @@ class LdsBridgeManager extends SwapEventEmitter {
       assetSend: params.from,
       assetReceive: params.to,
       sendAmount: chainSwapResponse.lockupDetails.amount,
-      receiveAmount: chainSwapResponse.lockupDetails.amount,
+      receiveAmount: chainSwapResponse.claimDetails.amount,
       date: Date.now(),
       preimageHash,
       preimage,

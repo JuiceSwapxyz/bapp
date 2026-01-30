@@ -1,4 +1,4 @@
-import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
+import { formatAssetAmount } from 'pages/BridgeSwaps/utils'
 import { useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled'
@@ -217,13 +217,13 @@ export function SwapCard({ swap, onRefresh: _onRefresh }: SwapCardProps): JSX.El
           </Flex>
           <SwapAmounts>
             <Text variant="body2" color="$neutral1">
-              {formatSatoshiAmount(swap.sendAmount)} {swap.assetSend}
+              {formatAssetAmount(swap.sendAmount, swap.assetSend)} {swap.assetSend}
             </Text>
             <Text variant="body2" color="$neutral2">
               →
             </Text>
             <Text variant="body2" color="$neutral1">
-              {formatSatoshiAmount(swap.receiveAmount)} {swap.assetReceive}
+              {formatAssetAmount(swap.receiveAmount, swap.assetReceive)} {swap.assetReceive}
             </Text>
           </SwapAmounts>
           <Text variant="body3" color="$neutral2">
