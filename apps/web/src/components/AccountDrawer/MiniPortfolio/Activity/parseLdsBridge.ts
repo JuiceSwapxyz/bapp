@@ -1,4 +1,5 @@
 import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
+import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
 import { TransactionType } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
@@ -34,7 +35,7 @@ export function swapToActivity(swap: SomeSwap & { id: string }): Activity {
   const sourceChain = swap.assetSend === 'cBTC' ? UniverseChainId.CitreaMainnet : UniverseChainId.LightningNetwork
   const destChain = swap.assetReceive === 'BTC' ? UniverseChainId.LightningNetwork : UniverseChainId.CitreaMainnet
 
-  const descriptor = `${swap.sendAmount} ${swap.assetSend} → ${swap.receiveAmount} ${swap.assetReceive}`
+  const descriptor = `${formatSatoshiAmount(swap.sendAmount)} ${swap.assetSend} → ${formatSatoshiAmount(swap.receiveAmount)} ${swap.assetReceive}`
 
   const titleMap: Partial<Record<TransactionStatus, string>> = {
     [TransactionStatus.Pending]: 'Bridge pending',
