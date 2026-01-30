@@ -1,4 +1,5 @@
 import { useOpenOffchainActivityModal } from 'components/AccountDrawer/MiniPortfolio/Activity/OffchainActivityModal'
+import { LDS_ACTIVITY_PREFIX } from 'components/AccountDrawer/MiniPortfolio/Activity/parseLdsBridge'
 import { useTimeSince } from 'components/AccountDrawer/MiniPortfolio/Activity/parseRemote'
 import { Activity } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
 import { PortfolioLogo } from 'components/AccountDrawer/MiniPortfolio/PortfolioLogo'
@@ -9,6 +10,7 @@ import Column from 'components/deprecated/Column'
 import Row from 'components/deprecated/Row'
 import styled from 'lib/styled-components'
 import { useCallback } from 'react'
+import { useNavigate } from 'react-router'
 import { SignatureType } from 'state/signatures/types'
 import { ThemedText } from 'theme/components'
 import { EllipsisStyle } from 'theme/components/styles'
@@ -87,10 +89,16 @@ export function ActivityRow({ activity }: { activity: Activity }) {
   const isBridge = type === TransactionType.Bridging
 
   const openOffchainActivityModal = useOpenOffchainActivityModal()
+  const navigate = useNavigate()
 
   const explorerUrl = getExplorerLink({ chainId, data: hash, type: ExplorerDataType.TRANSACTION })
 
   const onClick = useCallback(() => {
+    if (hash.startsWith(LDS_ACTIVITY_PREFIX)) {
+      navigate('/bridge-swaps')
+      return
+    }
+
     if (offchainOrderDetails) {
       openOffchainActivityModal(offchainOrderDetails, {
         inputLogo: activity.logos?.[0],
@@ -98,13 +106,13 @@ export function ActivityRow({ activity }: { activity: Activity }) {
       })
       return
     }
-    // Do not allow FOR activity to be opened until confirmed on chain
+
     if (activity.status === TransactionStatus.Pending && !isHash(hash)) {
       return
     }
 
     window.open(explorerUrl, '_blank')
-  }, [activity.logos, activity.status, explorerUrl, hash, offchainOrderDetails, openOffchainActivityModal])
+  }, [activity.logos, activity.status, explorerUrl, hash, navigate, offchainOrderDetails, openOffchainActivityModal])
 
   return (
     <Trace

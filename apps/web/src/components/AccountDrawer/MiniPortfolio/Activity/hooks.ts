@@ -1,4 +1,5 @@
 import { useAssetActivity } from 'appGraphql/data/apollo/AssetActivityProvider'
+import { swapsToActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/parseLdsBridge'
 import { useLocalActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/parseLocal'
 import { parseRemoteActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/parseRemote'
 import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
@@ -51,12 +52,26 @@ function findCancelTx({
 }
 
 /** Deduplicates local and remote activities */
-function combineActivities(localMap: ActivityMap = {}, remoteMap: ActivityMap = {}): Array<Activity> {
-  const txHashes = [...new Set([...Object.keys(localMap), ...Object.keys(remoteMap)])]
+function combineActivities({
+  localMap = {},
+  remoteMap = {},
+  bridgeMap = {},
+}: {
+  localMap?: ActivityMap
+  remoteMap?: ActivityMap
+  bridgeMap?: ActivityMap
+}): Array<Activity> {
+  const txHashes = [...new Set([...Object.keys(localMap), ...Object.keys(remoteMap), ...Object.keys(bridgeMap)])]
 
   return txHashes.reduce((acc: Array<Activity>, hash) => {
     const localActivity = (localMap[hash] ?? {}) as Activity
     const remoteActivity = (remoteMap[hash] ?? {}) as Activity
+    const bridgeActivity = (bridgeMap[hash] ?? {}) as Activity
+
+    if (bridgeActivity.hash) {
+      acc.push(bridgeActivity)
+      return acc
+    }
 
     if (localActivity.cancelled) {
       // Hides misleading activities caused by cross-chain nonce collisions previously being incorrectly labelled as cancelled txs in redux
@@ -85,6 +100,33 @@ export function useAllActivities(account: string) {
     () => parseRemoteActivities(activities, account, formatNumberOrString),
     [account, activities, formatNumberOrString],
   )
+
+  const [bridgeMap, setBridgeMap] = useState<ActivityMap>({})
+
+  useEffect(() => {
+    const ldsBridgeManager = getLdsBridgeManager()
+
+    const loadBridgeSwaps = async () => {
+      try {
+        const swaps = await ldsBridgeManager.getSwaps()
+        setBridgeMap(swapsToActivityMap(swaps))
+      } catch (error) {
+        logger.error(error, { tags: { file: 'Activity/hooks', function: 'loadBridgeSwaps' } })
+      }
+    }
+
+    const handleSwapChange = (swaps: Record<string, SomeSwap>) => {
+      setBridgeMap(swapsToActivityMap(swaps))
+    }
+
+    void loadBridgeSwaps()
+    ldsBridgeManager.addSwapChangeListener(handleSwapChange)
+
+    return () => {
+      ldsBridgeManager.removeSwapChangeListener(handleSwapChange)
+    }
+  }, [])
+
   const updateCancelledTx = useTransactionCanceller()
 
   /* Updates locally stored pendings tx's when remote data contains a conflicting cancellation tx */
@@ -106,9 +148,11 @@ export function useAllActivities(account: string) {
     })
   }, [account, localMap, remoteMap, updateCancelledTx])
 
-  const combinedActivities = useMemo(() => combineActivities(localMap, remoteMap ?? {}), [localMap, remoteMap])
+  const combinedActivities = useMemo(
+    () => combineActivities({ localMap, remoteMap: remoteMap ?? {}, bridgeMap }),
+    [localMap, remoteMap, bridgeMap],
+  )
 
-  // Combine both loading states - show loading until both sources are ready
   const loading = remoteLoading || localLoading
 
   return { loading, activities: combinedActivities }
