@@ -90,6 +90,40 @@ describe('parseNumberForSubscript', () => {
     })
   })
 
+  describe('maxDecimals formatting', () => {
+    it('limits decimals for numbers >= 1', () => {
+      const result = parseNumberForSubscript(123.456789)
+      expect(result.needsSubscript).toBe(false)
+      expect(result.formattedValue).toBe('123.4568') // Rounded to 4 decimals
+    })
+
+    it('limits decimals for numbers < 1 without subscript', () => {
+      const result = parseNumberForSubscript(0.843433336315731)
+      expect(result.needsSubscript).toBe(false)
+      expect(result.formattedValue).toBe('0.8434') // Rounded to 4 decimals
+    })
+
+    it('removes trailing zeros', () => {
+      const result = parseNumberForSubscript(0.5)
+      expect(result.formattedValue).toBe('0.5')
+    })
+
+    it('removes trailing zeros after rounding', () => {
+      const result = parseNumberForSubscript(1.2000001)
+      expect(result.formattedValue).toBe('1.2')
+    })
+
+    it('respects custom maxDecimals', () => {
+      const result = parseNumberForSubscript(0.123456789, { maxDecimals: 6 })
+      expect(result.formattedValue).toBe('0.123457')
+    })
+
+    it('handles whole numbers', () => {
+      const result = parseNumberForSubscript(42)
+      expect(result.formattedValue).toBe('42')
+    })
+  })
+
   describe('edge cases', () => {
     it('handles very small numbers in scientific notation', () => {
       const result = parseNumberForSubscript(1e-10)
@@ -101,6 +135,7 @@ describe('parseNumberForSubscript', () => {
     it('handles numbers just below 1', () => {
       const result = parseNumberForSubscript(0.999)
       expect(result.needsSubscript).toBe(false)
+      expect(result.formattedValue).toBe('0.999')
     })
 
     it('handles very small but non-zero numbers', () => {
