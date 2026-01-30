@@ -3,6 +3,7 @@ import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { call } from 'typed-redux-saga'
 import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { LdsSwapStatus, btcToSat, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
 import { LightningBridgeReverseStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
@@ -24,11 +25,13 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
 
   const invoiceAmount = Number(btcToSat(new BigNumber(trade.inputAmount.toExact())))
   const claimAddress = account.address
+  const citreaChainId = trade.outputAmount.currency.chainId as UniverseChainId
 
   const ldsBridge = getLdsBridgeManager()
   const reverseSwap = yield* call([ldsBridge, ldsBridge.createReverseSwap], {
     invoiceAmount,
     claimAddress,
+    chainId: citreaChainId,
   })
 
   step.invoice = reverseSwap.invoice as string

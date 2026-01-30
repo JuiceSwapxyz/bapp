@@ -13,9 +13,12 @@ export enum PopupType {
   CampaignTaskCompleted = 'campaignTaskCompleted',
   LightningBridge = 'lightningBridge',
   BitcoinBridge = 'bitcoinBridge',
+  Erc20ChainSwap = 'erc20ChainSwap',
   RefundableSwaps = 'refundableSwaps',
   RefundsInProgress = 'refundsInProgress',
   RefundsCompleted = 'refundsCompleted',
+  ClaimInProgress = 'claimInProgress',
+  ClaimCompleted = 'claimCompleted',
 }
 
 export enum SwitchNetworkAction {
@@ -93,6 +96,16 @@ export type PopupContent =
       direction: BitcoinBridgeDirection
     }
   | {
+      type: PopupType.Erc20ChainSwap
+      id: string
+      status: LdsBridgeStatus
+      fromChainId: UniverseChainId
+      toChainId: UniverseChainId
+      fromAsset: string
+      toAsset: string
+      url?: string
+    }
+  | {
       type: PopupType.RefundableSwaps
       count: number
     }
@@ -102,5 +115,13 @@ export type PopupContent =
     }
   | {
       type: PopupType.RefundsCompleted
+      count: number
+    }
+  | {
+      type: PopupType.ClaimInProgress
+      count: number
+    }
+  | {
+      type: PopupType.ClaimCompleted
       count: number
     }

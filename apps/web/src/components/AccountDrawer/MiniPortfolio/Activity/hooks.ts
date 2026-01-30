@@ -3,17 +3,21 @@ import { swapsToActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activ
 import { useLocalActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/parseLocal'
 import { parseRemoteActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/parseRemote'
 import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
-import { useCreateCancelTransactionRequest } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
+import {
+  keepActivitiesForChains,
+  useCreateCancelTransactionRequest,
+} from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
 import { GasFeeResult, GasSpeed, useTransactionGasFee } from 'hooks/useTransactionGasFee'
 import { useEffect, useMemo, useState } from 'react'
 import { usePendingOrders } from 'state/signatures/hooks'
 import { SignatureType, UniswapXOrderDetails } from 'state/signatures/types'
 import { usePendingTransactions, useTransactionCanceller } from 'state/transactions/hooks'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { swapStatusFinal } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { LdsSwapStatus, swapStatusFinal } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { logger } from 'utilities/src/logger/logger'
 
@@ -106,6 +110,7 @@ function combineActivities({
 export function useAllActivities(account: string) {
   const { formatNumberOrString } = useLocalizationContext()
   const { activities, loading: remoteLoading } = useAssetActivity()
+  const { chains } = useEnabledChains()
 
   const { data: localMap, isLoading: localLoading } = useLocalActivities(account)
   const remoteMap = useMemo(
@@ -121,14 +126,16 @@ export function useAllActivities(account: string) {
     const loadBridgeSwaps = async () => {
       try {
         const swaps = await ldsBridgeManager.getSwaps()
-        setBridgeMap(swapsToActivityMap(swaps))
+        const activityMap = swapsToActivityMap(swaps)
+        setBridgeMap(keepActivitiesForChains(activityMap, chains))
       } catch (error) {
         logger.error(error, { tags: { file: 'Activity/hooks', function: 'loadBridgeSwaps' } })
       }
     }
 
     const handleSwapChange = (swaps: Record<string, SomeSwap>) => {
-      setBridgeMap(swapsToActivityMap(swaps))
+      const activityMap = swapsToActivityMap(swaps)
+      setBridgeMap(keepActivitiesForChains(activityMap, chains))
     }
 
     void loadBridgeSwaps()
@@ -137,7 +144,7 @@ export function useAllActivities(account: string) {
     return () => {
       ldsBridgeManager.removeSwapChangeListener(handleSwapChange)
     }
-  }, [])
+  }, [chains])
 
   const updateCancelledTx = useTransactionCanceller()
 
@@ -182,6 +189,10 @@ export function useOpenLimitOrders(account: string) {
   }
 }
 
+const statusNonFinalSwaps = (swap: SomeSwap) => swap.status && !swapStatusFinal.includes(swap.status)
+const swapsFinalNonClaimed = (swap: SomeSwap) =>
+  !swap.claimTx && swap.status === LdsSwapStatus.TransactionServerConfirmed
+
 export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading: boolean } {
   const [bridgeSwaps, setBridgeSwaps] = useState<SomeSwap[]>([])
   const [loading, setLoading] = useState(true)
@@ -193,9 +204,8 @@ export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading
       try {
         await ldsBridgeManager.suscribeAllPendingSwaps()
         const swaps = await ldsBridgeManager.getSwaps()
-        const pendingSwaps = Object.values(swaps).filter(
-          (swap) => swap.status && !swapStatusFinal.includes(swap.status),
-        )
+        const pendingSwaps = Object.values(swaps).filter(statusNonFinalSwaps).filter(swapsFinalNonClaimed)
+
         setBridgeSwaps(pendingSwaps)
         setLoading(false)
       } catch (error) {
@@ -205,7 +215,7 @@ export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading
     }
 
     const handleSwapChange = (swaps: Record<string, SomeSwap>): void => {
-      const pendingSwaps = Object.values(swaps).filter((swap) => swap.status && !swapStatusFinal.includes(swap.status))
+      const pendingSwaps = Object.values(swaps).filter(statusNonFinalSwaps).filter(swapsFinalNonClaimed)
       setBridgeSwaps(pendingSwaps)
     }
 

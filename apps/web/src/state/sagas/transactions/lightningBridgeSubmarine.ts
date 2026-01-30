@@ -13,6 +13,7 @@ import {
   getLdsBridgeManager,
   pollForClaimablePreimage,
 } from 'uniswap/src/features/lds-bridge'
+import { ASSET_CHAIN_ID_MAP } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
 import { LightningBridgeSubmarineStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
@@ -44,12 +45,13 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
   } = invoiceResponse
 
   const ldsBridge = getLdsBridgeManager()
+  const citreaChainId = trade.inputAmount.currency.chainId as UniverseChainId
   const submarineSwap = yield* call([ldsBridge, ldsBridge.createSubmarineSwap], {
     invoice,
+    chainId: citreaChainId,
   })
 
   // Ensure wallet is on Citrea before signing the lockup transaction
-  const citreaChainId = trade.inputAmount.currency.chainId as UniverseChainId
   yield* call(ensureCorrectChain, {
     targetChainId: citreaChainId,
     selectChain,
@@ -87,7 +89,8 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
     yield* call(onSuccess)
   }
 
-  yield* call(pollForClaimablePreimage, preimageHash)
+  const chainId = ASSET_CHAIN_ID_MAP[submarineSwap.assetReceive]
+  yield* call(pollForClaimablePreimage, preimageHash, chainId)
 
   popupRegistry.addPopup(
     {
