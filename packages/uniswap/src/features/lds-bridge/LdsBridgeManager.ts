@@ -1,6 +1,7 @@
 import { randomBytes } from '@ethersproject/random'
 import { crypto } from 'bitcoinjs-lib'
 import { Buffer } from 'buffer'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import {
   createChainSwap,
   createReverseSwap,
@@ -72,14 +73,18 @@ class LdsBridgeManager extends SwapEventEmitter {
     return this.chainPairs
   }
 
-  createReverseSwap = async (params: { invoiceAmount: number; claimAddress: string }): Promise<ReverseSwap> => {
+  createReverseSwap = async (params: {
+    invoiceAmount: number
+    claimAddress: string
+    chainId?: UniverseChainId
+  }): Promise<ReverseSwap> => {
     const reversePairs = await this.getReversePairs()
     const pairHash = reversePairs.BTC?.cBTC?.hash
     if (!pairHash) {
       throw new Error('Pair hash not found')
     }
 
-    const { invoiceAmount, claimAddress } = params
+    const { invoiceAmount, claimAddress, chainId } = params
     const { preimageHash, preimage, keyIndex, mnemonic } = generateChainSwapKeys()
 
     const reverseInvoiceResponse = await createReverseSwap({
@@ -106,6 +111,7 @@ class LdsBridgeManager extends SwapEventEmitter {
       claimPrivateKeyIndex: keyIndex,
       mnemonic,
       keyIndex,
+      chainId,
       ...reverseInvoiceResponse,
     }
 
@@ -127,13 +133,13 @@ class LdsBridgeManager extends SwapEventEmitter {
     return reverseSwap
   }
 
-  createSubmarineSwap = async (params: { invoice: string }): Promise<SubmarineSwap> => {
+  createSubmarineSwap = async (params: { invoice: string; chainId?: UniverseChainId }): Promise<SubmarineSwap> => {
     const submarinePairs = await this.getSubmarinePairs()
     const pairHash = submarinePairs.cBTC?.BTC?.hash
     if (!pairHash) {
       throw new Error('Pair hash not found')
     }
-    const { invoice } = params
+    const { invoice, chainId } = params
     const { preimageHash, claimPublicKey, preimage, keyIndex, mnemonic } = generateChainSwapKeys()
     const lockupResponse = await createSubmarineSwap({
       from: 'cBTC',
@@ -158,6 +164,7 @@ class LdsBridgeManager extends SwapEventEmitter {
       refundPrivateKeyIndex: keyIndex,
       mnemonic,
       keyIndex,
+      chainId,
       ...lockupResponse,
     }
 
@@ -173,6 +180,7 @@ class LdsBridgeManager extends SwapEventEmitter {
     to: string
     claimAddress: string
     userLockAmount: number
+    chainId?: UniverseChainId
   }): Promise<ChainSwap> => {
     const chainPairs = await this.getChainPairs()
     const pairHash = chainPairs[params.from]?.[params.to]?.hash
@@ -180,7 +188,7 @@ class LdsBridgeManager extends SwapEventEmitter {
       throw new Error('Pair hash not found')
     }
 
-    const { from, to, claimAddress, userLockAmount } = params
+    const { from, to, claimAddress, userLockAmount, chainId } = params
     const {
       preimageHash: preimageHashFromKey,
       claimPublicKey: publicKey,
@@ -223,6 +231,7 @@ class LdsBridgeManager extends SwapEventEmitter {
       refundPrivateKeyIndex: keyIndex,
       mnemonic,
       keyIndex,
+      chainId,
       ...chainSwapResponse,
     }
 

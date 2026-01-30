@@ -1,6 +1,7 @@
 import type { LightningBridgeSubmarineLockResponse } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { CreateChainSwapResponse, CreateReverseSwapResponse } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import type { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 export enum SwapType {
   Submarine = 'submarine',
@@ -20,6 +21,7 @@ export type SwapBase = {
   preimageHash: string
   mnemonic: string
   keyIndex: number
+  chainId?: UniverseChainId
   // Not set for submarine swaps; but set for interface compatibility
   claimTx?: string
 

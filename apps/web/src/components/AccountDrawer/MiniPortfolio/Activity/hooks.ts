@@ -3,12 +3,16 @@ import { swapsToActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activ
 import { useLocalActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/parseLocal'
 import { parseRemoteActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/parseRemote'
 import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
-import { useCreateCancelTransactionRequest } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
+import {
+  keepActivitiesForChains,
+  useCreateCancelTransactionRequest,
+} from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
 import { GasFeeResult, GasSpeed, useTransactionGasFee } from 'hooks/useTransactionGasFee'
 import { useEffect, useMemo, useState } from 'react'
 import { usePendingOrders } from 'state/signatures/hooks'
 import { SignatureType, UniswapXOrderDetails } from 'state/signatures/types'
 import { usePendingTransactions, useTransactionCanceller } from 'state/transactions/hooks'
+import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
@@ -94,6 +98,7 @@ function combineActivities({
 export function useAllActivities(account: string) {
   const { formatNumberOrString } = useLocalizationContext()
   const { activities, loading: remoteLoading } = useAssetActivity()
+  const { chains } = useEnabledChains()
 
   const { data: localMap, isLoading: localLoading } = useLocalActivities(account)
   const remoteMap = useMemo(
@@ -109,14 +114,16 @@ export function useAllActivities(account: string) {
     const loadBridgeSwaps = async () => {
       try {
         const swaps = await ldsBridgeManager.getSwaps()
-        setBridgeMap(swapsToActivityMap(swaps))
+        const activityMap = swapsToActivityMap(swaps)
+        setBridgeMap(keepActivitiesForChains(activityMap, chains))
       } catch (error) {
         logger.error(error, { tags: { file: 'Activity/hooks', function: 'loadBridgeSwaps' } })
       }
     }
 
     const handleSwapChange = (swaps: Record<string, SomeSwap>) => {
-      setBridgeMap(swapsToActivityMap(swaps))
+      const activityMap = swapsToActivityMap(swaps)
+      setBridgeMap(keepActivitiesForChains(activityMap, chains))
     }
 
     void loadBridgeSwaps()
@@ -125,7 +132,7 @@ export function useAllActivities(account: string) {
     return () => {
       ldsBridgeManager.removeSwapChangeListener(handleSwapChange)
     }
-  }, [])
+  }, [chains])
 
   const updateCancelledTx = useTransactionCanceller()
 

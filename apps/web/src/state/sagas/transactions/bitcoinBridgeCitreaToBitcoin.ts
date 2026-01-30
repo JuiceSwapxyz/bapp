@@ -45,16 +45,17 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
 
   const ldsBridge = getLdsBridgeManager()
   const userLockAmount = btcToSat(new BigNumber(trade.inputAmount.toExact())).toNumber()
+  const citreaChainId = trade.inputAmount.currency.chainId as UniverseChainId
 
   const chainSwap = yield* call([ldsBridge, ldsBridge.createChainSwap], {
     from: 'cBTC',
     to: 'BTC',
     claimAddress,
     userLockAmount,
+    chainId: citreaChainId,
   })
 
   // Ensure wallet is on Citrea before signing the lockup transaction
-  const citreaChainId = trade.inputAmount.currency.chainId as UniverseChainId
   yield* call(ensureCorrectChain, {
     targetChainId: citreaChainId,
     selectChain,

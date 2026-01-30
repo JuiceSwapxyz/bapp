@@ -44,12 +44,13 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
   } = invoiceResponse
 
   const ldsBridge = getLdsBridgeManager()
+  const citreaChainId = trade.inputAmount.currency.chainId as UniverseChainId
   const submarineSwap = yield* call([ldsBridge, ldsBridge.createSubmarineSwap], {
     invoice,
+    chainId: citreaChainId,
   })
 
   // Ensure wallet is on Citrea before signing the lockup transaction
-  const citreaChainId = trade.inputAmount.currency.chainId as UniverseChainId
   yield* call(ensureCorrectChain, {
     targetChainId: citreaChainId,
     selectChain,

@@ -35,7 +35,7 @@ const JUSD_CITREA_MAINNET = ADDRESS[4114]!.juiceDollar
 const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
 
 // Swap contract addresses (same contract handles multiple tokens on each chain)
-const SWAP_CONTRACTS = {
+export const SWAP_CONTRACTS = {
   ethereum: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
   polygon: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
   citreaMainnet: '0x7397f25f230f7d5a83c18e1b68b32511bf35f860',
@@ -210,6 +210,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     to,
     claimAddress: account.address,
     userLockAmount,
+    chainId: citreaChainId,
   }
 
   let chainSwap

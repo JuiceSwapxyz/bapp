@@ -1,4 +1,5 @@
 import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
+import { inferChainIdFromSwap } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
 import { TransactionType } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
@@ -31,8 +32,14 @@ function ldsStatusToTransactionStatus(status?: LdsSwapStatus): TransactionStatus
 export function swapToActivity(swap: SomeSwap & { id: string }): Activity {
   const status = ldsStatusToTransactionStatus(swap.status)
 
-  const sourceChain = swap.assetSend === 'cBTC' ? UniverseChainId.CitreaMainnet : UniverseChainId.LightningNetwork
-  const destChain = swap.assetReceive === 'BTC' ? UniverseChainId.LightningNetwork : UniverseChainId.CitreaMainnet
+  const inferredChainId = swap.chainId ?? inferChainIdFromSwap(swap)
+  const sourceChain = inferredChainId
+    ? inferredChainId
+    : swap.assetSend === 'cBTC'
+      ? UniverseChainId.CitreaMainnet
+      : UniverseChainId.LightningNetwork
+  const destChain =
+    swap.assetReceive === 'BTC' ? UniverseChainId.LightningNetwork : inferredChainId ?? UniverseChainId.CitreaMainnet
 
   const descriptor = `${swap.sendAmount} ${swap.assetSend} → ${swap.receiveAmount} ${swap.assetReceive}`
 

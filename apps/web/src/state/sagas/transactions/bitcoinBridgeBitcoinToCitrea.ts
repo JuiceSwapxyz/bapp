@@ -2,6 +2,7 @@ import BigNumber from 'bignumber.js'
 import { popupRegistry } from 'components/Popups/registry'
 import { BitcoinBridgeDirection, LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { call } from 'typed-redux-saga'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { LdsSwapStatus, btcToSat, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
 import { BitcoinBridgeBitcoinToCitreaStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
@@ -24,12 +25,14 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
   const userLockAmount = btcToSat(new BigNumber(trade.inputAmount.toExact())).toNumber()
   const ldsBridge = getLdsBridgeManager()
   const claimAddress = account.address
+  const citreaChainId = trade.outputAmount.currency.chainId as UniverseChainId
 
   const chainSwapResponse = yield* call([ldsBridge, ldsBridge.createChainSwap], {
     from: 'BTC',
     to: 'cBTC',
     claimAddress,
     userLockAmount,
+    chainId: citreaChainId,
   })
   step.bip21 = chainSwapResponse.lockupDetails.bip21
   setCurrentStep({ step, accepted: true })
