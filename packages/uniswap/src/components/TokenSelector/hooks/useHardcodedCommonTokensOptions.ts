@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useCurrencyInfosToTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/useCurrencyInfosToTokenOptions'
+import { applyTokenDisplayRules } from 'uniswap/src/components/TokenSelector/tokenDisplayRules'
 import { TokenOption } from 'uniswap/src/components/lists/items/types'
 import { GqlResult } from 'uniswap/src/data/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -26,13 +27,21 @@ export function useHardcodedCommonTokensOptions(
     portfolioBalancesById: {},
   })
 
+  const filteredTokenOptions = useMemo(() => {
+    if (!tokenOptions) {
+      return undefined
+    }
+    const tokensWithZeroBalance = tokenOptions.map((token) => ({ ...token, quantity: 0 }))
+    return applyTokenDisplayRules(tokensWithZeroBalance)
+  }, [tokenOptions])
+
   return useMemo(
     () => ({
-      data: tokenOptions?.map((token) => ({ ...token, quantity: 0 })),
+      data: filteredTokenOptions,
       error: undefined,
       refetch: (): void => {},
       loading: false,
     }),
-    [tokenOptions],
+    [filteredTokenOptions],
   )
 }

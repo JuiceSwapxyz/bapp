@@ -1,7 +1,7 @@
 import Fuse from 'fuse.js'
 import { TokenOption } from 'uniswap/src/components/lists/items/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { isSvJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { applyTokenDisplayRules } from 'uniswap/src/components/TokenSelector/tokenDisplayRules'
 
 const searchOptions: Fuse.IFuseOptions<TokenOption> = {
   includeMatches: true,
@@ -58,28 +58,6 @@ const getNameSearchPattern = (
     : null
 
 /**
- * Filter out svJUSD tokens from the list.
- * Users should see JUSD, not svJUSD (the internal yield-bearing token).
- */
-function filterOutSvJusd(tokenOptions: TokenOption[]): TokenOption[] {
-  return tokenOptions.filter((option) => {
-    const currency = option.currencyInfo.currency
-    if (currency.isNative) {
-      return true
-    }
-    if (!('address' in currency)) {
-      return true
-    }
-
-    const chainId = currency.chainId as UniverseChainId
-    const address = currency.address as string
-
-    // Hide svJUSD from token selector
-    return !isSvJusdAddress(chainId, address)
-  })
-}
-
-/**
  * Returns a flat list of `TokenOption`s filtered by chainFilter and searchFilter
  * @param tokenOptions list of `TokenOption`s to filter
  * @param chainFilter chain id to keep
@@ -98,8 +76,7 @@ export function filter({
     return []
   }
 
-  // Always filter out svJUSD - users should see JUSD instead
-  const filteredTokens = filterOutSvJusd(tokenOptions)
+  const filteredTokens = applyTokenDisplayRules(tokenOptions, searchFilter)
 
   if (!chainFilter && !searchFilter) {
     return filteredTokens
