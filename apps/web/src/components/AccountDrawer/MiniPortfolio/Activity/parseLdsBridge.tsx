@@ -9,7 +9,7 @@ import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { TransactionType } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { LdsSwapStatus, swapStatusFailed, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
 
 export const LDS_ACTIVITY_PREFIX = 'lds-'
@@ -142,16 +142,14 @@ function ldsStatusToTransactionStatus(status?: LdsSwapStatus): TransactionStatus
     return TransactionStatus.Pending
   }
 
-  if (status === LdsSwapStatus.InvoiceSettled || status === LdsSwapStatus.TransactionClaimed) {
+  const successStatuses = Object.values(swapStatusSuccess) as LdsSwapStatus[]
+  const failedStatuses = Object.values(swapStatusFailed) as LdsSwapStatus[]
+
+  if (successStatuses.includes(status)) {
     return TransactionStatus.Success
   }
 
-  if (
-    status === LdsSwapStatus.SwapExpired ||
-    status === LdsSwapStatus.SwapRefunded ||
-    status === LdsSwapStatus.InvoiceFailedToPay ||
-    status === LdsSwapStatus.TransactionFailed
-  ) {
+  if (failedStatuses.includes(status)) {
     return TransactionStatus.Failed
   }
 

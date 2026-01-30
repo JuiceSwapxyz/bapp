@@ -52,13 +52,10 @@ export const swapStatusSuccess = {
 }
 
 export const swapStatusFinal = [
-  swapStatusFailed.InvoiceExpired,
-  swapStatusFailed.SwapExpired,
-  swapStatusFailed.SwapRefunded,
-  swapStatusFailed.InvoiceFailedToPay,
-  swapStatusFailed.TransactionRefunded,
-  swapStatusPending.TransactionClaimPending,
-].concat(Object.values(swapStatusSuccess))
+  ...Object.values(swapStatusFailed),
+  ...Object.values(swapStatusSuccess),
+  swapStatusPending.TransactionClaimPending, // Stop polling once claim is pending
+]
 
 // Chain swap status progression order (for ERC20 chain swaps)
 export const chainSwapStatusOrder: LdsSwapStatus[] = [
