@@ -101,6 +101,7 @@ export const prepareRefundMusig = async (
  * @returns ClaimDetails object ready for transaction construction
  */
 export const buildClaimDetails = (params: {
+  cooperative: boolean
   tweakedKey: Buffer
   lockupTx: Transaction
   swapTree: ReturnType<typeof SwapTreeSerializer.deserializeSwapTree>
@@ -108,12 +109,12 @@ export const buildClaimDetails = (params: {
   musig: Musig
   preimage: Buffer
 }): ClaimDetails => {
-  const { tweakedKey, lockupTx, swapTree, claimKeyPair, musig, preimage } = params
+  const { cooperative, tweakedKey, lockupTx, swapTree, claimKeyPair, musig, preimage } = params
   const swapOutput = detectSwap(tweakedKey, lockupTx as unknown as Transaction)
 
   return {
     ...swapOutput,
-    cooperative: true,
+    cooperative,
     swapTree,
     keys: claimKeyPair,
     type: OutputType.Taproot,

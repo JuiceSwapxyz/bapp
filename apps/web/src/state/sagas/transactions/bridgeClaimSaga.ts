@@ -74,6 +74,7 @@ function* attemptClaimSwap(swap: SomeSwap) {
             id: claimedSwap.claimTx,
             status: LdsBridgeStatus.Confirmed,
             direction,
+            url: '/bridge-swaps',
           },
           claimedSwap.claimTx,
         )
