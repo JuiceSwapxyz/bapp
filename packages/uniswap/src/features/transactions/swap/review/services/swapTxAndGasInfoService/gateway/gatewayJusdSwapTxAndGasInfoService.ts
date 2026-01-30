@@ -51,7 +51,7 @@ export function createGatewayJusdSwapTxAndGasInfoService(ctx: {
         customSwapData, // Pass as nested property so fetchSwap can spread it into body
       })
 
-      // Build transaction request info
+      // Build transaction request info from API response
       const swapTxInfo: TransactionRequestInfo = {
         txRequests: [swapResponse.swap],
         gasFeeResult: {

@@ -27,7 +27,7 @@ export function createTradeServiceQueryOptions(ctx: {
         }
         return ctx.tradeService.getTrade(params)
       },
-      enabled: !!params && !params.skip && !!validatedInput && params.otherCurrency?.chainId !== 1, // TODO: re-enable
+      enabled: !!params && !params.skip && !!validatedInput,
     })
   }
 }

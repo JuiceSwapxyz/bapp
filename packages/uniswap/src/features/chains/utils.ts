@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { Token } from '@juiceswapxyz/sdk-core'
+import { ChainId, Token } from '@juiceswapxyz/sdk-core'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import { Chain } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { ALL_CHAIN_IDS, ORDERED_CHAINS, getChainInfo } from 'uniswap/src/features/chains/chainInfo'
@@ -195,6 +195,19 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
 // JuiceSwap only supports Citrea chains
 export const ALWAYS_ENABLED_CHAIN_IDS = [UniverseChainId.CitreaMainnet, UniverseChainId.CitreaTestnet]
 
+// Chains that can be switched to for ERC20 cross-chain swaps
+// These are NOT shown in the UI chain selector but CAN be switched to
+//
+// To add a new cross-chain swap source (e.g., Arbitrum → Citrea):
+// 1. Add chain to this array (e.g., UniverseChainId.ArbitrumOne)
+// 2. Add direction to Erc20ChainSwapDirection enum in isBitcoinBridge.ts
+// 3. Update direction detection in TradingApiClient.ts getErc20ChainSwapQuote()
+// 4. Handle new direction in erc20ChainSwap.ts handleErc20ChainSwap()
+export const ERC20_CHAIN_SWAP_SOURCE_CHAINS: UniverseChainId[] = [
+  UniverseChainId.Polygon, // USDT_POLYGON -> JUSD
+  UniverseChainId.Mainnet, // USDT_ETH/USDC_ETH -> JUSD
+]
+
 export function getEnabledChains({
   platform,
   /**
@@ -276,4 +289,31 @@ export function isUniverseChainId(chainId?: number | UniverseChainId | null): ch
  */
 export function isCitreaMainnetAvailable(): boolean {
   return ORDERED_CHAINS.some((chain) => chain.id === UniverseChainId.CitreaMainnet)
+}
+
+// ============================================================================
+// SDK-Core Chain ID Conversions
+// TODO: Consolidate UniverseChainId and sdk-core ChainId into single source of truth
+// ============================================================================
+
+export function toSdkCoreChainId(chainId: UniverseChainId): ChainId | null {
+  switch (chainId) {
+    case UniverseChainId.CitreaMainnet:
+      return ChainId.CITREA_MAINNET
+    case UniverseChainId.CitreaTestnet:
+      return ChainId.CITREA_TESTNET
+    default:
+      return null
+  }
+}
+
+export function fromSdkCoreChainId(chainId: number): UniverseChainId | null {
+  switch (chainId) {
+    case ChainId.CITREA_MAINNET:
+      return UniverseChainId.CitreaMainnet
+    case ChainId.CITREA_TESTNET:
+      return UniverseChainId.CitreaTestnet
+    default:
+      return null
+  }
 }

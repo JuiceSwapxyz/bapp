@@ -72,11 +72,14 @@ export function createFetchGasFee({
       if (!provider) {
         throw new Error('No provider for clientside gas estimation')
       }
-      const gasUseEstimate = (await provider.estimateGas(tx)).toNumber() * 10e9
+      // Fetch actual gas limit and gas price from the provider
+      const gasLimit = await provider.estimateGas(tx)
+      const gasPrice = await provider.getGasPrice()
+      const gasFee = gasLimit.mul(gasPrice).toString()
 
       return {
-        value: gasUseEstimate.toString(),
-        displayValue: gasUseEstimate.toString(),
+        value: gasFee,
+        displayValue: gasFee,
       }
     } catch (e) {
       // provider.estimateGas will error if the account doesn't have sufficient ETH balance, but we should show an estimated cost anyway

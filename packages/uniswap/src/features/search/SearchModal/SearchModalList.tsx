@@ -321,7 +321,8 @@ function key(item: SearchModalOption): string {
       return `pool-${item.chainId}-${item.poolId}-${item.protocolVersion}-${item.hookAddress}-${item.feeTier}`
     case OnchainItemListOptionType.Token:
       if (!item.currencyInfo?.currency) {
-        return `token-invalid-${Math.random()}`
+        // Use currencyId if available, otherwise fall back to a stable identifier
+        return `token-invalid-${item.currencyInfo?.currencyId ?? 'unknown'}`
       }
       return `token-${item.currencyInfo.currency.chainId}-${item.currencyInfo.currencyId}`
     case OnchainItemListOptionType.WalletByAddress:

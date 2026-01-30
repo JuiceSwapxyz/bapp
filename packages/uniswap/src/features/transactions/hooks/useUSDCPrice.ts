@@ -4,7 +4,7 @@ import { PollingInterval } from 'uniswap/src/constants/misc'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getPrimaryStablecoin, isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { useTrade } from 'uniswap/src/features/transactions/swap/hooks/useTrade'
-import { isClassic } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isClassic, isGatewayJusd } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { areCurrencyIdsEqual, currencyId } from 'uniswap/src/utils/currencyId'
 
 const SONEIUM_AMOUNT_OVERRIDE = 30
@@ -65,7 +65,17 @@ export function useUSDCPrice(
       return { price: new Price(stablecoin, stablecoin, '1', '1'), isLoading: false }
     }
 
-    if (!trade || !isClassic(trade) || !trade.routes[0] || !currency) {
+    if (!trade || !currency) {
+      return { price: undefined, isLoading }
+    }
+
+    // Handle Gateway trades (GATEWAY_JUSD, GATEWAY_JUICE_IN, GATEWAY_JUICE_OUT)
+    // These have executionPrice directly instead of routes with midPrice
+    if (isGatewayJusd(trade)) {
+      return { price: trade.executionPrice, isLoading }
+    }
+
+    if (!isClassic(trade) || !trade.routes[0]) {
       return { price: undefined, isLoading }
     }
 

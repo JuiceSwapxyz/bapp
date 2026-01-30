@@ -230,19 +230,18 @@ async function handleSwitchChains(
 ): Promise<{ chainSwitchFailed: boolean }> {
   const { selectChain, startChainId, swapTxContext } = params
 
+  // For ERC20 chain swaps, skip chain switching here entirely
+  // The chain switch will be handled in erc20ChainSwap.ts with proper non-blocking logic
+  if (isErc20ChainSwap(swapTxContext)) {
+    return { chainSwitchFailed: false }
+  }
+
   const swapChainId = swapTxContext.trade.inputAmount.currency.chainId
   if (swapChainId === startChainId) {
     return { chainSwitchFailed: false }
   }
 
   const chainSwitched = await selectChain(swapChainId)
-
-  // For ERC20 chain swaps, if chain switch fails, allow it to proceed anyway
-  // The chain switch will happen during transaction execution
-  if (!chainSwitched && isErc20ChainSwap(swapTxContext)) {
-    // Allow ERC20 chain swaps to proceed - chain will switch during transaction execution
-    return { chainSwitchFailed: false }
-  }
 
   return { chainSwitchFailed: !chainSwitched }
 }

@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo, useRef } from 'react'
 import { TokenSelectorList } from 'uniswap/src/components/TokenSelector/TokenSelectorList'
-import { useCommonTokensOptionsWithFallback } from 'uniswap/src/components/TokenSelector/hooks/useCommonTokensOptionsWithFallback'
+import { useHardcodedCommonTokensOptions } from 'uniswap/src/components/TokenSelector/hooks/useHardcodedCommonTokensOptions'
 import { usePortfolioTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/usePortfolioTokenOptions'
 import { OnSelectCurrency, TokenSectionsHookProps } from 'uniswap/src/components/TokenSelector/types'
 import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/components/lists/OnchainItemList/types'
@@ -25,10 +25,7 @@ function useTokenSectionsForSwap({
     data: commonTokenOptions,
     refetch: refetchCommonTokenOptions,
     loading: commonTokenOptionsLoading,
-  } = useCommonTokensOptionsWithFallback(
-    activeAccountAddress as `0x${string}` | undefined,
-    effectiveChainFilter,
-  )
+  } = useHardcodedCommonTokensOptions(effectiveChainFilter)
 
   const {
     data: portfolioTokenOptions,

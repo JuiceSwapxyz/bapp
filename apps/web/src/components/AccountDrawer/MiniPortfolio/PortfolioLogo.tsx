@@ -45,7 +45,10 @@ function getLogo(
   if (accountAddress) {
     return <Identicon account={accountAddress} size={size} />
   }
-  if (currencies && currencies.length) {
+  if (currencies?.length === 1) {
+    return <CurrencyLogo currency={currencies[0]} size={size} />
+  }
+  if (currencies?.length) {
     return <DoubleCurrencyLogo currencies={currencies} size={size} customIcon={customIcon} />
   }
   if (images && images.length >= 2) {

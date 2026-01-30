@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux'
 import { endSwitchingChain, startSwitchingChain } from 'state/wallets/reducer'
 import { useIsSupportedChainIdCallback } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { EVMUniverseChainId } from 'uniswap/src/features/chains/types'
+import { ERC20_CHAIN_SWAP_SOURCE_CHAINS } from 'uniswap/src/features/chains/utils'
 import { useSwitchChain as useSwitchChainWagmi } from 'wagmi'
 
 export function useSwitchChain() {
@@ -15,7 +16,9 @@ export function useSwitchChain() {
   return useCallback(
     (chainId: EVMUniverseChainId) => {
       const isSupportedChain = isSupportedChainCallback(chainId)
-      if (!isSupportedChain) {
+      const isCrossChainSwapSource = ERC20_CHAIN_SWAP_SOURCE_CHAINS.includes(chainId)
+
+      if (!isSupportedChain && !isCrossChainSwapSource) {
         throw new Error(`Chain ${chainId} not supported for connector (${account.connector?.name})`)
       }
       if (account.chainId === chainId) {

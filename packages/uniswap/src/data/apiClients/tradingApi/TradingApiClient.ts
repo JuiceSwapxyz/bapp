@@ -693,15 +693,26 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
     }
   }
 
+  // Include gasFee from the API response for accurate gas estimation
+  const apiResponse = response as {
+    data: string
+    to: string
+    value: string
+    gasFee?: string
+    gasLimit?: string
+  }
+
   return {
     requestId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
     swap: {
       chainId: tokenInChainId ?? ChainId._4114,
-      data: response.data,
+      data: apiResponse.data,
       from: connectedWallet ?? '',
-      to: response.to,
-      value: response.value,
+      to: apiResponse.to,
+      value: apiResponse.value,
+      gasLimit: apiResponse.gasLimit,
     },
+    gasFee: apiResponse.gasFee,
   }
 }
 
@@ -1139,6 +1150,40 @@ export async function fetchV3PoolDetails(params: { address: string; chainId: num
     body: JSON.stringify({
       ...params,
     }),
+  })
+}
+
+// ===== Pool Tokens API =====
+
+/**
+ * Token from the pool tokens endpoint (auto-discovered from Ponder + hardcoded)
+ */
+export interface PoolToken {
+  address: string
+  chainId: number
+  decimals: number
+  name: string
+  symbol: string
+  logoURI?: string
+}
+
+/**
+ * Response from the pool tokens endpoint
+ */
+export interface PoolTokensResponse {
+  tokens: PoolToken[]
+}
+
+/**
+ * Fetches all swappable tokens for a chain including auto-discovered pool tokens.
+ * This merges hardcoded tokens with tokens discovered from Ponder (pool contracts).
+ *
+ * @param chainId - The chain ID to fetch tokens for (e.g., 4114 for Citrea Mainnet)
+ * @returns List of all swappable tokens on the chain
+ */
+export async function fetchPoolTokens(chainId: number): Promise<PoolTokensResponse> {
+  return await TradingApiClient.get<PoolTokensResponse>(uniswapUrls.tradingApiPaths.swappableTokens, {
+    params: { tokenInChainId: chainId.toString() },
   })
 }
 

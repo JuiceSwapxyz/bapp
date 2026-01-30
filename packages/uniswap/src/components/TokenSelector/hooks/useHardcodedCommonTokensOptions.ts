@@ -1,47 +1,47 @@
 import { useMemo } from 'react'
-import { applyTokenDisplayRules } from 'uniswap/src/components/TokenSelector/tokenDisplayRules'
-import { useCommonTokensOptions } from 'uniswap/src/components/TokenSelector/hooks/useCommonTokensOptions'
 import { useCurrencyInfosToTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/useCurrencyInfosToTokenOptions'
+import { applyTokenDisplayRules } from 'uniswap/src/components/TokenSelector/tokenDisplayRules'
 import { TokenOption } from 'uniswap/src/components/lists/items/types'
 import { GqlResult } from 'uniswap/src/data/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { hardcodedCommonBaseCurrencies } from 'uniswap/src/features/tokens/hardcodedTokens'
-import { Address } from 'viem'
 
-export function useCommonTokensOptionsWithFallback(
-  address: Address | undefined,
+/**
+ * Returns hardcoded common tokens (cBTC, JUSD, etc.) for the token selector.
+ * Data is synchronous - loading is always false, refetch is a no-op.
+ */
+export function useHardcodedCommonTokensOptions(
   chainFilter: UniverseChainId | null,
 ): GqlResult<TokenOption[] | undefined> {
-  const { refetch, loading } = useCommonTokensOptions(address, chainFilter)
-
-  // Filter hardcoded currencies by chainFilter if present
   const filteredCurrencies = useMemo(() => {
     if (!chainFilter) {
       return hardcodedCommonBaseCurrencies
     }
-    return hardcodedCommonBaseCurrencies.filter((currencyInfo) => currencyInfo.currency.chainId === chainFilter)
+    return hardcodedCommonBaseCurrencies.filter(
+      (currencyInfo) => currencyInfo.currency.chainId === chainFilter,
+    )
   }, [chainFilter])
 
-  const commonBasesTokenOptions = useCurrencyInfosToTokenOptions({
+  const tokenOptions = useCurrencyInfosToTokenOptions({
     currencyInfos: filteredCurrencies,
     portfolioBalancesById: {},
   })
 
   const filteredTokenOptions = useMemo(() => {
-    if (!commonBasesTokenOptions) {
+    if (!tokenOptions) {
       return undefined
     }
-    const tokensWithZeroBalance = commonBasesTokenOptions.map((token) => ({ ...token, quantity: 0 }))
+    const tokensWithZeroBalance = tokenOptions.map((token) => ({ ...token, quantity: 0 }))
     return applyTokenDisplayRules(tokensWithZeroBalance)
-  }, [commonBasesTokenOptions])
+  }, [tokenOptions])
 
   return useMemo(
     () => ({
       data: filteredTokenOptions,
       error: undefined,
-      refetch,
-      loading,
+      refetch: (): void => {},
+      loading: false,
     }),
-    [filteredTokenOptions, refetch, loading],
+    [filteredTokenOptions],
   )
 }

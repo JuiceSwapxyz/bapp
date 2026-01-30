@@ -7,6 +7,7 @@
 import { ADDRESS, ChainAddress } from '@juicedollar/jusd/exports/address.config'
 import { ChainId, USDC_E, USDT_E, WBTC_E, WETH9 } from '@juiceswapxyz/sdk-core'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { toSdkCoreChainId } from 'uniswap/src/features/chains/utils'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency } from 'uniswap/src/features/dataApi/utils/buildCurrency'
 import { logger } from 'utilities/src/logger/logger'
@@ -73,7 +74,7 @@ const TOKEN_METADATA: Record<string, TokenMetadata> = {
     displayInUI: false, // Hidden - internal collateral
   },
   CTUSD: {
-    symbol: 'CTUSD',
+    symbol: 'ctUSD',
     name: 'Citrus USD',
     decimals: 18,
     logoUrl: 'https://docs.juiceswap.com/media/icons/cusd.png',
@@ -103,6 +104,20 @@ const TOKEN_METADATA: Record<string, TokenMetadata> = {
   },
 }
 
+/**
+ * Get token symbols hidden from UI (displayInUI: false in TOKEN_METADATA).
+ * This is the single source of truth for hidden tokens in the frontend.
+ */
+export function getHiddenTokenSymbols(): Set<string> {
+  const hidden = new Set<string>()
+  for (const metadata of Object.values(TOKEN_METADATA)) {
+    if (!metadata.displayInUI) {
+      hidden.add(metadata.symbol)
+    }
+  }
+  return hidden
+}
+
 // ============================================================================
 // Bridged Token Helpers
 // ============================================================================
@@ -120,17 +135,6 @@ const SDK_BRIDGED_TOKENS = {
 // ============================================================================
 // Chain ID Mapping
 // ============================================================================
-
-function getNumericChainId(chainId: UniverseChainId): number | null {
-  switch (chainId) {
-    case UniverseChainId.CitreaTestnet:
-      return ChainId.CITREA_TESTNET
-    case UniverseChainId.CitreaMainnet:
-      return ChainId.CITREA_MAINNET
-    default:
-      return null
-  }
-}
 
 function isCitreaChain(chainId: UniverseChainId): boolean {
   return chainId === UniverseChainId.CitreaTestnet || chainId === UniverseChainId.CitreaMainnet
@@ -208,7 +212,7 @@ export function getAllKnownTokens(chainId: UniverseChainId): CurrencyInfo[] {
     return []
   }
 
-  const numericChainId = getNumericChainId(chainId)
+  const numericChainId = toSdkCoreChainId(chainId)
   const tokens: CurrencyInfo[] = []
   const seenAddresses = new Set<string>()
 
