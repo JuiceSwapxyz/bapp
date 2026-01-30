@@ -10,8 +10,8 @@ const isWcBtcAddress: AddressChecker = (chainId, address) => {
   return wcBtcAddress ? address.toLowerCase() === wcBtcAddress.toLowerCase() : false
 }
 
-const HIDDEN_TOKENS: AddressChecker[] = [isSvJusdAddress]
-const CONDITIONAL_TOKENS: AddressChecker[] = [isWcBtcAddress]
+const HIDDEN_TOKENS: AddressChecker[] = []
+const CONDITIONAL_TOKENS: AddressChecker[] = [isWcBtcAddress, isSvJusdAddress]
 
 function matchesSearch(option: TokenOption, search: string): boolean {
   const { currency } = option.currencyInfo
