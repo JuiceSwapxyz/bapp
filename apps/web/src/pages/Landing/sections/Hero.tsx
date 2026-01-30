@@ -189,7 +189,7 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
 
   // Click handler for wBTC+ETH bubble - navigates to cross-chain swap from Ethereum wBTC to Citrea WBTC.e (via L0 bridge)
   const handleWbtcEthClick = useCallback(() => {
-    navigate('/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=WBTC.e&outputChain=citrea')
+    navigate('/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC')
   }, [navigate])
 
   // Click handler for cBTC bubble - navigates to cross-chain swap from Bitcoin BTC to Citrea cBTC
