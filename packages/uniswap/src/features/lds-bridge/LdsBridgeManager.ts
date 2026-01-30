@@ -128,11 +128,22 @@ class LdsBridgeManager extends SwapEventEmitter {
     document.addEventListener('visibilitychange', this.visibilityHandler)
   }
 
+  private cleanupVisibilityHandling = (): void => {
+    if (typeof document === 'undefined' || !this.visibilityHandler) {
+      return
+    }
+
+    document.removeEventListener('visibilitychange', this.visibilityHandler)
+    this.visibilityHandler = null
+    this.wasPollingBeforeHidden = false
+  }
+
   private pollPendingSwapsIfNeeded = async (): Promise<void> => {
     const pendingSwaps = await this.getPendingSwaps()
 
     if (pendingSwaps.length === 0) {
       this.stopBackgroundPolling()
+      this.cleanupVisibilityHandling()
       return
     }
 
