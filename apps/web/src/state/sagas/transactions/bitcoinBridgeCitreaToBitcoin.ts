@@ -13,17 +13,16 @@ import {
   btcToSat,
   buildClaimDetails,
   buildEvmLockupTx,
-  completeCollaborativeSigning,
   fetchChainTransactionsBySwapId,
   getLdsBridgeManager,
   LdsSwapStatus,
-  postClaimChainSwap,
   prepareClaimMusig,
 } from 'uniswap/src/features/lds-bridge'
 import { BitcoinBridgeCitreaToBitcoinStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
+import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 
 interface HandleBitcoinBridgeCitreaToBitcoinParams {
   step: BitcoinBridgeCitreaToBitcoinStep
@@ -77,23 +76,25 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
     onTransactionHash(evmTxResult.hash)
   }
 
-  yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
-
   popupRegistry.addPopup(
     {
       type: PopupType.BitcoinBridge,
       id: chainSwap.id,
       status: LdsBridgeStatus.Pending,
       direction: BitcoinBridgeDirection.CitreaToBitcoin,
+      url: '/bridge-swaps',
     },
     chainSwap.id,
   )
+
+  yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
+
+  const chainTransactionsResponse = yield* call(fetchChainTransactionsBySwapId, chainSwap.id)
 
   if (onSuccess) {
     yield* call(onSuccess)
   }
 
-  const chainTransactionsResponse = yield* call(fetchChainTransactionsBySwapId, chainSwap.id)
   const lockupTxHex = chainTransactionsResponse.serverLock?.transaction.hex
   const lockupTx = Transaction.fromHex(lockupTxHex as string)
 
@@ -111,31 +112,54 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
     claimKeyPair,
     musig: ourClaimMusig,
     preimage: Buffer.from(chainSwap.preimage, 'hex'),
+    cooperative: false,
   })
 
   const decodedAddress = Buffer.from(address.toOutputScript(claimAddress, networks.bitcoin))
   const expectedAmount = btcToSat(new BigNumber(trade.outputAmount.toExact())).toNumber()
   const feeBudget = details.value - expectedAmount
-  const claimTx = constructClaimTransaction([details], decodedAddress, feeBudget, true)
+  const claimTx = constructClaimTransaction([details], decodedAddress, feeBudget, false)
 
-  const postClaimChainSwapResponse = yield* call(postClaimChainSwap, chainSwap.id, {
-    preimage: chainSwap.preimage,
-    toSign: {
-      index: 0,
-      transaction: claimTx.toHex(),
-      pubNonce: Buffer.from(ourClaimMusig.getPublicNonce()).toString('hex'),
+  //
+  // // TODO: Re-enable when LDS accept zero conf claims for this chain swap
+  // const postClaimChainSwapResponse = yield* call(postClaimChainSwap, chainSwap.id, {
+  // preimage: chainSwap.preimage,
+  // toSign: {
+  //     index: 0,
+  //     transaction: claimTx.toHex(),
+  //     pubNonce: Buffer.from(ourClaimMusig.getPublicNonce()).toString('hex'),
+  // },
+  // })
+  //
+  // const aggregatedSignature = completeCollaborativeSigning({
+  // musig: ourClaimMusig,
+  // serverPubNonce: Buffer.from(postClaimChainSwapResponse.pubNonce, 'hex'),
+  // serverPartialSignature: Buffer.from(postClaimChainSwapResponse.partialSignature, 'hex'),
+  // claimDetails: [details],
+  // claimTx,
+  // inputIndex: 0,
+  // })
+  // claimTx.ins[0].witness = [aggregatedSignature]
+  //
+
+  const { id: txHash } = yield* call(broadcastChainSwap, claimTx.toHex())
+
+  popupRegistry.removePopup(chainSwap.id)
+
+  const explorerUrl = getExplorerLink({
+    chainId: UniverseChainId.Bitcoin,
+    data: txHash,
+    type: ExplorerDataType.TRANSACTION,
+  })
+
+  popupRegistry.addPopup(
+    {
+      type: PopupType.BitcoinBridge,
+      id: txHash,
+      status: LdsBridgeStatus.Confirmed,
+      direction: BitcoinBridgeDirection.CitreaToBitcoin,
+      url: explorerUrl,
     },
-  })
-
-  const aggregatedSignature = completeCollaborativeSigning({
-    musig: ourClaimMusig,
-    serverPubNonce: Buffer.from(postClaimChainSwapResponse.pubNonce, 'hex'),
-    serverPartialSignature: Buffer.from(postClaimChainSwapResponse.partialSignature, 'hex'),
-    claimDetails: [details],
-    claimTx,
-    inputIndex: 0,
-  })
-  claimTx.ins[0].witness = [aggregatedSignature]
-
-  yield* call(broadcastChainSwap, claimTx.toHex())
+    txHash,
+  )
 }

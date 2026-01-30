@@ -353,10 +353,12 @@ export function LightningBridgePopupContent({
 export function BitcoinBridgePopupContent({
   direction,
   status,
+  url,
   onClose,
 }: {
   direction: BitcoinBridgeDirection
   status: LdsBridgeStatus
+  url?: string
   onClose: () => void
 }) {
   const { t } = useTranslation()
@@ -399,8 +401,12 @@ export function BitcoinBridgePopupContent({
 
   const isPending = status === LdsBridgeStatus.Pending
 
-  const onClick = () => {
-    window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
+  const handlePress = () => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } else {
+      window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
+    }
     onClose()
   }
 
@@ -416,12 +422,13 @@ export function BitcoinBridgePopupContent({
       py={2}
       px={0}
       animation="300ms"
+      cursor="pointer"
       $sm={{
         mx: 'auto',
         width: '100%',
       }}
     >
-      <TouchableArea onPress={onClick} flex={1}>
+      <TouchableArea onPress={handlePress} flex={1}>
         <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
           <Flex justifyContent="center">
             <PortfolioLogo chainId={UniverseChainId.Mainnet} images={[bitcoinLogo]} size={32} />
