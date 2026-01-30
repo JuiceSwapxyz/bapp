@@ -1,7 +1,7 @@
 import Fuse from 'fuse.js'
 import { TokenOption } from 'uniswap/src/components/lists/items/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { applyTokenDisplayRules } from './tokenDisplayRules'
+import { applyTokenDisplayRules } from 'uniswap/src/components/TokenSelector/tokenDisplayRules'
 
 const searchOptions: Fuse.IFuseOptions<TokenOption> = {
   includeMatches: true,

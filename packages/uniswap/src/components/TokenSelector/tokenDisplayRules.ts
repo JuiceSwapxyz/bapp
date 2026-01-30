@@ -27,12 +27,16 @@ function matchesSearch(option: TokenOption, search: string): boolean {
 export function applyTokenDisplayRules(tokenOptions: TokenOption[], searchFilter?: string): TokenOption[] {
   return tokenOptions.filter((option) => {
     const { currency } = option.currencyInfo
-    if (currency.isNative || !('address' in currency)) return true
+    if (currency.isNative || !('address' in currency)) {
+      return true
+    }
 
     const chainId = currency.chainId as UniverseChainId
     const address = currency.address as string
 
-    if (HIDDEN_TOKENS.some((check) => check(chainId, address))) return false
+    if (HIDDEN_TOKENS.some((check) => check(chainId, address))) {
+      return false
+    }
 
     if (CONDITIONAL_TOKENS.some((check) => check(chainId, address))) {
       return (
