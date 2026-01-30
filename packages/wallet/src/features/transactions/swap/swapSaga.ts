@@ -192,7 +192,7 @@ export function* approveAndSwap(params: SwapParams) {
         transactionOriginType: TransactionOriginType.Internal,
       }
       yield* call(executeTransaction, executeTransactionParams)
-      yield* put(pushNotification({ type: AppNotificationType.SwapPending, wrapType: WrapType.NotApplicable }))
+      yield* put(pushNotification({ type: AppNotificationType.SwapPending, wrapType: WrapType.NotApplicable, isBridge: true }))
 
       // Call onSuccess now if it wasn't called earlier in function due to transaction spacing
       if (swapTxHasDelayedSubmission) {

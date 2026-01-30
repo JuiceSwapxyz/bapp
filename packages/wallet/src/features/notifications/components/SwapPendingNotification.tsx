@@ -1,6 +1,7 @@
 import { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { SpinningLoader } from 'ui/src'
+import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { SwapPendingNotification as SwapPendingNotificationType } from 'uniswap/src/features/notifications/types'
 import { WrapType } from 'uniswap/src/features/transactions/types/wrap'
 import { ONE_SECOND_MS } from 'utilities/src/time/time'
@@ -12,6 +13,7 @@ export const TRANSACTION_PENDING_NOTIFICATION_DELAY = 12 * ONE_SECOND_MS
 
 export function SwapPendingNotification({ notification }: { notification: SwapPendingNotificationType }): JSX.Element {
   const { t } = useTranslation()
+  const { navigateToBridgesSwaps } = useUniswapContext()
 
   const notificationText = getNotificationText(notification.wrapType, t)
 
@@ -21,6 +23,7 @@ export function SwapPendingNotification({ notification }: { notification: SwapPe
       hideDelay={TRANSACTION_PENDING_NOTIFICATION_DELAY}
       postCaptionElement={<SpinningLoader color="$accent1" />}
       title={notificationText}
+      onPress={notification.isBridge ? navigateToBridgesSwaps : undefined}
     />
   )
 }

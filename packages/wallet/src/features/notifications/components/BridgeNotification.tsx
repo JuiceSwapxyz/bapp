@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Flex, Text } from 'ui/src'
 import { iconSizes } from 'ui/src/theme'
 import { BridgeIcon, SplitLogo } from 'uniswap/src/components/CurrencyLogo/SplitLogo'
+import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { BridgeTxNotification } from 'uniswap/src/features/notifications/types'
 import { useCurrencyInfo } from 'uniswap/src/features/tokens/useCurrencyInfo'
@@ -16,7 +17,8 @@ import { useCreateSwapFormState } from 'wallet/src/features/transactions/hooks/u
 export function BridgeNotification({ notification }: { notification: BridgeTxNotification }): JSX.Element {
   const { t } = useTranslation()
   const formatter = useLocalizationContext()
-  const { navigateToAccountActivityList, navigateToSwapFlow } = useWalletNavigation()
+  const { navigateToSwapFlow } = useWalletNavigation()
+  const { navigateToBridgesSwaps } = useUniswapContext()
 
   const {
     chainId,
@@ -92,7 +94,7 @@ export function BridgeNotification({ notification }: { notification: BridgeTxNot
       hideDelay={hideDelay}
       title={title}
       contentOverride={contentOverride}
-      onPress={navigateToAccountActivityList}
+      onPress={navigateToBridgesSwaps}
     />
   )
 }
