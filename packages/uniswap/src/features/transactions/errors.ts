@@ -197,11 +197,30 @@ function getStepSpecificErrorContent(
         title: t('common.revoke.approval.failed'),
         message: t('revoke.failed.message'),
       }
-    case TransactionStepType.Erc20ChainSwapStep:
+    case TransactionStepType.Erc20ChainSwapStep: {
+      const errorMsg = error.message.toLowerCase()
+
+      // Check for maximum limit exceeded error
+      if (errorMsg.includes('exceeds maximal') || errorMsg.includes('exceeds maximum')) {
+        return {
+          title: t('common.swap.failed'),
+          message: t('swap.fail.exceedsMaximum'),
+        }
+      }
+
+      // Check for insufficient liquidity error
+      if (errorMsg.includes('insufficient liquidity')) {
+        return {
+          title: t('common.swap.failed'),
+          message: t('swap.fail.insufficientLiquidity'),
+        }
+      }
+
       return {
         title: t('common.swap.failed'),
         message: t('swap.fail.message'),
       }
+    }
     case TransactionStepType.BitcoinBridgeCitreaToBitcoinStep:
     case TransactionStepType.BitcoinBridgeBitcoinToCitreaStep:
       return {
