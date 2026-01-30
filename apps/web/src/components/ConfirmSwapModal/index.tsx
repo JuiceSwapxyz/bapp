@@ -279,7 +279,6 @@ export function ConfirmSwapModal({
               trade={trade}
               showTrade={errorType !== PendingModalError.XV2_HARD_QUOTE_ERROR}
               swapResult={swapResult}
-              swapError={swapError}
               errorType={errorType}
               onRetry={() => {
                 if (errorType === PendingModalError.XV2_HARD_QUOTE_ERROR) {

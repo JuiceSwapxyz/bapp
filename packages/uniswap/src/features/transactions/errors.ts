@@ -198,17 +198,24 @@ function getStepSpecificErrorContent(
         message: t('revoke.failed.message'),
       }
     case TransactionStepType.Erc20ChainSwapStep: {
-      // Check error message and also check originalError.data.error for FetchError cases
       const errorMsg = error.message.toLowerCase()
-      const originalErrorData = error.originalError instanceof FetchError ? error.originalError.data : undefined
-      const apiError = typeof originalErrorData?.error === 'string' ? originalErrorData.error.toLowerCase() : ''
 
-      if (errorMsg.includes('insufficient liquidity') || apiError.includes('insufficient liquidity')) {
+      // Check for maximum limit exceeded error
+      if (errorMsg.includes('exceeds maximal') || errorMsg.includes('exceeds maximum')) {
+        return {
+          title: t('common.swap.failed'),
+          message: t('swap.fail.exceedsMaximum'),
+        }
+      }
+
+      // Check for insufficient liquidity error
+      if (errorMsg.includes('insufficient liquidity')) {
         return {
           title: t('common.swap.failed'),
           message: t('swap.fail.insufficientLiquidity'),
         }
       }
+
       return {
         title: t('common.swap.failed'),
         message: t('swap.fail.message'),

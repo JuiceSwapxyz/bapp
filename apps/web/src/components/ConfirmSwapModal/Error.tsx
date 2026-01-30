@@ -21,19 +21,10 @@ interface ErrorModalContentProps {
   trade?: InterfaceTrade
   showTrade?: boolean
   swapResult?: SwapResult
-  swapError?: Error
   onRetry: () => void
 }
 
-function getErrorContent({
-  errorType,
-  trade,
-  swapError,
-}: {
-  errorType: PendingModalError
-  trade?: InterfaceTrade
-  swapError?: Error
-}): {
+function getErrorContent({ errorType, trade }: { errorType: PendingModalError; trade?: InterfaceTrade }): {
   title: JSX.Element
   message?: JSX.Element
   supportArticleURL?: string
@@ -68,14 +59,6 @@ function getErrorContent({
           // supportArticleURL: uniswapUrls.helpArticleUrls.limitsFailure,
         }
       } else {
-        // Check for specific error messages from bridge APIs
-        const errorMessage = swapError?.message.toLowerCase() ?? ''
-        if (errorMessage.includes('insufficient liquidity')) {
-          return {
-            title: <Trans i18nKey="common.swap.failed" />,
-            message: <Trans i18nKey="swap.fail.insufficientLiquidity" />,
-          }
-        }
         return {
           title: <Trans i18nKey="common.swap.failed" />,
           message: <Trans i18nKey="swap.fail.message" />,
@@ -100,8 +83,8 @@ function getErrorContent({
   }
 }
 
-export default function Error({ errorType, trade, showTrade, swapResult, swapError, onRetry }: ErrorModalContentProps) {
-  const { title, message } = getErrorContent({ errorType, trade, swapError })
+export default function Error({ errorType, trade, showTrade, swapResult, onRetry }: ErrorModalContentProps) {
+  const { title, message } = getErrorContent({ errorType, trade })
   const { t } = useTranslation()
 
   return (

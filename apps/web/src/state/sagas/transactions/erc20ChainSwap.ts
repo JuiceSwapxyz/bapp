@@ -74,25 +74,6 @@ function getCitreaSwapContract(citreaChainId: UniverseChainId): string {
   return citreaChainId === UniverseChainId.CitreaTestnet ? SWAP_CONTRACTS.citreaTestnet : SWAP_CONTRACTS.citreaMainnet
 }
 
-const BOLTZ_DECIMALS = 8 // Boltz uses 8 decimals internally
-
-/**
- * Convert from token decimals to Boltz 8-decimal format
- */
-function tokenToBoltzDecimals(amount: bigint, tokenDecimals: number): number {
-  if (tokenDecimals === BOLTZ_DECIMALS) {
-    return Number(amount)
-  } else if (tokenDecimals > BOLTZ_DECIMALS) {
-    // e.g., 18 decimals -> 8 decimals: divide by 10^10
-    const divisor = 10n ** BigInt(tokenDecimals - BOLTZ_DECIMALS)
-    return Number(amount / divisor)
-  } else {
-    // e.g., 6 decimals -> 8 decimals: multiply by 10^2
-    const multiplier = 10n ** BigInt(BOLTZ_DECIMALS - tokenDecimals)
-    return Number(amount * multiplier)
-  }
-}
-
 interface HandleErc20ChainSwapParams {
   step: Erc20ChainSwapStep
   setCurrentStep: SetCurrentStepFn
@@ -159,9 +140,6 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
   const ldsBridge = getLdsBridgeManager()
 
-  // Get token decimals for source token from TOKEN_CONFIGS
-  const sourceDecimals = TOKEN_CONFIGS[from].decimals
-
   // Chain display names for user-facing messages
   const CHAIN_DISPLAY_NAMES: Record<string, string> = {
     polygon: 'Polygon',
@@ -207,8 +185,11 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   }
 
   // 2. NOW create swap on server (user is on correct chain)
+  // NOTE: For ERC20 chain swaps, the API expects amounts in the native token's decimal format
+  // (e.g., 6 decimals for USDT, 18 for JUSD), NOT in Boltz 8-decimal format.
+  // The Boltz conversion is only needed for Bitcoin-based swaps.
   const inputAmount = trade.inputAmount.quotient.toString()
-  const userLockAmount = tokenToBoltzDecimals(BigInt(inputAmount), sourceDecimals)
+  const userLockAmount = Number(inputAmount)
 
   const createChainSwapParams = {
     from,

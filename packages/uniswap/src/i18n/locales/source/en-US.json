@@ -1882,6 +1882,7 @@
   "swap.fail.batched": "Your connected wallet may not support 1-click swaps. Try a standard swap instead.",
   "swap.fail.batched.retry": "Try standard swap",
   "swap.fail.batched.title": "1-click swap failed",
+  "swap.fail.exceedsMaximum": "The swap amount exceeds the maximum limit. Please reduce the amount and try again.",
   "swap.fail.insufficientLiquidity": "The bridge currently has insufficient liquidity. Please try again later or reduce the swap amount.",
   "swap.fail.message": "Try adjusting slippage to a higher value.",
   "swap.fail.uniswapX": "Swap couldn’t be completed with JuiceSwapX. Try your swap again to route it through the classic JuiceSwap API.",
