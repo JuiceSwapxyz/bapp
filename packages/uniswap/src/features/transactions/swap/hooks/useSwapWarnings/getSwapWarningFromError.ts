@@ -31,7 +31,9 @@ export function getSwapWarningFromError({
     }
 
     // Check for insufficient bridge liquidity
+    const errorMessage = typeof error.data?.error === 'string' ? error.data.error.toLowerCase() : ''
     if (
+      errorMessage.includes('insufficient liquidity') ||
       error.data?.error === 'INSUFFICIENT_BRIDGE_LIQUIDITY' ||
       error.data?.errorCode === 'InsufficientBridgeLiquidity'
     ) {

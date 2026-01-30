@@ -197,8 +197,13 @@ function getStepSpecificErrorContent(
         title: t('common.revoke.approval.failed'),
         message: t('revoke.failed.message'),
       }
-    case TransactionStepType.Erc20ChainSwapStep:
-      if (error.message.toLowerCase().includes('insufficient liquidity')) {
+    case TransactionStepType.Erc20ChainSwapStep: {
+      // Check error message and also check originalError.data.error for FetchError cases
+      const errorMsg = error.message.toLowerCase()
+      const originalErrorData = error.originalError instanceof FetchError ? error.originalError.data : undefined
+      const apiError = typeof originalErrorData?.error === 'string' ? originalErrorData.error.toLowerCase() : ''
+
+      if (errorMsg.includes('insufficient liquidity') || apiError.includes('insufficient liquidity')) {
         return {
           title: t('common.swap.failed'),
           message: t('swap.fail.insufficientLiquidity'),
@@ -208,6 +213,7 @@ function getStepSpecificErrorContent(
         title: t('common.swap.failed'),
         message: t('swap.fail.message'),
       }
+    }
     case TransactionStepType.BitcoinBridgeCitreaToBitcoinStep:
     case TransactionStepType.BitcoinBridgeBitcoinToCitreaStep:
       return {

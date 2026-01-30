@@ -229,8 +229,11 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
     // Extract the actual error message from FetchError.data.error if available
     let errorMessage = error instanceof Error ? error.message : String(error)
-    if (error instanceof FetchError && error.data?.error) {
-      errorMessage = error.data.error
+    // Check for FetchError (either by instanceof or by duck typing for cases where instanceof fails)
+    const isFetchError =
+      error instanceof FetchError || (error && typeof error === 'object' && 'data' in error && 'response' in error)
+    if (isFetchError && (error as FetchError).data?.error) {
+      errorMessage = (error as FetchError).data.error
     }
 
     throw new TransactionStepFailedError({
