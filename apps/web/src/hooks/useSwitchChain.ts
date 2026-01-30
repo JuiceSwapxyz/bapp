@@ -3,8 +3,8 @@ import { useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { endSwitchingChain, startSwitchingChain } from 'state/wallets/reducer'
 import { useIsSupportedChainIdCallback } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
-import { ERC20_CHAIN_SWAP_SOURCE_CHAINS } from 'uniswap/src/features/chains/utils'
 import { EVMUniverseChainId } from 'uniswap/src/features/chains/types'
+import { ERC20_CHAIN_SWAP_SOURCE_CHAINS } from 'uniswap/src/features/chains/utils'
 import { useSwitchChain as useSwitchChainWagmi } from 'wagmi'
 
 export function useSwitchChain() {
