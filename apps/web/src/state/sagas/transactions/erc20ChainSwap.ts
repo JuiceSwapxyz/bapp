@@ -5,9 +5,15 @@ import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { call } from 'typed-redux-saga'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { LdsSwapStatus, buildErc20LockupTx, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import {
+  LdsSwapStatus,
+  approveErc20ForLdsBridge,
+  buildErc20LockupTx,
+  checkErc20Allowance,
+  getLdsBridgeManager,
+} from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
-import { Erc20ChainSwapStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
+import { Erc20ChainSwapStep, Erc20ChainSwapSubStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
@@ -212,6 +218,12 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     userLockAmount,
   }
 
+  // Set initial substep immediately so UI shows progress
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.CheckingAllowance },
+    accepted: false,
+  })
+
   let chainSwap
   try {
     chainSwap = yield* call([ldsBridge, ldsBridge.createChainSwap], createChainSwapParams)
@@ -258,14 +270,80 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       ? getCitreaSwapContract(citreaChainId)
       : SWAP_CONTRACTS[sourceChain as 'ethereum' | 'polygon']
 
+  const tokenAddress = TOKEN_CONFIGS[from].address
+  const amountBigInt = BigInt(inputAmount)
+
+  // Check allowance (substep already set at start of saga)
+  let needsApproval = false
+  try {
+    const allowanceResult = yield* call(checkErc20Allowance, {
+      signer: sourceSigner,
+      contractAddress: swapContractAddress,
+      tokenAddress,
+      amount: amountBigInt,
+    })
+    needsApproval = allowanceResult.needsApproval
+  } catch (error) {
+    logger.error(error instanceof Error ? error : new Error(String(error)), {
+      tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
+      extra: { step: 'checkAllowance' },
+    })
+    throw new TransactionStepFailedError({
+      message: `Failed to check token allowance: ${error instanceof Error ? error.message : String(error)}`,
+      step,
+      originalError: error instanceof Error ? error : new Error(String(error)),
+    })
+  }
+
+  // 2. Approve if needed
+  if (needsApproval) {
+    setCurrentStep({
+      step: { ...step, subStep: Erc20ChainSwapSubStep.WaitingForApproval },
+      accepted: false,
+    })
+
+    try {
+      const approveResult = yield* call(approveErc20ForLdsBridge, {
+        signer: sourceSigner,
+        contractAddress: swapContractAddress,
+        tokenAddress,
+        amount: amountBigInt,
+      })
+
+      setCurrentStep({
+        step: { ...step, subStep: Erc20ChainSwapSubStep.ApprovingToken },
+        accepted: false,
+      })
+
+      // Wait for approval confirmation
+      yield* call([approveResult.tx, approveResult.tx.wait])
+    } catch (error) {
+      logger.error(error instanceof Error ? error : new Error(String(error)), {
+        tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
+        extra: { step: 'approval' },
+      })
+      throw new TransactionStepFailedError({
+        message: `Failed to approve token: ${error instanceof Error ? error.message : String(error)}`,
+        step,
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
+    }
+  }
+
+  // 3. Lock tokens - show waiting for wallet confirmation
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.WaitingForLock },
+    accepted: false,
+  })
+
   let lockResult
   try {
     lockResult = yield* call(buildErc20LockupTx, {
       signer: sourceSigner,
       contractAddress: swapContractAddress,
-      tokenAddress: TOKEN_CONFIGS[from].address,
+      tokenAddress,
       preimageHash: chainSwap.preimageHash,
-      amount: BigInt(inputAmount),
+      amount: amountBigInt,
       claimAddress: chainSwap.lockupDetails.claimAddress!,
       timelock: chainSwap.lockupDetails.timeoutBlockHeight,
     })
@@ -286,12 +364,19 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
   }
 
   // Update step to show lockup transaction is submitted, waiting for confirmation
-  setCurrentStep({ step, accepted: false })
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.LockingTokens, txHash: lockResult.hash },
+    accepted: false,
+  })
 
-  // 3. Wait for Boltz to lock on target chain
+  // 4. Wait for Boltz to lock on target chain
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.WaitingForBridge, txHash: lockResult.hash },
+    accepted: false,
+  })
+
   try {
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionConfirmed)
-    setCurrentStep({ step, accepted: false })
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerConfirmed)
   } catch (error) {
@@ -306,12 +391,18 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
-  // 4. Auto-claim for both directions (USDT ↔ JUSD)
-  setCurrentStep({ step, accepted: false })
+  // 5. Auto-claim for both directions (USDT ↔ JUSD)
+  setCurrentStep({
+    step: { ...step, subStep: Erc20ChainSwapSubStep.ClaimingTokens, txHash: lockResult.hash },
+    accepted: false,
+  })
 
   try {
     yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
-    setCurrentStep({ step, accepted: true })
+    setCurrentStep({
+      step: { ...step, subStep: Erc20ChainSwapSubStep.Complete },
+      accepted: true,
+    })
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
