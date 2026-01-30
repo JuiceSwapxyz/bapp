@@ -6,6 +6,7 @@ import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { call } from 'typed-redux-saga'
+import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { LdsSwapStatus, buildErc20LockupTx, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
@@ -225,8 +226,15 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
       extra: { createChainSwapParams },
     })
+
+    // Extract the actual error message from FetchError.data.error if available
+    let errorMessage = error instanceof Error ? error.message : String(error)
+    if (error instanceof FetchError && error.data?.error) {
+      errorMessage = error.data.error
+    }
+
     throw new TransactionStepFailedError({
-      message: `Failed to create chain swap: ${error instanceof Error ? error.message : String(error)}`,
+      message: errorMessage,
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })

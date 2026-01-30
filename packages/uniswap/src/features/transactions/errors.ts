@@ -198,6 +198,12 @@ function getStepSpecificErrorContent(
         message: t('revoke.failed.message'),
       }
     case TransactionStepType.Erc20ChainSwapStep:
+      if (error.message.toLowerCase().includes('insufficient liquidity')) {
+        return {
+          title: t('common.swap.failed'),
+          message: t('swap.fail.insufficientLiquidity'),
+        }
+      }
       return {
         title: t('common.swap.failed'),
         message: t('swap.fail.message'),
