@@ -1,6 +1,9 @@
 import { MismatchToastItem } from 'components/Popups/MismatchToastItem'
 import {
   BitcoinBridgePopupContent,
+  ClaimCompletedPopupContent,
+  ClaimInProgressPopupContent,
+  Erc20ChainSwapPopupContent,
   FORTransactionPopupContent,
   FailedNetworkSwitchPopup,
   LightningBridgePopupContent,
@@ -85,6 +88,19 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
     case PopupType.BitcoinBridge: {
       return <BitcoinBridgePopupContent direction={content.direction} status={content.status} onClose={onClose} />
     }
+    case PopupType.Erc20ChainSwap: {
+      return (
+        <Erc20ChainSwapPopupContent
+          fromChainId={content.fromChainId}
+          toChainId={content.toChainId}
+          fromAsset={content.fromAsset}
+          toAsset={content.toAsset}
+          status={content.status}
+          url={content.url}
+          onClose={onClose}
+        />
+      )
+    }
     case PopupType.RefundableSwaps: {
       return <RefundableSwapsPopupContent count={content.count} onClose={onClose} />
     }
@@ -93,6 +109,12 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
     }
     case PopupType.RefundsCompleted: {
       return <RefundsCompletedPopupContent count={content.count} onClose={onClose} />
+    }
+    case PopupType.ClaimInProgress: {
+      return <ClaimInProgressPopupContent count={content.count} onClose={onClose} />
+    }
+    case PopupType.ClaimCompleted: {
+      return <ClaimCompletedPopupContent count={content.count} onClose={onClose} />
     }
     default:
       return null

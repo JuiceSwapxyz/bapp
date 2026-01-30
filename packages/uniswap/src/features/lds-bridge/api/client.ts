@@ -78,12 +78,12 @@ export async function registerPreimage(params: RegisterPreimageRequest): Promise
   })
 }
 
-export async function getLockup(preimageHash: string): Promise<{ data: LockupCheckResponse }> {
+export async function getLockup(preimageHash: string, chainId: number): Promise<{ data: LockupCheckResponse }> {
   return await LdsApiClient.post<{ data: LockupCheckResponse }>(`/claim/graphql`, {
     body: JSON.stringify({
       operationName: 'LockupQuery',
       query: `query LockupQuery {
-          lockups(preimageHash: "0x${preimageHash}") {
+          lockups(id: "${chainId}:0x${preimageHash}") {
             amount
             claimAddress
             claimTxHash
