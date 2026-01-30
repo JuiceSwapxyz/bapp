@@ -1,10 +1,12 @@
 import { BigNumber } from 'bignumber.js'
 import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
+import { ensureCorrectChain } from 'state/sagas/transactions/chainSwitchUtils'
 import { getSigner } from 'state/sagas/transactions/utils'
 import { call } from 'typed-redux-saga'
 import { fetchLightningInvoice } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import {
   btcToSat,
   buildEvmLockupTx,
@@ -22,12 +24,13 @@ interface HandleLightningBridgeSubmarineParams {
   trade: Trade
   account: AccountDetails
   destinationAddress?: string
+  selectChain: (chainId: UniverseChainId) => Promise<boolean>
   onTransactionHash?: (hash: string) => void
   onSuccess?: () => void
 }
 
 export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSubmarineParams) {
-  const { step, setCurrentStep, trade, account, destinationAddress, onTransactionHash, onSuccess } = params
+  const { step, setCurrentStep, trade, account, destinationAddress, selectChain, onTransactionHash, onSuccess } = params
 
   const outputAmountBTC = new BigNumber(trade.outputAmount.toExact())
 
@@ -43,6 +46,15 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
   const ldsBridge = getLdsBridgeManager()
   const submarineSwap = yield* call([ldsBridge, ldsBridge.createSubmarineSwap], {
     invoice,
+  })
+
+  // Ensure wallet is on Citrea before signing the lockup transaction
+  const citreaChainId = trade.inputAmount.currency.chainId as UniverseChainId
+  yield* call(ensureCorrectChain, {
+    targetChainId: citreaChainId,
+    selectChain,
+    step,
+    chainDisplayName: 'Citrea',
   })
 
   const signer = yield* call(getSigner, account.address)

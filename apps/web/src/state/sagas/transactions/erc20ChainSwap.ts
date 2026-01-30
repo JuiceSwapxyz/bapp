@@ -1,6 +1,7 @@
 import { ADDRESS } from '@juicedollar/jusd'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { clientToProvider } from 'hooks/useEthersProvider'
+import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { call } from 'typed-redux-saga'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -24,37 +25,6 @@ async function getConnectorClientForChain(chainId: UniverseChainId): Promise<Cli
     })
     throw error
   }
-}
-
-async function waitForNetwork(targetChainId: number, timeout = 60000): Promise<void> {
-  const startTime = Date.now()
-
-  const account = getAccount(wagmiConfig)
-  if (account.chainId === targetChainId) {
-    return
-  }
-
-  await new Promise<void>((resolve, reject) => {
-    const pollInterval = setInterval(() => {
-      try {
-        const currentAccount = getAccount(wagmiConfig)
-        if (currentAccount.chainId === targetChainId) {
-          clearInterval(pollInterval)
-          resolve()
-        } else if (Date.now() - startTime > timeout) {
-          clearInterval(pollInterval)
-          reject(
-            new Error(
-              `Timeout waiting for network switch to chain ${targetChainId}. Current chain: ${currentAccount.chainId}`,
-            ),
-          )
-        }
-      } catch (error) {
-        clearInterval(pollInterval)
-        reject(error)
-      }
-    }, 200)
-  })
 }
 
 // Token addresses
