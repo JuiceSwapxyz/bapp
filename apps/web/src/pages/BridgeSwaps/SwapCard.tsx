@@ -106,6 +106,16 @@ function getStatusInfo(swap: SomeSwap): {
   status: 'pending' | 'completed' | 'failed'
   icon: JSX.Element
 } {
+  // If we have a claim transaction, the swap is successful regardless of backend status
+  // This handles cases where the backend status hasn't updated to 'transaction.claimed' yet
+  if (swap.claimTx) {
+    return {
+      label: 'Completed',
+      status: 'completed',
+      icon: <CheckCircleFilled size="$icon.16" color="$statusSuccess" />,
+    }
+  }
+
   if (!swap.status) {
     return {
       label: 'Pending',

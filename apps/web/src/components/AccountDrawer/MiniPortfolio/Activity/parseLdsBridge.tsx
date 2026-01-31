@@ -171,7 +171,18 @@ function getLdsBridgeDescriptor({
   )
 }
 
-function ldsStatusToTransactionStatus(status?: LdsSwapStatus): TransactionStatus {
+/**
+ * Convert LDS swap status to TransactionStatus for UI display.
+ * Also considers claimTx as evidence of success - if claim transaction exists,
+ * the swap is complete regardless of backend status (which may lag behind).
+ */
+function ldsStatusToTransactionStatus(status?: LdsSwapStatus, claimTx?: string): TransactionStatus {
+  // If we have a claim transaction, the swap is successful regardless of backend status
+  // This handles cases where the backend status hasn't updated to 'transaction.claimed' yet
+  if (claimTx) {
+    return TransactionStatus.Success
+  }
+
   const category = getSwapStatusCategory(status)
   if (category === 'success') {
     return TransactionStatus.Success
@@ -183,7 +194,7 @@ function ldsStatusToTransactionStatus(status?: LdsSwapStatus): TransactionStatus
 }
 
 export function swapToActivity(swap: SomeSwap & { id: string }): Activity {
-  const status = ldsStatusToTransactionStatus(swap.status)
+  const status = ldsStatusToTransactionStatus(swap.status, swap.claimTx)
 
   // For filtering: use smart heuristic that prefers Citrea chains.
   // This ensures the activity passes chain filtering (must be Citrea-related).
