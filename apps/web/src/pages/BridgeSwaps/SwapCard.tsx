@@ -99,7 +99,6 @@ const ExpandButton = styled(Flex, {
 
 interface SwapCardProps {
   swap: SomeSwap & { id: string }
-  onRefresh?: () => void
 }
 
 function getStatusInfo(swap: SomeSwap): {
@@ -133,8 +132,25 @@ function getStatusInfo(swap: SomeSwap): {
 
     case LdsSwapStatus.TransactionFailed:
     case LdsSwapStatus.InvoiceFailedToPay:
+    case LdsSwapStatus.TransactionLockupFailed:
       return {
         label: 'Failed',
+        status: 'failed',
+        icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
+      }
+
+    case LdsSwapStatus.SwapExpired:
+    case LdsSwapStatus.InvoiceExpired:
+      return {
+        label: 'Expired',
+        status: 'failed',
+        icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
+      }
+
+    case LdsSwapStatus.TransactionRefunded:
+    case LdsSwapStatus.SwapWaitingForRefund:
+      return {
+        label: 'Awaiting Refund',
         status: 'failed',
         icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
       }
@@ -142,6 +158,31 @@ function getStatusInfo(swap: SomeSwap): {
     case LdsSwapStatus.SwapCreated:
       return {
         label: 'Created',
+        status: 'pending',
+        icon: <Clock size="$icon.16" color="$neutral1" />,
+      }
+
+    // Invoice pending states (submarine swaps waiting for payment)
+    case LdsSwapStatus.InvoiceSet:
+    case LdsSwapStatus.InvoicePending:
+      return {
+        label: 'Awaiting Payment',
+        status: 'pending',
+        icon: <Clock size="$icon.16" color="$neutral1" />,
+      }
+
+    // Claim is pending - swap nearly complete
+    case LdsSwapStatus.TransactionClaimPending:
+      return {
+        label: 'Claiming',
+        status: 'pending',
+        icon: <Clock size="$icon.16" color="$neutral1" />,
+      }
+
+    // Zero-conf rejected needs more confirmations
+    case LdsSwapStatus.TransactionZeroConfRejected:
+      return {
+        label: 'Confirming',
         status: 'pending',
         icon: <Clock size="$icon.16" color="$neutral1" />,
       }
@@ -196,7 +237,7 @@ function shortenHash(hash: string, chars = 8): string {
   return `${hash.slice(0, chars)}...${hash.slice(-chars)}`
 }
 
-export function SwapCard({ swap, onRefresh: _onRefresh }: SwapCardProps): JSX.Element {
+export function SwapCard({ swap }: SwapCardProps): JSX.Element {
   const [expanded, setExpanded] = useState(false)
   const statusInfo = getStatusInfo(swap)
 

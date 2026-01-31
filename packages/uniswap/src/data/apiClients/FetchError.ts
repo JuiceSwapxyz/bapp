@@ -40,3 +40,21 @@ export function isRateLimitFetchError(error: unknown): boolean {
 export function is404Error(error: unknown): boolean {
   return error instanceof FetchError && !!error.response.status && error.response.status === 404
 }
+
+/**
+ * Extracts an error message from a FetchError's data payload.
+ * Handles common API error formats: { error: string } or { detail: string }
+ */
+export function getFetchErrorMessage(error: unknown): string | undefined {
+  if (!(error instanceof FetchError)) {
+    return undefined
+  }
+  const data = error.data as { error?: unknown; detail?: unknown } | undefined
+  if (data?.error && typeof data.error === 'string') {
+    return data.error
+  }
+  if (data?.detail && typeof data.detail === 'string') {
+    return data.detail
+  }
+  return undefined
+}

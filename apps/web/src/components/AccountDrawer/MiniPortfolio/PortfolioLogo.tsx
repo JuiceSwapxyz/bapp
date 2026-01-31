@@ -60,6 +60,7 @@ function getLogo(
         outputCurrencyInfo={null}
         chainId={chainId}
         size={size}
+        customIcon={customIcon}
       />
     )
   }
