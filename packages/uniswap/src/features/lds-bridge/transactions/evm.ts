@@ -2,6 +2,7 @@ import type { Signer } from '@ethersproject/abstract-signer'
 import type { Contract } from '@ethersproject/contracts'
 import { Contract as EthersContract } from '@ethersproject/contracts'
 import { COIN_SWAP_ABI } from 'uniswap/src/abis/coin_swap'
+import { ERC20_SWAP_ABI } from 'uniswap/src/abis/erc20swap'
 import { satoshiToWei } from 'uniswap/src/features/lds-bridge/utils/conversion'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 
@@ -42,14 +43,17 @@ export async function buildEvmLockupTx(params: BuildEvmClaimTxParams): Promise<E
   }
 }
 
-const ERC20_SWAP_ABI = [
-  'function lock(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
-  'function claim(bytes32 preimage, uint256 amount, address tokenAddress, address refundAddress, uint256 timelock)',
-]
-
 const ERC20_TOKEN_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
   'function allowance(address owner, address spender) view returns (uint256)',
+]
+
+// Simplified ABI for swap contract operations
+const SWAP_CONTRACT_ABI = [
+  'function lock(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
+  'function claim(bytes32 preimage, uint256 amount, address tokenAddress, address refundAddress, uint256 timelock)',
+  'function refund(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
+  'function refund(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, address refundAddress, uint256 timelock)',
 ]
 
 export async function buildErc20LockupTx(params: {
@@ -64,7 +68,7 @@ export async function buildErc20LockupTx(params: {
   const { signer, contractAddress, tokenAddress, preimageHash, amount, claimAddress, timelock } = params
 
   const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
-  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
+  const swapContract = new EthersContract(contractAddress, SWAP_CONTRACT_ABI, signer)
 
   // Check current allowance and only approve if needed
   const ownerAddress = await signer.getAddress()
@@ -117,9 +121,63 @@ export async function claimErc20Swap(params: {
 }): Promise<string> {
   const { signer, contractAddress, tokenAddress, preimage, amount, refundAddress, timelock } = params
 
-  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
+  const swapContract = new EthersContract(contractAddress, SWAP_CONTRACT_ABI, signer)
 
   const tx = await swapContract.claim(prefix0x(preimage), amount, tokenAddress, refundAddress, timelock)
+
+  const receipt = await tx.wait()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return receipt.hash
+}
+
+export async function refundCoinSwap(params: {
+  signer: Signer
+  contractAddress: string
+  preimageHash: string
+  amount: bigint
+  claimAddress: string
+  timelock: number
+}): Promise<string> {
+  const { signer, contractAddress, preimageHash, amount, claimAddress, timelock } = params
+
+  const contract = new EthersContract(contractAddress, COIN_SWAP_ABI, signer) as Contract
+
+  // For native coin swaps (cBTC), use the 4-parameter refund function explicitly
+  const tx = await contract['refund(bytes32,uint256,address,uint256)'](
+    prefix0x(preimageHash),
+    amount,
+    claimAddress,
+    timelock,
+  )
+
+  const receipt = await tx.wait()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return receipt.hash
+}
+
+export async function refundErc20Swap(params: {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  preimageHash: string
+  amount: bigint
+  claimAddress: string
+  refundAddress: string
+  timelock: number
+}): Promise<string> {
+  const { signer, contractAddress, tokenAddress, preimageHash, amount, claimAddress, refundAddress, timelock } = params
+
+  const swapContract = new EthersContract(contractAddress, SWAP_CONTRACT_ABI, signer)
+
+  // For ERC20 token swaps, use the 6-parameter refund function (with refundAddress)
+  const tx = await swapContract['refund(bytes32,uint256,address,address,address,uint256)'](
+    prefix0x(preimageHash),
+    amount,
+    tokenAddress,
+    claimAddress,
+    refundAddress,
+    timelock,
+  )
 
   const receipt = await tx.wait()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return

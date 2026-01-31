@@ -8,6 +8,7 @@ import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
+import { useEvmRefundableSwaps } from 'hooks/useEvmRefundableSwaps'
 import { useModalState } from 'hooks/useModalState'
 import { useRefundableSwaps } from 'hooks/useRefundableSwaps'
 import { RiseIn } from 'pages/Landing/components/animations'
@@ -88,6 +89,7 @@ export default function SwapPage() {
 
   const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
   const { data: refundableSwaps = [] } = useRefundableSwaps(crossChainSwapsEnabled)
+  const { data: evmRefundableSwaps = { refundable: [], locked: [] } } = useEvmRefundableSwaps(crossChainSwapsEnabled)
 
   useEffect(() => {
     if (triggerConnect) {
@@ -97,17 +99,17 @@ export default function SwapPage() {
   }, [accountDrawer, triggerConnect, navigate, location.pathname])
 
   useEffect(() => {
-    if (refundableSwaps.length > 0) {
+    if (refundableSwaps.length > 0 || evmRefundableSwaps.refundable.length > 0) {
       popupRegistry.addPopup(
         {
           type: PopupType.RefundableSwaps,
-          count: refundableSwaps.length,
+          count: refundableSwaps.length + evmRefundableSwaps.refundable.length,
         },
         'refundable-swaps',
         Infinity,
       )
     }
-  }, [refundableSwaps.length])
+  }, [refundableSwaps.length, evmRefundableSwaps.refundable.length])
 
   return (
     <Trace logImpression page={InterfacePageName.SwapPage}>
