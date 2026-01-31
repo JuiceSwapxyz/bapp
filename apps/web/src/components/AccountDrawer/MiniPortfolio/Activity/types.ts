@@ -10,6 +10,7 @@ import { TransactionStatus } from 'uniswap/src/features/transactions/types/trans
 
 export type Activity = {
   hash: string
+  txHash?: string // Clean transaction hash for explorer links (falls back to hash if not set)
   chainId: UniverseChainId
   outputChainId?: UniverseChainId
   status: TransactionStatus

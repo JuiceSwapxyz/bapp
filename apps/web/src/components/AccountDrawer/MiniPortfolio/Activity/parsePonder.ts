@@ -33,16 +33,16 @@ const CBTC_LOGO = 'https://docs.juiceswap.com/media/icons/cbtc.png'
  * Convert Ponder chainId to UniverseChainId
  */
 function ponderChainIdToUniverseChainId(chainId: number): UniverseChainId {
-  // Ponder uses numeric chain IDs
-  // 5115 = Citrea Testnet, 5116 = Citrea Mainnet (pending)
+  // Ponder uses numeric chain IDs matching the EVM chain IDs
+  // 5115 = Citrea Testnet, 4114 = Citrea Mainnet
   if (chainId === 5115) {
     return UniverseChainId.CitreaTestnet
   }
-  if (chainId === 5116) {
+  if (chainId === 4114) {
     return UniverseChainId.CitreaMainnet
   }
-  // Default to testnet for unknown chains
-  return UniverseChainId.CitreaTestnet
+  // Default to mainnet for unknown chains (production default)
+  return UniverseChainId.CitreaMainnet
 }
 
 /**
@@ -97,7 +97,8 @@ export function ponderSwapToActivity(swap: PonderSwapData, formatNumber: FormatN
   })
 
   return {
-    hash: swap.txHash,
+    hash: swap.id, // Use unique event ID for deduplication
+    txHash: swap.txHash, // Clean hash for explorer links
     chainId,
     status: TransactionStatus.Success, // Ponder only indexes confirmed transactions
     timestamp: Number(swap.blockTimestamp),
@@ -167,6 +168,7 @@ export function ponderLaunchpadTradeToActivity(
   // The id format from Ponder is "txHash-logIndex"
   return {
     hash: trade.id, // Using the full id which includes log index for uniqueness
+    txHash: trade.txHash, // Clean hash for explorer links
     chainId,
     status: TransactionStatus.Success, // Ponder only indexes confirmed transactions
     timestamp: Number(trade.timestamp),

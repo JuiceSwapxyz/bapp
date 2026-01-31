@@ -78,6 +78,7 @@ export function ActivityRow({ activity }: { activity: Activity }) {
     otherAccount,
     currencies,
     hash,
+    txHash,
     prefixIconSrc,
     suffixIconSrc,
     offchainOrderDetails,
@@ -91,7 +92,7 @@ export function ActivityRow({ activity }: { activity: Activity }) {
   const openOffchainActivityModal = useOpenOffchainActivityModal()
   const navigate = useNavigate()
 
-  const explorerUrl = getExplorerLink({ chainId, data: hash, type: ExplorerDataType.TRANSACTION })
+  const explorerUrl = getExplorerLink({ chainId, data: txHash ?? hash, type: ExplorerDataType.TRANSACTION })
 
   const onClick = useCallback(() => {
     if (hash.startsWith(LDS_ACTIVITY_PREFIX)) {
