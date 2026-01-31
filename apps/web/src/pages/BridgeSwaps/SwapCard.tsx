@@ -162,6 +162,31 @@ function getStatusInfo(swap: SomeSwap): {
         icon: <Clock size="$icon.16" color="$neutral1" />,
       }
 
+    // Invoice pending states (submarine swaps waiting for payment)
+    case LdsSwapStatus.InvoiceSet:
+    case LdsSwapStatus.InvoicePending:
+      return {
+        label: 'Awaiting Payment',
+        status: 'pending',
+        icon: <Clock size="$icon.16" color="$neutral1" />,
+      }
+
+    // Claim is pending - swap nearly complete
+    case LdsSwapStatus.TransactionClaimPending:
+      return {
+        label: 'Claiming',
+        status: 'pending',
+        icon: <Clock size="$icon.16" color="$neutral1" />,
+      }
+
+    // Zero-conf rejected needs more confirmations
+    case LdsSwapStatus.TransactionZeroConfRejected:
+      return {
+        label: 'Confirming',
+        status: 'pending',
+        icon: <Clock size="$icon.16" color="$neutral1" />,
+      }
+
     case LdsSwapStatus.TransactionMempool:
     case LdsSwapStatus.TransactionConfirmed:
     case LdsSwapStatus.TransactionServerMempool:

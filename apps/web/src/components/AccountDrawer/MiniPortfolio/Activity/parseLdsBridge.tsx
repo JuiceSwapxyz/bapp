@@ -77,6 +77,40 @@ function getAssetChainId(asset: string): UniverseChainId {
 }
 
 /**
+ * Determine the chain ID to use for activity filtering.
+ * For bridge swaps, we want to show the activity if either the source
+ * or destination is on an enabled chain. This function prefers Citrea
+ * chains since they are the primary enabled chains.
+ */
+function getActivityChainId(swap: SomeSwap): UniverseChainId {
+  // 1. Use persisted chainId if available
+  if (swap.chainId) {
+    return swap.chainId
+  }
+
+  // 2. Try to infer from contract address
+  const inferredChainId = inferChainIdFromSwap(swap)
+  if (inferredChainId) {
+    return inferredChainId
+  }
+
+  // 3. Smart fallback: prefer Citrea chains for filtering purposes
+  const sendChainId = getAssetChainId(swap.assetSend)
+  const receiveChainId = getAssetChainId(swap.assetReceive)
+
+  // Prefer Citrea chains (they're the enabled chains)
+  if (receiveChainId === UniverseChainId.CitreaMainnet || receiveChainId === UniverseChainId.CitreaTestnet) {
+    return receiveChainId
+  }
+  if (sendChainId === UniverseChainId.CitreaMainnet || sendChainId === UniverseChainId.CitreaTestnet) {
+    return sendChainId
+  }
+
+  // Final fallback
+  return receiveChainId
+}
+
+/**
  * Get the logo URL for an LDS asset.
  * Returns undefined for unknown assets (allows fallback rendering).
  */
@@ -151,9 +185,9 @@ function ldsStatusToTransactionStatus(status?: LdsSwapStatus): TransactionStatus
 export function swapToActivity(swap: SomeSwap & { id: string }): Activity {
   const status = ldsStatusToTransactionStatus(swap.status)
 
-  // For filtering: use persisted chainId first, then infer from contract, then fallback.
+  // For filtering: use smart heuristic that prefers Citrea chains.
   // This ensures the activity passes chain filtering (must be Citrea-related).
-  const activityChainId = swap.chainId ?? inferChainIdFromSwap(swap) ?? getAssetChainId(swap.assetSend)
+  const activityChainId = getActivityChainId(swap)
 
   // For display: use actual asset chains to show correct source/dest logos
   const displaySourceChain = getAssetChainId(swap.assetSend)
