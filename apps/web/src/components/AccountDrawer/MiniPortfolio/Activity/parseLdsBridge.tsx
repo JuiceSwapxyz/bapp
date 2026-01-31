@@ -9,7 +9,7 @@ import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { TransactionType } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { LdsSwapStatus, swapStatusFailed, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { LdsSwapStatus, getSwapStatusCategory } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
 
 export const LDS_ACTIVITY_PREFIX = 'lds-'
@@ -138,21 +138,13 @@ function getLdsBridgeDescriptor({
 }
 
 function ldsStatusToTransactionStatus(status?: LdsSwapStatus): TransactionStatus {
-  if (!status) {
-    return TransactionStatus.Pending
-  }
-
-  const successStatuses = Object.values(swapStatusSuccess) as LdsSwapStatus[]
-  const failedStatuses = Object.values(swapStatusFailed) as LdsSwapStatus[]
-
-  if (successStatuses.includes(status)) {
+  const category = getSwapStatusCategory(status)
+  if (category === 'success') {
     return TransactionStatus.Success
   }
-
-  if (failedStatuses.includes(status)) {
+  if (category === 'failed') {
     return TransactionStatus.Failed
   }
-
   return TransactionStatus.Pending
 }
 

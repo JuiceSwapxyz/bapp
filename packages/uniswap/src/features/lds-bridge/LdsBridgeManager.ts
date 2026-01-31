@@ -32,11 +32,25 @@ import {
   SwapType,
 } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import type { SwapUpdateEvent } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
-import { LdsSwapStatus, hasReachedStatus, swapStatusFinal } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import {
+  LdsSwapStatus,
+  hasReachedStatus,
+  isSwapPending,
+  swapStatusFinal,
+} from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { StorageManager } from 'uniswap/src/features/lds-bridge/storage/StorageManager'
 import { SwapEventEmitter } from 'uniswap/src/features/lds-bridge/storage/SwapEventEmitter'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 import { pollForLockupConfirmation } from 'uniswap/src/features/lds-bridge/utils/polling'
+
+const POLLING_INTERVALS = {
+  BACKGROUND_CHECK_MS: 30_000,
+  FRESH_SWAP_AGE_MS: 5 * 60_000, // 5 minutes
+  FRESH_SWAP_POLL_MS: 30_000, // Poll every 30s for fresh swaps
+  MEDIUM_SWAP_AGE_MS: 60 * 60_000, // 1 hour
+  MEDIUM_SWAP_POLL_MS: 60_000, // Poll every 60s for medium-age swaps
+  OLD_SWAP_POLL_MS: 120_000, // Poll every 2min for old swaps
+} as const
 
 export const ASSET_CHAIN_ID_MAP: Record<string, UniverseChainId> = {
   'cBTC': UniverseChainId.CitreaMainnet,
@@ -98,7 +112,7 @@ class LdsBridgeManager extends SwapEventEmitter {
       this.pollPendingSwapsIfNeeded().catch(() => {
         // Errors are logged inside pollPendingSwapsIfNeeded
       })
-    }, 30_000) // Check every 30 seconds
+    }, POLLING_INTERVALS.BACKGROUND_CHECK_MS)
   }
 
   stopBackgroundPolling = (): void => {
@@ -153,9 +167,11 @@ class LdsBridgeManager extends SwapEventEmitter {
 
     // Adaptive polling: more frequent for fresh swaps
     const shouldPoll =
-      (oldestSwapAge < 5 * 60_000 && timeSinceLastPoll >= 30_000) || // <5min: every 30s
-      (oldestSwapAge < 60 * 60_000 && timeSinceLastPoll >= 60_000) || // <1hr: every 60s
-      timeSinceLastPoll >= 120_000 // >1hr: every 2min
+      (oldestSwapAge < POLLING_INTERVALS.FRESH_SWAP_AGE_MS &&
+        timeSinceLastPoll >= POLLING_INTERVALS.FRESH_SWAP_POLL_MS) ||
+      (oldestSwapAge < POLLING_INTERVALS.MEDIUM_SWAP_AGE_MS &&
+        timeSinceLastPoll >= POLLING_INTERVALS.MEDIUM_SWAP_POLL_MS) ||
+      timeSinceLastPoll >= POLLING_INTERVALS.OLD_SWAP_POLL_MS
 
     if (shouldPoll) {
       this.lastPollTime = now
@@ -536,13 +552,13 @@ class LdsBridgeManager extends SwapEventEmitter {
   getPendingSwaps = async (): Promise<SomeSwap[]> => {
     const swaps = await this.storageManager.getSwaps()
     // Include swaps with missing status so they can be polled and recover
-    return Object.values(swaps).filter((swap) => !swap.status || !swapStatusFinal.includes(swap.status))
+    return Object.values(swaps).filter((swap) => isSwapPending(swap.status))
   }
 
   updatePendingSwapsStatuses = async (): Promise<void> => {
     const swaps = await this.storageManager.getSwaps()
     // Include swaps with missing status so they can be polled and recover
-    const pendingSwaps = Object.values(swaps).filter((swap) => !swap.status || !swapStatusFinal.includes(swap.status))
+    const pendingSwaps = Object.values(swaps).filter((swap) => isSwapPending(swap.status))
 
     if (pendingSwaps.length === 0) {
       return
@@ -586,7 +602,7 @@ class LdsBridgeManager extends SwapEventEmitter {
     await this.updatePendingSwapsStatuses()
     const swaps = await this.storageManager.getSwaps()
     // Include swaps with missing status so they can be polled and recover
-    const pendingSwaps = Object.values(swaps).filter((swap) => !swap.status || !swapStatusFinal.includes(swap.status))
+    const pendingSwaps = Object.values(swaps).filter((swap) => isSwapPending(swap.status))
     pendingSwaps.forEach((swap) => {
       this._subscribeToSwapUpdates(swap.id)
     })

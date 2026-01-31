@@ -5,35 +5,26 @@ import { useCallback, useMemo, useState } from 'react'
 import { Flex, Text } from 'ui/src'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { swapStatusFailed, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { getSwapStatusCategory as getLdsStatusCategory } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
 interface SwapsTableProps {
   swaps: (SomeSwap & { id: string })[]
   refundableSwaps: (SomeSwap & { id: string })[]
   isLoading: boolean
-  onRefresh: () => void
 }
 
 function getSwapStatusCategory(swap: SomeSwap): SwapStatusCategory {
-  if (!swap.status) {
-    return SwapStatusCategory.Pending
-  }
-
-  const successStatuses = Object.values(swapStatusSuccess)
-  const failedStatuses = Object.values(swapStatusFailed)
-
-  if (successStatuses.includes(swap.status)) {
+  const category = getLdsStatusCategory(swap.status)
+  if (category === 'success') {
     return SwapStatusCategory.Completed
   }
-
-  if (failedStatuses.includes(swap.status)) {
+  if (category === 'failed') {
     return SwapStatusCategory.Failed
   }
-
   return SwapStatusCategory.Pending
 }
 
-export function SwapsTable({ swaps, refundableSwaps, isLoading, onRefresh }: SwapsTableProps): JSX.Element {
+export function SwapsTable({ swaps, refundableSwaps, isLoading }: SwapsTableProps): JSX.Element {
   const [filter, setFilter] = useState<SwapFilterType>(SwapFilterType.All)
   const [sortOrder, setSortOrder] = useState<SwapSortOrder>(SwapSortOrder.Newest)
 
@@ -127,7 +118,7 @@ export function SwapsTable({ swaps, refundableSwaps, isLoading, onRefresh }: Swa
       ) : filteredAndSortedSwaps.length > 0 ? (
         <SwapsList>
           {filteredAndSortedSwaps.map((swap) => (
-            <SwapCard key={swap.id} swap={swap} onRefresh={onRefresh} />
+            <SwapCard key={swap.id} swap={swap} />
           ))}
         </SwapsList>
       ) : (

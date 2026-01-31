@@ -82,6 +82,25 @@ export function hasReachedStatus(currentStatus: LdsSwapStatus, targetStatus: Lds
   return currentIndex >= targetIndex
 }
 
+/** Check if a swap status is pending (not final) */
+export function isSwapPending(status?: LdsSwapStatus): boolean {
+  return !status || !swapStatusFinal.includes(status)
+}
+
+/** Get the high-level category for a swap status */
+export function getSwapStatusCategory(status?: LdsSwapStatus): 'pending' | 'success' | 'failed' {
+  if (!status) {
+    return 'pending'
+  }
+  if (Object.values(swapStatusSuccess).includes(status)) {
+    return 'success'
+  }
+  if (Object.values(swapStatusFailed).includes(status)) {
+    return 'failed'
+  }
+  return 'pending'
+}
+
 export interface SwapUpdateEvent {
   id?: string
   status: LdsSwapStatus
