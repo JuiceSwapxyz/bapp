@@ -81,18 +81,29 @@ export const RefundableSection = styled(Flex, {
 export const RefundableSwapCard = styled(Flex, {
   backgroundColor: '$surface3',
   borderRadius: '$rounded12',
-  padding: '$spacing16',
-  gap: '$spacing12',
+  padding: '$spacing12',
+  gap: '$spacing8',
   flexDirection: 'column',
+
+  variants: {
+    highlighted: {
+      true: {
+        borderWidth: 1,
+        borderColor: '$surface3',
+        backgroundColor: '$surface2',
+      },
+    },
+  } as const,
 })
 
 export const RefundButton = styled(Button, {
-  backgroundColor: '$DEP_accentWarning',
+  backgroundColor: '$accent1',
   borderRadius: '$rounded12',
-  paddingHorizontal: '$spacing16',
-  paddingVertical: '$spacing12',
+  paddingHorizontal: '$spacing12',
+  paddingVertical: '$spacing8',
   width: '100%',
   alignSelf: 'stretch',
+  minHeight: 36,
   hoverStyle: {
     opacity: 0.9,
   },

@@ -13,6 +13,7 @@ import {
   fetchSubmarinePairs,
   fetchSubmarineTransactionsBySwapId,
   fetchSwapCurrentStatus,
+  fetchUserClaimsAndRefunds,
   helpMeClaim,
   registerPreimage,
 } from 'uniswap/src/features/lds-bridge/api/client'
@@ -409,6 +410,54 @@ class LdsBridgeManager extends SwapEventEmitter {
     swap.refundTx = refundTxId
     await this.storageManager.setSwap(swapId, swap)
     await this._notifySwapChanges()
+  }
+
+  syncSwapsWithGraphQLData = async (userAddress: string): Promise<void> => {
+    if (!userAddress) {
+      return
+    }
+
+    const { claims, refunds } = await fetchUserClaimsAndRefunds(userAddress)
+    const swaps = await this.storageManager.getSwaps()
+    let hasUpdates = false
+
+    // Update swaps with claim transactions
+    for (const claim of claims) {
+      const swapEntry = Object.entries(swaps).find(
+        ([_, swap]) => prefix0x(swap.preimageHash) === prefix0x(claim.preimageHash),
+      )
+
+      if (swapEntry) {
+        const [swapId, swap] = swapEntry
+        if (!swap.claimTx && claim.claimTxHash) {
+          swap.claimTx = claim.claimTxHash
+          swap.status = LdsSwapStatus.UserClaimed
+          await this.storageManager.setSwap(swapId, swap)
+          hasUpdates = true
+        }
+      }
+    }
+
+    // Update swaps with refund transactions
+    for (const refund of refunds) {
+      const swapEntry = Object.entries(swaps).find(
+        ([_, swap]) => swap.preimageHash.toLowerCase() === refund.preimageHash.toLowerCase(),
+      )
+
+      if (swapEntry) {
+        const [swapId, swap] = swapEntry
+        if (!swap.refundTx && refund.refundTxHash) {
+          swap.refundTx = refund.refundTxHash
+          swap.status = LdsSwapStatus.UserRefunded
+          await this.storageManager.setSwap(swapId, swap)
+          hasUpdates = true
+        }
+      }
+    }
+
+    if (hasUpdates) {
+      await this._notifySwapChanges()
+    }
   }
 
   _subscribeToSwapUpdates = (swapId: string): void => {

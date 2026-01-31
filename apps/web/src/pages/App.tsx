@@ -1,6 +1,7 @@
 import ErrorBoundary from 'components/ErrorBoundary'
 import { useFeatureFlagUrlOverrides } from 'featureFlags/useFeatureFlagUrlOverrides'
 import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
+import { useSyncBridgeSwaps } from 'hooks/useSyncBridgeSwaps'
 import { Body } from 'pages/App/Body'
 import { AppLayout } from 'pages/App/Layout'
 import { ResetPageScrollEffect } from 'pages/App/utils/ResetPageScroll'
@@ -29,6 +30,7 @@ export default function App() {
 
   useFeatureFlagUrlOverrides()
   useCrossChainSwapsEnabled() // Handle ?cross-chain-swaps=true/false URL parameter
+  useSyncBridgeSwaps() // Sync bridge swaps with GraphQL data on app init
 
   useEffect(() => {
     initializeScrollWatcher()

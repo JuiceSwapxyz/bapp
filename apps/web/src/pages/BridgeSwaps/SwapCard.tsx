@@ -6,7 +6,7 @@ import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { Clock } from 'ui/src/components/icons/Clock'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { LdsSwapStatus, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
 const Card = styled(Flex, {
   backgroundColor: '$surface2',
@@ -106,16 +106,6 @@ function getStatusInfo(swap: SomeSwap): {
   status: 'pending' | 'completed' | 'failed'
   icon: JSX.Element
 } {
-  // If we have a claim transaction, the swap is successful regardless of backend status
-  // This handles cases where the backend status hasn't updated to 'transaction.claimed' yet
-  if (swap.claimTx) {
-    return {
-      label: 'Completed',
-      status: 'completed',
-      icon: <CheckCircleFilled size="$icon.16" color="$statusSuccess" />,
-    }
-  }
-
   if (!swap.status) {
     return {
       label: 'Pending',
@@ -124,9 +114,29 @@ function getStatusInfo(swap: SomeSwap): {
     }
   }
 
+  const userRefunded = swap.status === LdsSwapStatus.SwapWaitingForRefund && swap.refundTx
+  const statusSuccess = Object.values(swapStatusSuccess).includes(swap.status)
+
+  if (statusSuccess || userRefunded) {
+    return {
+      label: 'Completed',
+      status: 'completed',
+      icon: <CheckCircleFilled size="$icon.16" color="$statusSuccess" />,
+    }
+  }
+
+  if (swap.status === LdsSwapStatus.TransactionRefunded && !swap.refundTx) {
+    return {
+      label: 'Awaiting Refund',
+      status: 'failed',
+      icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
+    }
+  }
+
   switch (swap.status) {
     case LdsSwapStatus.TransactionClaimed:
     case LdsSwapStatus.InvoiceSettled:
+    case LdsSwapStatus.UserClaimed:
       return {
         label: 'Completed',
         status: 'completed',
@@ -134,6 +144,7 @@ function getStatusInfo(swap: SomeSwap): {
       }
 
     case LdsSwapStatus.SwapRefunded:
+    case LdsSwapStatus.UserRefunded:
       return {
         label: 'Refunded',
         status: 'failed',
@@ -153,14 +164,6 @@ function getStatusInfo(swap: SomeSwap): {
     case LdsSwapStatus.InvoiceExpired:
       return {
         label: 'Expired',
-        status: 'failed',
-        icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
-      }
-
-    case LdsSwapStatus.TransactionRefunded:
-    case LdsSwapStatus.SwapWaitingForRefund:
-      return {
-        label: 'Awaiting Refund',
         status: 'failed',
         icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
       }
@@ -208,6 +211,7 @@ function getStatusInfo(swap: SomeSwap): {
       }
 
     default:
+      logger.warn('SwapCard', 'getStatusDisplay', 'Unknown swap status', { status: swap.status, swapId: swap.id })
       return {
         label: 'Unknown',
         status: 'pending',

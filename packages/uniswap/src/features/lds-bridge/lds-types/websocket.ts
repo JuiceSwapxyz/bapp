@@ -21,6 +21,10 @@ export enum LdsSwapStatus {
   // Success statuses
   InvoiceSettled = 'invoice.settled',
   TransactionClaimed = 'transaction.claimed',
+
+  // Local user statuses (not from LDS)
+  UserRefunded = 'local.userRefunded',
+  UserClaimed = 'local.userClaimed',
 }
 
 export const swapStatusPending = {
@@ -49,11 +53,14 @@ export const swapStatusFailed = {
 export const swapStatusSuccess = {
   InvoiceSettled: LdsSwapStatus.InvoiceSettled,
   TransactionClaimed: LdsSwapStatus.TransactionClaimed,
+  UserClaimed: LdsSwapStatus.UserClaimed,
 }
 
 export const swapStatusFinal = [
   ...Object.values(swapStatusFailed),
   ...Object.values(swapStatusSuccess),
+  LdsSwapStatus.UserRefunded,
+  LdsSwapStatus.UserClaimed,
   swapStatusPending.TransactionClaimPending, // Stop polling once claim is pending
 ]
 
