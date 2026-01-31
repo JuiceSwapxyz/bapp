@@ -71,10 +71,11 @@ function createWagmiConfig(params: {
     chains: getNonEmptyArrayOrThrow(ORDERED_EVM_CHAINS),
     connectors,
     client({ chain }) {
+      const chainInfo = getChainInfo(chain.id)
       return createClient({
         chain,
         batch: { multicall: true },
-        pollingInterval: 12_000,
+        pollingInterval: chainInfo.tradingApiPollingIntervalMs,
         transport: fallback(
           orderedTransportUrls(chain).map((url) =>
             http(url, { onFetchResponse: (response) => onFetchResponse(response, chain, url) }),

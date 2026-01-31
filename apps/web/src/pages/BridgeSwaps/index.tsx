@@ -72,7 +72,7 @@ export default function BridgeSwaps(): JSX.Element {
             onRefetch={handleRefetch}
           />
 
-          <SwapsTable swaps={swaps} refundableSwaps={refundableSwaps} isLoading={isLoading} onRefresh={refetch} />
+          <SwapsTable swaps={swaps} refundableSwaps={refundableSwaps} isLoading={isLoading} />
         </ContentWrapper>
       </PageContainer>
     </Trace>

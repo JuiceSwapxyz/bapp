@@ -2,12 +2,13 @@
 // TODO(WEB-4448): for multichain, refactored our custom useBlockNumber in favor of wagmi's hook. Remove this provider
 import { RPC_PROVIDERS } from 'constants/providers'
 import { useAccount } from 'hooks/useAccount'
-import { useEthersProvider } from 'hooks/useEthersProvider'
 import useIsWindowVisible from 'hooks/useIsWindowVisible'
 import { atom } from 'jotai'
 import { useAtomValue } from 'jotai/utils'
 import { PropsWithChildren, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import { useBlockNumber as useWagmiBlockNumber } from 'wagmi'
 
 // MulticallUpdater is outside of the SwapAndLimitContext but we still want to use the swap context chainId for swap-related multicalls
 export const multicallUpdaterSwapChainIdAtom = atom<UniverseChainId | undefined>(undefined)
@@ -43,7 +44,6 @@ export function BlockNumberProvider({ children }: PropsWithChildren) {
   const account = useAccount()
   const multicallUpdaterSwapChainId = useAtomValue(multicallUpdaterSwapChainIdAtom)
   const multicallChainId = multicallUpdaterSwapChainId ?? account.chainId
-  const provider = useEthersProvider({ chainId: multicallChainId })
   const [{ chainId, block, mainnetBlock }, setChainBlock] = useState<{
     chainId?: number
     block?: number
@@ -65,25 +65,25 @@ export function BlockNumberProvider({ children }: PropsWithChildren) {
       return chainBlock
     })
   }, [])
-  // Poll for block number on the active provider.
+  // Use wagmi's useBlockNumber which properly polls via viem's transport
   const windowVisible = useIsWindowVisible()
+  const { data: wagmiBlockNumber } = useWagmiBlockNumber({
+    chainId: multicallChainId as number | undefined,
+    watch: windowVisible,
+  })
+  // Update state when wagmi's block number changes
   useEffect(() => {
-    if (provider && multicallChainId && windowVisible) {
+    if (wagmiBlockNumber && multicallChainId) {
+      // Reset chainId tracking when chain changes
       setChainBlock((chainBlock) => {
         if (chainBlock.chainId !== multicallChainId) {
           return { chainId: multicallChainId, mainnetBlock: chainBlock.mainnetBlock }
         }
-        // If chainId hasn't changed, don't invalidate the reference, as it will trigger re-fetching of still-valid data.
         return chainBlock
       })
-      const onBlock = (block: number) => onChainBlock(multicallChainId, block)
-      provider.on('block', onBlock)
-      return () => {
-        provider.removeListener('block', onBlock)
-      }
+      onChainBlock(multicallChainId, Number(wagmiBlockNumber))
     }
-    return undefined
-  }, [provider, windowVisible, onChainBlock, multicallChainId])
+  }, [wagmiBlockNumber, multicallChainId, onChainBlock])
   // Poll once for the mainnet block number using the network provider.
   useEffect(() => {
     RPC_PROVIDERS[UniverseChainId.Mainnet]
