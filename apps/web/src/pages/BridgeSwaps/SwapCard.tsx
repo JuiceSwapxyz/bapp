@@ -7,7 +7,6 @@ import { Clock } from 'ui/src/components/icons/Clock'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { LdsSwapStatus, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
-import { logger } from 'utilities/src/logger/logger'
 
 const Card = styled(Flex, {
   backgroundColor: '$surface2',
@@ -212,7 +211,6 @@ function getStatusInfo(swap: SomeSwap): {
       }
 
     default:
-      logger.warn('SwapCard', 'getStatusDisplay', 'Unknown swap status', { status: swap.status, swapId: swap.id })
       return {
         label: 'Unknown',
         status: 'pending',

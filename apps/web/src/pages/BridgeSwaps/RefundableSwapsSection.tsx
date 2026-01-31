@@ -1,3 +1,6 @@
+import { popupRegistry } from 'components/Popups/registry'
+import { PopupType } from 'components/Popups/types'
+import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { useEvmRefund } from 'hooks/useEvmRefund'
 import { EvmRefundableLockup } from 'hooks/useEvmRefundableSwaps'
 import { AddressInput, RefundButton, RefundableSection, RefundableSwapCard } from 'pages/BridgeSwaps/styles'
@@ -19,7 +22,6 @@ import { formatUnits } from 'viem'
 interface RefundableSwapsSectionProps {
   refundableSwaps: (SomeSwap & { id: string })[]
   evmRefundableSwaps: EvmRefundableLockup[]
-  evmLockedSwaps: EvmRefundableLockup[]
   allSwaps: (SomeSwap & { id: string })[]
   isLoading: boolean
   onRefetch: () => Promise<void>
@@ -111,6 +113,13 @@ interface EvmRefundableSwapCardItemProps {
   allSwaps: (SomeSwap & { id: string })[]
   isRefunding: boolean
   onRefund: () => void
+  isRefundable: boolean // Whether this lockup is in the refundable category
+}
+
+const decimalsByAddress: Record<string, number> = {
+  '0x0987d3720d38847ac6dbb9d025b9de892a3ca35c': 18,
+  '0xdac17f958d2ee523a2206206994597c13d831ec7': 6,
+  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': 6,
 }
 
 function EvmRefundableSwapCardItem({
@@ -118,8 +127,10 @@ function EvmRefundableSwapCardItem({
   allSwaps,
   isRefunding,
   onRefund,
+  isRefundable,
 }: EvmRefundableSwapCardItemProps): JSX.Element {
-  const amount = formatUnits(BigInt(lockup.amount), 18)
+  const decimals = decimalsByAddress[lockup.tokenAddress.toLowerCase()] || 18
+  const amount = formatUnits(BigInt(lockup.amount), decimals)
 
   const getTokenInfo = () => {
     // Try to find the swap by preimageHash in local storage
@@ -142,6 +153,8 @@ function EvmRefundableSwapCardItem({
     const tokenMap: Record<string, { symbol: string; name: string }> = {
       '0xdac17f958d2ee523a2206206994597c13d831ec7': { symbol: 'USDT', name: 'Tether USD' },
       '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': { symbol: 'USDC', name: 'USD Coin' },
+      '0x0987d3720d38847ac6dbb9d025b9de892a3ca35c': { symbol: 'JUSD', name: 'Juice Dollar' },
+      '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': { symbol: 'USDT', name: 'Tether USD' },
     }
     if (tokenAddr in tokenMap) {
       return tokenMap[tokenAddr]
@@ -150,19 +163,9 @@ function EvmRefundableSwapCardItem({
   }
 
   const tokenInfo = getTokenInfo()
-  const timelock = new Date(Number(lockup.timelock) * 1000).toLocaleString()
+  const timelockBlock = lockup.timelock
   const numericChainId = Number(lockup.chainId)
   const chainName = isUniverseChainId(numericChainId) ? getChainLabel(numericChainId) : `Chain ${lockup.chainId}`
-
-  // Add a 5-minute buffer to account for block timestamp differences
-  const BUFFER_SECONDS = 300 // 5 minutes
-  const timelockTimestamp = Number(lockup.timelock)
-  const currentTimestamp = Math.floor(Date.now() / 1000)
-  const isExpired = timelockTimestamp + BUFFER_SECONDS < currentTimestamp
-
-  const timeRemaining = timelockTimestamp - currentTimestamp
-  const hoursRemaining = Math.floor(timeRemaining / 3600)
-  const minutesRemaining = Math.floor((timeRemaining % 3600) / 60)
 
   return (
     <RefundableSwapCard highlighted>
@@ -172,13 +175,13 @@ function EvmRefundableSwapCardItem({
             {amount} {tokenInfo.symbol}
           </Text>
           <Flex
-            backgroundColor={isExpired ? '$statusSuccess' : '$surface3'}
+            backgroundColor={isRefundable ? '$statusSuccess' : '$surface3'}
             paddingHorizontal="$spacing6"
             paddingVertical="$spacing2"
             borderRadius="$rounded8"
           >
-            <Text variant="body4" color={isExpired ? '$white' : '$neutral2'} fontWeight="600" fontSize={11}>
-              {isExpired ? 'Refundable' : 'Locked'}
+            <Text variant="body4" color={isRefundable ? '$white' : '$neutral2'} fontWeight="600" fontSize={11}>
+              {isRefundable ? 'Refundable' : 'Locked'}
             </Text>
           </Flex>
         </Flex>
@@ -202,22 +205,12 @@ function EvmRefundableSwapCardItem({
           </Flex>
           <Flex flexDirection="row" justifyContent="space-between">
             <Text variant="body4" color="$neutral2" fontSize={12}>
-              Timelock:
+              Timelock Block:
             </Text>
             <Text variant="body4" color="$neutral1" fontSize={12}>
-              {timelock}
+              {timelockBlock}
             </Text>
           </Flex>
-          {!isExpired && timeRemaining > 0 && (
-            <Flex flexDirection="row" justifyContent="space-between">
-              <Text variant="body4" color="$neutral2" fontSize={12}>
-                Time Remaining:
-              </Text>
-              <Text variant="body4" color="$statusCritical" fontWeight="600" fontSize={12}>
-                {hoursRemaining > 0 ? `${hoursRemaining}h ${minutesRemaining}m` : `${minutesRemaining}m`}
-              </Text>
-            </Flex>
-          )}
           <Flex flexDirection="row" justifyContent="space-between">
             <Text variant="body4" color="$neutral2" fontSize={12}>
               Hash:
@@ -229,7 +222,7 @@ function EvmRefundableSwapCardItem({
         </Flex>
       </Flex>
 
-      <RefundButton onPress={onRefund} disabled={isRefunding || !isExpired}>
+      <RefundButton onPress={onRefund} disabled={isRefunding || !isRefundable}>
         <Text variant="buttonLabel4" color="$neutral1" fontSize={13}>
           {isRefunding ? 'Refunding...' : 'Refund'}
         </Text>
@@ -241,7 +234,6 @@ function EvmRefundableSwapCardItem({
 export function RefundableSwapsSection({
   refundableSwaps,
   evmRefundableSwaps,
-  evmLockedSwaps,
   allSwaps,
   isLoading,
   onRefetch,
@@ -288,6 +280,39 @@ export function RefundableSwapsSection({
       try {
         const txHash = await executeRefund(lockup)
         logger.info('RefundableSwapsSection', 'handleEvmRefund', `Refund successful: ${txHash}`)
+
+        // Show success popup with explorer link
+        const decimals = decimalsByAddress[lockup.tokenAddress.toLowerCase()] || 18
+        const amount = formatUnits(BigInt(lockup.amount), decimals)
+
+        // Get token info for display
+        const localSwap = allSwaps.find((swap) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash))
+        let tokenSymbol = 'cBTC'
+        if (localSwap) {
+          tokenSymbol = localSwap.assetSend
+        } else if (lockup.tokenAddress && lockup.tokenAddress !== '0x0000000000000000000000000000000000000000') {
+          const tokenAddr = lockup.tokenAddress.toLowerCase()
+          const tokenMap: Record<string, string> = {
+            '0xdac17f958d2ee523a2206206994597c13d831ec7': 'USDT',
+            '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': 'USDC',
+            '0x0987d3720d38847ac6dbb9d025b9de892a3ca35c': 'JUSD',
+            '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': 'USDT',
+          }
+          tokenSymbol = tokenMap[tokenAddr] || 'ERC20'
+        }
+
+        popupRegistry.addPopup(
+          {
+            type: PopupType.EvmRefundSuccess,
+            chainId: Number(lockup.chainId),
+            txHash,
+            amount,
+            tokenSymbol,
+          },
+          `evm-refund-success-${txHash}`,
+          DEFAULT_TXN_DISMISS_MS,
+        )
+
         await onRefetch()
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
@@ -312,10 +337,10 @@ export function RefundableSwapsSection({
         })
       }
     },
-    [executeRefund, onRefetch],
+    [executeRefund, onRefetch, allSwaps],
   )
 
-  if (isLoading || (refundableSwaps.length === 0 && evmRefundableSwaps.length === 0 && evmLockedSwaps.length === 0)) {
+  if (isLoading || (refundableSwaps.length === 0 && evmRefundableSwaps.length === 0)) {
     return null
   }
 
@@ -352,32 +377,7 @@ export function RefundableSwapsSection({
                 allSwaps={allSwaps}
                 isRefunding={refundingEvmSwaps.has(lockup.preimageHash)}
                 onRefund={() => handleEvmRefund(lockup)}
-              />
-            ))}
-          </Flex>
-        </RefundableSection>
-      )}
-
-      {evmLockedSwaps.length > 0 && (
-        <RefundableSection>
-          <Flex flexDirection="row" alignItems="center" gap="$spacing8">
-            <AlertCircleFilled size="$icon.20" color="$neutral2" />
-            <Text variant="heading3" color="$neutral1" fontWeight="600">
-              Locked Swaps - Timelock Not Reached ({evmLockedSwaps.length})
-            </Text>
-          </Flex>
-          <Text variant="body3" color="$neutral2">
-            These swaps haven&apos;t reached their timelock yet. You&apos;ll be able to refund them once the timelock
-            expires.
-          </Text>
-          <Flex gap="$spacing12">
-            {evmLockedSwaps.map((lockup) => (
-              <EvmRefundableSwapCardItem
-                key={lockup.preimageHash}
-                lockup={lockup}
-                allSwaps={allSwaps}
-                isRefunding={false}
-                onRefund={() => {}}
+                isRefundable={true}
               />
             ))}
           </Flex>
