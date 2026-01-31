@@ -2,10 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useAccount } from 'hooks/useAccount'
 import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
 
-// @ts-ignore
-// eslint-disable-next-line no-undef
-window.getLdsBridgeManager = getLdsBridgeManager
-
 export function useSyncBridgeSwaps(enabled = true) {
   const account = useAccount()
 

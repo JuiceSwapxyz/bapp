@@ -10,6 +10,7 @@ import { AlertCircleFilled } from 'ui/src/components/icons/AlertCircleFilled'
 import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { useValidateBitcoinAddress } from 'uniswap/src/data/apiClients/tradingApi/useValidateBitcoinAddress'
+import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 import { logger } from 'utilities/src/logger/logger'
@@ -150,7 +151,8 @@ function EvmRefundableSwapCardItem({
 
   const tokenInfo = getTokenInfo()
   const timelock = new Date(Number(lockup.timelock) * 1000).toLocaleString()
-  const chainName = lockup.chainId === '5115' ? 'Citrea' : `Chain ${lockup.chainId}`
+  const numericChainId = Number(lockup.chainId)
+  const chainName = isUniverseChainId(numericChainId) ? getChainLabel(numericChainId) : `Chain ${lockup.chainId}`
 
   // Add a 5-minute buffer to account for block timestamp differences
   const BUFFER_SECONDS = 300 // 5 minutes
