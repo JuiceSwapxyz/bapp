@@ -22,9 +22,9 @@ import { CopyAlt } from 'ui/src/components/icons/CopyAlt'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 import { InfoCircle } from 'ui/src/components/icons/InfoCircle'
 import { Modal } from 'uniswap/src/components/modals/Modal'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName, ModalName } from 'uniswap/src/features/telemetry/constants'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { formatUnits } from 'viem'
 
@@ -193,6 +193,23 @@ export default function TokenDetail() {
     }
     return Number(formatUnits(reserves.realBase, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [reserves])
+
+  // Format volume from indexed data
+  const volume = useMemo(() => {
+    if (!launchpadData?.token.totalVolumeBase) {
+      return '0'
+    }
+    const value = Number(formatUnits(BigInt(launchpadData.token.totalVolumeBase), 18))
+    return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+  }, [launchpadData?.token.totalVolumeBase])
+
+  // Total trades from indexed data
+  const totalTrades = useMemo(() => {
+    if (!launchpadData?.token) {
+      return 0
+    }
+    return launchpadData.token.totalBuys + launchpadData.token.totalSells
+  }, [launchpadData?.token])
 
   const tokensRemaining = useMemo(() => {
     if (!reserves) {
@@ -382,6 +399,14 @@ export default function TokenDetail() {
                 <StatRow paddingVertical="$spacing4">
                   <StatLabel variant="body2">Liquidity</StatLabel>
                   <StatValue variant="body2">{liquidity} JUSD</StatValue>
+                </StatRow>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Volume</StatLabel>
+                  <StatValue variant="body2">{volume} JUSD</StatValue>
+                </StatRow>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Trades</StatLabel>
+                  <StatValue variant="body2">{totalTrades}</StatValue>
                 </StatRow>
                 <StatRow paddingVertical="$spacing4">
                   <StatLabel variant="body2">Total Supply</StatLabel>
