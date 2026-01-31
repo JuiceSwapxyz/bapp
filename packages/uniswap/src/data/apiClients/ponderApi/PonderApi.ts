@@ -4,6 +4,7 @@ import {
   CampaignProgressResponse,
   DailyGrowthResponse,
   HourlyCompletionStatsResponse,
+  PonderActivityResponse,
 } from 'uniswap/src/data/apiClients/ponderApi/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
@@ -47,5 +48,36 @@ export const useCampaignProgressQuery = (
     queryFn: () =>
       ponderApiClient.get<CampaignProgressResponse>('/campaign/progress', { params: { walletAddress, chainId } }),
     enabled: !!walletAddress,
+  })
+}
+
+function isCitreaChain(chainId: UniverseChainId): boolean {
+  return chainId === UniverseChainId.CitreaMainnet || chainId === UniverseChainId.CitreaTestnet
+}
+
+interface PonderActivitiesQueryParams {
+  account: string
+  chainId: UniverseChainId
+  limit?: number
+  offset?: number
+}
+
+export const usePonderActivitiesQuery = ({
+  account,
+  chainId,
+  limit = 50,
+  offset = 0,
+}: PonderActivitiesQueryParams): UseQueryResult<PonderActivityResponse, Error> => {
+  return useTanstackQuery<PonderActivityResponse, Error>({
+    queryKey: ['ponderActivities', account, chainId, limit, offset],
+    queryFn: () =>
+      ponderApiClient.get<PonderActivityResponse>('/activity/swaps', {
+        params: { address: account, chainId, limit, offset },
+      }),
+    enabled: !!account && isCitreaChain(chainId),
+    staleTime: 30_000, // 30 seconds
+    refetchInterval: 30_000, // Poll every 30 seconds
+    refetchOnWindowFocus: true,
+    retry: 2,
   })
 }
