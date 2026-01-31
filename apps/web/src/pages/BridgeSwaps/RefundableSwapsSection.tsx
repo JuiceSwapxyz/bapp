@@ -129,7 +129,7 @@ function EvmRefundableSwapCardItem({
   onRefund,
   isRefundable,
 }: EvmRefundableSwapCardItemProps): JSX.Element {
-  const decimals = decimalsByAddress[lockup.tokenAddress.toLowerCase()] || 18
+  const decimals = decimalsByAddress[(lockup.tokenAddress || '').toLowerCase()] || 18
   const amount = formatUnits(BigInt(lockup.amount), decimals)
 
   const getTokenInfo = () => {
@@ -282,7 +282,7 @@ export function RefundableSwapsSection({
         logger.info('RefundableSwapsSection', 'handleEvmRefund', `Refund successful: ${txHash}`)
 
         // Show success popup with explorer link
-        const decimals = decimalsByAddress[lockup.tokenAddress.toLowerCase()] || 18
+        const decimals = decimalsByAddress[(lockup.tokenAddress || '').toLowerCase()] || 18
         const amount = formatUnits(BigInt(lockup.amount), decimals)
 
         // Get token info for display
