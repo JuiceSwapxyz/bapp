@@ -3,8 +3,9 @@ import { useAtom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import { useEffect } from 'react'
 import { useUnitagsAddressQuery } from 'uniswap/src/data/apiClients/unitagsApi/useUnitagsAddressQuery'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { shortenAddress } from 'utilities/src/addresses'
-import { useAccountEffect } from 'wagmi'
+import { useAccountEffect, useEnsName } from 'wagmi'
 
 const recentAccountIdentifierMapAtom = atomWithStorage<{
   [account in string]?: { unitag?: string; ensName?: string }
@@ -18,7 +19,7 @@ export function useAccountIdentifier() {
   const { data: unitagResponse } = useUnitagsAddressQuery({
     params: account.address ? { address: account.address } : undefined,
   })
-  const { data: ensNameResponse } = useENSName(account.address)
+  const { data: ensNameResponse } = useEnsName({ address: account.address, chainId: UniverseChainId.CitreaMainnet })
   // Clear the `recent` account identifier when the user disconnects
   useAccountEffect({
     onDisconnect() {
