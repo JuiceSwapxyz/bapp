@@ -224,3 +224,53 @@ export interface RegisterPreimageRequest {
 export interface RegisterPreimageResponse {
   success: boolean
 }
+
+export interface EvmRefundableLockup {
+  preimageHash: string
+  chainId: string
+  amount: string
+  claimAddress: string
+  refundAddress: string
+  timelock: string
+  tokenAddress: string
+  swapType: string
+  claimed: boolean
+  refunded: boolean
+  claimTxHash: string | null
+  refundTxHash: string | null
+}
+
+export interface LockupsResponse {
+  data: {
+    lockupss: {
+      items: EvmRefundableLockup[]
+    }
+  }
+}
+
+export interface UserClaimItem {
+  preimageHash: string
+  claimTxHash: string
+}
+
+export interface UserRefundItem {
+  preimageHash: string
+  refundTxHash: string
+}
+
+export interface UserClaimsAndRefundsResponse {
+  data: {
+    myClaims: {
+      items: UserClaimItem[]
+    }
+    myRefunds: {
+      items: UserRefundItem[]
+    }
+  }
+}
+
+export interface UserClaimsAndRefunds {
+  claims: UserClaimItem[]
+  refunds: UserRefundItem[]
+}
+
