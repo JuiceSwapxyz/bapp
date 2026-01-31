@@ -1,6 +1,7 @@
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import JSBI from 'jsbi'
 import { GasEstimate, GasStrategy } from 'uniswap/src/data/tradingApi/types'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { areEqualGasStrategies } from 'uniswap/src/features/gas/types'
 import {
   DynamicConfigs,
@@ -23,6 +24,25 @@ export const DEFAULT_GAS_STRATEGY: GasStrategy = {
   minPriorityFeeRatioOfBaseFee: undefined,
   minPriorityFeeGwei: 2,
   maxPriorityFeeGwei: 9,
+}
+
+// Citrea-specific gas strategy with lower buffers
+// Citrea is a Bitcoin L2 with predictable gas costs
+export const CITREA_GAS_STRATEGY: GasStrategy = {
+  limitInflationFactor: 1.05, // 5% buffer (was 15%)
+  displayLimitInflationFactor: 1,
+  priceInflationFactor: 1.1, // 10% buffer (was 50%)
+  percentileThresholdFor1559Fee: 75,
+  thresholdToInflateLastBlockBaseFee: 0,
+  baseFeeMultiplier: 1.05,
+  baseFeeHistoryWindow: 100,
+  minPriorityFeeRatioOfBaseFee: undefined,
+  minPriorityFeeGwei: 1,
+  maxPriorityFeeGwei: 3,
+}
+
+function isCitreaChain(chainId: number | undefined): boolean {
+  return chainId === UniverseChainId.CitreaMainnet || chainId === UniverseChainId.CitreaTestnet
 }
 
 export function applyNativeTokenPercentageBuffer(
@@ -126,6 +146,11 @@ export function getActiveGasStrategy({
   type: GasStrategyType
   isStatsigReady?: boolean
 }): GasStrategy {
+  // Use Citrea-specific strategy for Citrea chains (lower buffers for predictable gas costs)
+  if (isCitreaChain(chainId)) {
+    return CITREA_GAS_STRATEGY
+  }
+
   if (isStatsigReady === false || !getIsStatsigReady()) {
     return DEFAULT_GAS_STRATEGY
   }
