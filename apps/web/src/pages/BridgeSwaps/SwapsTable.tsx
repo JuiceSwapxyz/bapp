@@ -14,6 +14,12 @@ interface SwapsTableProps {
 }
 
 function getSwapStatusCategory(swap: SomeSwap): SwapStatusCategory {
+  // If we have a claim transaction, the swap is successful regardless of backend status
+  // This handles cases where the backend status hasn't updated to 'transaction.claimed' yet
+  if (swap.claimTx) {
+    return SwapStatusCategory.Completed
+  }
+
   const category = getLdsStatusCategory(swap.status)
   if (category === 'success') {
     return SwapStatusCategory.Completed
