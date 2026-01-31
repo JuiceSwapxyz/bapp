@@ -6,10 +6,9 @@ export function chainIdToPlatform(chainId: UniverseChainId): Platform {
   return getChainInfo(chainId).platform
 }
 
-function createPlatformChecker<T extends Platform>(_platform: T) {
+function createPlatformChecker<T extends Platform>(platform: T) {
   return (chainId: UniverseChainId): chainId is UniverseChainIdByPlatform<T> => {
-    // All chains are now Platform.EVM, so this always returns true for EVM
-    return true
+    return getChainInfo(chainId).platform === platform
   }
 }
 
