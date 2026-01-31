@@ -392,6 +392,9 @@ class LdsBridgeManager extends SwapEventEmitter {
     })
 
     swap.claimTx = txHash
+    // Update status locally since we know the claim succeeded
+    // This ensures the UI shows completion even if backend status lags
+    swap.status = LdsSwapStatus.TransactionClaimed
     await this.storageManager.setSwap(swapId, swap)
     this._notifySwapChanges()
     return swap
