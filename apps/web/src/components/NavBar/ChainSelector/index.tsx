@@ -24,7 +24,11 @@ export const ChainSelector = ({ hideArrow }: ChainSelectorProps) => {
   const selectChain = useSelectChain()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const { chains } = useEnabledChains({ platform: Platform.EVM })
+  const { chains, defaultChainId } = useEnabledChains({ platform: Platform.EVM })
+
+  // Use defaultChainId as fallback when chainId is undefined or not supported
+  // This ensures Citrea Mainnet is always shown as the default, even when wallet is connected to an unsupported chain
+  const effectiveChainId = chainId && isSupportedChain(chainId) ? chainId : defaultChainId
 
   const onSelectChain = useCallback(
     async (targetChainId: UniverseChainId | null) => {
@@ -50,7 +54,7 @@ export const ChainSelector = ({ hideArrow }: ChainSelectorProps) => {
   return (
     <Flex px="$spacing8">
       <NetworkFilter
-        selectedChain={chainId ?? null}
+        selectedChain={effectiveChainId}
         onPressChain={onSelectChain}
         showUnsupportedConnectedChainWarning={isUnsupportedConnectedChain}
         hideArrow={hideArrow}
