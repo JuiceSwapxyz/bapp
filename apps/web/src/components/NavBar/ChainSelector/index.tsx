@@ -1,9 +1,8 @@
-import { useAccount } from 'hooks/useAccount'
 import useSelectChain from 'hooks/useSelectChain'
-import { useCallback, useRef } from 'react'
+import { useCallback } from 'react'
 import { useSearchParams } from 'react-router'
 import { useMultichainContext } from 'state/multichain/useMultichainContext'
-import { Flex, Popover } from 'ui/src'
+import { Flex } from 'ui/src'
 import { NetworkFilter } from 'uniswap/src/components/network/NetworkFilter'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -16,10 +15,8 @@ type ChainSelectorProps = {
 }
 
 export const ChainSelector = ({ hideArrow }: ChainSelectorProps) => {
-  const account = useAccount()
   const { chainId, setSelectedChainId } = useMultichainContext()
 
-  const popoverRef = useRef<Popover>(null)
   const isSupportedChain = useIsSupportedChainIdCallback()
   const selectChain = useSelectChain()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -43,20 +40,15 @@ export const ChainSelector = ({ hideArrow }: ChainSelectorProps) => {
       searchParams.delete('field')
       targetChainId && searchParams.set('chain', getChainInfo(targetChainId).interfaceName)
       setSearchParams(searchParams)
-
-      popoverRef.current?.close()
     },
     [setSelectedChainId, selectChain, searchParams, setSearchParams],
   )
-
-  const isUnsupportedConnectedChain = account.isConnected && !isSupportedChain(account.chainId)
 
   return (
     <Flex px="$spacing8">
       <NetworkFilter
         selectedChain={effectiveChainId}
         onPressChain={onSelectChain}
-        showUnsupportedConnectedChainWarning={isUnsupportedConnectedChain}
         hideArrow={hideArrow}
         chainIds={chains}
         styles={{
