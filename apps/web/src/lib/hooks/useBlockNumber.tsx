@@ -7,6 +7,7 @@ import { atom } from 'jotai'
 import { useAtomValue } from 'jotai/utils'
 import { PropsWithChildren, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { isEVMChain } from 'uniswap/src/features/platforms/utils/chains'
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { useBlockNumber as useWagmiBlockNumber } from 'wagmi'
 
@@ -66,9 +67,10 @@ export function BlockNumberProvider({ children }: PropsWithChildren) {
     })
   }, [])
   // Use wagmi's useBlockNumber which properly polls via viem's transport
+  // Only use wagmi for EVM chains - non-EVM chains (like Lightning Network) are not supported
   const windowVisible = useIsWindowVisible()
   const { data: wagmiBlockNumber } = useWagmiBlockNumber({
-    chainId: multicallChainId as number | undefined,
+    chainId: multicallChainId && isEVMChain(multicallChainId) ? multicallChainId : undefined,
     watch: windowVisible,
   })
   // Update state when wagmi's block number changes
