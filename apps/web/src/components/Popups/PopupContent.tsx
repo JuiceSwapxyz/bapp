@@ -926,3 +926,60 @@ export function ClaimCompletedPopupContent({ count, onClose }: { count: number; 
     </Flex>
   )
 }
+
+export function EvmRefundSuccessPopupContent({
+  amount,
+  tokenSymbol,
+  onClose,
+}: {
+  chainId: number
+  txHash: string
+  amount: string
+  tokenSymbol: string
+  onClose: () => void
+}): JSX.Element {
+  const shadowProps = useShadowPropsMedium()
+
+  return (
+    <Flex
+      row
+      alignItems="center"
+      animation="300ms"
+      backgroundColor="$surface1"
+      borderColor="$surface3"
+      borderRadius="$rounded16"
+      borderWidth="$spacing1"
+      justifyContent="space-between"
+      left={0}
+      mx="auto"
+      {...shadowProps}
+      p="$spacing16"
+      position="relative"
+      width={POPUP_MAX_WIDTH}
+      opacity={1}
+      $sm={{
+        maxWidth: '100%',
+        mx: 'auto',
+      }}
+    >
+      <Flex row alignItems="center" gap="$gap12" flex={1}>
+        <Flex>
+          <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
+        </Flex>
+        <Flex gap="$gap4" flex={1}>
+          <Text variant="body2" color="$neutral1">
+            Refund Successful
+          </Text>
+          <Text variant="body3" color="$neutral2">
+            {amount} {tokenSymbol} refunded.
+          </Text>
+        </Flex>
+      </Flex>
+      <Flex position="absolute" right="$spacing16" top="$spacing16" data-testid={TestID.ActivityPopupCloseIcon}>
+        <TouchableArea onPress={onClose}>
+          <X color="$neutral2" size={16} />
+        </TouchableArea>
+      </Flex>
+    </Flex>
+  )
+}

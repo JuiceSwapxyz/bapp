@@ -19,6 +19,7 @@ export enum PopupType {
   RefundsCompleted = 'refundsCompleted',
   ClaimInProgress = 'claimInProgress',
   ClaimCompleted = 'claimCompleted',
+  EvmRefundSuccess = 'evmRefundSuccess',
 }
 
 export enum SwitchNetworkAction {
@@ -125,4 +126,11 @@ export type PopupContent =
   | {
       type: PopupType.ClaimCompleted
       count: number
+    }
+  | {
+      type: PopupType.EvmRefundSuccess
+      chainId: number
+      txHash: string
+      amount: string
+      tokenSymbol: string
     }

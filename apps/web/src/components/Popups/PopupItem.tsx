@@ -4,6 +4,7 @@ import {
   ClaimCompletedPopupContent,
   ClaimInProgressPopupContent,
   Erc20ChainSwapPopupContent,
+  EvmRefundSuccessPopupContent,
   FORTransactionPopupContent,
   FailedNetworkSwitchPopup,
   LightningBridgePopupContent,
@@ -122,6 +123,17 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
     }
     case PopupType.ClaimCompleted: {
       return <ClaimCompletedPopupContent count={content.count} onClose={onClose} />
+    }
+    case PopupType.EvmRefundSuccess: {
+      return (
+        <EvmRefundSuccessPopupContent
+          chainId={content.chainId}
+          txHash={content.txHash}
+          amount={content.amount}
+          tokenSymbol={content.tokenSymbol}
+          onClose={onClose}
+        />
+      )
     }
     default:
       return null
