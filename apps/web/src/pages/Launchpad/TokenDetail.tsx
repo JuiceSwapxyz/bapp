@@ -204,12 +204,7 @@ export default function TokenDetail() {
   }, [launchpadData?.token.totalVolumeBase])
 
   // Total trades from indexed data
-  const totalTrades = useMemo(() => {
-    if (!launchpadData?.token) {
-      return 0
-    }
-    return launchpadData.token.totalBuys + launchpadData.token.totalSells
-  }, [launchpadData?.token])
+  const totalTrades = (launchpadData?.token.totalBuys ?? 0) + (launchpadData?.token.totalSells ?? 0)
 
   const tokensRemaining = useMemo(() => {
     if (!reserves) {
