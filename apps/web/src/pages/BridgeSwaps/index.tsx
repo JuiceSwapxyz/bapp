@@ -35,8 +35,7 @@ export default function BridgeSwaps(): JSX.Element {
     refetch: refetchEvmRefundable,
   } = useEvmRefundableSwaps(crossChainSwapsEnabled)
 
-  const evmRefundableSwaps = evmSwapsData?.refundable ?? []
-  const evmLockedSwaps = evmSwapsData?.locked ?? []
+  const evmRefundableSwaps = evmSwapsData.refundable
 
   const handleRefetch = useCallback(async () => {
     await Promise.all([refetch(), refetchRefundable(), refetchEvmRefundable()])
@@ -78,7 +77,6 @@ export default function BridgeSwaps(): JSX.Element {
           <RefundableSwapsSection
             refundableSwaps={refundableSwaps}
             evmRefundableSwaps={evmRefundableSwaps}
-            evmLockedSwaps={evmLockedSwaps}
             allSwaps={swaps}
             isLoading={isLoadingRefundable || isLoadingEvmRefundable}
             onRefetch={handleRefetch}

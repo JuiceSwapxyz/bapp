@@ -211,7 +211,6 @@ function getStatusInfo(swap: SomeSwap): {
       }
 
     default:
-      logger.warn('SwapCard', 'getStatusDisplay', 'Unknown swap status', { status: swap.status, swapId: swap.id })
       return {
         label: 'Unknown',
         status: 'pending',
