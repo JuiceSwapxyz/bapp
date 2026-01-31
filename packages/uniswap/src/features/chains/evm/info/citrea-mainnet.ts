@@ -55,7 +55,16 @@ const citreaMainnet = defineChain({
       apiUrl: `${CITREA_MAINNET_EXPLORER_URL}/api`,
     },
   },
-  contracts: {},
+  contracts: {
+    ensUniversalResolver: {
+      address: '0x0Ad5C1858A176E0c212Fb2ea2649B1fAdf304e15',
+      blockCreated: 2_534_703,
+    },
+    ensRegistry: {
+      address: '0x9fA2e2370dF8014EE485172bF79d10D6756034A8',
+      blockCreated: 2_534_703,
+    },
+  },
   testnet: false,
 })
 

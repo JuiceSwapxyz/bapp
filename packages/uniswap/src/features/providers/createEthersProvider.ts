@@ -37,6 +37,16 @@ export function createEthersProvider({
     }
 
     // Otherwise, create a standard JsonRpcProvider, passing the chainId to lower the number of needed RPC calls
+    const ensAddress = chainInfo.contracts?.ensRegistry?.address
+    if (ensAddress) {
+      const network = {
+        name: chainInfo.label,
+        chainId: chainInfo.id,
+        ensAddress,
+      }
+      return new ethersProviders.JsonRpcProvider(rpcConfig.rpcUrl, network)
+    }
+
     return new ethersProviders.JsonRpcProvider(rpcConfig.rpcUrl, chainId)
   } catch (error) {
     logger.error(error, {
