@@ -110,7 +110,7 @@ export function useLaunchpadTokens(options: UseLaunchpadTokensOptions = {}) {
       }
       const data: LaunchpadTokensResponse = await response.json()
 
-      // Backend now handles chainId filtering correctly, no need for frontend filtering
+      // Backend handles chainId filtering correctly
       return data
     },
     staleTime: 10_000, // 10 seconds
