@@ -110,19 +110,7 @@ export function useLaunchpadTokens(options: UseLaunchpadTokensOptions = {}) {
       }
       const data: LaunchpadTokensResponse = await response.json()
 
-      // Frontend filtering by chainId (ensures correct filtering even if backend doesn't support it yet)
-      if (chainId) {
-        const filteredTokens = data.tokens.filter((token) => token.chainId === chainId)
-        return {
-          tokens: filteredTokens,
-          pagination: {
-            ...data.pagination,
-            total: filteredTokens.length,
-            totalPages: Math.ceil(filteredTokens.length / limit),
-          },
-        }
-      }
-
+      // Backend now handles chainId filtering correctly, no need for frontend filtering
       return data
     },
     staleTime: 10_000, // 10 seconds
