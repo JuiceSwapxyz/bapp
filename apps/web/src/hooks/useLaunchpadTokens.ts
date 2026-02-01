@@ -110,19 +110,7 @@ export function useLaunchpadTokens(options: UseLaunchpadTokensOptions = {}) {
       }
       const data: LaunchpadTokensResponse = await response.json()
 
-      // Frontend filtering by chainId (ensures correct filtering even if backend doesn't support it yet)
-      if (chainId) {
-        const filteredTokens = data.tokens.filter((token) => token.chainId === chainId)
-        return {
-          tokens: filteredTokens,
-          pagination: {
-            ...data.pagination,
-            total: filteredTokens.length,
-            totalPages: Math.ceil(filteredTokens.length / limit),
-          },
-        }
-      }
-
+      // Backend handles chainId filtering correctly
       return data
     },
     staleTime: 10_000, // 10 seconds
@@ -237,8 +225,7 @@ export function useRecentLaunchpadTrades(options: UseRecentLaunchpadTradesOption
         throw new Error('Failed to fetch recent trades')
       }
       const data: { trades: LaunchpadTrade[] } = await response.json()
-      // Frontend filtering by chainId (ensures correct filtering even if backend doesn't support it yet)
-      // Note: trades don't have chainId directly, but we filter by token's chainId via the API
+      // Backend handles chainId filtering via the joined token's chainId
       return data
     },
     staleTime: 10_000,
