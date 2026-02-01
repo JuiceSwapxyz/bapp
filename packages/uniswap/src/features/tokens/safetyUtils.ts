@@ -190,7 +190,7 @@ export function getSeverityFromTokenProtectionWarning(tokenProtectionWarning: To
     case TokenProtectionWarning.FotLow:
       return WarningSeverity.Medium
     case TokenProtectionWarning.NonDefault:
-      return WarningSeverity.Low
+      return WarningSeverity.None
     case TokenProtectionWarning.None:
       return WarningSeverity.None
   }
