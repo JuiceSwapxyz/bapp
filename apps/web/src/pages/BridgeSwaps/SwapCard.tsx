@@ -1,11 +1,14 @@
 import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { Clock } from 'ui/src/components/icons/Clock'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/utils'
+import { ASSET_CHAIN_ID_MAP } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
+import { fetchChainTransactionsBySwapId } from 'uniswap/src/features/lds-bridge/api/client'
+import { ChainTransactionsResponse } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { ChainSwap, SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { LdsSwapStatus, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
@@ -265,9 +268,42 @@ function getChainName(chainId: number | undefined): string {
   return `Chain ${chainId}`
 }
 
+function getChainNameFromAsset(asset: string): string {
+  const chainId = ASSET_CHAIN_ID_MAP[asset] as number | undefined
+  if (chainId !== undefined) {
+    return getChainName(chainId)
+  }
+  // Fallback: extract chain hint from asset name (e.g., USDT_POLYGON -> Polygon)
+  if (asset.includes('_')) {
+    const parts = asset.split('_')
+    return parts[parts.length - 1]
+  }
+  return asset
+}
+
 export function SwapCard({ swap }: SwapCardProps): JSX.Element {
   const [expanded, setExpanded] = useState(false)
+  const [chainTxData, setChainTxData] = useState<ChainTransactionsResponse | null>(null)
+  const [loadingTxData, setLoadingTxData] = useState(false)
   const statusInfo = getStatusInfo(swap)
+
+  // Load chain transaction data from API when expanded (for Chain Swaps only)
+  useEffect(() => {
+    if (expanded && isChainSwap(swap) && !chainTxData && !loadingTxData) {
+      setLoadingTxData(true)
+      fetchChainTransactionsBySwapId(swap.id)
+        .then((data) => {
+          setChainTxData(data)
+        })
+        .catch((error) => {
+          // eslint-disable-next-line no-console
+          console.warn('Failed to fetch chain transactions:', error)
+        })
+        .finally(() => {
+          setLoadingTxData(false)
+        })
+    }
+  }, [expanded, swap, chainTxData, loadingTxData])
 
   return (
     <Card onPress={() => setExpanded(!expanded)}>
@@ -321,64 +357,59 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
             <DetailValue>{swap.status || 'Unknown'}</DetailValue>
           </DetailRow>
 
-          {/* Chain Swap: Show all 4 transactions with chain labels */}
+          {/* Chain Swap: Show all transactions from API data */}
           {isChainSwap(swap) ? (
             <>
               {/* Source Chain Transactions */}
-              {(swap.sourceChainId || swap.sourceLockupTx || swap.sourceClaimTx) && (
-                <Text variant="body3" color="$neutral2" fontWeight="600" paddingTop="$spacing8">
-                  Source Chain ({getChainName(swap.sourceChainId)})
-                </Text>
-              )}
+              <Text variant="body3" color="$neutral2" fontWeight="600" paddingTop="$spacing8">
+                Source Chain ({getChainNameFromAsset(swap.assetSend)})
+              </Text>
 
-              {swap.sourceLockupTx && (
+              {loadingTxData ? (
                 <DetailRow>
-                  <DetailLabel>User Lockup Tx:</DetailLabel>
-                  <DetailValue>{shortenHash(swap.sourceLockupTx)}</DetailValue>
+                  <DetailLabel>Loading transactions...</DetailLabel>
                 </DetailRow>
-              )}
-
-              {swap.sourceClaimTx && (
-                <DetailRow>
-                  <DetailLabel>Boltz Claim Tx:</DetailLabel>
-                  <DetailValue>{shortenHash(swap.sourceClaimTx)}</DetailValue>
-                </DetailRow>
+              ) : (
+                <>
+                  {chainTxData?.userLock?.transaction.id ? (
+                    <DetailRow>
+                      <DetailLabel>User Lockup Tx:</DetailLabel>
+                      <DetailValue>{shortenHash(chainTxData.userLock.transaction.id)}</DetailValue>
+                    </DetailRow>
+                  ) : swap.lockupTx ? (
+                    <DetailRow>
+                      <DetailLabel>User Lockup Tx:</DetailLabel>
+                      <DetailValue>{shortenHash(swap.lockupTx)}</DetailValue>
+                    </DetailRow>
+                  ) : null}
+                </>
               )}
 
               {/* Destination Chain Transactions */}
-              {(swap.destChainId || swap.destLockupTx || swap.destClaimTx) && (
-                <Text variant="body3" color="$neutral2" fontWeight="600" paddingTop="$spacing8">
-                  Destination Chain ({getChainName(swap.destChainId)})
-                </Text>
-              )}
+              <Text variant="body3" color="$neutral2" fontWeight="600" paddingTop="$spacing8">
+                Destination Chain ({getChainNameFromAsset(swap.assetReceive)})
+              </Text>
 
-              {swap.destLockupTx && (
+              {loadingTxData ? (
                 <DetailRow>
-                  <DetailLabel>Boltz Lockup Tx:</DetailLabel>
-                  <DetailValue>{shortenHash(swap.destLockupTx)}</DetailValue>
+                  <DetailLabel>Loading transactions...</DetailLabel>
                 </DetailRow>
-              )}
+              ) : (
+                <>
+                  {chainTxData?.serverLock?.transaction.id && (
+                    <DetailRow>
+                      <DetailLabel>Boltz Lockup Tx:</DetailLabel>
+                      <DetailValue>{shortenHash(chainTxData.serverLock.transaction.id)}</DetailValue>
+                    </DetailRow>
+                  )}
 
-              {swap.destClaimTx && (
-                <DetailRow>
-                  <DetailLabel>User Claim Tx:</DetailLabel>
-                  <DetailValue>{shortenHash(swap.destClaimTx)}</DetailValue>
-                </DetailRow>
-              )}
-
-              {/* Fallback: Show legacy fields if new fields not populated */}
-              {!swap.sourceLockupTx && !swap.destLockupTx && swap.lockupTx && (
-                <DetailRow>
-                  <DetailLabel>Lockup Tx:</DetailLabel>
-                  <DetailValue>{shortenHash(swap.lockupTx)}</DetailValue>
-                </DetailRow>
-              )}
-
-              {!swap.sourceClaimTx && !swap.destClaimTx && swap.claimTx && (
-                <DetailRow>
-                  <DetailLabel>Claim Tx:</DetailLabel>
-                  <DetailValue>{shortenHash(swap.claimTx)}</DetailValue>
-                </DetailRow>
+                  {swap.claimTx && (
+                    <DetailRow>
+                      <DetailLabel>User Claim Tx:</DetailLabel>
+                      <DetailValue>{shortenHash(swap.claimTx)}</DetailValue>
+                    </DetailRow>
+                  )}
+                </>
               )}
             </>
           ) : (
