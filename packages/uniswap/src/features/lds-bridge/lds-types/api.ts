@@ -69,6 +69,7 @@ export interface LockupCheckResponse {
 export interface HelpMeClaimRequest {
   preimage: string
   preimageHash: string
+  chainId: number
 }
 
 export interface HelpMeClaimResponse {
