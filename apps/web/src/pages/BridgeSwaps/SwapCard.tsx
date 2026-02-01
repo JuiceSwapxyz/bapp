@@ -5,12 +5,14 @@ import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { Clock } from 'ui/src/components/icons/Clock'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { ASSET_CHAIN_ID_MAP } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
 import { fetchChainTransactionsBySwapId } from 'uniswap/src/features/lds-bridge/api/client'
 import { ChainTransactionsResponse } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { ChainSwap, SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { LdsSwapStatus, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 
 const Card = styled(Flex, {
   backgroundColor: '$surface2',
@@ -87,6 +89,19 @@ const DetailValue = styled(Text, {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   maxWidth: '60%',
+})
+
+const TxLink = styled(Text, {
+  variant: 'body3',
+  color: '$accent1',
+  fontFamily: '$mono',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  maxWidth: '60%',
+  cursor: 'pointer',
+  hoverStyle: {
+    textDecorationLine: 'underline',
+  },
 })
 
 const ExpandButton = styled(Flex, {
@@ -268,8 +283,16 @@ function getChainName(chainId: number | undefined): string {
   return `Chain ${chainId}`
 }
 
-function getChainNameFromAsset(asset: string): string {
+function getChainIdFromAsset(asset: string): UniverseChainId | undefined {
   const chainId = ASSET_CHAIN_ID_MAP[asset] as number | undefined
+  if (chainId !== undefined && isUniverseChainId(chainId)) {
+    return chainId
+  }
+  return undefined
+}
+
+function getChainNameFromAsset(asset: string): string {
+  const chainId = getChainIdFromAsset(asset)
   if (chainId !== undefined) {
     return getChainName(chainId)
   }
@@ -279,6 +302,20 @@ function getChainNameFromAsset(asset: string): string {
     return parts[parts.length - 1]
   }
   return asset
+}
+
+function openExplorerLink(params: {
+  txHash: string
+  chainId: UniverseChainId | undefined
+}): (e: React.MouseEvent) => void {
+  return (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!params.chainId) {
+      return
+    }
+    const url = getExplorerLink(params.chainId, params.txHash, ExplorerDataType.TRANSACTION)
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 }
 
 export function SwapCard({ swap }: SwapCardProps): JSX.Element {
@@ -374,12 +411,26 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
                   {chainTxData?.userLock?.transaction.id ? (
                     <DetailRow>
                       <DetailLabel>User Lockup Tx:</DetailLabel>
-                      <DetailValue>{shortenHash(chainTxData.userLock.transaction.id)}</DetailValue>
+                      <TxLink
+                        onPress={openExplorerLink({
+                          txHash: chainTxData.userLock.transaction.id,
+                          chainId: getChainIdFromAsset(swap.assetSend),
+                        })}
+                      >
+                        {shortenHash(chainTxData.userLock.transaction.id)}
+                      </TxLink>
                     </DetailRow>
                   ) : swap.lockupTx ? (
                     <DetailRow>
                       <DetailLabel>User Lockup Tx:</DetailLabel>
-                      <DetailValue>{shortenHash(swap.lockupTx)}</DetailValue>
+                      <TxLink
+                        onPress={openExplorerLink({
+                          txHash: swap.lockupTx,
+                          chainId: getChainIdFromAsset(swap.assetSend),
+                        })}
+                      >
+                        {shortenHash(swap.lockupTx)}
+                      </TxLink>
                     </DetailRow>
                   ) : null}
                 </>
@@ -399,14 +450,28 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
                   {chainTxData?.serverLock?.transaction.id && (
                     <DetailRow>
                       <DetailLabel>Boltz Lockup Tx:</DetailLabel>
-                      <DetailValue>{shortenHash(chainTxData.serverLock.transaction.id)}</DetailValue>
+                      <TxLink
+                        onPress={openExplorerLink({
+                          txHash: chainTxData.serverLock.transaction.id,
+                          chainId: getChainIdFromAsset(swap.assetReceive),
+                        })}
+                      >
+                        {shortenHash(chainTxData.serverLock.transaction.id)}
+                      </TxLink>
                     </DetailRow>
                   )}
 
                   {swap.claimTx && (
                     <DetailRow>
                       <DetailLabel>User Claim Tx:</DetailLabel>
-                      <DetailValue>{shortenHash(swap.claimTx)}</DetailValue>
+                      <TxLink
+                        onPress={openExplorerLink({
+                          txHash: swap.claimTx,
+                          chainId: getChainIdFromAsset(swap.assetReceive),
+                        })}
+                      >
+                        {shortenHash(swap.claimTx)}
+                      </TxLink>
                     </DetailRow>
                   )}
                 </>
@@ -418,14 +483,28 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
               {swap.lockupTx && (
                 <DetailRow>
                   <DetailLabel>Lockup Tx:</DetailLabel>
-                  <DetailValue>{shortenHash(swap.lockupTx)}</DetailValue>
+                  <TxLink
+                    onPress={openExplorerLink({
+                      txHash: swap.lockupTx,
+                      chainId: getChainIdFromAsset(swap.assetSend),
+                    })}
+                  >
+                    {shortenHash(swap.lockupTx)}
+                  </TxLink>
                 </DetailRow>
               )}
 
               {swap.claimTx && (
                 <DetailRow>
                   <DetailLabel>Claim Tx:</DetailLabel>
-                  <DetailValue>{shortenHash(swap.claimTx)}</DetailValue>
+                  <TxLink
+                    onPress={openExplorerLink({
+                      txHash: swap.claimTx,
+                      chainId: getChainIdFromAsset(swap.assetReceive),
+                    })}
+                  >
+                    {shortenHash(swap.claimTx)}
+                  </TxLink>
                 </DetailRow>
               )}
             </>
@@ -434,7 +513,14 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
           {swap.refundTx && (
             <DetailRow>
               <DetailLabel>Refund Tx:</DetailLabel>
-              <DetailValue>{shortenHash(swap.refundTx)}</DetailValue>
+              <TxLink
+                onPress={openExplorerLink({
+                  txHash: swap.refundTx,
+                  chainId: getChainIdFromAsset(swap.assetSend),
+                })}
+              >
+                {shortenHash(swap.refundTx)}
+              </TxLink>
             </DetailRow>
           )}
 
