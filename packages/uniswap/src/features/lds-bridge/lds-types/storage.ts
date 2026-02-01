@@ -67,6 +67,17 @@ export type ChainSwap = SwapBase &
     // Deprecated; used for backwards compatibility
     claimPrivateKey?: string
     refundPrivateKey?: string
+
+    // EVM Chain Swap: All 4 transaction IDs
+    // Source chain (where user sends funds)
+    sourceChainId?: number
+    sourceLockupTx?: string // User lockup TX on source chain
+    sourceClaimTx?: string // Boltz claim TX on source chain
+
+    // Destination chain (where user receives funds)
+    destChainId?: number
+    destLockupTx?: string // Boltz lockup TX on destination chain
+    destClaimTx?: string // User claim TX on destination chain
   }
 
 export type SomeSwap = SubmarineSwap | ReverseSwap | ChainSwap
