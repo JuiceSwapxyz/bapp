@@ -48,6 +48,9 @@ const ERC20_TOKEN_ABI = [
   'function allowance(address owner, address spender) view returns (uint256)',
 ]
 
+// MaxUint256 for unlimited approvals
+const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+
 // Simplified ABI for swap contract operations
 const SWAP_CONTRACT_ABI = [
   'function lock(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
@@ -76,7 +79,7 @@ export async function buildErc20LockupTx(params: {
 
   if (currentAllowance.toBigInt() < amount) {
     // eslint-disable-next-line no-console
-    console.log('[ERC20 Lock] Allowance insufficient, approving...', {
+    console.log('[ERC20 Lock] Allowance insufficient, approving unlimited...', {
       currentAllowance: currentAllowance.toString(),
       requiredAmount: amount.toString(),
     })
@@ -92,10 +95,11 @@ export async function buildErc20LockupTx(params: {
       console.log('[ERC20 Lock] Allowance reset confirmed')
     }
 
-    const approveTx = await tokenContract.approve(contractAddress, amount)
+    // Approve unlimited (MaxUint256) to avoid repeated approvals for future transactions
+    const approveTx = await tokenContract.approve(contractAddress, MAX_UINT256)
     await approveTx.wait()
     // eslint-disable-next-line no-console
-    console.log('[ERC20 Lock] Approval confirmed')
+    console.log('[ERC20 Lock] Unlimited approval confirmed')
   } else {
     // eslint-disable-next-line no-console
     console.log('[ERC20 Lock] Allowance sufficient, skipping approval', {
