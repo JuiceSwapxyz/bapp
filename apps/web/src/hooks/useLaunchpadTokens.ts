@@ -225,8 +225,7 @@ export function useRecentLaunchpadTrades(options: UseRecentLaunchpadTradesOption
         throw new Error('Failed to fetch recent trades')
       }
       const data: { trades: LaunchpadTrade[] } = await response.json()
-      // Frontend filtering by chainId (ensures correct filtering even if backend doesn't support it yet)
-      // Note: trades don't have chainId directly, but we filter by token's chainId via the API
+      // Backend handles chainId filtering via the joined token's chainId
       return data
     },
     staleTime: 10_000,
