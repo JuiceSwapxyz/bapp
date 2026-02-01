@@ -5,6 +5,7 @@ import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { Clock } from 'ui/src/components/icons/Clock'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
+import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { ChainSwap, SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { LdsSwapStatus, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
@@ -250,7 +251,7 @@ function shortenHash(hash: string, chars = 8): string {
   return `${hash.slice(0, chars)}...${hash.slice(-chars)}`
 }
 
-function isChainSwap(swap: SomeSwap): swap is ChainSwap & { id: string } {
+function isChainSwap(swap: SomeSwap): swap is ChainSwap {
   return swap.type === SwapType.Chain
 }
 
@@ -258,20 +259,10 @@ function getChainName(chainId: number | undefined): string {
   if (!chainId) {
     return 'Unknown'
   }
-  switch (chainId) {
-    case 1:
-      return 'Ethereum'
-    case 137:
-      return 'Polygon'
-    case 4114:
-      return 'Citrea'
-    case 5115:
-      return 'Citrea Testnet'
-    case 80002:
-      return 'Polygon Amoy'
-    default:
-      return `Chain ${chainId}`
+  if (isUniverseChainId(chainId)) {
+    return getChainLabel(chainId)
   }
+  return `Chain ${chainId}`
 }
 
 export function SwapCard({ swap }: SwapCardProps): JSX.Element {
