@@ -99,6 +99,7 @@ const TxLink = styled(Text, {
   textOverflow: 'ellipsis',
   maxWidth: '60%',
   cursor: 'pointer',
+  textDecorationLine: 'none',
   hoverStyle: {
     textDecorationLine: 'underline',
   },
@@ -304,18 +305,11 @@ function getChainNameFromAsset(asset: string): string {
   return asset
 }
 
-function openExplorerLink(params: {
-  txHash: string
-  chainId: UniverseChainId | undefined
-}): (e: React.MouseEvent) => void {
-  return (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (!params.chainId) {
-      return
-    }
-    const url = getExplorerLink(params.chainId, params.txHash, ExplorerDataType.TRANSACTION)
-    window.open(url, '_blank', 'noopener,noreferrer')
+function getExplorerUrl(txHash: string, chainId: UniverseChainId | undefined): string | undefined {
+  if (!chainId) {
+    return undefined
   }
+  return getExplorerLink(chainId, txHash, ExplorerDataType.TRANSACTION)
 }
 
 export function SwapCard({ swap }: SwapCardProps): JSX.Element {
@@ -412,10 +406,11 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
                     <DetailRow>
                       <DetailLabel>User Lockup Tx:</DetailLabel>
                       <TxLink
-                        onPress={openExplorerLink({
-                          txHash: chainTxData.userLock.transaction.id,
-                          chainId: getChainIdFromAsset(swap.assetSend),
-                        })}
+                        tag="a"
+                        href={getExplorerUrl(chainTxData.userLock.transaction.id, getChainIdFromAsset(swap.assetSend))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         {shortenHash(chainTxData.userLock.transaction.id)}
                       </TxLink>
@@ -424,10 +419,11 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
                     <DetailRow>
                       <DetailLabel>User Lockup Tx:</DetailLabel>
                       <TxLink
-                        onPress={openExplorerLink({
-                          txHash: swap.lockupTx,
-                          chainId: getChainIdFromAsset(swap.assetSend),
-                        })}
+                        tag="a"
+                        href={getExplorerUrl(swap.lockupTx, getChainIdFromAsset(swap.assetSend))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         {shortenHash(swap.lockupTx)}
                       </TxLink>
@@ -451,10 +447,14 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
                     <DetailRow>
                       <DetailLabel>Boltz Lockup Tx:</DetailLabel>
                       <TxLink
-                        onPress={openExplorerLink({
-                          txHash: chainTxData.serverLock.transaction.id,
-                          chainId: getChainIdFromAsset(swap.assetReceive),
-                        })}
+                        tag="a"
+                        href={getExplorerUrl(
+                          chainTxData.serverLock.transaction.id,
+                          getChainIdFromAsset(swap.assetReceive),
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         {shortenHash(chainTxData.serverLock.transaction.id)}
                       </TxLink>
@@ -465,10 +465,11 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
                     <DetailRow>
                       <DetailLabel>User Claim Tx:</DetailLabel>
                       <TxLink
-                        onPress={openExplorerLink({
-                          txHash: swap.claimTx,
-                          chainId: getChainIdFromAsset(swap.assetReceive),
-                        })}
+                        tag="a"
+                        href={getExplorerUrl(swap.claimTx, getChainIdFromAsset(swap.assetReceive))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         {shortenHash(swap.claimTx)}
                       </TxLink>
@@ -484,10 +485,11 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
                 <DetailRow>
                   <DetailLabel>Lockup Tx:</DetailLabel>
                   <TxLink
-                    onPress={openExplorerLink({
-                      txHash: swap.lockupTx,
-                      chainId: getChainIdFromAsset(swap.assetSend),
-                    })}
+                    tag="a"
+                    href={getExplorerUrl(swap.lockupTx, getChainIdFromAsset(swap.assetSend))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
                   >
                     {shortenHash(swap.lockupTx)}
                   </TxLink>
@@ -498,10 +500,11 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
                 <DetailRow>
                   <DetailLabel>Claim Tx:</DetailLabel>
                   <TxLink
-                    onPress={openExplorerLink({
-                      txHash: swap.claimTx,
-                      chainId: getChainIdFromAsset(swap.assetReceive),
-                    })}
+                    tag="a"
+                    href={getExplorerUrl(swap.claimTx, getChainIdFromAsset(swap.assetReceive))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
                   >
                     {shortenHash(swap.claimTx)}
                   </TxLink>
@@ -514,10 +517,11 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
             <DetailRow>
               <DetailLabel>Refund Tx:</DetailLabel>
               <TxLink
-                onPress={openExplorerLink({
-                  txHash: swap.refundTx,
-                  chainId: getChainIdFromAsset(swap.assetSend),
-                })}
+                tag="a"
+                href={getExplorerUrl(swap.refundTx, getChainIdFromAsset(swap.assetSend))}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
               >
                 {shortenHash(swap.refundTx)}
               </TxLink>
