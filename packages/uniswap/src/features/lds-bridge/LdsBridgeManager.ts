@@ -369,6 +369,7 @@ class LdsBridgeManager extends SwapEventEmitter {
     const { txHash } = await helpMeClaim({
       preimage: swap.preimage,
       preimageHash: prefix0x(swap.preimageHash),
+      chainId
     })
 
     swap.claimTx = txHash
