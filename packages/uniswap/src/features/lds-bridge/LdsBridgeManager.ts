@@ -224,16 +224,6 @@ class LdsBridgeManager extends SwapEventEmitter {
 
     await this.storageManager.setSwap(reverseInvoiceResponse.id, reverseSwap)
 
-    // Register preimage with ponder_claim for automatic claiming
-    registerPreimage({
-      preimageHash: reverseSwap.preimageHash,
-      preimage: reverseSwap.preimage,
-      swapId: reverseInvoiceResponse.id,
-    }).catch((error) => {
-      // eslint-disable-next-line no-console
-      console.error('Failed to register preimage:', error)
-    })
-
     this._subscribeToSwapUpdates(reverseInvoiceResponse.id)
     this.startBackgroundPolling()
     await this._notifySwapChanges()
@@ -345,17 +335,6 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
 
     await this.storageManager.setSwap(chainSwapResponse.id, chainSwap)
-
-    if (params.to !== 'BTC') {
-      registerPreimage({
-        preimageHash: chainSwap.preimageHash,
-        preimage: chainSwap.preimage,
-        swapId: chainSwapResponse.id,
-      }).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error('Failed to register preimage:', error)
-      })
-    }
 
     this._subscribeToSwapUpdates(chainSwapResponse.id)
     this.startBackgroundPolling()
