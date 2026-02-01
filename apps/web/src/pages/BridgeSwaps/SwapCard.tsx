@@ -309,7 +309,7 @@ function getExplorerUrl(txHash: string, chainId: UniverseChainId | undefined): s
   if (!chainId) {
     return undefined
   }
-  return getExplorerLink(chainId, txHash, ExplorerDataType.TRANSACTION)
+  return getExplorerLink({ chainId, data: txHash, type: ExplorerDataType.TRANSACTION })
 }
 
 export function SwapCard({ swap }: SwapCardProps): JSX.Element {
