@@ -37,7 +37,7 @@ function StepItem({ label, status }: StepItemProps): JSX.Element {
   return (
     <Flex row alignItems="center" gap="$spacing8">
       {status === 'completed' ? (
-        <Check size={iconSizes.icon16} color="$statusSuccess" />
+        <Check size={iconSizes.icon16} color="$accent1" />
       ) : status === 'active' ? (
         <SpinningLoader size={iconSizes.icon16} color="$accent1" />
       ) : (
@@ -47,7 +47,7 @@ function StepItem({ label, status }: StepItemProps): JSX.Element {
       )}
       <Text
         variant="body3"
-        color={status === 'completed' ? '$statusSuccess' : status === 'active' ? '$neutral1' : '$neutral3'}
+        color={status === 'completed' ? '$accent1' : status === 'active' ? '$neutral1' : '$neutral3'}
       >
         {label}
       </Text>
