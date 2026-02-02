@@ -5,6 +5,7 @@ import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { useAccount } from 'hooks/useAccount'
 import { useBondingCurveBalance, useCalculateBuy, useCalculateSell } from 'hooks/useBondingCurveToken'
 import { calculateMinOutput, useBuy, useGraduate, useSell } from 'hooks/useLaunchpadActions'
+import useSelectChain from 'hooks/useSelectChain'
 import { useTokenAllowance, useUpdateTokenAllowance } from 'hooks/useTokenAllowance'
 import styledComponents from 'lib/styled-components'
 import { useCallback, useMemo, useState } from 'react'
@@ -206,6 +207,7 @@ export function BuySellPanel({
 
   const navigate = useNavigate()
   const account = useAccount()
+  const selectChain = useSelectChain()
   const accountDrawer = useAccountDrawer()
   const addTransaction = useTransactionAdder()
   const queryClient = useQueryClient()
@@ -380,6 +382,17 @@ export function BuySellPanel({
 
   const handleGraduate = useCallback(async () => {
     setIsGraduating(true)
+
+    // Ensure user is on the correct chain before graduating
+    if (chainId && account.chainId !== chainId) {
+      const switched = await selectChain(chainId)
+      if (!switched) {
+        setError('Please switch to the correct network')
+        setIsGraduating(false)
+        return
+      }
+    }
+
     try {
       const tx = await graduate()
       addTransaction(tx, {
@@ -411,7 +424,7 @@ export function BuySellPanel({
     } finally {
       setIsGraduating(false)
     }
-  }, [graduate, addTransaction, tokenAddress, tokenSymbol, onGraduateComplete])
+  }, [graduate, addTransaction, tokenAddress, tokenSymbol, onGraduateComplete, chainId, account.chainId, selectChain])
 
   const handleAction = useCallback(async () => {
     if (!parsedAmount || parsedAmount === 0n || !account.address) {
@@ -420,6 +433,17 @@ export function BuySellPanel({
 
     setIsLoading(true)
     setError(null)
+
+    // Ensure user is on the correct chain before any transactions
+    if (chainId && account.chainId !== chainId) {
+      const switched = await selectChain(chainId)
+      if (!switched) {
+        setError('Please switch to the correct network')
+        setIsLoading(false)
+        return
+      }
+    }
+
     try {
       if (isBuy) {
         if (needsBaseApproval) {
@@ -529,6 +553,7 @@ export function BuySellPanel({
   }, [
     parsedAmount,
     account.address,
+    account.chainId,
     isBuy,
     needsBaseApproval,
     needsTokenApproval,
@@ -545,6 +570,8 @@ export function BuySellPanel({
     tokenSymbol,
     tokenAddress,
     queryClient,
+    chainId,
+    selectChain,
   ])
 
   const needsGraduation = canGraduate && !graduated
