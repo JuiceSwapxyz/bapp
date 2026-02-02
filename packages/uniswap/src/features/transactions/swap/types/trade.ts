@@ -609,7 +609,7 @@ export class BridgeTrade {
   readonly executionPrice: Price<Currency, Currency>
 
   readonly tradeType: TradeType
-  readonly routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP
+  readonly routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP | Routing.WBTC_BRIDGE
   readonly indicative = false
   readonly swapFee?: SwapFee
   readonly inputTax: Percent = ZERO_PERCENT
@@ -621,7 +621,7 @@ export class BridgeTrade {
 
   constructor({ quote, currencyIn, currencyOut, tradeType }: { quote: BridgeQuoteResponse, currencyIn: Currency, currencyOut: Currency, tradeType: TradeType }) {
     this.quote = quote
-    this.routing = quote.routing as Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP
+    this.routing = quote.routing as Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP | Routing.WBTC_BRIDGE
     this.swapFee = getSwapFee(quote)
 
     const quoteInputAmount = quote.quote.input?.amount

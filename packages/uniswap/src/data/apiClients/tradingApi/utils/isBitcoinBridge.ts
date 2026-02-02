@@ -4,6 +4,10 @@ import { ChainId, QuoteRequest } from 'uniswap/src/data/tradingApi/__generated__
 // Citrea chain IDs (Mainnet and Testnet)
 const CITREA_CHAIN_IDS = [ChainId._4114, ChainId._5115]
 
+// WBTC address on Ethereum Mainnet
+export const WBTC_ETHEREUM_ADDRESS = '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
+const WBTC_ETHEREUM_ADDRESS_LOWER = WBTC_ETHEREUM_ADDRESS.toLowerCase()
+
 export const isCitreaChainId = (chainId: ChainId | undefined): boolean => {
   return chainId !== undefined && CITREA_CHAIN_IDS.includes(chainId)
 }
@@ -47,4 +51,33 @@ export enum Erc20ChainSwapDirection {
   CitreaToPolygon = 'CitreaToPolygon',
   EthereumToCitrea = 'EthereumToCitrea',
   CitreaToEthereum = 'CitreaToEthereum',
+}
+
+export enum WbtcBridgeDirection {
+  EthereumToCitrea = 'WbtcEthereumToCitrea',
+  CitreaToEthereum = 'WbtcCitreaToEthereum',
+}
+
+/**
+ * Checks if the quote request is a WBTC bridge swap between Ethereum and Citrea.
+ * WBTC (ERC20 on Ethereum) <-> cBTC (native on Citrea)
+ */
+export const isWbtcBridgeQuote = (params: QuoteRequest): boolean => {
+  const { tokenInChainId, tokenOutChainId, tokenIn, tokenOut } = params
+
+  // WBTC (Ethereum) -> cBTC (Citrea native)
+  const isWbtcToCbtc =
+    tokenInChainId === ChainId._1 &&
+    isCitreaChainId(tokenOutChainId) &&
+    tokenIn?.toLowerCase() === WBTC_ETHEREUM_ADDRESS_LOWER &&
+    (!tokenOut || tokenOut === ZERO_ADDRESS)
+
+  // cBTC (Citrea native) -> WBTC (Ethereum)
+  const isCbtcToWbtc =
+    isCitreaChainId(tokenInChainId) &&
+    tokenOutChainId === ChainId._1 &&
+    (!tokenIn || tokenIn === ZERO_ADDRESS) &&
+    tokenOut?.toLowerCase() === WBTC_ETHEREUM_ADDRESS_LOWER
+
+  return isWbtcToCbtc || isCbtcToWbtc
 }

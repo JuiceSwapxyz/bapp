@@ -167,10 +167,11 @@ responseFiles.forEach((file) => {
 addImport(bridgeQuoteFile, 'LightningBridgeDirection')
 addImport(bridgeQuoteFile, 'BitcoinBridgeDirection')
 addImport(bridgeQuoteFile, 'Erc20ChainSwapDirection')
+addImport(bridgeQuoteFile, 'WbtcBridgeDirection')
 modifyType(bridgeQuoteFile, 'BridgeQuote', [
   {
     name: 'direction',
-    type: 'LightningBridgeDirection | BitcoinBridgeDirection | Erc20ChainSwapDirection',
+    type: 'LightningBridgeDirection | BitcoinBridgeDirection | Erc20ChainSwapDirection | WbtcBridgeDirection',
     isOptional: true,
   },
 ])
@@ -185,6 +186,7 @@ addEnumMember(routingFile, 'Routing', { name: 'JUPITER', value: 'JUPITER' })
 addEnumMember(routingFile, 'Routing', { name: 'BITCOIN_BRIDGE', value: 'BITCOIN_BRIDGE' })
 addEnumMember(routingFile, 'Routing', { name: 'LN_BRIDGE', value: 'LN_BRIDGE' })
 addEnumMember(routingFile, 'Routing', { name: 'ERC20_CHAIN_SWAP', value: 'ERC20_CHAIN_SWAP' })
+addEnumMember(routingFile, 'Routing', { name: 'WBTC_BRIDGE', value: 'WBTC_BRIDGE' })
 addEnumMember(chainIdFile, 'ChainId', { name: '_4114', value: 4114 })
 addEnumMember(chainIdFile, 'ChainId', { name: '_5115', value: 5115 })
 addEnumMember(chainIdFile, 'ChainId', { name: '_21_000_000', value: 21000000 })

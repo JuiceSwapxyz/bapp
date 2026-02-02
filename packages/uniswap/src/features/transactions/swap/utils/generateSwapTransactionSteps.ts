@@ -1,4 +1,4 @@
-import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
+import { Erc20ChainSwapDirection, WbtcBridgeDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { BridgeQuote } from 'uniswap/src/data/tradingApi/__generated__'
 import { BitcoinBridgeDirection, LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { createApprovalTransactionStep } from 'uniswap/src/features/transactions/steps/approve'
@@ -9,6 +9,7 @@ import { TransactionStep } from 'uniswap/src/features/transactions/steps/types'
 import { createBitcoinBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { orderClassicSwapSteps } from 'uniswap/src/features/transactions/swap/steps/classicSteps'
 import { createErc20ChainSwapStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
+import { createWbtcBridgeStep } from 'uniswap/src/features/transactions/swap/steps/wbtcBridge'
 import { createLightningBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { createSignUniswapXOrderStep } from 'uniswap/src/features/transactions/swap/steps/signOrder'
 import {
@@ -31,6 +32,7 @@ import {
   isGatewayJusd,
   isLightningBridge,
   isUniswapX,
+  isWbtcBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
 
 // eslint-disable-next-line complexity
@@ -102,6 +104,10 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo, _v4Ena
       // ERC20 chain swaps have routing ERC20_CHAIN_SWAP
       const direction = (trade.quote.quote as BridgeQuote).direction as Erc20ChainSwapDirection
       return [createErc20ChainSwapStep(direction)]
+    } else if (isWbtcBridge(txContext)) {
+      // WBTC bridge swaps have routing WBTC_BRIDGE
+      const direction = (trade.quote.quote as BridgeQuote).direction as WbtcBridgeDirection
+      return [createWbtcBridgeStep(direction)]
     } else if (isBridge(txContext)) {
       // Regular bridge swaps require txRequests
       if (txContext.txRequests && txContext.txRequests.length > 1) {

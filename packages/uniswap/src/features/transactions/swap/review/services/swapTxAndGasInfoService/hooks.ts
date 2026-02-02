@@ -152,6 +152,7 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [Routing.CLASSIC]: classicSwapTxInfoService,
       [Routing.BRIDGE]: bridgeSwapTxInfoService,
       [Routing.ERC20_CHAIN_SWAP]: erc20ChainSwapTxInfoService,
+      [Routing.WBTC_BRIDGE]: erc20ChainSwapTxInfoService, // WBTC bridge uses same service as ERC20 chain swap
       [Routing.PRIORITY]: uniswapXSwapTxInfoService,
       [Routing.DUTCH_V2]: uniswapXSwapTxInfoService,
       [Routing.DUTCH_V3]: uniswapXSwapTxInfoService,
