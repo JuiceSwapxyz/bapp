@@ -151,7 +151,7 @@ const SLIPPAGE_ERROR_PATTERNS = [
   /price.*moved/i,
   /price.*change/i,
   /INSUFFICIENT_OUTPUT_AMOUNT/i,
-  /STF/i, // "Swap Too Few" error from some DEXs
+  /\bSTF\b/i, // "Swap Too Few" error from some DEXs (word boundary to avoid false positives)
 ]
 
 /**
