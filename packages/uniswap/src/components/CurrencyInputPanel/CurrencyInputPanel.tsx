@@ -215,7 +215,16 @@ export const CurrencyInputPanel = memo(
                     ) : (
                       <Flex row centered gap="$spacing8">
                         <TouchableArea onPress={() => onSetExactAmount(minLimitValue)}>
-                          <Flex row centered gap="$spacing2">
+                          <Flex
+                            row
+                            centered
+                            gap="$spacing2"
+                            hoverStyle={{
+                              backgroundColor: '$accent2Hovered',
+                            }}
+                            borderRadius="$rounded12"
+                            p="$spacing2"
+                          >
                             <Button
                               size="xxsmall"
                               variant="branded"
@@ -238,7 +247,16 @@ export const CurrencyInputPanel = memo(
                           </Flex>
                         </TouchableArea>
                         <TouchableArea onPress={() => onSetExactAmount(maxLimitValue)}>
-                          <Flex row centered gap="$spacing2">
+                          <Flex
+                            row
+                            centered
+                            gap="$spacing2"
+                            hoverStyle={{
+                              backgroundColor: '$accent2Hovered',
+                            }}
+                            borderRadius="$rounded12"
+                            p="$spacing2"
+                          >
                             <Button
                               size="xxsmall"
                               variant="branded"
