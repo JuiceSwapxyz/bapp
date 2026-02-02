@@ -2,7 +2,7 @@ import { Routing, CreateSwapRequest } from "uniswap/src/data/tradingApi/__genera
 import { GasEstimate } from "uniswap/src/data/tradingApi/types"
 import { GasFeeResult, ValidatedGasFeeResult, validateGasFeeResult } from "uniswap/src/features/gas/types"
 import { BridgeTrade, BitcoinBridgeTrade, LightningBridgeTrade, ClassicTrade, GatewayJusdTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
-import { isBridge, isBitcoinBridge, isErc20ChainSwap, isLightningBridge, isClassic, isGatewayJusd, isUniswapX, isWrap, GatewayJusdRouting } from "uniswap/src/features/transactions/swap/utils/routing"
+import { isBridge, isBitcoinBridge, isErc20ChainSwap, isLightningBridge, isClassic, isGatewayJusd, isUniswapX, isWrap, isWbtcBridge, GatewayJusdRouting } from "uniswap/src/features/transactions/swap/utils/routing"
 import { isInterface } from "utilities/src/platform"
 import { Prettify } from "viem"
 import { ValidatedPermit } from "uniswap/src/features/transactions/swap/utils/trade"
@@ -93,7 +93,7 @@ export interface UniswapXSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
 }
 
 export interface BridgeSwapTxAndGasInfo extends BaseSwapTxAndGasInfo {
-  routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP
+  routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP | Routing.WBTC_BRIDGE
   trade: BridgeTrade
   txRequests: PopulatedTransactionRequestArray | undefined
 }
@@ -208,9 +208,9 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
       return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation, destinationAddress }
     } else if (isBridge(swapTxContext)) {
       const { trade, txRequests, includesDelegation } = swapTxContext
-      
-      // ERC20 chain swaps don't require txRequests since Boltz handles the swap
-      if (isErc20ChainSwap(swapTxContext)) {
+
+      // ERC20 chain swaps and WBTC bridge don't require txRequests since Boltz handles the swap
+      if (isErc20ChainSwap(swapTxContext) || isWbtcBridge(swapTxContext)) {
         return {
           ...swapTxContext,
           trade,
@@ -219,7 +219,7 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
           includesDelegation,
         } as ValidatedBridgeSwapTxAndGasInfo
       }
-      
+
       if (txRequests) {
         return { ...swapTxContext, trade, gasFee, txRequests, includesDelegation }
       }

@@ -12,6 +12,9 @@ import {
   isCitreaChainId,
   isErc20ChainSwapQuote,
   isLnBitcoinBridgeQuote,
+  isWbtcBridgeQuote,
+  WBTC_ETHEREUM_ADDRESS,
+  WbtcBridgeDirection,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import {
   swappableTokensData,
@@ -117,7 +120,7 @@ export type ClassicQuoteResponse = QuoteResponse & {
 
 export type BridgeQuoteResponse = QuoteResponse & {
   quote: BridgeQuote
-  routing: Routing.BRIDGE | Routing.BITCOIN_BRIDGE | Routing.LN_BRIDGE | Routing.ERC20_CHAIN_SWAP
+  routing: Routing.BRIDGE | Routing.BITCOIN_BRIDGE | Routing.LN_BRIDGE | Routing.ERC20_CHAIN_SWAP | Routing.WBTC_BRIDGE
 }
 
 // GATEWAY_JUSD is a custom routing type for JuiceSwap Gateway (JUSD abstraction)
@@ -549,6 +552,117 @@ async function getErc20ChainSwapQuote(params: QuoteRequest): Promise<BridgeQuote
   return response
 }
 
+const getWbtcBridgeDirection = (params: QuoteRequest): WbtcBridgeDirection => {
+  if (params.tokenInChainId === ChainId._1 && isCitreaChainId(params.tokenOutChainId)) {
+    return WbtcBridgeDirection.EthereumToCitrea
+  }
+  if (isCitreaChainId(params.tokenInChainId) && params.tokenOutChainId === ChainId._1) {
+    return WbtcBridgeDirection.CitreaToEthereum
+  }
+  throw new Error('Invalid WBTC bridge direction')
+}
+
+const getWbtcBridgeStateParams = async (direction: WbtcBridgeDirection): Promise<BridgeStateParams> => {
+  const ldsBridge = getLdsBridgeManager()
+  const chainPairs = await ldsBridge.getChainPairs()
+
+  const pair =
+    direction === WbtcBridgeDirection.EthereumToCitrea ? chainPairs.WBTC_ETH?.cBTC : chainPairs.cBTC?.WBTC_ETH
+
+  if (!pair) {
+    throw new Error(`WBTC bridge pair not found for direction: ${direction}`)
+  }
+
+  const { fees, limits } = pair
+  return {
+    fees: {
+      percentage: fees.percentage,
+      minerFees: fees.minerFees.server + fees.minerFees.user.claim,
+    },
+    limits: {
+      maximal: limits.maximal,
+      minimal: limits.minimal,
+    },
+  }
+}
+
+async function getWbtcBridgeQuote(params: QuoteRequest): Promise<BridgeQuoteResponse> {
+  const inputAmount = params.amount
+  const direction = getWbtcBridgeDirection(params)
+
+  // WBTC has 8 decimals on Ethereum, cBTC has 18 decimals on Citrea
+  const inputDecimals = direction === WbtcBridgeDirection.EthereumToCitrea ? 8 : 18
+  const outputDecimals = direction === WbtcBridgeDirection.EthereumToCitrea ? 18 : 8
+
+  const { fees, limits } = await getWbtcBridgeStateParams(direction)
+  const { percentage, minerFees } = fees
+
+  const outputAmount = calculateOutputAmountAfterFees({
+    inputAmount,
+    inputDecimals,
+    outputDecimals,
+    percentage,
+    minerFees,
+  })
+
+  // Convert to sats (8 decimals) for limit checking
+  const inputAmountInSats = adjustAmountForDecimals({
+    amount: inputAmount,
+    inputDecimals,
+    outputDecimals: 8,
+  })
+
+  if (inputAmountInSats < limits.minimal) {
+    throw new FetchError({
+      response: new Response(null, { status: 404 }),
+      data: {
+        errorCode: Err404.errorCode.QUOTE_AMOUNT_TOO_LOW_ERROR,
+        detail: `Amount is below minimum limit of ${limits.minimal} sats`,
+      },
+    })
+  }
+
+  if (inputAmountInSats > limits.maximal) {
+    throw new FetchError({
+      response: new Response(null, { status: 404 }),
+      data: {
+        errorCode: Err404.errorCode.QUOTE_AMOUNT_TOO_HIGH,
+        detail: `Amount exceeds maximum limit of ${limits.maximal} sats`,
+      },
+    })
+  }
+
+  const bridgeQuote: BridgeQuote = {
+    quoteId: `wbtc-bridge-${Date.now()}`,
+    chainId: params.tokenInChainId,
+    destinationChainId: params.tokenOutChainId,
+    swapper: params.swapper,
+    direction,
+    input: {
+      amount: inputAmount,
+      token: params.tokenIn,
+    },
+    output: {
+      amount: outputAmount,
+      token: params.tokenOut,
+    },
+    tradeType: params.type,
+    gasUseEstimate: '21000',
+    estimatedFillTimeMs: 300000,
+  }
+
+  const routing = Routing.WBTC_BRIDGE
+
+  const response: BridgeQuoteResponse = {
+    requestId: `wbtc-bridge-${Date.now()}`,
+    quote: bridgeQuote,
+    routing,
+    permitData: null,
+  }
+
+  return response
+}
+
 export const swapQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
   return CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
     body: JSON.stringify({
@@ -579,6 +693,10 @@ export async function fetchQuote({
 
   if (isErc20ChainSwapQuote(params)) {
     return await getErc20ChainSwapQuote(params)
+  }
+
+  if (isWbtcBridgeQuote(params)) {
+    return await getWbtcBridgeQuote(params)
   }
 
   return await swapQuote(params)
