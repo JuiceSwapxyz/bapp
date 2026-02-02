@@ -9,7 +9,7 @@ import type {
   CreateReverseSwapRequest,
   CreateReverseSwapResponse,
   CreateSubmarineSwapRequest,
-  EvmRefundableLockup,
+  EvmLockup,
   HelpMeClaimRequest,
   HelpMeClaimResponse,
   LightningBridgeReverseGetResponse,
@@ -34,7 +34,7 @@ export type {
   CreateReverseSwapRequest,
   CreateReverseSwapResponse,
   CreateSubmarineSwapRequest,
-  EvmRefundableLockup,
+  EvmLockup as EvmRefundableLockup,
   HelpMeClaimRequest,
   HelpMeClaimResponse,
   LightningBridgeReverseGetResponse,
@@ -150,44 +150,66 @@ export async function fetchChainFee(): Promise<{ BTC: number }> {
   return await LdsApiClient.get<{ BTC: number }>(`/swap/v2/chain/fees`)
 }
 
-export async function fetchEvmRefundableLockups(refundAddress: string): Promise<EvmRefundableLockup[]> {
-  if (!refundAddress) {
-    return []
+export async function fetchEvmRefundableAndClaimableLockups(address: string): Promise<{ refundable: EvmLockup[]; claimable: EvmLockup[] }> {
+  if (!address) {
+    return { refundable: [], claimable: [] }
   }
 
   const response = await LdsApiClient.post<LockupsResponse>('/claim/graphql', {
     body: JSON.stringify({
-      query: `{
-        lockupss(
-          where: {
-            refundAddress: "${refundAddress.toLowerCase()}",
-            refundTxHash: null
-            claimed: false
+      query: `
+        query ClaimableAndRefundable($address: String = "${address.toLowerCase()}") {
+          refundable: lockupss(
+            where: { refundAddress: $address, refundTxHash: null, claimed: false }
+            orderBy: "timelock"
+            orderDirection: "asc"
+            limit: 1000
+          ) {
+            items {
+              preimageHash
+              chainId
+              amount
+              claimAddress
+              refundAddress
+              timelock
+              tokenAddress
+              swapType
+              claimed
+              refunded
+              claimTxHash
+              refundTxHash
+            }
           }
-          orderBy: "timelock"
-          orderDirection: "asc"
-          limit: 1000
-        ) {
-          items {
-            preimageHash
-            chainId
-            amount
-            claimAddress
-            refundAddress
-            timelock
-            tokenAddress
-            swapType
-            claimed
-            refunded
-            claimTxHash
-            refundTxHash
+          claimable: lockupss(
+            where: { claimAddress: $address, claimTxHash: null, claimed: false, refunded: false }
+            orderBy: "timelock"
+            orderDirection: "asc"
+            limit: 1000
+          ) {
+            items {
+              preimageHash
+              chainId
+              amount
+              claimAddress
+              refundAddress
+              timelock
+              tokenAddress
+              swapType
+              claimed
+              refunded
+              claimTxHash
+              refundTxHash
+            }
           }
         }
-      }`,
+      `,
     }),
   })
 
-  return response.data.lockupss.items
+  return {
+    refundable: response.data.refundable?.items || [],
+    claimable: response.data.claimable?.items || [],
+  }
 }
 
 export async function fetchUserClaimsAndRefunds(address: string): Promise<UserClaimsAndRefunds> {

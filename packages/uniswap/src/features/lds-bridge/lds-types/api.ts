@@ -226,9 +226,9 @@ export interface RegisterPreimageResponse {
   success: boolean
 }
 
-export interface EvmRefundableLockup {
+export interface EvmLockup {
   preimageHash: string
-  chainId: string
+  chainId: number
   amount: string
   claimAddress: string
   refundAddress: string
@@ -243,8 +243,11 @@ export interface EvmRefundableLockup {
 
 export interface LockupsResponse {
   data: {
-    lockupss: {
-      items: EvmRefundableLockup[]
+    refundable: {
+      items: EvmLockup[]
+    }
+    claimable: {
+      items: EvmLockup[]
     }
   }
 }

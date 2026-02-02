@@ -131,3 +131,50 @@ export const AddressInput = styled(Input, {
     borderColor: '$accent1',
   },
 })
+
+export const ClaimableSection = styled(Flex, {
+  gap: '$spacing16',
+  padding: '$spacing20',
+  backgroundColor: '$surface2',
+  borderRadius: '$rounded16',
+  borderWidth: 2,
+  borderColor: '$statusSuccess',
+})
+
+export const ClaimableSwapCard = styled(Flex, {
+  backgroundColor: '$surface3',
+  borderRadius: '$rounded12',
+  padding: '$spacing12',
+  gap: '$spacing8',
+  flexDirection: 'column',
+
+  variants: {
+    highlighted: {
+      true: {
+        borderWidth: 1,
+        borderColor: '$surface3',
+        backgroundColor: '$surface2',
+      },
+    },
+  } as const,
+})
+
+export const ClaimButton = styled(Button, {
+  backgroundColor: '$statusSuccess',
+  borderRadius: '$rounded12',
+  paddingHorizontal: '$spacing12',
+  paddingVertical: '$spacing8',
+  width: '100%',
+  alignSelf: 'stretch',
+  minHeight: 36,
+  hoverStyle: {
+    opacity: 0.9,
+  },
+  pressStyle: {
+    opacity: 0.8,
+  },
+  disabledStyle: {
+    opacity: 0.5,
+    backgroundColor: '$surface3',
+  },
+})
