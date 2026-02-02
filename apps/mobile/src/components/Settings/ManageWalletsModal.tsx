@@ -26,7 +26,6 @@ import { AddressDisplay } from 'uniswap/src/components/accounts/AddressDisplay'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import { useUnitagsAddressQuery } from 'uniswap/src/data/apiClients/unitagsApi/useUnitagsAddressQuery'
 import { AccountType } from 'uniswap/src/features/accounts/types'
-import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useENS } from 'uniswap/src/features/ens/useENS'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { MobileScreens } from 'uniswap/src/types/screens/mobile'
@@ -47,11 +46,10 @@ export function ManageWalletsModal({ route }: AppStackScreenProp<typeof ModalNam
   const currentAccount = addressToAccount[address]
   const { sessions } = useWalletConnect(address)
 
-  const { defaultChainId } = useEnabledChains()
   const { data: unitag } = useUnitagsAddressQuery({
     params: address ? { address } : undefined,
   })
-  const ensName = useENS({ nameOrAddress: address, chainId: defaultChainId }).name
+  const ensName = useENS({ nameOrAddress: address }).name
   const onlyLabeledWallet = ensName === null && unitag?.username === undefined
 
   const { canClaimUnitag } = useCanAddressClaimUnitag(address)
