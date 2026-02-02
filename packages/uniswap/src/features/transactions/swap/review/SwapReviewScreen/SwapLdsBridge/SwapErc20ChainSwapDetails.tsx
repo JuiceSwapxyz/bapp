@@ -104,46 +104,8 @@ export function SwapErc20ChainSwapDetails(): JSX.Element | null {
   const bridgeStatus = getStepStatus(bridgeSubSteps, subStep)
   const claimStatus = getStepStatus(claimSubSteps, subStep)
 
-  // Detailed status text based on current substep
-  let statusText = t('swap.crossChain.preparing')
-  if (subStep) {
-    switch (subStep) {
-      case Erc20ChainSwapSubStep.CheckingAllowance:
-        statusText = t('swap.crossChain.checkingAllowance')
-        break
-      case Erc20ChainSwapSubStep.WaitingForApproval:
-        statusText = t('swap.crossChain.confirmApproval')
-        break
-      case Erc20ChainSwapSubStep.ApprovingToken:
-        statusText = t('swap.crossChain.approving')
-        break
-      case Erc20ChainSwapSubStep.WaitingForLock:
-        statusText = t('swap.crossChain.locking')
-        break
-      case Erc20ChainSwapSubStep.LockingTokens:
-        statusText = t('swap.crossChain.locking')
-        break
-      case Erc20ChainSwapSubStep.WaitingForBridge:
-        statusText = t('swap.crossChain.bridging')
-        break
-      case Erc20ChainSwapSubStep.ClaimingTokens:
-        statusText = t('swap.crossChain.claiming')
-        break
-      case Erc20ChainSwapSubStep.Complete:
-        statusText = t('swap.crossChain.complete')
-        break
-    }
-  }
-
   return (
     <Flex gap="$spacing12" px="$spacing12" py="$spacing8">
-      <Flex row alignItems="center" gap="$spacing8">
-        <SpinningLoader size={iconSizes.icon20} color="$accent1" />
-        <Text variant="body2" color="$neutral1">
-          {statusText}
-        </Text>
-      </Flex>
-
       <Flex gap="$spacing8" pl="$spacing4">
         <StepItem label={t('swap.crossChain.step.approve')} status={approveStatus} />
         <StepItem label={t('swap.crossChain.step.lock')} status={lockStatus} />
