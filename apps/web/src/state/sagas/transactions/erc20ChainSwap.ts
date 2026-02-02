@@ -124,6 +124,25 @@ function tokenToBoltzDecimals(amount: bigint, tokenDecimals: number): number {
   }
 }
 
+/**
+ * Convert from Boltz 8-decimal format to native token decimals
+ * This is used to convert server-provided amounts (like lockupDetails.amount)
+ * back to the native token precision for on-chain transactions
+ */
+function boltzToNativeDecimals(boltzAmount: number, tokenDecimals: number): bigint {
+  if (tokenDecimals === BOLTZ_DECIMALS) {
+    return BigInt(boltzAmount)
+  } else if (tokenDecimals > BOLTZ_DECIMALS) {
+    // e.g., 8 decimals -> 18 decimals: multiply by 10^10
+    const multiplier = 10n ** BigInt(tokenDecimals - BOLTZ_DECIMALS)
+    return BigInt(boltzAmount) * multiplier
+  } else {
+    // e.g., 8 decimals -> 6 decimals: divide by 10^2
+    const divisor = 10n ** BigInt(BOLTZ_DECIMALS - tokenDecimals)
+    return BigInt(boltzAmount) / divisor
+  }
+}
+
 interface HandleErc20ChainSwapParams {
   step: Erc20ChainSwapStep
   setCurrentStep: SetCurrentStepFn
@@ -335,6 +354,11 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     accepted: false,
   })
 
+  // Convert server lockup amount from Boltz 8-decimal format to native token decimals
+  // IMPORTANT: The server returns lockupDetails.amount in Boltz 8-decimal format,
+  // but the on-chain lockup requires the amount in native token decimals
+  const lockupAmountNative = boltzToNativeDecimals(chainSwap.lockupDetails.amount, sourceDecimals)
+
   let lockResult
   try {
     lockResult = yield* call(buildErc20LockupTx, {
@@ -342,7 +366,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       contractAddress: swapContractAddress,
       tokenAddress,
       preimageHash: chainSwap.preimageHash,
-      amount: amountBigInt,
+      amount: lockupAmountNative,
       claimAddress: chainSwap.lockupDetails.claimAddress!,
       timelock: chainSwap.lockupDetails.timeoutBlockHeight,
     })
