@@ -26,6 +26,17 @@ export const StatValue = styled(Text, {
 // Progress Bar Components (used in TokenCard, TokenDetail)
 // ============================================================================
 
+// Generate gradient from Hero orange to a color based on progress (orange -> green)
+export function getProgressGradient(progress: number): string {
+  const clampedProgress = Math.min(Math.max(progress, 0), 100) / 100
+  // Hero orange RGB: 255, 124, 58
+  // JuiceSwap green RGB: 99, 200, 122
+  const r = Math.round(255 - (255 - 99) * clampedProgress)
+  const g = Math.round(124 + (200 - 124) * clampedProgress)
+  const b = Math.round(58 + (122 - 58) * clampedProgress)
+  return `linear-gradient(to right, #FF7C3A, rgb(${r}, ${g}, ${b}))`
+}
+
 export const ProgressBar = styled(Flex, {
   backgroundColor: '$surface3',
   overflow: 'hidden',
@@ -72,6 +83,12 @@ export const Card = styled(Flex, {
         pressStyle: {
           scale: 0.98,
         },
+      },
+    },
+    graduated: {
+      true: {
+        borderTopWidth: 2,
+        borderTopColor: '$statusSuccess',
       },
     },
   } as const,

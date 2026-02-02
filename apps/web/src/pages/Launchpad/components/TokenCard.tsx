@@ -9,7 +9,9 @@ import {
   StatLabel,
   StatRow,
   StatValue,
+  getProgressGradient,
 } from 'pages/Launchpad/components/shared'
+import { formatMarketCap } from 'pages/Launchpad/utils'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
@@ -58,14 +60,8 @@ export function TokenCard({ token }: TokenCardProps) {
     return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [token.totalVolumeBase])
 
-  // Format real-time liquidity from reserves
-  const liquidity = useMemo(() => {
-    if (!reserves) {
-      return '0'
-    }
-    const value = Number(formatUnits(reserves.realBase, 18))
-    return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
-  }, [reserves])
+  // Calculate market cap from reserves (price × total supply)
+  const marketCap = useMemo(() => formatMarketCap(reserves), [reserves])
 
   // Format creator address
   const creatorShort = useMemo(() => {
@@ -93,20 +89,15 @@ export function TokenCard({ token }: TokenCardProps) {
   const totalTrades = token.totalBuys + token.totalSells
 
   return (
-    <Card interactive onPress={handleClick}>
+    <Card interactive graduated={token.graduated} onPress={handleClick}>
       <TokenHeader>
         <TokenLogo metadataURI={token.metadataURI} symbol={token.symbol} size={48} />
         <Flex flex={1} gap="$spacing2">
           <Flex flexDirection="row" alignItems="center" gap="$spacing8">
             <TokenName>{token.name || 'Unknown Token'}</TokenName>
-            {token.graduated && (
-              <GraduatedBadge>
-                <GraduatedText>Graduated</GraduatedText>
-              </GraduatedBadge>
-            )}
             {token.canGraduate && !token.graduated && (
-              <GraduatedBadge style={{ backgroundColor: '$accent2' }}>
-                <GraduatedText style={{ color: '$accent1' }}>Ready!</GraduatedText>
+              <GraduatedBadge backgroundColor="$accent2">
+                <GraduatedText color="$accent1">Ready!</GraduatedText>
               </GraduatedBadge>
             )}
           </Flex>
@@ -114,21 +105,24 @@ export function TokenCard({ token }: TokenCardProps) {
         </Flex>
       </TokenHeader>
 
-      {!token.graduated && (
-        <Flex gap="$spacing4">
-          <StatRow>
-            <StatLabel variant="body3">Progress to graduation</StatLabel>
-            <StatValue variant="body3">{progress.toFixed(1)}%</StatValue>
-          </StatRow>
-          <ProgressBar>
-            <ProgressFill style={{ width: `${Math.min(progress, 100)}%` }} />
-          </ProgressBar>
-        </Flex>
-      )}
+      <Flex gap="$spacing4">
+        <StatRow>
+          <StatLabel variant="body3">{token.graduated ? 'Graduated' : 'Progress to graduation'}</StatLabel>
+          <StatValue variant="body3">{token.graduated ? '100%' : `${progress.toFixed(1)}%`}</StatValue>
+        </StatRow>
+        <ProgressBar>
+          <ProgressFill
+            style={{
+              width: `${token.graduated ? 100 : Math.min(progress, 100)}%`,
+              background: getProgressGradient(token.graduated ? 100 : progress),
+            }}
+          />
+        </ProgressBar>
+      </Flex>
 
       <StatRow>
-        <StatLabel variant="body3">Liquidity</StatLabel>
-        <StatValue variant="body3">{liquidity} JUSD</StatValue>
+        <StatLabel variant="body3">Market Cap</StatLabel>
+        <StatValue variant="body3">{marketCap} JUSD</StatValue>
       </StatRow>
 
       <StatRow>
