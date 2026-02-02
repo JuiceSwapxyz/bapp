@@ -69,6 +69,8 @@ export enum Erc20ChainSwapDirection {
   CitreaToEthereum = 'CitreaToEthereum',
 }
 
+export { WbtcBridgeDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
+
 export interface LightningInvoice {
   requestId: string
   invoice: {

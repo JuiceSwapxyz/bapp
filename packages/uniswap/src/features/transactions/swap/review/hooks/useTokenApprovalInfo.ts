@@ -45,8 +45,8 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
 
   const tokenInAddress = getTokenAddressForApi(currencyIn)
 
-  // Only used for bridging (includes ERC20 chain swaps via Boltz)
-  const isBridge = routing === Routing.BRIDGE || routing === Routing.ERC20_CHAIN_SWAP
+  // Only used for bridging (includes ERC20 chain swaps and WBTC bridge via Boltz)
+  const isBridge = routing === Routing.BRIDGE || routing === Routing.ERC20_CHAIN_SWAP || routing === Routing.WBTC_BRIDGE
   const currencyOut = currencyOutAmount?.currency
   const tokenOutAddress = getTokenAddressForApi(currencyOut)
 

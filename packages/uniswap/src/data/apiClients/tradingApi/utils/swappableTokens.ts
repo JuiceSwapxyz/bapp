@@ -1,5 +1,6 @@
 import { ADDRESS } from '@juicedollar/jusd'
 import { ChainId, GetSwappableTokensResponse, SafetyLevel } from 'uniswap/src/data/tradingApi/__generated__'
+import { WBTC_ETHEREUM_ADDRESS } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 
 const JUSD_CITREA_MAINNET = ADDRESS[4114]!.juiceDollar
 const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
@@ -37,6 +38,20 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
         },
         symbol: 'lnBTC',
         decimals: 18,
+      },
+      {
+        address: WBTC_ETHEREUM_ADDRESS,
+        chainId: ChainId._1,
+        name: 'Wrapped BTC',
+        project: {
+          logo: {
+            url: 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
+          },
+          safetyLevel: SafetyLevel.VERIFIED,
+          isSpam: false,
+        },
+        symbol: 'WBTC',
+        decimals: 8,
       },
     ],
     [JUSD_CITREA_MAINNET]: [
@@ -258,6 +273,22 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
     ],
   },
   [ChainId._1]: {
+    [WBTC_ETHEREUM_ADDRESS]: [
+      {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: ChainId._4114,
+        name: 'Citrea BTC',
+        project: {
+          logo: {
+            url: 'https://docs.juiceswap.com/media/icons/cbtc.png',
+          },
+          safetyLevel: SafetyLevel.VERIFIED,
+          isSpam: false,
+        },
+        symbol: 'cBTC',
+        decimals: 18,
+      },
+    ],
     [USDT_ETHEREUM]: [
       {
         address: JUSD_CITREA_MAINNET,

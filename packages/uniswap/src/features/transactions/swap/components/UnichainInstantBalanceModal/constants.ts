@@ -16,4 +16,4 @@ export const CHAIN_TO_UNIVERSAL_ROUTER_ADDRESS: Partial<Record<UniverseChainId, 
   ],
 }
 
-export const FLASHBLOCKS_UI_SKIP_ROUTES: TradeRouting[] = [Routing.WRAP, Routing.UNWRAP, Routing.BRIDGE, Routing.BITCOIN_BRIDGE, Routing.LN_BRIDGE, Routing.ERC20_CHAIN_SWAP]
+export const FLASHBLOCKS_UI_SKIP_ROUTES: TradeRouting[] = [Routing.WRAP, Routing.UNWRAP, Routing.BRIDGE, Routing.BITCOIN_BRIDGE, Routing.LN_BRIDGE, Routing.ERC20_CHAIN_SWAP, Routing.WBTC_BRIDGE]

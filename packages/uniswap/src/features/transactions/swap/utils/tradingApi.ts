@@ -137,6 +137,9 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
     case Routing.ERC20_CHAIN_SWAP: {
       return new BridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
     }
+    case Routing.WBTC_BRIDGE: {
+      return new BridgeTrade({ quote: data as BridgeQuoteResponse, currencyIn, currencyOut, tradeType })
+    }
     case Routing.WRAP: {
       return new WrapTrade({ quote: data, currencyIn, currencyOut, tradeType })
     }
