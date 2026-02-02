@@ -5,9 +5,7 @@ import {
   LAUNCHPAD_ADDRESSES,
   TOKEN_FACTORY_ABI,
 } from 'constants/launchpad'
-import { useAccount } from 'hooks/useAccount'
 import { useContract } from 'hooks/useContract'
-import useSelectChain from 'hooks/useSelectChain'
 import { useCallback, useMemo, useRef } from 'react'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { logger } from 'utilities/src/logger/logger'
@@ -151,12 +149,8 @@ export function useCreateToken(
   chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): (params: CreateTokenParams) => Promise<{ tx: ContractTransaction; tokenAddress: string | null }> {
   const contract = useTokenFactoryContract(chainId)
-  const account = useAccount()
-  const selectChain = useSelectChain()
   const contractRef = useRef(contract)
   contractRef.current = contract
-  const accountRef = useRef(account)
-  accountRef.current = account
 
   return useCallback(
     async ({
@@ -164,14 +158,6 @@ export function useCreateToken(
       symbol,
       metadataURI,
     }: CreateTokenParams): Promise<{ tx: ContractTransaction; tokenAddress: string | null }> => {
-      const currentAccount = accountRef.current
-      if (currentAccount.chainId !== chainId) {
-        const switched = await selectChain(chainId)
-        if (!switched) {
-          throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
-        }
-      }
-
       const contract = contractRef.current
       if (!contract) {
         throw new Error('Factory contract not available')
@@ -223,7 +209,7 @@ export function useCreateToken(
         throw error
       }
     },
-    [chainId, selectChain],
+    [],
   )
 }
 
