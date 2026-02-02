@@ -350,15 +350,12 @@ class LdsBridgeManager extends SwapEventEmitter {
       throw new Error('Swap not found')
     }
 
-    if (swap.status === LdsSwapStatus.TransactionClaimed) {
-      return swap
-    }
-
     // Wait for Ponder to confirm lockup before claiming.
     const chainId = ASSET_CHAIN_ID_MAP[swap.assetReceive]
     if (!chainId) {
       throw new Error('Chain ID not found')
     }
+
     const { promise: ponderPromise, cancel: cancelPonderPolling } = pollForLockupConfirmation(swap.preimageHash, chainId)
     await ponderPromise
     cancelPonderPolling()

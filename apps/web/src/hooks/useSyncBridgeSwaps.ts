@@ -7,13 +7,14 @@ export function useSyncBridgeSwaps(enabled = true) {
 
   return useQuery({
     queryKey: ['sync-bridge-swaps', account.address],
-    queryFn: async (): Promise<void> => {
+    queryFn: async (): Promise<{ synced: boolean }> => {
       if (!account.address) {
-        return
+        return { synced: false }
       }
 
       const ldsBridgeManager = getLdsBridgeManager()
       await ldsBridgeManager.syncSwapsWithGraphQLData(account.address)
+      return { synced: true }
     },
     enabled: enabled && !!account.address,
     staleTime: Infinity, // Only run once per account.address change

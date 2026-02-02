@@ -8,7 +8,7 @@ import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
 import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
-import { useEvmRefundableSwaps } from 'hooks/useEvmRefundableSwaps'
+import { useEvmClaimableAndRefundableSwaps } from 'hooks/useEvmRefundableSwaps'
 import { useModalState } from 'hooks/useModalState'
 import { useRefundableSwaps } from 'hooks/useRefundableSwaps'
 import { RiseIn } from 'pages/Landing/components/animations'
@@ -89,7 +89,7 @@ export default function SwapPage() {
 
   const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
   const { data: refundableSwaps = [] } = useRefundableSwaps(crossChainSwapsEnabled)
-  const { data: evmRefundableSwaps = { refundable: [], locked: [] } } = useEvmRefundableSwaps(crossChainSwapsEnabled)
+  const { data: evmRefundableSwaps = { refundable: [], locked: [], claimable: [] } } = useEvmClaimableAndRefundableSwaps(crossChainSwapsEnabled)
 
   useEffect(() => {
     if (triggerConnect) {
@@ -99,17 +99,24 @@ export default function SwapPage() {
   }, [accountDrawer, triggerConnect, navigate, location.pathname])
 
   useEffect(() => {
-    if (refundableSwaps.length > 0 || evmRefundableSwaps.refundable.length > 0) {
+    const refundableCount = refundableSwaps.length + evmRefundableSwaps.refundable.length
+    const claimableCount = evmRefundableSwaps.claimable.length
+
+    // Remove existing popup first to ensure it refreshes with new counts
+    popupRegistry.removePopup('refundable-swaps')
+
+    if (refundableCount > 0 || claimableCount > 0) {
       popupRegistry.addPopup(
         {
           type: PopupType.RefundableSwaps,
-          count: refundableSwaps.length + evmRefundableSwaps.refundable.length,
+          refundableCount,
+          claimableCount,
         },
         'refundable-swaps',
         Infinity,
       )
     }
-  }, [refundableSwaps.length, evmRefundableSwaps.refundable.length])
+  }, [refundableSwaps.length, evmRefundableSwaps.refundable.length, evmRefundableSwaps.claimable.length])
 
   return (
     <Trace logImpression page={InterfacePageName.SwapPage}>

@@ -1,7 +1,8 @@
 import { useBridgeSwaps } from 'hooks/useBridgeSwaps'
 import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
-import { useEvmRefundableSwaps } from 'hooks/useEvmRefundableSwaps'
+import { useEvmClaimableAndRefundableSwaps } from 'hooks/useEvmRefundableSwaps'
 import { useRefundableSwaps } from 'hooks/useRefundableSwaps'
+import { ClaimableSwapsSection } from 'pages/BridgeSwaps/ClaimableSwapsSection'
 import { RefundableSwapsSection } from 'pages/BridgeSwaps/RefundableSwapsSection'
 import { SwapsTable } from 'pages/BridgeSwaps/SwapsTable'
 import {
@@ -30,12 +31,13 @@ export default function BridgeSwaps(): JSX.Element {
     refetch: refetchRefundable,
   } = useRefundableSwaps(crossChainSwapsEnabled)
   const {
-    data: evmSwapsData,
+    data: evmSwapsData = { refundable: [], locked: [], claimable: [] },
     isLoading: isLoadingEvmRefundable,
     refetch: refetchEvmRefundable,
-  } = useEvmRefundableSwaps(crossChainSwapsEnabled)
+  } = useEvmClaimableAndRefundableSwaps(crossChainSwapsEnabled)
 
   const evmRefundableSwaps = evmSwapsData.refundable
+  const evmClaimableSwaps = evmSwapsData.claimable
 
   const handleRefetch = useCallback(async () => {
     await Promise.all([refetch(), refetchRefundable(), refetchEvmRefundable()])
@@ -48,6 +50,7 @@ export default function BridgeSwaps(): JSX.Element {
   const stats = {
     total: swaps.length,
     refundable: refundableSwaps.length + evmRefundableSwaps.length,
+    claimable: evmClaimableSwaps.length,
   }
 
   return (
@@ -66,6 +69,12 @@ export default function BridgeSwaps(): JSX.Element {
               <StatValue>{stats.total}</StatValue>
               <StatLabel>Total Swaps</StatLabel>
             </StatItem>
+            {stats.claimable > 0 && (
+              <StatItem>
+                <StatValue>{stats.claimable}</StatValue>
+                <StatLabel>Claimable</StatLabel>
+              </StatItem>
+            )}
             {stats.refundable > 0 && (
               <StatItem>
                 <StatValue>{stats.refundable}</StatValue>
@@ -73,6 +82,13 @@ export default function BridgeSwaps(): JSX.Element {
               </StatItem>
             )}
           </StatsBar>
+
+          <ClaimableSwapsSection
+            evmClaimableSwaps={evmClaimableSwaps}
+            allSwaps={swaps}
+            isLoading={isLoadingEvmRefundable}
+            onRefetch={handleRefetch}
+          />
 
           <RefundableSwapsSection
             refundableSwaps={refundableSwaps}
