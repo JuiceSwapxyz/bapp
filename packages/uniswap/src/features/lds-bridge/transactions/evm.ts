@@ -2,7 +2,6 @@ import type { Signer } from '@ethersproject/abstract-signer'
 import type { Contract } from '@ethersproject/contracts'
 import { Contract as EthersContract } from '@ethersproject/contracts'
 import { COIN_SWAP_ABI } from 'uniswap/src/abis/coin_swap'
-import { ERC20_SWAP_ABI } from 'uniswap/src/abis/erc20swap'
 import { satoshiToWei } from 'uniswap/src/features/lds-bridge/utils/conversion'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 
@@ -43,6 +42,13 @@ export async function buildEvmLockupTx(params: BuildEvmClaimTxParams): Promise<E
   }
 }
 
+const ERC20_SWAP_ABI = [
+  'function lock(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
+  'function claim(bytes32 preimage, uint256 amount, address tokenAddress, address refundAddress, uint256 timelock)',
+  'function refund(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
+  'function refund(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, address refundAddress, uint256 timelock)',
+]
+
 const ERC20_TOKEN_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
   'function allowance(address owner, address spender) view returns (uint256)',
@@ -51,14 +57,73 @@ const ERC20_TOKEN_ABI = [
 // MaxUint256 for unlimited approvals
 const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
 
-// Simplified ABI for swap contract operations
-const SWAP_CONTRACT_ABI = [
-  'function lock(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
-  'function claim(bytes32 preimage, uint256 amount, address tokenAddress, address refundAddress, uint256 timelock)',
-  'function refund(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
-  'function refund(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, address refundAddress, uint256 timelock)',
-]
+export type CheckErc20AllowanceParams = {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  amount: bigint
+}
 
+export type CheckErc20AllowanceResult = {
+  needsApproval: boolean
+  currentAllowance: bigint
+}
+
+/**
+ * Check if ERC20 token approval is needed for LDS Bridge
+ */
+export async function checkErc20Allowance(params: CheckErc20AllowanceParams): Promise<CheckErc20AllowanceResult> {
+  const { signer, contractAddress, tokenAddress, amount } = params
+
+  const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
+  const ownerAddress = await signer.getAddress()
+  const currentAllowance = await tokenContract.allowance(ownerAddress, contractAddress)
+  const currentAllowanceBigInt = currentAllowance.toBigInt()
+
+  return {
+    needsApproval: currentAllowanceBigInt < amount,
+    currentAllowance: currentAllowanceBigInt,
+  }
+}
+
+export type ApproveErc20Params = {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  amount: bigint
+}
+
+export type ApproveErc20Result = {
+  tx: Awaited<ReturnType<Contract['approve']>>
+  hash: string
+}
+
+/**
+ * Approve ERC20 token for LDS Bridge contract (does not wait for confirmation)
+ */
+export async function approveErc20ForLdsBridge(params: ApproveErc20Params): Promise<ApproveErc20Result> {
+  const { signer, contractAddress, tokenAddress, amount } = params
+
+  const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
+  const currentAllowance = await tokenContract.allowance(await signer.getAddress(), contractAddress)
+
+  // For USDT and similar tokens: reset allowance to 0 first if there's a non-zero allowance
+  if (!currentAllowance.isZero()) {
+    const resetTx = await tokenContract.approve(contractAddress, 0)
+    await resetTx.wait()
+  }
+
+  // Approve unlimited (MaxUint256) to avoid repeated approvals
+  const tx = await tokenContract.approve(contractAddress, MAX_UINT256)
+
+  return { tx, hash: tx.hash }
+}
+
+/**
+ * Build ERC20 lockup transaction for LDS Bridge.
+ * NOTE: This function assumes approval has already been done if needed.
+ * Use checkErc20Allowance and approveErc20ForLdsBridge separately for granular UI feedback.
+ */
 export async function buildErc20LockupTx(params: {
   signer: Signer
   contractAddress: string
@@ -70,45 +135,9 @@ export async function buildErc20LockupTx(params: {
 }): Promise<{ hash: string }> {
   const { signer, contractAddress, tokenAddress, preimageHash, amount, claimAddress, timelock } = params
 
-  const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
-  const swapContract = new EthersContract(contractAddress, SWAP_CONTRACT_ABI, signer)
+  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
 
-  // Check current allowance and only approve if needed
-  const ownerAddress = await signer.getAddress()
-  const currentAllowance = await tokenContract.allowance(ownerAddress, contractAddress)
-
-  if (currentAllowance.toBigInt() < amount) {
-    // eslint-disable-next-line no-console
-    console.log('[ERC20 Lock] Allowance insufficient, approving unlimited...', {
-      currentAllowance: currentAllowance.toString(),
-      requiredAmount: amount.toString(),
-    })
-
-    // For USDT and similar tokens: reset allowance to 0 first if there's a non-zero allowance
-    // This prevents "execution reverted" errors on tokens that don't allow changing non-zero allowances
-    if (!currentAllowance.isZero()) {
-      // eslint-disable-next-line no-console
-      console.log('[ERC20 Lock] Resetting existing allowance to 0 (required for USDT and similar tokens)')
-      const resetTx = await tokenContract.approve(contractAddress, 0)
-      await resetTx.wait()
-      // eslint-disable-next-line no-console
-      console.log('[ERC20 Lock] Allowance reset confirmed')
-    }
-
-    // Approve unlimited (MaxUint256) to avoid repeated approvals for future transactions
-    const approveTx = await tokenContract.approve(contractAddress, MAX_UINT256)
-    await approveTx.wait()
-    // eslint-disable-next-line no-console
-    console.log('[ERC20 Lock] Unlimited approval confirmed')
-  } else {
-    // eslint-disable-next-line no-console
-    console.log('[ERC20 Lock] Allowance sufficient, skipping approval', {
-      currentAllowance: currentAllowance.toString(),
-      requiredAmount: amount.toString(),
-    })
-  }
-
-  // Lock
+  // Lock (approval should already be done)
   const lockTx = await swapContract.lock(prefix0x(preimageHash), amount, tokenAddress, claimAddress, timelock)
 
   return { hash: lockTx.hash }
@@ -125,7 +154,7 @@ export async function claimErc20Swap(params: {
 }): Promise<string> {
   const { signer, contractAddress, tokenAddress, preimage, amount, refundAddress, timelock } = params
 
-  const swapContract = new EthersContract(contractAddress, SWAP_CONTRACT_ABI, signer)
+  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
 
   const tx = await swapContract.claim(prefix0x(preimage), amount, tokenAddress, refundAddress, timelock)
 
@@ -171,7 +200,7 @@ export async function refundErc20Swap(params: {
 }): Promise<string> {
   const { signer, contractAddress, tokenAddress, preimageHash, amount, claimAddress, refundAddress, timelock } = params
 
-  const swapContract = new EthersContract(contractAddress, SWAP_CONTRACT_ABI, signer)
+  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
 
   // For ERC20 token swaps, use the 6-parameter refund function (with refundAddress)
   const tx = await swapContract['refund(bytes32,uint256,address,address,address,uint256)'](

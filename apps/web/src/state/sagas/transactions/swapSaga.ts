@@ -270,7 +270,7 @@ function* swap(params: SwapParams) {
   // Skip chain switching only for lightning and bitcoin bridges
   // ERC20 chain swaps and WBTC bridge need to switch to source chain (input currency chainId) before locking
   // but they handle the chain switch internally
-  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap && !isWbtcBridgeSwap
+  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap && !isWbtcBridgeSwap && !isErc20ChainSwapSwap
   if (changeChain) {
     const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
     if (chainSwitchFailed) {
