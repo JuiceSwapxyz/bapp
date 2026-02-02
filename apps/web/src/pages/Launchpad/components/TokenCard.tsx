@@ -58,13 +58,15 @@ export function TokenCard({ token }: TokenCardProps) {
     return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [token.totalVolumeBase])
 
-  // Format real-time liquidity from reserves
-  const liquidity = useMemo(() => {
-    if (!reserves) {
+  // Calculate market cap from reserves (price × total supply)
+  const marketCap = useMemo(() => {
+    if (!reserves || reserves.virtualToken === 0n) {
       return '0'
     }
-    const value = Number(formatUnits(reserves.realBase, 18))
-    return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+    const price = Number(reserves.virtualBase) / Number(reserves.virtualToken)
+    const totalSupply = 1_000_000_000
+    const cap = price * totalSupply
+    return cap.toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [reserves])
 
   // Format creator address
@@ -127,8 +129,8 @@ export function TokenCard({ token }: TokenCardProps) {
       )}
 
       <StatRow>
-        <StatLabel variant="body3">Liquidity</StatLabel>
-        <StatValue variant="body3">{liquidity} JUSD</StatValue>
+        <StatLabel variant="body3">Market Cap</StatLabel>
+        <StatValue variant="body3">{marketCap} JUSD</StatValue>
       </StatRow>
 
       <StatRow>

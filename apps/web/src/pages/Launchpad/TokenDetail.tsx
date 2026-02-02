@@ -221,6 +221,16 @@ export default function TokenDetail() {
     return price.toFixed(8)
   }, [reserves])
 
+  const marketCap = useMemo(() => {
+    if (!reserves || reserves.virtualToken === 0n) {
+      return '0'
+    }
+    const price = Number(reserves.virtualBase) / Number(reserves.virtualToken)
+    const totalSupply = 1_000_000_000
+    const cap = price * totalSupply
+    return cap.toLocaleString(undefined, { maximumFractionDigits: 2 })
+  }, [reserves])
+
   const creatorShort = useMemo(() => {
     if (!tokenInfo?.creator) {
       return '...'
@@ -390,6 +400,10 @@ export default function TokenDetail() {
                 <StatRow paddingVertical="$spacing4">
                   <StatLabel variant="body2">Current Price</StatLabel>
                   <StatValue variant="body2">{currentPrice} JUSD</StatValue>
+                </StatRow>
+                <StatRow paddingVertical="$spacing4">
+                  <StatLabel variant="body2">Market Cap</StatLabel>
+                  <StatValue variant="body2">{marketCap} JUSD</StatValue>
                 </StatRow>
                 <StatRow paddingVertical="$spacing4">
                   <StatLabel variant="body2">Liquidity</StatLabel>
