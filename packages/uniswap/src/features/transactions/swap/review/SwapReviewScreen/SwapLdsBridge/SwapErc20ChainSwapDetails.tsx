@@ -118,7 +118,7 @@ export function SwapErc20ChainSwapDetails(): JSX.Element | null {
         statusText = t('swap.crossChain.approving')
         break
       case Erc20ChainSwapSubStep.WaitingForLock:
-        statusText = t('swap.crossChain.confirmLock')
+        statusText = t('swap.crossChain.step.lock')
         break
       case Erc20ChainSwapSubStep.LockingTokens:
         statusText = t('swap.crossChain.locking')

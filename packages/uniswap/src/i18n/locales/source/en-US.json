@@ -1831,7 +1831,6 @@
   "swap.crossChain.claiming": "Claiming tokens...",
   "swap.crossChain.complete": "Swap complete!",
   "swap.crossChain.confirmApproval": "Confirm approval in wallet",
-  "swap.crossChain.confirmLock": "Confirm lock in wallet",
   "swap.crossChain.locking": "Locking tokens...",
   "swap.crossChain.preparing": "Preparing swap...",
   "swap.crossChain.step.approve": "Approve",

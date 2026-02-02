@@ -17,7 +17,7 @@ export function Erc20ChainSwapStepRow({ status }: StepRowProps<Erc20ChainSwapSte
 
   const title = {
     [StepStatus.Preview]: t('swap.bridging.title'),
-    [StepStatus.Active]: t('swap.crossChain.confirmLock'),
+    [StepStatus.Active]: t('swap.crossChain.step.lock'),
     [StepStatus.InProgress]: t('swap.crossChain.bridging'),
     [StepStatus.Complete]: t('swap.crossChain.complete'),
   }[status]
