@@ -8,6 +8,7 @@ import styledComponents from 'lib/styled-components'
 import { BackButton, StatLabel, StatRow, StatValue } from 'pages/Launchpad/components/shared'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, Text, styled } from 'ui/src'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
@@ -366,6 +367,13 @@ export default function CreateToken() {
         const switched = await selectChain(launchpadChainId)
         if (!switched) {
           throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
+        }
+
+        // Wait for chain state to sync
+        try {
+          await waitForNetwork(launchpadChainId)
+        } catch {
+          throw new Error('Chain switch did not complete. Please try again.')
         }
       }
 

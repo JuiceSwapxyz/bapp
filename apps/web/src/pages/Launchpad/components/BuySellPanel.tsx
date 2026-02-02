@@ -11,6 +11,7 @@ import styledComponents from 'lib/styled-components'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
+import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, Text, styled } from 'ui/src'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
@@ -391,6 +392,15 @@ export function BuySellPanel({
         setIsGraduating(false)
         return
       }
+
+      // Wait for chain state to sync
+      try {
+        await waitForNetwork(chainId)
+      } catch {
+        setError('Chain switch did not complete. Please try again.')
+        setIsGraduating(false)
+        return
+      }
     }
 
     try {
@@ -439,6 +449,15 @@ export function BuySellPanel({
       const switched = await selectChain(chainId)
       if (!switched) {
         setError('Please switch to the correct network')
+        setIsLoading(false)
+        return
+      }
+
+      // Wait for chain state to sync
+      try {
+        await waitForNetwork(chainId)
+      } catch {
+        setError('Chain switch did not complete. Please try again.')
         setIsLoading(false)
         return
       }
