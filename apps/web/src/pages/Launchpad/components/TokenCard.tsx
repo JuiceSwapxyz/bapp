@@ -9,6 +9,7 @@ import {
   StatLabel,
   StatRow,
   StatValue,
+  getProgressGradient,
 } from 'pages/Launchpad/components/shared'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
@@ -37,17 +38,6 @@ const GraduatedText = styled(Text, {
   color: '$statusSuccess',
   fontWeight: '600',
 })
-
-// Generate gradient from Hero orange to a color based on progress (orange -> green)
-function getProgressGradient(progress: number): string {
-  const clampedProgress = Math.min(Math.max(progress, 0), 100) / 100
-  // Hero orange RGB: 255, 124, 58
-  // JuiceSwap green RGB: 99, 200, 122
-  const r = Math.round(255 - (255 - 99) * clampedProgress)
-  const g = Math.round(124 + (200 - 124) * clampedProgress)
-  const b = Math.round(58 + (122 - 58) * clampedProgress)
-  return `linear-gradient(to right, #FF7C3A, rgb(${r}, ${g}, ${b}))`
-}
 
 interface TokenCardProps {
   token: LaunchpadToken

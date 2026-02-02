@@ -13,6 +13,7 @@ import {
   StatLabel,
   StatRow,
   StatValue,
+  getProgressGradient,
 } from 'pages/Launchpad/components/shared'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
@@ -363,21 +364,26 @@ export default function TokenDetail() {
 
           <MainContent>
             <LeftColumn>
-              {!graduated && (
-                <Card>
-                  <CardTitle>Bonding Curve Progress</CardTitle>
-                  <ProgressBar size="md">
-                    <ProgressFill size="md" style={{ width: `${Math.min(progress, 100)}%` }} />
-                  </ProgressBar>
-                  <Flex flexDirection="row" justifyContent="space-between">
-                    <Text variant="body2" color="$neutral2">
-                      {progress.toFixed(2)}% complete
-                    </Text>
-                    <Text variant="body2" color="$neutral1">
-                      {tokensRemaining} tokens remaining
-                    </Text>
-                  </Flex>
+              <Card>
+                <CardTitle>Bonding Curve Progress</CardTitle>
+                <ProgressBar>
+                  <ProgressFill
+                    style={{
+                      width: `${graduated ? 100 : Math.min(progress, 100)}%`,
+                      background: getProgressGradient(graduated ? 100 : progress),
+                    }}
+                  />
+                </ProgressBar>
+                <Flex flexDirection="row" justifyContent="space-between">
+                  <Text variant="body2" color="$neutral2">
+                    {graduated ? '100%' : `${progress.toFixed(2)}%`} complete
+                  </Text>
+                  <Text variant="body2" color={graduated ? '$statusSuccess' : '$neutral1'}>
+                    {graduated ? 'Graduated to V2' : `${tokensRemaining} tokens remaining`}
+                  </Text>
+                </Flex>
 
+                {!graduated && (
                   <Flex
                     flexDirection="row"
                     alignItems="center"
@@ -392,8 +398,8 @@ export default function TokenDetail() {
                     </Text>
                     <InfoCircle size={14} color="$neutral3" />
                   </Flex>
-                </Card>
-              )}
+                )}
+              </Card>
 
               <Card>
                 <CardTitle>Token Info</CardTitle>
