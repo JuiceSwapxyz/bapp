@@ -54,3 +54,54 @@ export interface CampaignProgressResponse {
   nftClaimed: boolean
   claimTxHash?: string
 }
+
+// ============================================================================
+// Activity API Types
+// ============================================================================
+
+export interface PonderSwapData {
+  id: string
+  txHash: string
+  chainId: number
+  blockNumber: string
+  blockTimestamp: string
+  swapperAddress: string
+  tokenIn: string
+  tokenOut: string
+  amountIn: string
+  amountOut: string
+  // Token metadata from joined tables
+  tokenInSymbol: string | null
+  tokenInDecimals: number | null
+  tokenInName: string | null
+  tokenOutSymbol: string | null
+  tokenOutDecimals: number | null
+  tokenOutName: string | null
+}
+
+export interface PonderLaunchpadTradeData {
+  id: string
+  txHash: string
+  chainId: number
+  blockNumber: string
+  timestamp: string
+  trader: string
+  tokenAddress: string
+  isBuy: boolean
+  baseAmount: string
+  tokenAmount: string
+  // Token metadata from joined table
+  tokenSymbol: string | null
+  tokenName: string | null
+}
+
+export interface PonderActivityResponse {
+  swaps: PonderSwapData[]
+  launchpadTrades: PonderLaunchpadTradeData[]
+  pagination: {
+    limit: number
+    offset: number
+    swapCount: number
+    tradeCount: number
+  }
+}

@@ -1,12 +1,18 @@
 import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { Clock } from 'ui/src/components/icons/Clock'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
-import { SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/utils'
+import { ASSET_CHAIN_ID_MAP } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
+import { fetchChainTransactionsBySwapId } from 'uniswap/src/features/lds-bridge/api/client'
+import { ChainTransactionsResponse } from 'uniswap/src/features/lds-bridge/lds-types/api'
+import { ChainSwap, SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { LdsSwapStatus, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 
 const Card = styled(Flex, {
   backgroundColor: '$surface2',
@@ -83,6 +89,20 @@ const DetailValue = styled(Text, {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   maxWidth: '60%',
+})
+
+const TxLink = styled(Text, {
+  variant: 'body3',
+  color: '$accent1',
+  fontFamily: '$mono',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  maxWidth: '60%',
+  cursor: 'pointer',
+  textDecorationLine: 'none',
+  hoverStyle: {
+    textDecorationLine: 'underline',
+  },
 })
 
 const ExpandButton = styled(Flex, {
@@ -250,9 +270,71 @@ function shortenHash(hash: string, chars = 8): string {
   return `${hash.slice(0, chars)}...${hash.slice(-chars)}`
 }
 
+function isChainSwap(swap: SomeSwap): swap is ChainSwap {
+  return swap.type === SwapType.Chain
+}
+
+function getChainName(chainId: number | undefined): string {
+  if (!chainId) {
+    return 'Unknown'
+  }
+  if (isUniverseChainId(chainId)) {
+    return getChainLabel(chainId)
+  }
+  return `Chain ${chainId}`
+}
+
+function getChainIdFromAsset(asset: string): UniverseChainId | undefined {
+  const chainId = ASSET_CHAIN_ID_MAP[asset] as number | undefined
+  if (chainId !== undefined && isUniverseChainId(chainId)) {
+    return chainId
+  }
+  return undefined
+}
+
+function getChainNameFromAsset(asset: string): string {
+  const chainId = getChainIdFromAsset(asset)
+  if (chainId !== undefined) {
+    return getChainName(chainId)
+  }
+  // Fallback: extract chain hint from asset name (e.g., USDT_POLYGON -> Polygon)
+  if (asset.includes('_')) {
+    const parts = asset.split('_')
+    return parts[parts.length - 1]
+  }
+  return asset
+}
+
+function getExplorerUrl(txHash: string, chainId: UniverseChainId | undefined): string | undefined {
+  if (!chainId) {
+    return undefined
+  }
+  return getExplorerLink({ chainId, data: txHash, type: ExplorerDataType.TRANSACTION })
+}
+
 export function SwapCard({ swap }: SwapCardProps): JSX.Element {
   const [expanded, setExpanded] = useState(false)
+  const [chainTxData, setChainTxData] = useState<ChainTransactionsResponse | null>(null)
+  const [loadingTxData, setLoadingTxData] = useState(false)
   const statusInfo = getStatusInfo(swap)
+
+  // Load chain transaction data from API when expanded (for Chain Swaps only)
+  useEffect(() => {
+    if (expanded && isChainSwap(swap) && !chainTxData && !loadingTxData) {
+      setLoadingTxData(true)
+      fetchChainTransactionsBySwapId(swap.id)
+        .then((data) => {
+          setChainTxData(data)
+        })
+        .catch((error) => {
+          // eslint-disable-next-line no-console
+          console.warn('Failed to fetch chain transactions:', error)
+        })
+        .finally(() => {
+          setLoadingTxData(false)
+        })
+    }
+  }, [expanded, swap, chainTxData, loadingTxData])
 
   return (
     <Card onPress={() => setExpanded(!expanded)}>
@@ -306,24 +388,143 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
             <DetailValue>{swap.status || 'Unknown'}</DetailValue>
           </DetailRow>
 
-          {swap.lockupTx && (
-            <DetailRow>
-              <DetailLabel>Lockup Tx:</DetailLabel>
-              <DetailValue>{shortenHash(swap.lockupTx)}</DetailValue>
-            </DetailRow>
-          )}
+          {/* Chain Swap: Show all transactions from API data */}
+          {isChainSwap(swap) ? (
+            <>
+              {/* Source Chain Transactions */}
+              <Text variant="body3" color="$neutral2" fontWeight="600" paddingTop="$spacing8">
+                Source Chain ({getChainNameFromAsset(swap.assetSend)})
+              </Text>
 
-          {swap.claimTx && (
-            <DetailRow>
-              <DetailLabel>Claim Tx:</DetailLabel>
-              <DetailValue>{shortenHash(swap.claimTx)}</DetailValue>
-            </DetailRow>
+              {loadingTxData ? (
+                <DetailRow>
+                  <DetailLabel>Loading transactions...</DetailLabel>
+                </DetailRow>
+              ) : (
+                <>
+                  {chainTxData?.userLock?.transaction.id ? (
+                    <DetailRow>
+                      <DetailLabel>User Lockup Tx:</DetailLabel>
+                      <TxLink
+                        tag="a"
+                        href={getExplorerUrl(chainTxData.userLock.transaction.id, getChainIdFromAsset(swap.assetSend))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                      >
+                        {shortenHash(chainTxData.userLock.transaction.id)}
+                      </TxLink>
+                    </DetailRow>
+                  ) : swap.lockupTx ? (
+                    <DetailRow>
+                      <DetailLabel>User Lockup Tx:</DetailLabel>
+                      <TxLink
+                        tag="a"
+                        href={getExplorerUrl(swap.lockupTx, getChainIdFromAsset(swap.assetSend))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                      >
+                        {shortenHash(swap.lockupTx)}
+                      </TxLink>
+                    </DetailRow>
+                  ) : null}
+                </>
+              )}
+
+              {/* Destination Chain Transactions */}
+              <Text variant="body3" color="$neutral2" fontWeight="600" paddingTop="$spacing8">
+                Destination Chain ({getChainNameFromAsset(swap.assetReceive)})
+              </Text>
+
+              {loadingTxData ? (
+                <DetailRow>
+                  <DetailLabel>Loading transactions...</DetailLabel>
+                </DetailRow>
+              ) : (
+                <>
+                  {chainTxData?.serverLock?.transaction.id && (
+                    <DetailRow>
+                      <DetailLabel>Boltz Lockup Tx:</DetailLabel>
+                      <TxLink
+                        tag="a"
+                        href={getExplorerUrl(
+                          chainTxData.serverLock.transaction.id,
+                          getChainIdFromAsset(swap.assetReceive),
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                      >
+                        {shortenHash(chainTxData.serverLock.transaction.id)}
+                      </TxLink>
+                    </DetailRow>
+                  )}
+
+                  {swap.claimTx && (
+                    <DetailRow>
+                      <DetailLabel>User Claim Tx:</DetailLabel>
+                      <TxLink
+                        tag="a"
+                        href={getExplorerUrl(swap.claimTx, getChainIdFromAsset(swap.assetReceive))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                      >
+                        {shortenHash(swap.claimTx)}
+                      </TxLink>
+                    </DetailRow>
+                  )}
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Non-Chain Swaps: Show legacy single tx fields */}
+              {swap.lockupTx && (
+                <DetailRow>
+                  <DetailLabel>Lockup Tx:</DetailLabel>
+                  <TxLink
+                    tag="a"
+                    href={getExplorerUrl(swap.lockupTx, getChainIdFromAsset(swap.assetSend))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                  >
+                    {shortenHash(swap.lockupTx)}
+                  </TxLink>
+                </DetailRow>
+              )}
+
+              {swap.claimTx && (
+                <DetailRow>
+                  <DetailLabel>Claim Tx:</DetailLabel>
+                  <TxLink
+                    tag="a"
+                    href={getExplorerUrl(swap.claimTx, getChainIdFromAsset(swap.assetReceive))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                  >
+                    {shortenHash(swap.claimTx)}
+                  </TxLink>
+                </DetailRow>
+              )}
+            </>
           )}
 
           {swap.refundTx && (
             <DetailRow>
               <DetailLabel>Refund Tx:</DetailLabel>
-              <DetailValue>{shortenHash(swap.refundTx)}</DetailValue>
+              <TxLink
+                tag="a"
+                href={getExplorerUrl(swap.refundTx, getChainIdFromAsset(swap.assetSend))}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              >
+                {shortenHash(swap.refundTx)}
+              </TxLink>
             </DetailRow>
           )}
 

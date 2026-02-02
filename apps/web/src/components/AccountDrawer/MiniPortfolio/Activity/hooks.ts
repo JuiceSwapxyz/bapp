@@ -1,6 +1,7 @@
 import { useAssetActivity } from 'appGraphql/data/apollo/AssetActivityProvider'
 import { swapsToActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/parseLdsBridge'
 import { useLocalActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/parseLocal'
+import { parsePonderActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/parsePonder'
 import { parseRemoteActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/parseRemote'
 import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
 import {
@@ -12,6 +13,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { usePendingOrders } from 'state/signatures/hooks'
 import { SignatureType, UniswapXOrderDetails } from 'state/signatures/types'
 import { usePendingTransactions, useTransactionCanceller } from 'state/transactions/hooks'
+import { usePonderActivitiesQuery } from 'uniswap/src/data/apiClients/ponderApi/PonderApi'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
@@ -55,51 +57,66 @@ function findCancelTx({
   return undefined
 }
 
-/** Deduplicates local and remote activities */
+/** Deduplicates local, remote, bridge, and ponder activities */
 function combineActivities({
   localMap = {},
   remoteMap = {},
   bridgeMap = {},
+  ponderMap = {},
 }: {
   localMap?: ActivityMap
   remoteMap?: ActivityMap
   bridgeMap?: ActivityMap
+  ponderMap?: ActivityMap
 }): Array<Activity> {
-  const txHashes = [...new Set([...Object.keys(localMap), ...Object.keys(remoteMap), ...Object.keys(bridgeMap)])]
+  const txHashes = [
+    ...new Set([
+      ...Object.keys(localMap),
+      ...Object.keys(remoteMap),
+      ...Object.keys(bridgeMap),
+      ...Object.keys(ponderMap),
+    ]),
+  ]
 
   return txHashes.reduce((acc: Array<Activity>, hash) => {
     const localActivity = (localMap[hash] ?? {}) as Activity
     const remoteActivity = (remoteMap[hash] ?? {}) as Activity
     const bridgeActivity = (bridgeMap[hash] ?? {}) as Activity
+    const ponderActivity = (ponderMap[hash] ?? {}) as Activity
 
+    // Priority 1: Bridge activities (lds- prefix) are always separate
     if (bridgeActivity.hash) {
       acc.push(bridgeActivity)
       return acc
     }
 
+    // Priority 2: Cancelled transactions
     if (localActivity.cancelled) {
       // Hides misleading activities caused by cross-chain nonce collisions previously being incorrectly labelled as cancelled txs in redux
       // If there is no remote activity fallback to local activity
       if (localActivity.chainId !== remoteActivity.chainId) {
-        acc.push(remoteActivity)
+        acc.push(remoteActivity.hash ? remoteActivity : localActivity)
         return acc
       }
       // Remote data only contains data of the cancel tx, rather than the original tx, so we prefer local data here
       acc.push(localActivity)
-    } else {
-      // Prefer remote values for most fields (e.g., on-chain amounts are more accurate)
-      // BUT prefer local status if it's finalized, since local status is updated by on-chain polling
-      // while remote GraphQL cache may be stale
-      const mergedActivity = { ...localActivity, ...remoteActivity }
+      return acc
+    }
 
-      // If local has finalized status but remote still shows pending, use local status
-      if (
-        (localActivity.status === TransactionStatus.Success || localActivity.status === TransactionStatus.Failed) &&
-        remoteActivity.status === TransactionStatus.Pending
-      ) {
-        mergedActivity.status = localActivity.status
-      }
+    // Priority 3: Merge all sources
+    // Order: local (base) -> remote -> ponder (most authoritative for on-chain data)
+    const mergedActivity = { ...localActivity, ...remoteActivity, ...ponderActivity }
 
+    // Status override: local finalized takes precedence over stale remote Pending
+    // (Ponder is always Success, so this mainly handles remote staleness)
+    if (
+      (localActivity.status === TransactionStatus.Success || localActivity.status === TransactionStatus.Failed) &&
+      mergedActivity.status === TransactionStatus.Pending
+    ) {
+      mergedActivity.status = localActivity.status
+    }
+
+    if (mergedActivity.hash) {
       acc.push(mergedActivity as Activity)
     }
 
@@ -110,7 +127,7 @@ function combineActivities({
 export function useAllActivities(account: string) {
   const { formatNumberOrString } = useLocalizationContext()
   const { activities, loading: remoteLoading } = useAssetActivity()
-  const { chains } = useEnabledChains()
+  const { chains, defaultChainId } = useEnabledChains()
 
   const { data: localMap, isLoading: localLoading } = useLocalActivities(account)
   const remoteMap = useMemo(
@@ -146,6 +163,17 @@ export function useAllActivities(account: string) {
     }
   }, [chains])
 
+  // Fetch Ponder activities (DEX swaps + launchpad trades) for Citrea chains
+  const { data: ponderResponse } = usePonderActivitiesQuery({
+    account,
+    chainId: defaultChainId,
+  })
+
+  const ponderMap = useMemo(
+    () => parsePonderActivities(ponderResponse, formatNumberOrString),
+    [ponderResponse, formatNumberOrString],
+  )
+
   const updateCancelledTx = useTransactionCanceller()
 
   /* Updates locally stored pendings tx's when remote data contains a conflicting cancellation tx */
@@ -154,22 +182,25 @@ export function useAllActivities(account: string) {
       return
     }
 
+    // Check both remoteMap and ponderMap for nonce collision
+    const combinedMap = { ...remoteMap, ...ponderMap }
+
     Object.values(localMap).forEach((localActivity) => {
       if (!localActivity) {
         return
       }
 
-      const cancelHash = findCancelTx({ localActivity, remoteMap, account })
+      const cancelHash = findCancelTx({ localActivity, remoteMap: combinedMap, account })
 
       if (cancelHash) {
         updateCancelledTx(localActivity.hash, localActivity.chainId, cancelHash)
       }
     })
-  }, [account, localMap, remoteMap, updateCancelledTx])
+  }, [account, localMap, remoteMap, ponderMap, updateCancelledTx])
 
   const combinedActivities = useMemo(
-    () => combineActivities({ localMap, remoteMap: remoteMap ?? {}, bridgeMap }),
-    [localMap, remoteMap, bridgeMap],
+    () => combineActivities({ localMap, remoteMap: remoteMap ?? {}, bridgeMap, ponderMap }),
+    [localMap, remoteMap, bridgeMap, ponderMap],
   )
 
   const loading = remoteLoading || localLoading
