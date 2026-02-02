@@ -2,15 +2,17 @@ import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { isLaunchpadChainSupported } from 'constants/launchpad'
 import { useAccount } from 'hooks/useAccount'
 import { useCreateToken, useUploadTokenMetadata } from 'hooks/useLaunchpadActions'
+import useSelectChain from 'hooks/useSelectChain'
 import { useTokenFactory } from 'hooks/useTokenFactory'
 import styledComponents from 'lib/styled-components'
 import { BackButton, StatLabel, StatRow, StatValue } from 'pages/Launchpad/components/shared'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, Text, styled } from 'ui/src'
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
@@ -217,6 +219,7 @@ export default function CreateToken() {
 
   const createToken = useCreateToken(launchpadChainId)
   const uploadMetadata = useUploadTokenMetadata()
+  const selectChain = useSelectChain()
   const { initialVirtualBaseReserves } = useTokenFactory(launchpadChainId)
   const addTransaction = useTransactionAdder()
 
@@ -358,7 +361,24 @@ export default function CreateToken() {
         telegram: trimmedTelegram || undefined,
       })
 
-      // Step 2: Create token on-chain
+      // Step 2: Switch chain if needed
+      if (account.chainId !== launchpadChainId) {
+        setLoadingStatus('Switching network...')
+        const switched = await selectChain(launchpadChainId)
+        if (!switched) {
+          throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
+        }
+
+        // Wait for chain state to sync
+        try {
+          await waitForNetwork(launchpadChainId)
+        } catch {
+          throw new Error('Chain switch did not complete. Please try again.')
+        }
+      }
+
+      // Step 3: Create token on-chain
+      // createToken() gets a fresh signer at transaction time, so it works correctly after chain switch
       setLoadingStatus('Creating token on-chain...')
       const { tx, tokenAddress } = await createToken({
         name: trimmedName,
@@ -393,6 +413,9 @@ export default function CreateToken() {
     twitter,
     telegram,
     uploadMetadata,
+    account.chainId,
+    launchpadChainId,
+    selectChain,
     createToken,
     navigate,
     addTransaction,
