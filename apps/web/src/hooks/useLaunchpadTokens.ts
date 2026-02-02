@@ -10,6 +10,7 @@ const API_URL =
   'https://api.juiceswap.com'
 
 export type LaunchpadFilterType = 'all' | 'active' | 'graduating' | 'graduated'
+export type LaunchpadSortType = 'newest' | 'volume' | 'trades'
 
 export interface LaunchpadToken {
   id: string

@@ -1,5 +1,10 @@
 import { useAccount } from 'hooks/useAccount'
-import { useLaunchpadStats, useLaunchpadTokens, type LaunchpadFilterType } from 'hooks/useLaunchpadTokens'
+import {
+  useLaunchpadStats,
+  useLaunchpadTokens,
+  type LaunchpadFilterType,
+  type LaunchpadSortType,
+} from 'hooks/useLaunchpadTokens'
 import { TokenCard } from 'pages/Launchpad/components/TokenCard'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -206,6 +211,7 @@ export default function Launchpad() {
   const account = useAccount()
   const { defaultChainId } = useEnabledChains()
   const [filter, setFilter] = useState<LaunchpadFilterType>('all')
+  const [sort, setSort] = useState<LaunchpadSortType>('volume')
   const [page, setPage] = useState(0)
 
   // Use the user's connected chain, or fall back to default chain if not connected
@@ -218,6 +224,7 @@ export default function Launchpad() {
     page,
     limit: TOKENS_PER_PAGE,
     chainId,
+    sort,
   })
   const { data: stats, isLoading: statsLoading } = useLaunchpadStats(chainId)
 
@@ -227,6 +234,16 @@ export default function Launchpad() {
   const handleCreateToken = useCallback(() => {
     navigate('/launchpad/create')
   }, [navigate])
+
+  const handleFilterChange = useCallback((newFilter: LaunchpadFilterType) => {
+    setFilter(newFilter)
+    setPage(0)
+  }, [])
+
+  const handleSortChange = useCallback((newSort: LaunchpadSortType) => {
+    setSort(newSort)
+    setPage(0)
+  }, [])
 
   const isLoading = tokensLoading || statsLoading
 
@@ -267,28 +284,54 @@ export default function Launchpad() {
           </StatsBar>
 
           <Flex gap="$spacing24">
-            <FilterTabs>
-              <FilterTab active={filter === 'all'} onPress={() => setFilter('all')}>
-                <Text variant="body2" color={filter === 'all' ? '$accent1' : '$neutral2'}>
-                  All
-                </Text>
-              </FilterTab>
-              <FilterTab active={filter === 'active'} onPress={() => setFilter('active')}>
-                <Text variant="body2" color={filter === 'active' ? '$accent1' : '$neutral2'}>
-                  Active
-                </Text>
-              </FilterTab>
-              <FilterTab active={filter === 'graduating'} onPress={() => setFilter('graduating')}>
-                <Text variant="body2" color={filter === 'graduating' ? '$accent1' : '$neutral2'}>
-                  Graduating Soon
-                </Text>
-              </FilterTab>
-              <FilterTab active={filter === 'graduated'} onPress={() => setFilter('graduated')}>
-                <Text variant="body2" color={filter === 'graduated' ? '$accent1' : '$neutral2'}>
-                  Graduated
-                </Text>
-              </FilterTab>
-            </FilterTabs>
+            <Flex
+              flexDirection="row"
+              justifyContent="space-between"
+              alignItems="center"
+              flexWrap="wrap"
+              gap="$spacing16"
+            >
+              <FilterTabs>
+                <FilterTab active={filter === 'all'} onPress={() => handleFilterChange('all')}>
+                  <Text variant="body2" color={filter === 'all' ? '$accent1' : '$neutral2'}>
+                    All
+                  </Text>
+                </FilterTab>
+                <FilterTab active={filter === 'active'} onPress={() => handleFilterChange('active')}>
+                  <Text variant="body2" color={filter === 'active' ? '$accent1' : '$neutral2'}>
+                    Active
+                  </Text>
+                </FilterTab>
+                <FilterTab active={filter === 'graduating'} onPress={() => handleFilterChange('graduating')}>
+                  <Text variant="body2" color={filter === 'graduating' ? '$accent1' : '$neutral2'}>
+                    Graduating Soon
+                  </Text>
+                </FilterTab>
+                <FilterTab active={filter === 'graduated'} onPress={() => handleFilterChange('graduated')}>
+                  <Text variant="body2" color={filter === 'graduated' ? '$accent1' : '$neutral2'}>
+                    Graduated
+                  </Text>
+                </FilterTab>
+              </FilterTabs>
+
+              <FilterTabs>
+                <FilterTab active={sort === 'volume'} onPress={() => handleSortChange('volume')}>
+                  <Text variant="body2" color={sort === 'volume' ? '$accent1' : '$neutral2'}>
+                    Volume
+                  </Text>
+                </FilterTab>
+                <FilterTab active={sort === 'newest'} onPress={() => handleSortChange('newest')}>
+                  <Text variant="body2" color={sort === 'newest' ? '$accent1' : '$neutral2'}>
+                    Newest
+                  </Text>
+                </FilterTab>
+                <FilterTab active={sort === 'trades'} onPress={() => handleSortChange('trades')}>
+                  <Text variant="body2" color={sort === 'trades' ? '$accent1' : '$neutral2'}>
+                    Trades
+                  </Text>
+                </FilterTab>
+              </FilterTabs>
+            </Flex>
 
             {isLoading ? (
               <TokenGrid>
