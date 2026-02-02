@@ -277,6 +277,11 @@ function getStepSpecificErrorContent(
         title: t('common.swap.failed'),
         message: getBridgeErrorMessage(error, t('bridge.fail.message')),
       }
+    case TransactionStepType.WbtcBridgeStep:
+      return {
+        title: t('common.swap.failed'),
+        message: getBridgeErrorMessage(error, t('bridge.fail.message')),
+      }
     case TransactionStepType.Permit2Transaction:
       return {
         title: t('permit.approval.fail'),
