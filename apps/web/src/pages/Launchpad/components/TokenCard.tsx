@@ -106,17 +106,19 @@ export function TokenCard({ token }: TokenCardProps) {
   const totalTrades = token.totalBuys + token.totalSells
 
   return (
-    <Card interactive onPress={handleClick}>
+    <Card
+      interactive
+      onPress={handleClick}
+      {...(token.graduated && {
+        borderTopWidth: 2,
+        borderTopColor: 'rgb(255, 102, 0)',
+      })}
+    >
       <TokenHeader>
         <TokenLogo metadataURI={token.metadataURI} symbol={token.symbol} size={48} />
         <Flex flex={1} gap="$spacing2">
           <Flex flexDirection="row" alignItems="center" gap="$spacing8">
             <TokenName>{token.name || 'Unknown Token'}</TokenName>
-            {token.graduated && (
-              <GraduatedBadge>
-                <GraduatedText>Graduated</GraduatedText>
-              </GraduatedBadge>
-            )}
             {token.canGraduate && !token.graduated && (
               <GraduatedBadge style={{ backgroundColor: '$accent2' }}>
                 <GraduatedText style={{ color: '$accent1' }}>Ready!</GraduatedText>
