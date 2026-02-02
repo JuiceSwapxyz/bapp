@@ -96,8 +96,8 @@ export function TokenCard({ token }: TokenCardProps) {
           <Flex flexDirection="row" alignItems="center" gap="$spacing8">
             <TokenName>{token.name || 'Unknown Token'}</TokenName>
             {token.canGraduate && !token.graduated && (
-              <GraduatedBadge style={{ backgroundColor: '$accent2' }}>
-                <GraduatedText style={{ color: '$accent1' }}>Ready!</GraduatedText>
+              <GraduatedBadge backgroundColor="$accent2">
+                <GraduatedText color="$accent1">Ready!</GraduatedText>
               </GraduatedBadge>
             )}
           </Flex>
