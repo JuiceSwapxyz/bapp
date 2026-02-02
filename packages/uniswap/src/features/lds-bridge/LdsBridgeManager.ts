@@ -61,6 +61,7 @@ export const ASSET_CHAIN_ID_MAP: Record<string, UniverseChainId> = {
   'USDC_POLYGON': UniverseChainId.Polygon,
   'JUSD_CITREA': UniverseChainId.CitreaMainnet,
   'BTC': UniverseChainId.Bitcoin,
+  'WBTC_ETH': UniverseChainId.Mainnet,
 }
 
 /* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type, max-lines */

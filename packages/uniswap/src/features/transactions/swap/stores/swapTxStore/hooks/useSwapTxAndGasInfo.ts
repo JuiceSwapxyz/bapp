@@ -98,6 +98,7 @@ export function useSwapTxAndGasInfo({
         })
       case Routing.BRIDGE:
       case Routing.ERC20_CHAIN_SWAP:
+      case Routing.WBTC_BRIDGE:
         return getBridgeSwapTxAndGasInfo({ trade: trade as BridgeTrade, swapTxInfo, approvalTxInfo })
       case Routing.CLASSIC:
         return getClassicSwapTxAndGasInfo({ trade: trade as ClassicTrade, swapTxInfo, approvalTxInfo, permitTxInfo })

@@ -26,6 +26,7 @@ import {
   handlePermitTransactionStep,
   handleSignatureStep,
 } from 'state/sagas/transactions/utils'
+import { handleWbtcBridge } from 'state/sagas/transactions/wbtcBridge'
 import { VitalTxFields } from 'state/transactions/types'
 import invariant from 'tiny-invariant'
 import { call } from 'typed-redux-saga'
@@ -65,6 +66,7 @@ import {
   isErc20ChainSwap,
   isGatewayJusd,
   isLightningBridge,
+  isWbtcBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { getClassicQuoteFromResponse } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
@@ -230,9 +232,9 @@ async function handleSwitchChains(
 ): Promise<{ chainSwitchFailed: boolean }> {
   const { selectChain, startChainId, swapTxContext } = params
 
-  // For ERC20 chain swaps, skip chain switching here entirely
-  // The chain switch will be handled in erc20ChainSwap.ts with proper non-blocking logic
-  if (isErc20ChainSwap(swapTxContext)) {
+  // For ERC20 chain swaps and WBTC bridge, skip chain switching here entirely
+  // The chain switch will be handled in their respective handlers with proper non-blocking logic
+  if (isErc20ChainSwap(swapTxContext) || isWbtcBridge(swapTxContext)) {
     return { chainSwitchFailed: false }
   }
 
@@ -263,10 +265,12 @@ function* swap(params: SwapParams) {
   const isLightningBridgeSwap = isLightningBridge(swapTxContext)
   const isBitcoinBridgeSwap = isBitcoinBridge(swapTxContext)
   const isErc20ChainSwapSwap = isErc20ChainSwap(swapTxContext)
+  const isWbtcBridgeSwap = isWbtcBridge(swapTxContext)
 
-  // Skip chain switching for lightning bridges, bitcoin bridges, and ERC20 chain swaps
-  // ERC20 chain swaps handle chain switching internally with proper UI feedback
-  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap
+  // Skip chain switching only for lightning and bitcoin bridges
+  // ERC20 chain swaps and WBTC bridge need to switch to source chain (input currency chainId) before locking
+  // but they handle the chain switch internally
+  const changeChain = !isLightningBridgeSwap && !isBitcoinBridgeSwap && !isWbtcBridgeSwap && !isErc20ChainSwapSwap
   if (changeChain) {
     const { chainSwitchFailed } = yield* call(handleSwitchChains, params)
     if (chainSwitchFailed) {
@@ -390,7 +394,21 @@ function* swap(params: SwapParams) {
           break
         }
         case TransactionStepType.Erc20ChainSwapStep: {
+          requireRouting(swapTxContext, [Routing.ERC20_CHAIN_SWAP])
           yield* call(handleErc20ChainSwap, {
+            step,
+            setCurrentStep,
+            trade,
+            account,
+            selectChain: params.selectChain,
+            onTransactionHash: params.onTransactionHash,
+            onSuccess: params.onSuccess,
+          })
+          break
+        }
+        case TransactionStepType.WbtcBridgeStep: {
+          requireRouting(swapTxContext, [Routing.WBTC_BRIDGE])
+          yield* call(handleWbtcBridge, {
             step,
             setCurrentStep,
             trade,
@@ -416,8 +434,8 @@ function* swap(params: SwapParams) {
     return
   }
 
-  // For lightning bridge, bitcoin bridge, and ERC20 chain swaps, onSuccess is called earlier in the flow
-  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap) {
+  // For lightning bridge, bitcoin bridge, ERC20 chain swaps, and WBTC bridge, onSuccess is called earlier in the flow
+  if (!isLightningBridgeSwap && !isBitcoinBridgeSwap && !isErc20ChainSwapSwap && !isWbtcBridgeSwap) {
     yield* call(onSuccess)
   }
 }

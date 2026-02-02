@@ -130,11 +130,13 @@ function useSwapTransactionRequestInfo({
   const isBitcoinBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.BITCOIN_BRIDGE
   const isLightningBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.LN_BRIDGE
   const isErc20ChainSwapTrade = derivedSwapInfo.trade.trade?.routing === Routing.ERC20_CHAIN_SWAP
+  const isWbtcBridgeSwap = derivedSwapInfo.trade.trade?.routing === Routing.WBTC_BRIDGE
   // Gateway JUSD trades now use the standard swap flow (fetchSwap handles Gateway quotes)
   const shouldSkipSwapRequest =
     isBitcoinBridgeSwap ||
     isLightningBridgeSwap ||
     isErc20ChainSwapTrade ||
+    isWbtcBridgeSwap ||
     getShouldSkipSwapRequest({
       derivedSwapInfo,
       tokenApprovalInfo,
