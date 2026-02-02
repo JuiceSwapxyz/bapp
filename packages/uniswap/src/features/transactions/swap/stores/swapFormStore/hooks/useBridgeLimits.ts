@@ -1,3 +1,4 @@
+import { formatUnits, parseUnits } from '@ethersproject/units'
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useQuery } from '@tanstack/react-query'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -166,19 +167,39 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   }
 
   // Limits are displayed on the non-Citrea side (source for outgoing, destination for incoming)
-  // The API returns limits in the native decimals of the source token
+  // The API returns limits in the native decimals of the non-Citrea token
   const isInputSide = !isCitreaChainId(currencyIn.chainId)
   const limitsCurrency = isInputSide ? currencyIn : currencyOut
 
   const { minimal, maximal } = limits
+  // 2% buffer for fees when limits are cross-field (cBTC → lnBTC)
+  const feeBuffer = isInputSide ? 1 : 1.02
+  const adjustedMinimal = Math.floor(minimal * feeBuffer)
+
+  // For ERC20 bridges, API returns limits in Boltz format (8 decimals)
+  // Convert to token raw amount using the token's native decimals
+  let minRaw: string
+  let maxRaw: string
+
+  if (isErc20ChainBridge(params)) {
+    // Convert: Boltz (8 decimals) → decimal string → token raw amount
+    const minDecimal = formatUnits(adjustedMinimal, 8)
+    const maxDecimal = formatUnits(maximal, 8)
+    minRaw = parseUnits(minDecimal, limitsCurrency.decimals).toString()
+    maxRaw = parseUnits(maxDecimal, limitsCurrency.decimals).toString()
+  } else {
+    // BTC bridges: limits already in satoshis (native 8 decimals)
+    minRaw = adjustedMinimal.toString()
+    maxRaw = maximal.toString()
+  }
 
   const bridgeLimits: BridgeLimits = {
-    min: CurrencyAmount.fromRawAmount(limitsCurrency, minimal),
-    max: CurrencyAmount.fromRawAmount(limitsCurrency, maximal),
+    min: CurrencyAmount.fromRawAmount(limitsCurrency, minRaw),
+    max: CurrencyAmount.fromRawAmount(limitsCurrency, maxRaw),
   }
 
   return {
-    [CurrencyField.INPUT]: isInputSide ? bridgeLimits : undefined,
-    [CurrencyField.OUTPUT]: isInputSide ? undefined : bridgeLimits,
+    [CurrencyField.INPUT]: bridgeLimits,
+    [CurrencyField.OUTPUT]: undefined,
   }
 }
