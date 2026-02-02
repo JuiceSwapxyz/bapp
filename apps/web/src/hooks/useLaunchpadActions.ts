@@ -73,49 +73,34 @@ export function useBuy(
   chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): (params: BuyParams) => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
-  const account = useAccount()
-  const selectChain = useSelectChain()
   const contractRef = useRef(contract)
   contractRef.current = contract
-  const accountRef = useRef(account)
-  accountRef.current = account
 
-  return useCallback(
-    async ({ baseIn, minTokensOut }: BuyParams): Promise<ContractTransaction> => {
-      const currentAccount = accountRef.current
-      if (currentAccount.chainId !== chainId) {
-        const switched = await selectChain(chainId)
-        if (!switched) {
-          throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
-        }
-      }
+  return useCallback(async ({ baseIn, minTokensOut }: BuyParams): Promise<ContractTransaction> => {
+    const contract = contractRef.current
+    if (!contract) {
+      throw new Error('Contract not available')
+    }
+    if (baseIn <= 0n) {
+      throw new Error('Amount must be greater than 0')
+    }
 
-      const contract = contractRef.current
-      if (!contract) {
-        throw new Error('Contract not available')
+    try {
+      const tx = await contract.buy(baseIn, minTokensOut)
+      logger.info('useLaunchpadActions', 'useBuy', 'Buy transaction submitted', {
+        hash: tx.hash,
+        baseIn: baseIn.toString(),
+        minTokensOut: minTokensOut.toString(),
+      })
+      return tx
+    } catch (error) {
+      if (didUserReject(error)) {
+        throw new UserRejectedRequestError('Buy transaction rejected')
       }
-      if (baseIn <= 0n) {
-        throw new Error('Amount must be greater than 0')
-      }
-
-      try {
-        const tx = await contract.buy(baseIn, minTokensOut)
-        logger.info('useLaunchpadActions', 'useBuy', 'Buy transaction submitted', {
-          hash: tx.hash,
-          baseIn: baseIn.toString(),
-          minTokensOut: minTokensOut.toString(),
-        })
-        return tx
-      } catch (error) {
-        if (didUserReject(error)) {
-          throw new UserRejectedRequestError('Buy transaction rejected')
-        }
-        logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useBuy' } })
-        throw error
-      }
-    },
-    [chainId, selectChain],
-  )
+      logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useBuy' } })
+      throw error
+    }
+  }, [])
 }
 
 /**
@@ -128,49 +113,34 @@ export function useSell(
   chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): (params: SellParams) => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
-  const account = useAccount()
-  const selectChain = useSelectChain()
   const contractRef = useRef(contract)
   contractRef.current = contract
-  const accountRef = useRef(account)
-  accountRef.current = account
 
-  return useCallback(
-    async ({ tokensIn, minBaseOut }: SellParams): Promise<ContractTransaction> => {
-      const currentAccount = accountRef.current
-      if (currentAccount.chainId !== chainId) {
-        const switched = await selectChain(chainId)
-        if (!switched) {
-          throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
-        }
-      }
+  return useCallback(async ({ tokensIn, minBaseOut }: SellParams): Promise<ContractTransaction> => {
+    const contract = contractRef.current
+    if (!contract) {
+      throw new Error('Contract not available')
+    }
+    if (tokensIn <= 0n) {
+      throw new Error('Amount must be greater than 0')
+    }
 
-      const contract = contractRef.current
-      if (!contract) {
-        throw new Error('Contract not available')
+    try {
+      const tx = await contract.sell(tokensIn, minBaseOut)
+      logger.info('useLaunchpadActions', 'useSell', 'Sell transaction submitted', {
+        hash: tx.hash,
+        tokensIn: tokensIn.toString(),
+        minBaseOut: minBaseOut.toString(),
+      })
+      return tx
+    } catch (error) {
+      if (didUserReject(error)) {
+        throw new UserRejectedRequestError('Sell transaction rejected')
       }
-      if (tokensIn <= 0n) {
-        throw new Error('Amount must be greater than 0')
-      }
-
-      try {
-        const tx = await contract.sell(tokensIn, minBaseOut)
-        logger.info('useLaunchpadActions', 'useSell', 'Sell transaction submitted', {
-          hash: tx.hash,
-          tokensIn: tokensIn.toString(),
-          minBaseOut: minBaseOut.toString(),
-        })
-        return tx
-      } catch (error) {
-        if (didUserReject(error)) {
-          throw new UserRejectedRequestError('Sell transaction rejected')
-        }
-        logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useSell' } })
-        throw error
-      }
-    },
-    [chainId, selectChain],
-  )
+      logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useSell' } })
+      throw error
+    }
+  }, [])
 }
 
 /**
@@ -267,22 +237,10 @@ export function useGraduate(
   chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): () => Promise<ContractTransaction> {
   const contract = useBondingCurveContract(tokenAddress, chainId)
-  const account = useAccount()
-  const selectChain = useSelectChain()
   const contractRef = useRef(contract)
   contractRef.current = contract
-  const accountRef = useRef(account)
-  accountRef.current = account
 
   return useCallback(async (): Promise<ContractTransaction> => {
-    const currentAccount = accountRef.current
-    if (currentAccount.chainId !== chainId) {
-      const switched = await selectChain(chainId)
-      if (!switched) {
-        throw new Error('Please switch to Citrea Mainnet or Citrea Testnet to continue')
-      }
-    }
-
     const contract = contractRef.current
     if (!contract) {
       throw new Error('Contract not available')
@@ -301,7 +259,7 @@ export function useGraduate(
       logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useGraduate' } })
       throw error
     }
-  }, [chainId, selectChain])
+  }, [])
 }
 
 /**
