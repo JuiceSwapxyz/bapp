@@ -1,5 +1,8 @@
 import { ADDRESS } from '@juicedollar/jusd'
+import { popupRegistry } from 'components/Popups/registry'
+import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
+import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { call } from 'typed-redux-saga'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
@@ -16,6 +19,7 @@ import { Erc20ChainSwapStep, Erc20ChainSwapSubStep } from 'uniswap/src/features/
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
+import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { logger } from 'utilities/src/logger/logger'
 import type { Chain, Client, Transport } from 'viem'
 import { getAccount, getConnectorClient } from 'wagmi/actions'
@@ -396,13 +400,31 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     accepted: false,
   })
 
+  // Show claim in progress popup
+  popupRegistry.addPopup(
+    {
+      type: PopupType.ClaimInProgress,
+      count: 1,
+    },
+    `claim-in-progress-${chainSwap.id}`,
+    DEFAULT_TXN_DISMISS_MS,
+  )
+
+  let claimedSwap
   try {
-    yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
+    claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
+
+    // Remove claim in progress popup
+    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
+
     setCurrentStep({
       step: { ...step, subStep: Erc20ChainSwapSubStep.Complete },
       accepted: true,
     })
   } catch (error) {
+    // Remove claim in progress popup on error
+    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
+
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
       extra: { swapId: chainSwap.id, step: 'autoClaimSwap' },
@@ -412,6 +434,32 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })
+  }
+
+  // Show success popup with explorer link
+  if (claimedSwap.claimTx) {
+    const fromChainId = TOKEN_CONFIGS[from].chainId
+    const toChainId = TOKEN_CONFIGS[to].chainId
+
+    const explorerUrl = getExplorerLink({
+      chainId: toChainId,
+      data: claimedSwap.claimTx,
+      type: ExplorerDataType.TRANSACTION,
+    })
+
+    popupRegistry.addPopup(
+      {
+        type: PopupType.Erc20ChainSwap,
+        id: claimedSwap.claimTx,
+        fromChainId,
+        toChainId,
+        fromAsset: from,
+        toAsset: to,
+        status: LdsBridgeStatus.Confirmed,
+        url: explorerUrl,
+      },
+      claimedSwap.claimTx,
+    )
   }
 
   if (onSuccess) {

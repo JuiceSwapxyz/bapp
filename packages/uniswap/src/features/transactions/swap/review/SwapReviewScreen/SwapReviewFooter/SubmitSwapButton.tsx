@@ -11,6 +11,7 @@ import { TransactionStepType } from 'uniswap/src/features/transactions/steps/typ
 import { FlashblocksConfirmButton } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/FlashblocksConfirmButton'
 import { useIsUnichainFlashblocksEnabled } from 'uniswap/src/features/transactions/swap/hooks/useIsUnichainFlashblocksEnabled'
 import { useSwapReviewStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewStore/useSwapReviewStore'
+import { useSwapReviewTransactionStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewTransactionStore/useSwapReviewTransactionStore'
 import type { BitcoinBridgeBitcoinToCitreaStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import type { LightningBridgeReverseStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import {
@@ -43,6 +44,8 @@ export function SubmitSwapButton({ disabled, onSubmit, showPendingUI, warning }:
   const isConfirmed = useSwapFormStore((s) => s.isConfirmed)
   const chainId = useSwapFormStoreDerivedSwapInfo((s) => s.chainId)
   const isFlashblocksEnabled = useIsUnichainFlashblocksEnabled(chainId)
+  const currentStep = useSwapReviewStore((s) => s.currentStep)
+  const isErc20ChainSwap = useSwapReviewTransactionStore((s) => s.isErc20ChainSwap)
   const {
     wrapType,
     trade: { trade, indicativeTrade },
@@ -63,6 +66,9 @@ export function SubmitSwapButton({ disabled, onSubmit, showPendingUI, warning }:
 
   const isShortMobileDevice = useIsShortMobileDevice()
   const size = isShortMobileDevice ? 'medium' : 'large'
+
+  const isErc20ChainSwapInProgress =
+    isErc20ChainSwap && currentStep?.step.type === TransactionStepType.Erc20ChainSwapStep
 
   const icon = useMemo(() => {
     if (renderBiometricsIcon) {
@@ -91,6 +97,13 @@ export function SubmitSwapButton({ disabled, onSubmit, showPendingUI, warning }:
     case isConfirmed && isFlashblocksEnabled: {
       // this has side effects for the balance logic as well
       return <FlashblocksConfirmButton size={size} />
+    }
+    case isErc20ChainSwapInProgress: {
+      return (
+        <Button loading isDisabled variant="branded" emphasis="primary" size={size}>
+          {t('swap.button.processing')}
+        </Button>
+      )
     }
     case isInterface && isSubmitting: {
       return (

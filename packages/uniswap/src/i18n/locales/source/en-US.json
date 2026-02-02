@@ -1843,6 +1843,7 @@
   "swap.button.confirmUnwrap": "Confirm unwrap",
   "swap.button.max": "Max",
   "swap.button.payInvoice": "Pay Invoice",
+  "swap.button.processing": "Processing",
   "swap.button.review": "Review",
   "swap.button.submitting": "Submitting swap...",
   "swap.button.submitting.keep.open": "Keep your wallet open...",
