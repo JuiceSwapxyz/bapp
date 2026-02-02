@@ -38,6 +38,17 @@ const GraduatedText = styled(Text, {
   fontWeight: '600',
 })
 
+// Interpolate from light orange (#FFB347) to dark orange (#FF6600) based on progress
+function getProgressColor(progress: number): string {
+  const clampedProgress = Math.min(Math.max(progress, 0), 100) / 100
+  // Light orange RGB: 255, 179, 71
+  // Dark orange RGB: 255, 102, 0
+  const r = 255
+  const g = Math.round(179 - (179 - 102) * clampedProgress)
+  const b = Math.round(71 - 71 * clampedProgress)
+  return `rgb(${r}, ${g}, ${b})`
+}
+
 interface TokenCardProps {
   token: LaunchpadToken
 }
@@ -116,17 +127,20 @@ export function TokenCard({ token }: TokenCardProps) {
         </Flex>
       </TokenHeader>
 
-      {!token.graduated && (
-        <Flex gap="$spacing4">
-          <StatRow>
-            <StatLabel variant="body3">Progress to graduation</StatLabel>
-            <StatValue variant="body3">{progress.toFixed(1)}%</StatValue>
-          </StatRow>
-          <ProgressBar>
-            <ProgressFill style={{ width: `${Math.min(progress, 100)}%` }} />
-          </ProgressBar>
-        </Flex>
-      )}
+      <Flex gap="$spacing4">
+        <StatRow>
+          <StatLabel variant="body3">{token.graduated ? 'Graduated' : 'Progress to graduation'}</StatLabel>
+          <StatValue variant="body3">{token.graduated ? '100%' : `${progress.toFixed(1)}%`}</StatValue>
+        </StatRow>
+        <ProgressBar>
+          <ProgressFill
+            style={{
+              width: `${token.graduated ? 100 : Math.min(progress, 100)}%`,
+              backgroundColor: getProgressColor(token.graduated ? 100 : progress),
+            }}
+          />
+        </ProgressBar>
+      </Flex>
 
       <StatRow>
         <StatLabel variant="body3">Market Cap</StatLabel>
