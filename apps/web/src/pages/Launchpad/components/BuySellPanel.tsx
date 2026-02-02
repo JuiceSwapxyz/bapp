@@ -503,8 +503,15 @@ export function BuySellPanel({
       queryClient.invalidateQueries({ queryKey: ['launchpad-token', tokenAddress] })
     } catch (err: unknown) {
       let message = err instanceof Error ? err.message : 'Transaction failed'
+      const errorString = String(err)
       // Parse common contract errors for better UX
-      if (message.includes('ERC20InsufficientBalance') || message.includes('insufficient balance')) {
+      if (
+        message.includes('Insufficient cBTC for gas') ||
+        errorString.includes('Not enough funds for L1 fee') ||
+        errorString.includes('insufficient funds for gas')
+      ) {
+        message = 'Insufficient cBTC for gas fees'
+      } else if (message.includes('ERC20InsufficientBalance') || message.includes('insufficient balance')) {
         message = isBuy ? 'Insufficient JUSD balance' : `Insufficient ${tokenSymbol} balance`
       } else if (message.includes('ERC20InsufficientAllowance') || message.includes('insufficient allowance')) {
         message = isBuy ? 'Please approve JUSD first' : `Please approve ${tokenSymbol} first`

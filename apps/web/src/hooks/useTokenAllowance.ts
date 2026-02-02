@@ -108,6 +108,10 @@ export function useUpdateTokenAllowance(
         throw error
       } else {
         const symbol = amount?.currency.symbol ?? 'Token'
+        const errorString = String(error)
+        if (errorString.includes('Not enough funds for L1 fee') || errorString.includes('insufficient funds for gas')) {
+          throw new Error('Insufficient cBTC for gas fees')
+        }
         throw new Error(`${symbol} token allowance failed: ${error instanceof Error ? error.message : error}`)
       }
     }
