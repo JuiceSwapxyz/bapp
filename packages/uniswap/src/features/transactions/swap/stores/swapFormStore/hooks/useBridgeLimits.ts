@@ -1,3 +1,4 @@
+import { formatUnits, parseUnits } from '@ethersproject/units'
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useQuery } from '@tanstack/react-query'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -175,9 +176,26 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   const feeBuffer = isInputSide ? 1 : 1.02
   const adjustedMinimal = Math.floor(minimal * feeBuffer)
 
+  // For ERC20 bridges, API returns limits in Boltz format (8 decimals)
+  // Convert to token raw amount using the token's native decimals
+  let minRaw: string
+  let maxRaw: string
+
+  if (isErc20ChainBridge(params)) {
+    // Convert: Boltz (8 decimals) → decimal string → token raw amount
+    const minDecimal = formatUnits(adjustedMinimal, 8)
+    const maxDecimal = formatUnits(maximal, 8)
+    minRaw = parseUnits(minDecimal, limitsCurrency.decimals).toString()
+    maxRaw = parseUnits(maxDecimal, limitsCurrency.decimals).toString()
+  } else {
+    // BTC bridges: limits already in satoshis (native 8 decimals)
+    minRaw = adjustedMinimal.toString()
+    maxRaw = maximal.toString()
+  }
+
   const bridgeLimits: BridgeLimits = {
-    min: CurrencyAmount.fromRawAmount(limitsCurrency, adjustedMinimal),
-    max: CurrencyAmount.fromRawAmount(limitsCurrency, maximal),
+    min: CurrencyAmount.fromRawAmount(limitsCurrency, minRaw),
+    max: CurrencyAmount.fromRawAmount(limitsCurrency, maxRaw),
   }
 
   return {
