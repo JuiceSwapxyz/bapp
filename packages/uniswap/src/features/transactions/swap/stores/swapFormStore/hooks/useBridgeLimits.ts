@@ -171,14 +171,17 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   const limitsCurrency = isInputSide ? currencyIn : currencyOut
 
   const { minimal, maximal } = limits
+  // 2% buffer for fees when limits are cross-field (cBTC → lnBTC)
+  const feeBuffer = isInputSide ? 1 : 1.02
+  const adjustedMinimal = Math.floor(minimal * feeBuffer)
 
   const bridgeLimits: BridgeLimits = {
-    min: CurrencyAmount.fromRawAmount(limitsCurrency, minimal),
+    min: CurrencyAmount.fromRawAmount(limitsCurrency, adjustedMinimal),
     max: CurrencyAmount.fromRawAmount(limitsCurrency, maximal),
   }
 
   return {
-    [CurrencyField.INPUT]: isInputSide ? bridgeLimits : undefined,
-    [CurrencyField.OUTPUT]: isInputSide ? undefined : bridgeLimits,
+    [CurrencyField.INPUT]: bridgeLimits,
+    [CurrencyField.OUTPUT]: undefined,
   }
 }
