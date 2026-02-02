@@ -204,8 +204,19 @@ function getStatusInfo(swap: SomeSwap): {
         icon: <Clock size="$icon.16" color="$neutral1" />,
       }
 
-    // Claim is pending - swap nearly complete
+    // Claim is pending - behavior depends on swap type
     case LdsSwapStatus.TransactionClaimPending:
+      // Submarine Swaps (cBTC → Lightning): User has ALREADY received their Lightning payment
+      // when this status is reached. Boltz is just claiming their cBTC from the lockup contract.
+      // The user doesn't care about Boltz's internal settlement - their swap is complete!
+      if (swap.type === SwapType.Submarine) {
+        return {
+          label: 'Completed',
+          status: 'completed',
+          icon: <CheckCircleFilled size="$icon.16" color="$statusSuccess" />,
+        }
+      }
+      // Chain/Reverse Swaps: Claim is actually pending - user still needs to receive funds
       return {
         label: 'Claiming',
         status: 'pending',
