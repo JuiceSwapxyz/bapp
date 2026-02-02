@@ -1,7 +1,6 @@
 /* eslint-disable complexity */
 import { forwardRef, memo, useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Button, Flex, Text, TouchableArea, useIsShortMobileDevice, useShakeAnimation } from 'ui/src'
+import { Flex, Text, TouchableArea, useIsShortMobileDevice, useShakeAnimation } from 'ui/src'
 import { AmountInputPresets } from 'uniswap/src/components/CurrencyInputPanel/AmountInputPresets/AmountInputPresets'
 import { PresetAmountButton } from 'uniswap/src/components/CurrencyInputPanel/AmountInputPresets/PresetAmountButton'
 import type { PresetPercentage } from 'uniswap/src/components/CurrencyInputPanel/AmountInputPresets/types'
@@ -50,7 +49,6 @@ export const CurrencyInputPanel = memo(
         customPanelStyle,
         limits,
       } = props
-      const { t } = useTranslation()
       const account = useWallet().evmAccount
       const isShortMobileDevice = useIsShortMobileDevice()
 
@@ -82,9 +80,6 @@ export const CurrencyInputPanel = memo(
       const isDesktop = isInterfaceDesktop || isExtension
 
       const showPercentagePresetsOnBottom = showPercentagePresetOptions && (isMobileWeb || (isDesktop && !headerLabel))
-
-      const minLimitValue = limits?.min?.toExact()
-      const maxLimitValue = limits?.max?.toExact()
 
       const shakeAnimation = useShakeAnimation()
       const { triggerShakeAnimation } = shakeAnimation
@@ -206,80 +201,11 @@ export const CurrencyInputPanel = memo(
                       onSetPresetValue={handleSetPresetValue}
                     />
                   )}
-                  {minLimitValue &&
-                    maxLimitValue &&
-                    (disabled ? (
-                      <Text variant="body3" color="$neutral2">
-                        {t('common.limits')}: {minLimitValue} - {maxLimitValue}
-                      </Text>
-                    ) : (
-                      <Flex row centered gap="$spacing8">
-                        <TouchableArea onPress={() => onSetExactAmount(minLimitValue)}>
-                          <Flex
-                            row
-                            centered
-                            gap="$spacing2"
-                            hoverStyle={{
-                              backgroundColor: '$accent2Hovered',
-                            }}
-                            borderRadius="$rounded12"
-                            p="$spacing2"
-                          >
-                            <Button
-                              size="xxsmall"
-                              variant="branded"
-                              emphasis="tertiary"
-                              borderWidth={0}
-                              minWidth="auto"
-                              pressStyle={{
-                                scale: 0.99,
-                              }}
-                              hoverStyle={{
-                                scale: 1.02,
-                              }}
-                              onPress={() => onSetExactAmount(minLimitValue)}
-                            >
-                              {t('common.min')}
-                            </Button>
-                            <Text variant="body4" color="$neutral2">
-                              {minLimitValue}
-                            </Text>
-                          </Flex>
-                        </TouchableArea>
-                        <TouchableArea onPress={() => onSetExactAmount(maxLimitValue)}>
-                          <Flex
-                            row
-                            centered
-                            gap="$spacing2"
-                            hoverStyle={{
-                              backgroundColor: '$accent2Hovered',
-                            }}
-                            borderRadius="$rounded12"
-                            p="$spacing2"
-                          >
-                            <Button
-                              size="xxsmall"
-                              variant="branded"
-                              emphasis="tertiary"
-                              borderWidth={0}
-                              minWidth="auto"
-                              pressStyle={{
-                                scale: 0.99,
-                              }}
-                              hoverStyle={{
-                                scale: 1.02,
-                              }}
-                              onPress={() => onSetExactAmount(maxLimitValue)}
-                            >
-                              {t('common.max')}
-                            </Button>
-                            <Text variant="body4" color="$neutral2">
-                              {maxLimitValue}
-                            </Text>
-                          </Flex>
-                        </TouchableArea>
-                      </Flex>
-                    ))}
+                  {limits && (
+                    <Text variant="body3" color="$neutral2">
+                      Limits: {limits.min?.toExact()} - {limits.max?.toExact()}
+                    </Text>
+                  )}
                 </Flex>
               )}
             </Flex>

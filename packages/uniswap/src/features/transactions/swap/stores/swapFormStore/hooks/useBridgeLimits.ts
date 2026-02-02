@@ -166,22 +166,19 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   }
 
   // Limits are displayed on the non-Citrea side (source for outgoing, destination for incoming)
-  // The API returns limits in the native decimals of the non-Citrea token
+  // The API returns limits in the native decimals of the source token
   const isInputSide = !isCitreaChainId(currencyIn.chainId)
   const limitsCurrency = isInputSide ? currencyIn : currencyOut
 
   const { minimal, maximal } = limits
-  // 2% buffer for fees when limits are cross-field (cBTC → lnBTC)
-  const feeBuffer = isInputSide ? 1 : 1.02
-  const adjustedMinimal = Math.floor(minimal * feeBuffer)
 
   const bridgeLimits: BridgeLimits = {
-    min: CurrencyAmount.fromRawAmount(limitsCurrency, adjustedMinimal),
+    min: CurrencyAmount.fromRawAmount(limitsCurrency, minimal),
     max: CurrencyAmount.fromRawAmount(limitsCurrency, maximal),
   }
 
   return {
-    [CurrencyField.INPUT]: bridgeLimits,
-    [CurrencyField.OUTPUT]: undefined,
+    [CurrencyField.INPUT]: isInputSide ? bridgeLimits : undefined,
+    [CurrencyField.OUTPUT]: isInputSide ? undefined : bridgeLimits,
   }
 }
