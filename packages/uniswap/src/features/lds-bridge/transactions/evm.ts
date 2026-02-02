@@ -45,12 +45,17 @@ export async function buildEvmLockupTx(params: BuildEvmClaimTxParams): Promise<E
 const ERC20_SWAP_ABI = [
   'function lock(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
   'function claim(bytes32 preimage, uint256 amount, address tokenAddress, address refundAddress, uint256 timelock)',
+  'function refund(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, uint256 timelock)',
+  'function refund(bytes32 preimageHash, uint256 amount, address tokenAddress, address claimAddress, address refundAddress, uint256 timelock)',
 ]
 
 const ERC20_TOKEN_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
   'function allowance(address owner, address spender) view returns (uint256)',
 ]
+
+// MaxUint256 for unlimited approvals
+const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
 
 export type CheckErc20AllowanceParams = {
   signer: Signer
@@ -100,7 +105,16 @@ export async function approveErc20ForLdsBridge(params: ApproveErc20Params): Prom
   const { signer, contractAddress, tokenAddress, amount } = params
 
   const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
-  const tx = await tokenContract.approve(contractAddress, amount)
+  const currentAllowance = await tokenContract.allowance(await signer.getAddress(), contractAddress)
+
+  // For USDT and similar tokens: reset allowance to 0 first if there's a non-zero allowance
+  if (!currentAllowance.isZero()) {
+    const resetTx = await tokenContract.approve(contractAddress, 0)
+    await resetTx.wait()
+  }
+
+  // Approve unlimited (MaxUint256) to avoid repeated approvals
+  const tx = await tokenContract.approve(contractAddress, MAX_UINT256)
 
   return { tx, hash: tx.hash }
 }
@@ -143,6 +157,60 @@ export async function claimErc20Swap(params: {
   const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
 
   const tx = await swapContract.claim(prefix0x(preimage), amount, tokenAddress, refundAddress, timelock)
+
+  const receipt = await tx.wait()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return receipt.hash
+}
+
+export async function refundCoinSwap(params: {
+  signer: Signer
+  contractAddress: string
+  preimageHash: string
+  amount: bigint
+  claimAddress: string
+  timelock: number
+}): Promise<string> {
+  const { signer, contractAddress, preimageHash, amount, claimAddress, timelock } = params
+
+  const contract = new EthersContract(contractAddress, COIN_SWAP_ABI, signer) as Contract
+
+  // For native coin swaps (cBTC), use the 4-parameter refund function explicitly
+  const tx = await contract['refund(bytes32,uint256,address,uint256)'](
+    prefix0x(preimageHash),
+    amount,
+    claimAddress,
+    timelock,
+  )
+
+  const receipt = await tx.wait()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return receipt.hash
+}
+
+export async function refundErc20Swap(params: {
+  signer: Signer
+  contractAddress: string
+  tokenAddress: string
+  preimageHash: string
+  amount: bigint
+  claimAddress: string
+  refundAddress: string
+  timelock: number
+}): Promise<string> {
+  const { signer, contractAddress, tokenAddress, preimageHash, amount, claimAddress, refundAddress, timelock } = params
+
+  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
+
+  // For ERC20 token swaps, use the 6-parameter refund function (with refundAddress)
+  const tx = await swapContract['refund(bytes32,uint256,address,address,address,uint256)'](
+    prefix0x(preimageHash),
+    amount,
+    tokenAddress,
+    claimAddress,
+    refundAddress,
+    timelock,
+  )
 
   const receipt = await tx.wait()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
