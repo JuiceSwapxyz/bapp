@@ -38,15 +38,15 @@ const GraduatedText = styled(Text, {
   fontWeight: '600',
 })
 
-// Interpolate from light orange (#FFB347) to dark orange (#FF6600) based on progress
-function getProgressColor(progress: number): string {
+// Generate gradient from Hero orange to a color based on progress (orange -> green)
+function getProgressGradient(progress: number): string {
   const clampedProgress = Math.min(Math.max(progress, 0), 100) / 100
-  // Light orange RGB: 255, 179, 71
-  // Dark orange RGB: 255, 102, 0
-  const r = 255
-  const g = Math.round(179 - (179 - 102) * clampedProgress)
-  const b = Math.round(71 - 71 * clampedProgress)
-  return `rgb(${r}, ${g}, ${b})`
+  // Hero orange RGB: 255, 124, 58
+  // JuiceSwap green RGB: 99, 200, 122
+  const r = Math.round(255 - (255 - 99) * clampedProgress)
+  const g = Math.round(124 + (200 - 124) * clampedProgress)
+  const b = Math.round(58 + (122 - 58) * clampedProgress)
+  return `linear-gradient(to right, #FF7C3A, rgb(${r}, ${g}, ${b}))`
 }
 
 interface TokenCardProps {
@@ -111,7 +111,7 @@ export function TokenCard({ token }: TokenCardProps) {
       onPress={handleClick}
       {...(token.graduated && {
         borderTopWidth: 2,
-        borderTopColor: 'rgb(255, 102, 0)',
+        borderTopColor: '#63C87A',
       })}
     >
       <TokenHeader>
@@ -138,7 +138,7 @@ export function TokenCard({ token }: TokenCardProps) {
           <ProgressFill
             style={{
               width: `${token.graduated ? 100 : Math.min(progress, 100)}%`,
-              backgroundColor: getProgressColor(token.graduated ? 100 : progress),
+              background: getProgressGradient(token.graduated ? 100 : progress),
             }}
           />
         </ProgressBar>
