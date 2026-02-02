@@ -1,48 +1,67 @@
-import { ContractTransaction } from '@ethersproject/contracts'
+import { Contract, ContractTransaction } from '@ethersproject/contracts'
+import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import {
   BONDING_CURVE_TOKEN_ABI,
   DEFAULT_LAUNCHPAD_SLIPPAGE_BPS,
   LAUNCHPAD_ADDRESSES,
   TOKEN_FACTORY_ABI,
 } from 'constants/launchpad'
-import { useContract } from 'hooks/useContract'
-import { useCallback, useMemo, useRef } from 'react'
+import { clientToProvider } from 'hooks/useEthersProvider'
+import { useCallback } from 'react'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { logger } from 'utilities/src/logger/logger'
 import { UserRejectedRequestError } from 'utils/errors'
 import { didUserReject } from 'utils/swapErrorToUserReadableMessage'
+import { getConnectorClient } from 'wagmi/actions'
 
 /**
- * Hook to get a BondingCurveToken contract instance
+ * Get a fresh signer for the wallet's current chain.
+ * This follows the same pattern as the swap page (utils.ts getSigner).
  */
-export function useBondingCurveContract(tokenAddress: string | undefined, chainId?: UniverseChainId) {
-  return useContract({
-    address: tokenAddress,
-    ABI: BONDING_CURVE_TOKEN_ABI,
-    withSignerIfPossible: true,
-    chainId,
-  })
+async function getFreshSigner() {
+  const client = await getConnectorClient(wagmiConfig)
+  const provider = clientToProvider(client)
+
+  if (!provider) {
+    throw new Error('Failed to get provider - wallet may not be connected')
+  }
+
+  return {
+    signer: provider.getSigner(client.account.address),
+    chainId: client.chain.id,
+  }
 }
 
 /**
- * Hook to get the TokenFactory contract instance
+ * Get a fresh BondingCurveToken contract with a signer for the current chain.
  */
-export function useTokenFactoryContract(chainId: UniverseChainId = UniverseChainId.CitreaMainnet) {
-  const factoryAddress = useMemo(() => {
-    const addresses = LAUNCHPAD_ADDRESSES[chainId]
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!addresses || addresses.factory === '0x0000000000000000000000000000000000000000') {
-      return undefined
-    }
-    return addresses.factory
-  }, [chainId])
+async function getFreshBondingCurveContract(tokenAddress: string, expectedChainId: number) {
+  const { signer, chainId } = await getFreshSigner()
 
-  return useContract({
-    address: factoryAddress,
-    ABI: TOKEN_FACTORY_ABI,
-    withSignerIfPossible: true,
-    chainId,
-  })
+  if (chainId !== expectedChainId) {
+    throw new Error(`Wallet is on chain ${chainId} but token is on chain ${expectedChainId}. Please switch networks.`)
+  }
+
+  return new Contract(tokenAddress, BONDING_CURVE_TOKEN_ABI, signer)
+}
+
+/**
+ * Get a fresh TokenFactory contract with a signer for the current chain.
+ */
+async function getFreshTokenFactoryContract(expectedChainId: UniverseChainId) {
+  const addresses = LAUNCHPAD_ADDRESSES[expectedChainId]
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!addresses || addresses.factory === '0x0000000000000000000000000000000000000000') {
+    throw new Error('Token factory not available for this chain')
+  }
+
+  const { signer, chainId } = await getFreshSigner()
+
+  if (chainId !== expectedChainId) {
+    throw new Error(`Wallet is on chain ${chainId} but factory is on chain ${expectedChainId}. Please switch networks.`)
+  }
+
+  return new Contract(addresses.factory, TOKEN_FACTORY_ABI, signer)
 }
 
 export interface BuyParams {
@@ -62,106 +81,98 @@ export interface CreateTokenParams {
 }
 
 /**
- * Hook for buying tokens from bonding curve
- * @param tokenAddress - The bonding curve token address
- * @param chainId - Chain ID
+ * Hook for buying tokens from bonding curve.
+ * Gets a fresh signer at transaction time to ensure correct chain after chain switch.
  */
 export function useBuy(
   tokenAddress: string | undefined,
   chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): (params: BuyParams) => Promise<ContractTransaction> {
-  const contract = useBondingCurveContract(tokenAddress, chainId)
-  const contractRef = useRef(contract)
-  contractRef.current = contract
-
-  return useCallback(async ({ baseIn, minTokensOut }: BuyParams): Promise<ContractTransaction> => {
-    const contract = contractRef.current
-    if (!contract) {
-      throw new Error('Contract not available')
-    }
-    if (baseIn <= 0n) {
-      throw new Error('Amount must be greater than 0')
-    }
-
-    try {
-      const tx = await contract.buy(baseIn, minTokensOut)
-      logger.info('useLaunchpadActions', 'useBuy', 'Buy transaction submitted', {
-        hash: tx.hash,
-        baseIn: baseIn.toString(),
-        minTokensOut: minTokensOut.toString(),
-      })
-      return tx
-    } catch (error) {
-      if (didUserReject(error)) {
-        throw new UserRejectedRequestError('Buy transaction rejected')
+  return useCallback(
+    async ({ baseIn, minTokensOut }: BuyParams): Promise<ContractTransaction> => {
+      if (!tokenAddress) {
+        throw new Error('Token address not available')
       }
-      logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useBuy' } })
-      throw error
-    }
-  }, [])
+      if (baseIn <= 0n) {
+        throw new Error('Amount must be greater than 0')
+      }
+
+      try {
+        // Get fresh contract with signer at transaction time
+        const contract = await getFreshBondingCurveContract(tokenAddress, chainId)
+
+        const tx = await contract.buy(baseIn, minTokensOut)
+        logger.info('useLaunchpadActions', 'useBuy', 'Buy transaction submitted', {
+          hash: tx.hash,
+          baseIn: baseIn.toString(),
+          minTokensOut: minTokensOut.toString(),
+        })
+        return tx
+      } catch (error) {
+        if (didUserReject(error)) {
+          throw new UserRejectedRequestError('Buy transaction rejected')
+        }
+        logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useBuy' } })
+        throw error
+      }
+    },
+    [tokenAddress, chainId],
+  )
 }
 
 /**
- * Hook for selling tokens to bonding curve
- * @param tokenAddress - The bonding curve token address
- * @param chainId - Chain ID
+ * Hook for selling tokens to bonding curve.
+ * Gets a fresh signer at transaction time to ensure correct chain after chain switch.
  */
 export function useSell(
   tokenAddress: string | undefined,
   chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): (params: SellParams) => Promise<ContractTransaction> {
-  const contract = useBondingCurveContract(tokenAddress, chainId)
-  const contractRef = useRef(contract)
-  contractRef.current = contract
-
-  return useCallback(async ({ tokensIn, minBaseOut }: SellParams): Promise<ContractTransaction> => {
-    const contract = contractRef.current
-    if (!contract) {
-      throw new Error('Contract not available')
-    }
-    if (tokensIn <= 0n) {
-      throw new Error('Amount must be greater than 0')
-    }
-
-    try {
-      const tx = await contract.sell(tokensIn, minBaseOut)
-      logger.info('useLaunchpadActions', 'useSell', 'Sell transaction submitted', {
-        hash: tx.hash,
-        tokensIn: tokensIn.toString(),
-        minBaseOut: minBaseOut.toString(),
-      })
-      return tx
-    } catch (error) {
-      if (didUserReject(error)) {
-        throw new UserRejectedRequestError('Sell transaction rejected')
+  return useCallback(
+    async ({ tokensIn, minBaseOut }: SellParams): Promise<ContractTransaction> => {
+      if (!tokenAddress) {
+        throw new Error('Token address not available')
       }
-      logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useSell' } })
-      throw error
-    }
-  }, [])
+      if (tokensIn <= 0n) {
+        throw new Error('Amount must be greater than 0')
+      }
+
+      try {
+        // Get fresh contract with signer at transaction time
+        const contract = await getFreshBondingCurveContract(tokenAddress, chainId)
+
+        const tx = await contract.sell(tokensIn, minBaseOut)
+        logger.info('useLaunchpadActions', 'useSell', 'Sell transaction submitted', {
+          hash: tx.hash,
+          tokensIn: tokensIn.toString(),
+          minBaseOut: minBaseOut.toString(),
+        })
+        return tx
+      } catch (error) {
+        if (didUserReject(error)) {
+          throw new UserRejectedRequestError('Sell transaction rejected')
+        }
+        logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useSell' } })
+        throw error
+      }
+    },
+    [tokenAddress, chainId],
+  )
 }
 
 /**
- * Hook for creating a new token
- * @param chainId - Chain ID
+ * Hook for creating a new token.
+ * Gets a fresh signer at transaction time to ensure correct chain after chain switch.
  */
 export function useCreateToken(
   chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): (params: CreateTokenParams) => Promise<{ tx: ContractTransaction; tokenAddress: string | null }> {
-  const contract = useTokenFactoryContract(chainId)
-  const contractRef = useRef(contract)
-  contractRef.current = contract
-
   return useCallback(
     async ({
       name,
       symbol,
       metadataURI,
     }: CreateTokenParams): Promise<{ tx: ContractTransaction; tokenAddress: string | null }> => {
-      const contract = contractRef.current
-      if (!contract) {
-        throw new Error('Factory contract not available')
-      }
       if (!name.trim()) {
         throw new Error('Token name is required')
       }
@@ -173,6 +184,9 @@ export function useCreateToken(
       }
 
       try {
+        // Get fresh contract with signer at transaction time
+        const contract = await getFreshTokenFactoryContract(chainId)
+
         const tx = await contract.createToken(name, symbol, metadataURI)
         logger.info('useLaunchpadActions', 'useCreateToken', 'Create token transaction submitted', {
           hash: tx.hash,
@@ -209,30 +223,27 @@ export function useCreateToken(
         throw error
       }
     },
-    [],
+    [chainId],
   )
 }
 
 /**
- * Hook for graduating a token to V2
- * @param tokenAddress - The bonding curve token address
- * @param chainId - Chain ID
+ * Hook for graduating a token to V2.
+ * Gets a fresh signer at transaction time to ensure correct chain after chain switch.
  */
 export function useGraduate(
   tokenAddress: string | undefined,
   chainId: UniverseChainId = UniverseChainId.CitreaMainnet,
 ): () => Promise<ContractTransaction> {
-  const contract = useBondingCurveContract(tokenAddress, chainId)
-  const contractRef = useRef(contract)
-  contractRef.current = contract
-
   return useCallback(async (): Promise<ContractTransaction> => {
-    const contract = contractRef.current
-    if (!contract) {
-      throw new Error('Contract not available')
+    if (!tokenAddress) {
+      throw new Error('Token address not available')
     }
 
     try {
+      // Get fresh contract with signer at transaction time
+      const contract = await getFreshBondingCurveContract(tokenAddress, chainId)
+
       const tx = await contract.graduate()
       logger.info('useLaunchpadActions', 'useGraduate', 'Graduate transaction submitted', {
         hash: tx.hash,
@@ -245,7 +256,7 @@ export function useGraduate(
       logger.error(error, { tags: { file: 'useLaunchpadActions', function: 'useGraduate' } })
       throw error
     }
-  }, [])
+  }, [tokenAddress, chainId])
 }
 
 /**

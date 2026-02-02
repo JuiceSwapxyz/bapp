@@ -378,6 +378,7 @@ export default function CreateToken() {
       }
 
       // Step 3: Create token on-chain
+      // createToken() gets a fresh signer at transaction time, so it works correctly after chain switch
       setLoadingStatus('Creating token on-chain...')
       const { tx, tokenAddress } = await createToken({
         name: trimmedName,

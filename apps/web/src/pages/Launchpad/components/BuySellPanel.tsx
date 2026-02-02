@@ -404,6 +404,7 @@ export function BuySellPanel({
     }
 
     try {
+      // graduate() gets a fresh signer at transaction time, so it works correctly after chain switch
       const tx = await graduate()
       addTransaction(tx, {
         type: TransactionType.LaunchpadGraduate,
@@ -464,6 +465,8 @@ export function BuySellPanel({
     }
 
     try {
+      // All transaction functions (approveBase, buy, sell) get fresh signers at transaction time,
+      // so they work correctly after chain switch without needing React to re-render
       if (isBuy) {
         if (needsBaseApproval) {
           const { response: approvalTx, info: approvalInfo } = await approveBase()
