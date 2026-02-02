@@ -81,6 +81,9 @@ export const CurrencyInputPanel = memo(
 
       const showPercentagePresetsOnBottom = showPercentagePresetOptions && (isMobileWeb || (isDesktop && !headerLabel))
 
+      const minLimitValue = limits?.min?.toExact()
+      const maxLimitValue = limits?.max?.toExact()
+
       const shakeAnimation = useShakeAnimation()
       const { triggerShakeAnimation } = shakeAnimation
 
@@ -201,11 +204,42 @@ export const CurrencyInputPanel = memo(
                       onSetPresetValue={handleSetPresetValue}
                     />
                   )}
-                  {limits && (
-                    <Text variant="body3" color="$neutral2">
-                      Limits: {limits.min?.toExact()} - {limits.max?.toExact()}
-                    </Text>
-                  )}
+                  {minLimitValue &&
+                    maxLimitValue &&
+                    (disabled ? (
+                      <Text variant="body3" color="$neutral2">
+                        Limits: {minLimitValue} - {maxLimitValue}
+                      </Text>
+                    ) : (
+                      <Flex row centered gap="$spacing8">
+                        <TouchableArea
+                          hoverable
+                          borderRadius="$rounded8"
+                          px="$spacing6"
+                          py="$spacing2"
+                          backgroundColor="$surface3"
+                          hoverStyle={{ backgroundColor: '$surface3Hovered' }}
+                          onPress={() => onSetExactAmount(minLimitValue)}
+                        >
+                          <Text variant="buttonLabel4" color="$neutral1">
+                            Min
+                          </Text>
+                        </TouchableArea>
+                        <TouchableArea
+                          hoverable
+                          borderRadius="$rounded8"
+                          px="$spacing6"
+                          py="$spacing2"
+                          backgroundColor="$surface3"
+                          hoverStyle={{ backgroundColor: '$surface3Hovered' }}
+                          onPress={() => onSetExactAmount(maxLimitValue)}
+                        >
+                          <Text variant="buttonLabel4" color="$neutral1">
+                            Max
+                          </Text>
+                        </TouchableArea>
+                      </Flex>
+                    ))}
                 </Flex>
               )}
             </Flex>

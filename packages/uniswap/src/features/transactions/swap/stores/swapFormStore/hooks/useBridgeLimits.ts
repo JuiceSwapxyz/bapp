@@ -166,7 +166,7 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   }
 
   // Limits are displayed on the non-Citrea side (source for outgoing, destination for incoming)
-  // The API returns limits in the native decimals of the source token
+  // The API returns limits in the native decimals of the non-Citrea token
   const isInputSide = !isCitreaChainId(currencyIn.chainId)
   const limitsCurrency = isInputSide ? currencyIn : currencyOut
 
