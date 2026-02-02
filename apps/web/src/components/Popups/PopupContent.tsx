@@ -669,7 +669,15 @@ export function Erc20ChainSwapPopupContent({
   )
 }
 
-export function RefundableSwapsPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
+export function RefundableSwapsPopupContent({
+  refundableCount,
+  claimableCount,
+  onClose,
+}: {
+  refundableCount: number
+  claimableCount: number
+  onClose: () => void
+}): JSX.Element {
   const navigate = useNavigate()
   const shadowProps = useShadowPropsMedium()
 
@@ -677,6 +685,10 @@ export function RefundableSwapsPopupContent({ count, onClose }: { count: number;
     navigate('/bridge-swaps')
     onClose()
   }
+
+  const totalCount = refundableCount + claimableCount
+  const hasRefundable = refundableCount > 0
+  const hasClaimable = claimableCount > 0
 
   return (
     <Flex
@@ -703,14 +715,26 @@ export function RefundableSwapsPopupContent({ count, onClose }: { count: number;
       <TouchableArea onPress={handleClick} flex={1}>
         <Flex row alignItems="center" gap="$gap12" flex={1}>
           <Flex>
-            <AlertTriangleFilledUI color="$DEP_accentWarning" size="$icon.28" />
+            {hasClaimable ? (
+              <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
+            ) : (
+              <AlertTriangleFilledUI color="$DEP_accentWarning" size="$icon.28" />
+            )}
           </Flex>
           <Flex gap="$gap4" flex={1}>
             <Text variant="body2" color="$neutral1">
-              Swaps Available for Refund ({count})
+              {hasClaimable && hasRefundable
+                ? `Swaps Need Attention (${totalCount})`
+                : hasClaimable
+                  ? `Swaps Ready to Claim (${claimableCount})`
+                  : `Swaps Available for Refund (${refundableCount})`}
             </Text>
             <Text variant="body3" color="$neutral2">
-              These swaps have timed out and can be refunded to recover your funds.
+              {hasClaimable && hasRefundable
+                ? `${claimableCount} ready to claim, ${refundableCount} available for refund.`
+                : hasClaimable
+                  ? 'These swaps are ready to be claimed. Click to view and claim your funds.'
+                  : 'These swaps have timed out and can be refunded to recover your funds.'}
             </Text>
           </Flex>
         </Flex>
@@ -928,6 +952,8 @@ export function ClaimCompletedPopupContent({ count, onClose }: { count: number; 
 }
 
 export function EvmRefundSuccessPopupContent({
+  chainId,
+  txHash,
   amount,
   tokenSymbol,
   onClose,
@@ -939,6 +965,18 @@ export function EvmRefundSuccessPopupContent({
   onClose: () => void
 }): JSX.Element {
   const shadowProps = useShadowPropsMedium()
+
+  const explorerUrl = getExplorerLink({
+    chainId,
+    data: txHash,
+    type: ExplorerDataType.TRANSACTION,
+  })
+
+  const handleClick = () => {
+    if (explorerUrl) {
+      window.open(explorerUrl, '_blank')
+    }
+  }
 
   return (
     <Flex
@@ -962,19 +1000,100 @@ export function EvmRefundSuccessPopupContent({
         mx: 'auto',
       }}
     >
-      <Flex row alignItems="center" gap="$gap12" flex={1}>
-        <Flex>
-          <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
+      <TouchableArea onPress={handleClick} flex={1}>
+        <Flex row alignItems="center" gap="$gap12" flex={1}>
+          <Flex>
+            <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
+          </Flex>
+          <Flex gap="$gap4" flex={1}>
+            <Text variant="body2" color="$neutral1">
+              Refund Successful
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              {amount} {tokenSymbol} refunded.
+            </Text>
+            <Text variant="body4" color="$accent1" textDecorationLine="underline">
+              View transaction
+            </Text>
+          </Flex>
         </Flex>
-        <Flex gap="$gap4" flex={1}>
-          <Text variant="body2" color="$neutral1">
-            Refund Successful
-          </Text>
-          <Text variant="body3" color="$neutral2">
-            {amount} {tokenSymbol} refunded.
-          </Text>
-        </Flex>
+      </TouchableArea>
+      <Flex position="absolute" right="$spacing16" top="$spacing16" data-testid={TestID.ActivityPopupCloseIcon}>
+        <TouchableArea onPress={onClose}>
+          <X color="$neutral2" size={16} />
+        </TouchableArea>
       </Flex>
+    </Flex>
+  )
+}
+
+export function EvmClaimSuccessPopupContent({
+  chainId,
+  txHash,
+  amount,
+  tokenSymbol,
+  onClose,
+}: {
+  chainId: number
+  txHash: string
+  amount: string
+  tokenSymbol: string
+  onClose: () => void
+}): JSX.Element {
+  const shadowProps = useShadowPropsMedium()
+
+  const explorerUrl = getExplorerLink({
+    chainId,
+    data: txHash,
+    type: ExplorerDataType.TRANSACTION,
+  })
+
+  const handleClick = () => {
+    if (explorerUrl) {
+      window.open(explorerUrl, '_blank')
+    }
+  }
+
+  return (
+    <Flex
+      row
+      alignItems="center"
+      animation="300ms"
+      backgroundColor="$surface1"
+      borderColor="$surface3"
+      borderRadius="$rounded16"
+      borderWidth="$spacing1"
+      justifyContent="space-between"
+      left={0}
+      mx="auto"
+      {...shadowProps}
+      p="$spacing16"
+      position="relative"
+      width={POPUP_MAX_WIDTH}
+      opacity={1}
+      $sm={{
+        maxWidth: '100%',
+        mx: 'auto',
+      }}
+    >
+      <TouchableArea onPress={handleClick} flex={1}>
+        <Flex row alignItems="center" gap="$gap12" flex={1}>
+          <Flex>
+            <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
+          </Flex>
+          <Flex gap="$gap4" flex={1}>
+            <Text variant="body2" color="$neutral1">
+              Claim Successful
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              {amount} {tokenSymbol} claimed.
+            </Text>
+            <Text variant="body4" color="$accent1" textDecorationLine="underline">
+              View transaction
+            </Text>
+          </Flex>
+        </Flex>
+      </TouchableArea>
       <Flex position="absolute" right="$spacing16" top="$spacing16" data-testid={TestID.ActivityPopupCloseIcon}>
         <TouchableArea onPress={onClose}>
           <X color="$neutral2" size={16} />

@@ -44,6 +44,7 @@ const LaunchpadCreate = lazy(() => import('pages/Launchpad/Create'))
 const BridgeSwaps = lazy(() => import('pages/BridgeSwaps'))
 const JuicePage = lazy(() => import('pages/Juice'))
 const JusdPage = lazy(() => import('pages/Jusd'))
+const DebugLockup = lazy(() => import('pages/DebugLockup'))
 
 interface RouterConfig {
   browserRouterEnabled?: boolean
@@ -429,6 +430,17 @@ export const routes: RouteDefinition[] = [
     getTitle: () => 'JuiceDollar (JUSD) | JuiceSwap',
     getDescription: () =>
       'Learn how JUSD, the decentralized stablecoin of JuiceDollar, works. Oracle-free, overcollateralized, and built on cypherpunk principles.',
+  }),
+  // Debug Lockup - Create lockups manually for testing
+  createRouteDefinition({
+    path: '/debug/lockup',
+    getElement: () => (
+      <Suspense fallback={null}>
+        <DebugLockup />
+      </Suspense>
+    ),
+    getTitle: () => 'Debug: Create Lockup | JuiceSwap',
+    getDescription: () => 'Manually create lockup transactions for testing purposes.',
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),

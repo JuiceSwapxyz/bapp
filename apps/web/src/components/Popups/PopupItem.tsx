@@ -4,6 +4,7 @@ import {
   ClaimCompletedPopupContent,
   ClaimInProgressPopupContent,
   Erc20ChainSwapPopupContent,
+  EvmClaimSuccessPopupContent,
   EvmRefundSuccessPopupContent,
   FORTransactionPopupContent,
   FailedNetworkSwitchPopup,
@@ -110,7 +111,13 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
       )
     }
     case PopupType.RefundableSwaps: {
-      return <RefundableSwapsPopupContent count={content.count} onClose={onClose} />
+      return (
+        <RefundableSwapsPopupContent
+          refundableCount={content.refundableCount}
+          claimableCount={content.claimableCount}
+          onClose={onClose}
+        />
+      )
     }
     case PopupType.RefundsInProgress: {
       return <RefundsInProgressPopupContent count={content.count} onClose={onClose} />
@@ -127,6 +134,17 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
     case PopupType.EvmRefundSuccess: {
       return (
         <EvmRefundSuccessPopupContent
+          chainId={content.chainId}
+          txHash={content.txHash}
+          amount={content.amount}
+          tokenSymbol={content.tokenSymbol}
+          onClose={onClose}
+        />
+      )
+    }
+    case PopupType.EvmClaimSuccess: {
+      return (
+        <EvmClaimSuccessPopupContent
           chainId={content.chainId}
           txHash={content.txHash}
           amount={content.amount}

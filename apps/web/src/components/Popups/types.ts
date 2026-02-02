@@ -20,6 +20,7 @@ export enum PopupType {
   ClaimInProgress = 'claimInProgress',
   ClaimCompleted = 'claimCompleted',
   EvmRefundSuccess = 'evmRefundSuccess',
+  EvmClaimSuccess = 'evmClaimSuccess',
 }
 
 export enum SwitchNetworkAction {
@@ -109,7 +110,8 @@ export type PopupContent =
     }
   | {
       type: PopupType.RefundableSwaps
-      count: number
+      refundableCount: number
+      claimableCount: number
     }
   | {
       type: PopupType.RefundsInProgress
@@ -129,6 +131,13 @@ export type PopupContent =
     }
   | {
       type: PopupType.EvmRefundSuccess
+      chainId: number
+      txHash: string
+      amount: string
+      tokenSymbol: string
+    }
+  | {
+      type: PopupType.EvmClaimSuccess
       chainId: number
       txHash: string
       amount: string

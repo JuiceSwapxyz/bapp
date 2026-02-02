@@ -1,8 +1,7 @@
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { clientToProvider } from 'hooks/useEthersProvider'
-import { EvmRefundableLockup } from 'hooks/useEvmRefundableSwaps'
 import { useCallback } from 'react'
-import { getLdsBridgeManager, prefix0x } from 'uniswap/src/features/lds-bridge'
+import { EvmLockup, getLdsBridgeManager, prefix0x } from 'uniswap/src/features/lds-bridge'
 import { refundCoinSwap, refundErc20Swap } from 'uniswap/src/features/lds-bridge/transactions/evm'
 import { logger } from 'utilities/src/logger/logger'
 import { getConnectorClient, switchChain } from 'wagmi/actions'
@@ -34,7 +33,7 @@ const CONTRACT_ADDRESSES: Record<number, { coinSwap?: string; erc20Swap: string 
 }
 
 export function useEvmRefund() {
-  const executeRefund = useCallback(async (lockup: EvmRefundableLockup): Promise<string> => {
+  const executeRefund = useCallback(async (lockup: EvmLockup): Promise<string> => {
     try {
       const chainId = Number(lockup.chainId)
 
