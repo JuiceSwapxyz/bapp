@@ -5,11 +5,13 @@ import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { useAccount } from 'hooks/useAccount'
 import { useBondingCurveBalance, useCalculateBuy, useCalculateSell } from 'hooks/useBondingCurveToken'
 import { calculateMinOutput, useBuy, useGraduate, useSell } from 'hooks/useLaunchpadActions'
+import useSelectChain from 'hooks/useSelectChain'
 import { useTokenAllowance, useUpdateTokenAllowance } from 'hooks/useTokenAllowance'
 import styledComponents from 'lib/styled-components'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
+import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, Text, styled } from 'ui/src'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
@@ -206,6 +208,7 @@ export function BuySellPanel({
 
   const navigate = useNavigate()
   const account = useAccount()
+  const selectChain = useSelectChain()
   const accountDrawer = useAccountDrawer()
   const addTransaction = useTransactionAdder()
   const queryClient = useQueryClient()
@@ -380,7 +383,28 @@ export function BuySellPanel({
 
   const handleGraduate = useCallback(async () => {
     setIsGraduating(true)
+
+    // Ensure user is on the correct chain before graduating
+    if (chainId && account.chainId !== chainId) {
+      const switched = await selectChain(chainId)
+      if (!switched) {
+        setError('Please switch to the correct network')
+        setIsGraduating(false)
+        return
+      }
+
+      // Wait for chain state to sync
+      try {
+        await waitForNetwork(chainId)
+      } catch {
+        setError('Chain switch did not complete. Please try again.')
+        setIsGraduating(false)
+        return
+      }
+    }
+
     try {
+      // graduate() gets a fresh signer at transaction time, so it works correctly after chain switch
       const tx = await graduate()
       addTransaction(tx, {
         type: TransactionType.LaunchpadGraduate,
@@ -411,7 +435,7 @@ export function BuySellPanel({
     } finally {
       setIsGraduating(false)
     }
-  }, [graduate, addTransaction, tokenAddress, tokenSymbol, onGraduateComplete])
+  }, [graduate, addTransaction, tokenAddress, tokenSymbol, onGraduateComplete, chainId, account.chainId, selectChain])
 
   const handleAction = useCallback(async () => {
     if (!parsedAmount || parsedAmount === 0n || !account.address) {
@@ -420,7 +444,29 @@ export function BuySellPanel({
 
     setIsLoading(true)
     setError(null)
+
+    // Ensure user is on the correct chain before any transactions
+    if (chainId && account.chainId !== chainId) {
+      const switched = await selectChain(chainId)
+      if (!switched) {
+        setError('Please switch to the correct network')
+        setIsLoading(false)
+        return
+      }
+
+      // Wait for chain state to sync
+      try {
+        await waitForNetwork(chainId)
+      } catch {
+        setError('Chain switch did not complete. Please try again.')
+        setIsLoading(false)
+        return
+      }
+    }
+
     try {
+      // All transaction functions (approveBase, buy, sell) get fresh signers at transaction time,
+      // so they work correctly after chain switch without needing React to re-render
       if (isBuy) {
         if (needsBaseApproval) {
           const { response: approvalTx, info: approvalInfo } = await approveBase()
@@ -529,6 +575,7 @@ export function BuySellPanel({
   }, [
     parsedAmount,
     account.address,
+    account.chainId,
     isBuy,
     needsBaseApproval,
     needsTokenApproval,
@@ -545,6 +592,8 @@ export function BuySellPanel({
     tokenSymbol,
     tokenAddress,
     queryClient,
+    chainId,
+    selectChain,
   ])
 
   const needsGraduation = canGraduate && !graduated
