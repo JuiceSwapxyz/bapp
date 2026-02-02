@@ -11,6 +11,7 @@ import {
   StatValue,
   getProgressGradient,
 } from 'pages/Launchpad/components/shared'
+import { formatMarketCap } from 'pages/Launchpad/utils'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
@@ -60,15 +61,7 @@ export function TokenCard({ token }: TokenCardProps) {
   }, [token.totalVolumeBase])
 
   // Calculate market cap from reserves (price × total supply)
-  const marketCap = useMemo(() => {
-    if (!reserves || reserves.virtualToken === 0n) {
-      return '0'
-    }
-    const price = Number(reserves.virtualBase) / Number(reserves.virtualToken)
-    const totalSupply = 1_000_000_000
-    const cap = price * totalSupply
-    return cap.toLocaleString(undefined, { maximumFractionDigits: 2 })
-  }, [reserves])
+  const marketCap = useMemo(() => formatMarketCap(reserves), [reserves])
 
   // Format creator address
   const creatorShort = useMemo(() => {
@@ -96,14 +89,7 @@ export function TokenCard({ token }: TokenCardProps) {
   const totalTrades = token.totalBuys + token.totalSells
 
   return (
-    <Card
-      interactive
-      onPress={handleClick}
-      {...(token.graduated && {
-        borderTopWidth: 2,
-        borderTopColor: '#63C87A',
-      })}
-    >
+    <Card interactive graduated={token.graduated} onPress={handleClick}>
       <TokenHeader>
         <TokenLogo metadataURI={token.metadataURI} symbol={token.symbol} size={48} />
         <Flex flex={1} gap="$spacing2">

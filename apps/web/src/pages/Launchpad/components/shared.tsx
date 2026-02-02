@@ -85,6 +85,12 @@ export const Card = styled(Flex, {
         },
       },
     },
+    graduated: {
+      true: {
+        borderTopWidth: 2,
+        borderTopColor: '$statusSuccess',
+      },
+    },
   } as const,
 })
 

@@ -15,6 +15,7 @@ import {
   StatValue,
   getProgressGradient,
 } from 'pages/Launchpad/components/shared'
+import { formatMarketCap } from 'pages/Launchpad/utils'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Flex, ModalCloseIcon, Text, styled } from 'ui/src'
@@ -222,15 +223,7 @@ export default function TokenDetail() {
     return price.toFixed(8)
   }, [reserves])
 
-  const marketCap = useMemo(() => {
-    if (!reserves || reserves.virtualToken === 0n) {
-      return '0'
-    }
-    const price = Number(reserves.virtualBase) / Number(reserves.virtualToken)
-    const totalSupply = 1_000_000_000
-    const cap = price * totalSupply
-    return cap.toLocaleString(undefined, { maximumFractionDigits: 2 })
-  }, [reserves])
+  const marketCap = useMemo(() => formatMarketCap(reserves), [reserves])
 
   const creatorShort = useMemo(() => {
     if (!tokenInfo?.creator) {
