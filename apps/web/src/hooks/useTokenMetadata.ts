@@ -22,7 +22,7 @@ export interface TokenMetadata {
  */
 export function ipfsToHttp(uri: string): string {
   if (uri.startsWith('ipfs://')) {
-    // Use Pinata gateway (added to CSP, has proper CORS headers)
+    // Use dedicated Pinata gateway (added to CSP, has proper CORS headers)
     return uri.replace('ipfs://', 'https://indigo-impossible-goldfish-326.mypinata.cloud/ipfs/')
   }
   if (uri.startsWith('ar://')) {
