@@ -43,6 +43,8 @@ vi.mock('ui/src/components/Unicon', () => ({
 
 vi.mock('ui/src/assets', () => ({
   ALL_NETWORKS_LOGO: 'all-networks-logo.png',
+  BTC_LOGO: 'btc-logo.png',
+  LIGHTNING_LOGO: 'lightning-logo.png',
   ETHEREUM_LOGO: 'ethereum-logo.png',
   OPTIMISM_LOGO: 'optimism-logo.png',
   ARBITRUM_LOGO: 'arbitrum-logo.png',
