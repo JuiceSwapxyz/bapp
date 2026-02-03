@@ -2,7 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import { RPC_PROVIDERS } from 'constants/providers'
 import { useAccount } from 'hooks/useAccount'
 import { useMemo } from 'react'
-import { EvmLockup, getLdsBridgeManager, prefix0x } from 'uniswap/src/features/lds-bridge'
+import {
+  EvmLockup,
+  getLdsBridgeManager,
+  LdsSwapStatus,
+  prefix0x,
+  swapStatusFinal,
+} from 'uniswap/src/features/lds-bridge'
 import { fetchEvmRefundableAndClaimableLockups } from 'uniswap/src/features/lds-bridge/api/client'
 
 function useChainTipBlockNumber(chainId: number, enabled: boolean) {
@@ -73,7 +79,7 @@ export function useEvmClaimableAndRefundableSwaps(enabled = true) {
     lockups.data.refundable.forEach((lockup: EvmLockup) => {
       const chainId = Number(lockup.chainId)
       let blockTip: bigint | undefined
-  
+
       if (chainId === 1) {
         blockTip = blockEthTip.data
       } else if (chainId === 137) {
@@ -83,7 +89,7 @@ export function useEvmClaimableAndRefundableSwaps(enabled = true) {
       } else if (chainId === 4114) {
         blockTip = blockCitreaMainnetTip.data
       }
-      
+
       if (!blockTip) {
         // If we don't have block number yet, consider it locked
         locked.push(lockup)
@@ -104,7 +110,7 @@ export function useEvmClaimableAndRefundableSwaps(enabled = true) {
     lockups.data.claimable.forEach((lockup: EvmLockup) => {
       const chainId = Number(lockup.chainId)
       let blockTip: bigint | undefined
-  
+
       if (chainId === 1) {
         blockTip = blockEthTip.data
       } else if (chainId === 137) {
@@ -114,7 +120,7 @@ export function useEvmClaimableAndRefundableSwaps(enabled = true) {
       } else if (chainId === 4114) {
         blockTip = blockCitreaMainnetTip.data
       }
-      
+
       if (!blockTip) {
         return
       }
@@ -123,15 +129,29 @@ export function useEvmClaimableAndRefundableSwaps(enabled = true) {
       // Swap is claimable if current block is less than or equal to timelock + buffer
       const isExpired = blockTip > timelockBlock + BigInt(BUFFER_BLOCKS)
 
-      const localSwap = localStoredSwaps.data?.find((swap) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash))
+      const localSwap = localStoredSwaps.data?.find(
+        (swap) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash),
+      )
 
-      if (!isExpired && localSwap && localSwap.preimage) {
+      if (
+        !isExpired &&
+        localSwap &&
+        localSwap.preimage &&
+        swapStatusFinal.includes(localSwap.status as LdsSwapStatus)
+      ) {
         claimable.push(lockup)
       }
     })
 
     return { refundable, locked, claimable }
-  }, [lockups.data, blockEthTip.data, blockPolygonTip.data, blockCitreaTestnetTip.data, blockCitreaMainnetTip.data, localStoredSwaps.data])
+  }, [
+    lockups.data,
+    blockEthTip.data,
+    blockPolygonTip.data,
+    blockCitreaTestnetTip.data,
+    blockCitreaMainnetTip.data,
+    localStoredSwaps.data,
+  ])
 
   return {
     data,
