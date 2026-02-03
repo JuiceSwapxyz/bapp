@@ -388,56 +388,39 @@ export function Hero({ scrollToRef, transition }: HeroProps) {
           </Flex>
         </RiseIn>
 
-        {/* Secondary subtitle */}
+        {/* Secondary subtitle + Citrea logo + scroll CTA */}
         <RiseIn delay={0.3}>
-          <Flex
-            flexDirection="column"
-            alignItems="center"
-            justifyContent="center"
-            pointerEvents="none"
-            gap="$gap4"
-            mt={4}
-          >
-            <Text variant="body2" color="$neutral2">
-              <Trans i18nKey="hero.subtitle" />
-            </Text>
-            <img src="/images/logos/Citrea_Full_Logo.svg" alt="Citrea Logo" width={200} height="auto" />
+          <Flex flexDirection="column" alignItems="center" justifyContent="center" gap="$gap4" mt={4}>
+            <Flex flexDirection="column" alignItems="center" pointerEvents="none">
+              <Text variant="body2" color="$neutral2">
+                <Trans i18nKey="hero.subtitle" />
+              </Text>
+              <img src="/images/logos/Citrea_Full_Logo.svg" alt="Citrea Logo" width={200} height="auto" />
+            </Flex>
+            {!showBAppsContent && (
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                onPress={() => scrollToRef()}
+                cursor="pointer"
+                pt="$spacing8"
+                $lgHeight={{ display: 'none' }}
+              >
+                <Hover>
+                  <ColumnCenter>
+                    <Text variant="body2">
+                      <Trans i18nKey="hero.scroll" />
+                    </Text>
+                    <ChevronDown />
+                  </ColumnCenter>
+                </Hover>
+              </Flex>
+            )}
           </Flex>
         </RiseIn>
       </Flex>
 
       <Flex flex={1} />
-
-      {!showBAppsContent && (
-        <Flex
-          position="absolute"
-          width="100%"
-          centered
-          pointerEvents="none"
-          bottom={48}
-          style={{ transform: `translate(0px, ${translateY}px), opacity: ${opacityY}` }}
-          $lgHeight={{ display: 'none' }}
-        >
-          <RiseIn delay={0.3}>
-            <Flex
-              alignItems="center"
-              justifyContent="flex-start"
-              onPress={() => scrollToRef()}
-              cursor="pointer"
-              width={500}
-            >
-              <Hover>
-                <ColumnCenter>
-                  <Text variant="body2">
-                    <Trans i18nKey="hero.scroll" />
-                  </Text>
-                  <ChevronDown />
-                </ColumnCenter>
-              </Hover>
-            </Flex>
-          </RiseIn>
-        </Flex>
-      )}
     </Flex>
   )
 }
