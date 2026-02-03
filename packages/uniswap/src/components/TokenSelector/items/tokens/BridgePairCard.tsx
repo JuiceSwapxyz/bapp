@@ -3,6 +3,7 @@ import { Flex, Text, TouchableArea } from 'ui/src'
 import { iconSizes } from 'ui/src/theme'
 import { BridgeIcon, SplitLogo } from 'uniswap/src/components/CurrencyLogo/SplitLogo'
 import { OnSelectCurrency } from 'uniswap/src/components/TokenSelector/types'
+import { BridgeArrowIcon } from 'uniswap/src/components/TokenSelector/items/tokens/BridgeArrowIcon'
 import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/components/lists/OnchainItemList/types'
 import { BridgePairOption } from 'uniswap/src/components/lists/items/types'
 
@@ -23,6 +24,10 @@ function _BridgePairCard({
     onSelectCurrency(fromCurrencyInfo, section, index)
   }
 
+  const parts = label.split(' ⇄ ')
+  const fromLabel = parts[0]
+  const toLabel = parts[1]
+
   return (
     <TouchableArea
       hoverable
@@ -33,8 +38,6 @@ function _BridgePairCard({
       <Flex
         row
         alignItems="center"
-        backgroundColor="$surface2"
-        hoverStyle={{ backgroundColor: '$surface1Hovered' }}
         borderRadius="$rounded16"
         px="$spacing12"
         py="$spacing8"
@@ -47,9 +50,15 @@ function _BridgePairCard({
           chainId={fromCurrencyInfo.currency.chainId}
           customIcon={BridgeIcon}
         />
-        <Text color="$neutral1" variant="buttonLabel3">
-          {label}
-        </Text>
+        <Flex row alignItems="center" gap="$spacing4">
+          <Text color="$neutral1" variant="buttonLabel3">
+            {fromLabel}
+          </Text>
+          <BridgeArrowIcon />
+          <Text color="$neutral1" variant="buttonLabel3">
+            {toLabel}
+          </Text>
+        </Flex>
       </Flex>
     </TouchableArea>
   )

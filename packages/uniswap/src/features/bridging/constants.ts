@@ -15,7 +15,7 @@ export interface BridgePairDisplay {
 
 export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
   {
-    label: 'BTC → cBTC',
+    label: 'BTC ⇄ cBTC',
     fromSymbol: 'BTC',
     fromChain: UniverseChainId.Bitcoin,
     toSymbol: 'cBTC',
@@ -23,7 +23,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?inputCurrency=BTC&outputCurrency=cBTC',
   },
   {
-    label: 'lnBTC → cBTC',
+    label: 'lnBTC ⇄ cBTC',
     fromSymbol: 'lnBTC',
     fromChain: UniverseChainId.LightningNetwork,
     toSymbol: 'cBTC',
@@ -31,7 +31,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?inputCurrency=lnBTC&outputCurrency=cBTC',
   },
   {
-    label: 'cBTC → lnBTC',
+    label: 'cBTC ⇄ lnBTC',
     fromSymbol: 'cBTC',
     fromChain: UniverseChainId.CitreaMainnet,
     toSymbol: 'lnBTC',
@@ -39,7 +39,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?inputCurrency=cBTC&outputCurrency=lnBTC',
   },
   {
-    label: 'WBTC → cBTC',
+    label: 'WBTC ⇄ cBTC',
     fromSymbol: 'WBTC',
     fromChain: UniverseChainId.Mainnet,
     fromAddress: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
@@ -48,7 +48,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC',
   },
   {
-    label: 'USDT (Ethereum) → JUSD',
+    label: 'USDT (Ethereum) ⇄ JUSD',
     fromSymbol: 'USDT',
     fromChain: UniverseChainId.Mainnet,
     fromAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
@@ -57,7 +57,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
   },
   {
-    label: 'USDT (Polygon) → JUSD',
+    label: 'USDT (Polygon) ⇄ JUSD',
     fromSymbol: 'USDT',
     fromChain: UniverseChainId.Polygon,
     fromAddress: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
@@ -66,7 +66,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?chain=polygon&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
   },
   {
-    label: 'USDC → JUSD',
+    label: 'USDC ⇄ JUSD',
     fromSymbol: 'USDC',
     fromChain: UniverseChainId.Mainnet,
     fromAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -75,7 +75,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?chain=ethereum&inputCurrency=USDC&outputCurrency=JUSD&outputChain=citrea',
   },
   {
-    label: 'cBTC → JUSD',
+    label: 'cBTC ⇄ JUSD',
     fromSymbol: 'cBTC',
     fromChain: UniverseChainId.CitreaMainnet,
     toSymbol: 'JUSD',
@@ -83,7 +83,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUSD',
   },
   {
-    label: 'cBTC → JUICE',
+    label: 'cBTC ⇄ JUICE',
     fromSymbol: 'cBTC',
     fromChain: UniverseChainId.CitreaMainnet,
     toSymbol: 'JUICE',
