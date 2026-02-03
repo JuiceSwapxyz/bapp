@@ -28,8 +28,12 @@ function shouldUseExactInput(chainId: UniverseChainId | undefined): boolean {
   return chainId === UniverseChainId.CitreaMainnet || chainId === UniverseChainId.CitreaTestnet
 }
 
-// Small amount for EXACT_INPUT quotes (0.0001 of the currency, adjusted for 18 decimals)
-const EXACT_INPUT_QUOTE_AMOUNT = '100000000000000' // 0.0001 * 10^18 = 1e14
+// Calculate a small quote amount (0.0001 tokens) adjusted for the currency's decimals
+// For tokens with < 4 decimals, uses 1 raw unit as the minimum safe amount
+function getExactInputQuoteAmount(decimals: number): string {
+  const exponent = Math.max(0, decimals - 4)
+  return (BigInt(10) ** BigInt(exponent)).toString()
+}
 
 /**
  * Returns the price in USDC of the input currency
@@ -56,7 +60,8 @@ export function useUSDCPrice(
     if (!useExactInput || !currency) {
       return undefined
     }
-    return CurrencyAmount.fromRawAmount(currency, EXACT_INPUT_QUOTE_AMOUNT)
+    const quoteAmount = getExactInputQuoteAmount(currency.decimals)
+    return CurrencyAmount.fromRawAmount(currency, quoteAmount)
   }, [useExactInput, currency])
 
   // avoid requesting quotes for stablecoin input

@@ -3,7 +3,13 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { useAccount } from 'hooks/useAccount'
-import { useBondingCurveBalance, useCalculateBuy, useCalculateSell } from 'hooks/useBondingCurveToken'
+import {
+  BondingCurveReserves,
+  calculateMaxEffectiveBase,
+  useBondingCurveBalance,
+  useCalculateBuy,
+  useCalculateSell,
+} from 'hooks/useBondingCurveToken'
 import { calculateMinOutput, useBuy, useGraduate, useSell } from 'hooks/useLaunchpadActions'
 import useSelectChain from 'hooks/useSelectChain'
 import { useTokenAllowance, useUpdateTokenAllowance } from 'hooks/useTokenAllowance'
@@ -14,6 +20,7 @@ import { toast } from 'sonner'
 import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, Text, styled } from 'ui/src'
+import { AlertTriangle } from 'ui/src/components/icons/AlertTriangle'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
 import { assume0xAddress } from 'utils/wagmi'
@@ -27,6 +34,8 @@ const PanelContainer = styled(Flex, {
   borderColor: '$surface3',
   padding: '$spacing20',
   gap: '$spacing16',
+  overflow: 'hidden',
+  minWidth: 0,
 })
 
 const TabContainer = styled(Flex, {
@@ -178,6 +187,17 @@ const GraduateButton = styled(Flex, {
   },
 })
 
+const WarningBox = styled(Flex, {
+  backgroundColor: '$statusWarning2',
+  borderWidth: 1,
+  borderColor: '$statusWarning',
+  borderRadius: '$rounded12',
+  padding: '$spacing12',
+  gap: '$spacing8',
+  overflow: 'hidden',
+  maxWidth: '100%',
+})
+
 interface BuySellPanelProps {
   tokenAddress: string
   tokenSymbol: string
@@ -186,6 +206,8 @@ interface BuySellPanelProps {
   canGraduate: boolean
   /** The token's chain ID - used for reading data and executing transactions */
   chainId: number | undefined
+  /** Bonding curve reserves - used for excess JUSD warning */
+  reserves: BondingCurveReserves | undefined
   onTransactionComplete?: () => void
   onGraduateComplete?: () => void
 }
@@ -197,6 +219,7 @@ export function BuySellPanel({
   graduated,
   canGraduate,
   chainId,
+  reserves,
   onTransactionComplete,
   onGraduateComplete,
 }: BuySellPanelProps) {
@@ -224,6 +247,15 @@ export function BuySellPanel({
       return undefined
     }
   }, [amount])
+
+  // Detect if user is overpaying (excess JUSD goes to liquidity, not refunded)
+  const excessWarning = useMemo(() => {
+    if (!isBuy || graduated || !reserves || !parsedAmount || parsedAmount === 0n) {
+      return false
+    }
+    const maxEffective = calculateMaxEffectiveBase(reserves)
+    return maxEffective > 0n && parsedAmount > maxEffective
+  }, [isBuy, graduated, reserves, parsedAmount])
 
   // Get quotes
   const { tokensOut, isLoading: buyQuoteLoading } = useCalculateBuy(
@@ -339,16 +371,20 @@ export function BuySellPanel({
   const sell = useSell(tokenAddress, chainId)
   const graduate = useGraduate(tokenAddress, chainId)
 
-  // Format output
+  // Format output - cap "You receive" to never exceed remaining tokens
   const outputAmount = useMemo(() => {
     if (isBuy && tokensOut) {
+      // Never show more tokens than are available
+      if (reserves?.realToken && tokensOut > reserves.realToken) {
+        return formatUnits(reserves.realToken, 18)
+      }
       return formatUnits(tokensOut, 18)
     }
     if (!isBuy && baseOut) {
       return formatUnits(baseOut, 18)
     }
     return '0'
-  }, [isBuy, tokensOut, baseOut])
+  }, [isBuy, tokensOut, baseOut, reserves?.realToken])
 
   // Format balances
   const formattedTokenBalance = useMemo(() => {
@@ -375,11 +411,17 @@ export function BuySellPanel({
 
   const handleMaxClick = useCallback(() => {
     if (isBuy && baseBalance) {
-      setAmount(formatUnits(baseBalance.value, 18))
+      // Cap by maxEffective if there's limited tokens remaining
+      const maxEffective = reserves && !graduated ? calculateMaxEffectiveBase(reserves) : null
+      if (maxEffective && maxEffective > 0n && maxEffective < baseBalance.value) {
+        setAmount(formatUnits(maxEffective, 18))
+      } else {
+        setAmount(formatUnits(baseBalance.value, 18))
+      }
     } else if (!isBuy && tokenBalance) {
       setAmount(formatUnits(tokenBalance, 18))
     }
-  }, [isBuy, baseBalance, tokenBalance])
+  }, [isBuy, baseBalance, tokenBalance, reserves, graduated])
 
   const handleGraduate = useCallback(async () => {
     setIsGraduating(true)
@@ -614,6 +656,9 @@ export function BuySellPanel({
     if (hasInsufficientBalance) {
       return isBuy ? 'Insufficient JUSD balance' : `Insufficient ${tokenSymbol} balance`
     }
+    if (excessWarning) {
+      return 'Reduce amount or use max'
+    }
     if (isBuy && needsBaseApproval) {
       return 'Approve JUSD'
     }
@@ -627,6 +672,7 @@ export function BuySellPanel({
     parsedAmount,
     isBuy,
     hasInsufficientBalance,
+    excessWarning,
     needsBaseApproval,
     needsTokenApproval,
     tokenSymbol,
@@ -636,7 +682,7 @@ export function BuySellPanel({
   const isWalletConnected = !!account.address
   const isButtonDisabled =
     isWalletConnected &&
-    (isLoading || !parsedAmount || parsedAmount === 0n || hasInsufficientBalance || needsGraduation)
+    (isLoading || !parsedAmount || parsedAmount === 0n || hasInsufficientBalance || needsGraduation || excessWarning)
 
   const handleButtonPress = useCallback(() => {
     if (!isWalletConnected) {
@@ -746,6 +792,27 @@ export function BuySellPanel({
               </Text>
             </BalanceRow>
           </OutputCard>
+
+          {excessWarning && !hasInsufficientBalance && (
+            <WarningBox>
+              <Flex flexDirection="row" alignItems="center" gap="$spacing8" minWidth={0}>
+                <AlertTriangle size={20} color="$statusWarning" flexShrink={0} />
+                <Text variant="body3" color="$neutral2" flex={1}>
+                  Exceeds remaining supply. Tap{' '}
+                  <Text
+                    variant="body3"
+                    color="$neutral2"
+                    textDecorationLine="underline"
+                    cursor="pointer"
+                    onPress={handleMaxClick}
+                  >
+                    MAX
+                  </Text>{' '}
+                  to buy all.
+                </Text>
+              </Flex>
+            </WarningBox>
+          )}
 
           {error && (
             <Text variant="body3" color="$statusCritical" textAlign="center">

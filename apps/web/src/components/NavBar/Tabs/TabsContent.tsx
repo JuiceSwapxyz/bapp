@@ -1,5 +1,6 @@
 import { SwapV2 } from 'components/Icons/SwapV2'
 import { MenuItem } from 'components/NavBar/CompanyMenu/Content'
+import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { useTheme } from 'lib/styled-components'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
@@ -28,6 +29,7 @@ export const useTabsContent = (): TabsSection[] => {
   const theme = useTheme()
   const showBAppsTab = useIsBAppsCampaignVisible()
   const showFirstSqueezerTab = useIsFirstSqueezerCampaignVisible()
+  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
 
   const baseItems = [
     {
@@ -36,6 +38,42 @@ export const useTabsContent = (): TabsSection[] => {
       isActive: pathname.startsWith('/swap'),
       icon: <SwapV2 fill={theme.accent1} />,
     },
+    ...(crossChainSwapsEnabled
+      ? [
+          {
+            title: 'Bridge',
+            href: '/swap?inputCurrency=BTC&outputCurrency=cBTC',
+            isActive: false,
+            icon: <Text fontSize={16}>🌉</Text>,
+            items: [
+              { label: 'BTC → cBTC', href: '/swap?inputCurrency=BTC&outputCurrency=cBTC', internal: true },
+              { label: 'lnBTC → cBTC', href: '/swap?inputCurrency=lnBTC&outputCurrency=cBTC', internal: true },
+              { label: 'cBTC → lnBTC', href: '/swap?inputCurrency=cBTC&outputCurrency=lnBTC', internal: true },
+              {
+                label: 'USDT (ETH) → JUSD',
+                href: '/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
+                internal: true,
+              },
+              {
+                label: 'USDT (Polygon) → JUSD',
+                href: '/swap?chain=polygon&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
+                internal: true,
+              },
+              {
+                label: 'USDC (ETH) → JUSD',
+                href: '/swap?chain=ethereum&inputCurrency=USDC&outputCurrency=JUSD&outputChain=citrea',
+                internal: true,
+              },
+              {
+                label: 'WBTC (ETH) → cBTC',
+                href: '/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC',
+                internal: true,
+              },
+              { label: 'View Bridge Swaps', href: '/bridge-swaps', internal: true },
+            ],
+          },
+        ]
+      : []),
     {
       title: t('common.explore'),
       href: '/explore',
