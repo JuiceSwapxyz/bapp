@@ -222,3 +222,34 @@ export function useTokensToGraduation(reserves: BondingCurveReserves | undefined
     return reserves.realToken
   }, [reserves])
 }
+
+/**
+ * Calculate the maximum JUSD that can be effectively spent on the bonding curve.
+ * Any JUSD above this amount will NOT be refunded - it goes to liquidity.
+ *
+ * Reverse of bonding curve formula:
+ *   newVirtualToken = virtualToken - realToken (buying all remaining)
+ *   baseInAfterFee = (k / newVirtualToken) - virtualBase
+ *   baseIn = baseInAfterFee * 10000 / 9900 (add back 1% fee)
+ */
+export function calculateMaxEffectiveBase(reserves: BondingCurveReserves): bigint {
+  const { virtualToken, virtualBase, realToken } = reserves
+
+  if (realToken <= 0n) {
+    return 0n
+  }
+
+  const k = virtualBase * virtualToken
+  const newVirtualToken = virtualToken - realToken
+
+  if (newVirtualToken <= 0n) {
+    return 0n
+  }
+
+  const baseInAfterFee = k / newVirtualToken - virtualBase
+  const { FEE_BPS, BPS_DENOMINATOR } = BONDING_CURVE_CONSTANTS
+  const baseIn = (baseInAfterFee * BPS_DENOMINATOR) / (BPS_DENOMINATOR - FEE_BPS)
+
+  // Add 0.1% buffer for rounding safety
+  return baseIn + baseIn / 1000n
+}
