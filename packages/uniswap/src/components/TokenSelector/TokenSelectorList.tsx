@@ -1,6 +1,7 @@
 import { memo, useCallback, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Text } from 'ui/src'
+import { BridgePairCard } from 'uniswap/src/components/TokenSelector/items/tokens/BridgePairCard'
 import { HorizontalTokenList } from 'uniswap/src/components/TokenSelector/lists/HorizontalTokenList/HorizontalTokenList'
 import { OnSelectCurrency } from 'uniswap/src/components/TokenSelector/types'
 import { ItemRowInfo } from 'uniswap/src/components/lists/OnchainItemList/OnchainItemList'
@@ -10,7 +11,7 @@ import {
   TokenOptionItem as BaseTokenOptionItem,
   TokenContextMenuVariant,
 } from 'uniswap/src/components/lists/items/tokens/TokenOptionItem'
-import { TokenOption, TokenSelectorOption } from 'uniswap/src/components/lists/items/types'
+import { BridgePairOption, OnchainItemListOptionType, TokenOption, TokenSelectorOption } from 'uniswap/src/components/lists/items/types'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
 import { setHasSeenBridgingTooltip } from 'uniswap/src/features/behaviorHistory/slice'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -27,6 +28,10 @@ import { useEvent } from 'utilities/src/react/hooks'
 
 function isHorizontalListTokenItem(data: TokenSelectorOption): data is TokenOption[] {
   return Array.isArray(data)
+}
+
+function isBridgePairOption(data: TokenSelectorOption): data is BridgePairOption {
+  return (data as BridgePairOption).type === OnchainItemListOptionType.BridgePair
 }
 
 const TokenOptionItem = memo(function _TokenOptionItem({
@@ -156,6 +161,16 @@ function _TokenSelectorList({
   })
 
   const renderItem = useEvent(({ item, section, index }: ItemRowInfo<TokenSelectorOption>): JSX.Element => {
+    if (isBridgePairOption(item)) {
+      return (
+        <BridgePairCard
+          bridgePair={item}
+          section={section as OnchainItemSection<BridgePairOption>}
+          index={index}
+          onSelectCurrency={onSelectCurrency}
+        />
+      )
+    }
     if (isHorizontalListTokenItem(item)) {
       return (
         <HorizontalTokenList
@@ -197,6 +212,9 @@ function _TokenSelectorList({
 }
 
 function key(item: TokenSelectorOption): CurrencyId {
+  if (isBridgePairOption(item)) {
+    return `bridge-${item.url}`
+  }
   if (isHorizontalListTokenItem(item)) {
     return item.map((token) => token.currencyInfo.currencyId).join('-')
   }

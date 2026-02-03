@@ -14,7 +14,7 @@ import { TokenSelectorFlow } from 'uniswap/src/components/TokenSelector/types'
 import { flowToModalName } from 'uniswap/src/components/TokenSelector/utils'
 import PasteButton from 'uniswap/src/components/buttons/PasteButton'
 import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/components/lists/OnchainItemList/types'
-import { TokenSelectorOption } from 'uniswap/src/components/lists/items/types'
+import { BridgePairOption, OnchainItemListOptionType, TokenOption, TokenSelectorOption } from 'uniswap/src/components/lists/items/types'
 import { useBottomSheetContext } from 'uniswap/src/components/modals/BottomSheetContext'
 import { Modal } from 'uniswap/src/components/modals/Modal'
 import { NetworkFilter } from 'uniswap/src/components/network/NetworkFilter'
@@ -107,7 +107,7 @@ export function TokenSelectorContent({
   const debouncedSearchFilter = useDebounce(searchFilter)
   const debouncedParsedSearchFilter = useDebounce(parsedSearchFilter)
   const scrollbarStyles = useScrollbarStyles()
-  const { navigateToBuyOrReceiveWithEmptyWallet } = useUniswapContext()
+  const { navigateToBuyOrReceiveWithEmptyWallet, navigateToUrl } = useUniswapContext()
 
   const media = useMedia()
   const isSmallScreen = (media.sm && isInterface) || isMobileApp || isMobileWeb
@@ -152,9 +152,20 @@ export function TokenSelectorContent({
         searchChainFilter: chainFilter,
       }
 
-      // log event that a currency was selected
       const tokenOption = section.data[index]
-      const balanceUSD = Array.isArray(tokenOption) ? undefined : tokenOption?.balanceUSD ?? undefined
+      
+      if ((tokenOption as BridgePairOption).type === OnchainItemListOptionType.BridgePair && isInterface) {
+        const bridgePair = tokenOption as BridgePairOption
+        navigateToUrl(bridgePair.url)
+        onClose()
+        return
+      }
+
+      // log event that a currency was selected
+      const balanceUSD = 
+        Array.isArray(tokenOption) || (tokenOption as BridgePairOption).type === OnchainItemListOptionType.BridgePair
+          ? undefined
+          : (tokenOption as TokenOption)?.balanceUSD ?? undefined
       sendAnalyticsEvent(UniswapEventName.TokenSelected, {
         name: currencyInfo.currency.name,
         address: currencyAddress(currencyInfo.currency),
@@ -179,7 +190,7 @@ export function TokenSelectorContent({
         isPreselectedAsset: false,
       })
     },
-    [debouncedSearchFilter, chainFilter, flow, page, currencyField, onSelectCurrency],
+    [debouncedSearchFilter, chainFilter, flow, page, currencyField, onSelectCurrency, onClose],
   )
 
   const handlePaste = async (): Promise<void> => {

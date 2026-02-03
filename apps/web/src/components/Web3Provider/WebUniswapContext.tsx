@@ -83,6 +83,14 @@ function WebUniswapProviderInner({ children }: PropsWithChildren) {
     window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
   }, [])
 
+  const navigateToUrl = useCallback(
+    (url: string) => {
+      navigate(url)
+      closeSearchModal()
+    },
+    [navigate, closeSearchModal],
+  )
+
   const navigateToSendFlow = useCallback(
     ({ chainId, currencyAddress }: { chainId: UniverseChainId; currencyAddress?: Address }) => {
       const chainUrlParam = getChainInfo(chainId).urlParam
@@ -188,6 +196,7 @@ function WebUniswapProviderInner({ children }: PropsWithChildren) {
       navigateToNftDetails={navigateToNftDetails}
       navigateToPoolDetails={navigateToPoolDetails}
       navigateToBridgesSwaps={navigateToBridgesSwaps}
+      navigateToUrl={navigateToUrl}
       handleShareToken={handleShareToken}
       onConnectWallet={accountDrawer.open}
       getCanSignPermits={getCanSignPermits}

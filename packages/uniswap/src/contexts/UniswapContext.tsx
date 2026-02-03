@@ -34,6 +34,7 @@ interface UniswapContextValue {
   navigateToNftCollection: (args: { collectionAddress: Address; chainId: UniverseChainId }) => void
   navigateToPoolDetails: (args: { poolId: Address; chainId: UniverseChainId }) => void
   navigateToBridgesSwaps?: () => void
+  navigateToUrl: (url: string) => void
   handleShareToken: (args: { currencyId: string }) => void
   onSwapChainsChanged: (args: {
     chainId: UniverseChainId
@@ -75,6 +76,7 @@ export function UniswapProvider({
   navigateToNftCollection,
   navigateToPoolDetails,
   navigateToBridgesSwaps,
+  navigateToUrl,
   handleShareToken,
   onSwapChainsChanged,
   signer,
@@ -107,6 +109,7 @@ export function UniswapProvider({
       navigateToNftDetails,
       navigateToPoolDetails,
       navigateToBridgesSwaps,
+      navigateToUrl,
       handleShareToken,
       onSwapChainsChanged: ({
         chainId,
@@ -149,6 +152,7 @@ export function UniswapProvider({
       navigateToNftDetails,
       navigateToPoolDetails,
       navigateToBridgesSwaps,
+      navigateToUrl,
       handleShareToken,
       signer,
       useProviderHook,

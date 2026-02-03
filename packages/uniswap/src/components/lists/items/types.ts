@@ -10,6 +10,7 @@ export enum OnchainItemListOptionType {
   ENSAddress = 'ENSAddress',
   Unitag = 'Unitag',
   NFTCollection = 'NFTCollection',
+  BridgePair = 'BridgePair',
 }
 
 export interface BaseOption {
@@ -63,12 +64,21 @@ export interface NFTCollectionOption extends BaseOption {
   imageUrl: string | null
   isVerified: boolean
 }
+
+export interface BridgePairOption extends BaseOption {
+  type: OnchainItemListOptionType.BridgePair
+  fromCurrencyInfo: CurrencyInfo
+  toCurrencyInfo: CurrencyInfo
+  label: string
+  url: string
+}
+
 // Union of item types for different list use cases
 export type MobileExploreSearchModalOption = TokenOption | WalletOption | NFTCollectionOption
 export type WebSearchModalOption = TokenOption | PoolOption
 export type SearchModalOption = MobileExploreSearchModalOption | WebSearchModalOption
 
-export type TokenSelectorOption = TokenOption | TokenOption[]
+export type TokenSelectorOption = TokenOption | TokenOption[] | BridgePairOption
 
 // All item types combined
 export type OnchainItemListOption = TokenSelectorOption | SearchModalOption
