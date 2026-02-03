@@ -45,6 +45,7 @@ const BridgeSwaps = lazy(() => import('pages/BridgeSwaps'))
 const JuicePage = lazy(() => import('pages/Juice'))
 const JusdPage = lazy(() => import('pages/Jusd'))
 const DebugLockup = lazy(() => import('pages/DebugLockup'))
+const Compensation = lazy(() => import('pages/Compensation'))
 
 interface RouterConfig {
   browserRouterEnabled?: boolean
@@ -441,6 +442,17 @@ export const routes: RouteDefinition[] = [
     ),
     getTitle: () => 'Debug: Create Lockup | JuiceSwap',
     getDescription: () => 'Manually create lockup transactions for testing purposes.',
+  }),
+  // Compensation Claim - Token compensation for affected users
+  createRouteDefinition({
+    path: '/compensation',
+    getElement: () => (
+      <Suspense fallback={null}>
+        <Compensation />
+      </Suspense>
+    ),
+    getTitle: () => 'Compensation Claim | JuiceSwap',
+    getDescription: () => 'Claim your compensation tokens for interchain swap issues.',
   }),
   createRouteDefinition({ path: '*', getElement: () => <Navigate to="/not-found" replace /> }),
   createRouteDefinition({ path: '/not-found', getElement: () => <NotFound /> }),
