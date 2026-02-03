@@ -31,14 +31,6 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?inputCurrency=lnBTC&outputCurrency=cBTC',
   },
   {
-    label: 'cBTC ⇄ lnBTC',
-    fromSymbol: 'cBTC',
-    fromChain: UniverseChainId.CitreaMainnet,
-    toSymbol: 'lnBTC',
-    toChain: UniverseChainId.LightningNetwork,
-    url: '/swap?inputCurrency=cBTC&outputCurrency=lnBTC',
-  },
-  {
     label: 'WBTC ⇄ cBTC',
     fromSymbol: 'WBTC',
     fromChain: UniverseChainId.Mainnet,
