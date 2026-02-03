@@ -1007,6 +1007,7 @@
   "language.vietnamese": "Vietnamese",
   "large.price.difference": "Large price difference",
   "large.price.difference.tooltip": "Proceeding with this trade will result in a loss of funds. This difference can be due to large trades or low liquidity.",
+  "limit.fail.generic": "Limit order failed. Please try again.",
   "limit.open.count_one": "1 open limit",
   "limit.open.count_other": "{{count}} open limits",
   "limitPrice.buyingAboveMarketPrice.error.description": "Your limit price is {{percentage}}% higher than market. Adjust your limit price to proceed.",

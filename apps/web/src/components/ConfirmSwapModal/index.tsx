@@ -84,6 +84,7 @@ export function ConfirmSwapModal({
     priceUpdate,
     doesTradeDiffer,
     approvalError,
+    approvalErrorDetails,
     wrapTxHash,
     startSwapFlow,
     onCancel,
@@ -280,6 +281,7 @@ export function ConfirmSwapModal({
               showTrade={errorType !== PendingModalError.XV2_HARD_QUOTE_ERROR}
               swapResult={swapResult}
               errorType={errorType}
+              error={swapError ?? approvalErrorDetails}
               onRetry={() => {
                 if (errorType === PendingModalError.XV2_HARD_QUOTE_ERROR) {
                   onXV2RetryWithClassic?.()
