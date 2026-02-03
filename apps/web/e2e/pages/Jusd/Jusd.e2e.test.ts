@@ -251,7 +251,7 @@ test.describe('JUSD Stablecoin Info Page', () => {
 
       // Check for savings-related content
       await expect(page.locator('text=Leadrate')).toBeVisible()
-      await expect(page.locator('text=svJUSD')).toBeVisible()
+      await expect(page.locator('text=JUSD')).toBeVisible()
     })
 
     test('should display stablecoin bridge information', async ({ page }) => {
