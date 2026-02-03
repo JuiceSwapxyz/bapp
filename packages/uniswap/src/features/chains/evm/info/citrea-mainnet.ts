@@ -106,7 +106,8 @@ export const CITREA_MAINNET_CHAIN_INFO = {
       http: ['https://rpc.citreascan.com'],
     },
   },
-  // Use string to avoid JavaScript number precision issues (100e18 > MAX_SAFE_INTEGER)
+  // 100 JUSD for USD price quotes (JUSD has 18 decimals, so 100 * 10^18)
+  // Use string to avoid JavaScript number precision loss (100e18 > MAX_SAFE_INTEGER)
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(mainnetTokens.JUSD, '100000000000000000000'),
   tokens: mainnetTokens,
   statusPage: undefined,
