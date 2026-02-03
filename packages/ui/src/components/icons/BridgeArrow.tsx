@@ -1,6 +1,6 @@
 import { memo } from 'react'
 
-export const BridgeArrowIcon = memo(function BridgeArrowIcon() {
+export const BridgeArrow = memo(function BridgeArrow() {
   return (
     <svg
       viewBox="0 0 20 20"
