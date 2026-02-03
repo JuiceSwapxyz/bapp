@@ -1,4 +1,5 @@
 import { CompensationClaimSection } from 'components/CompensationClaim'
+import ErrorBoundary from 'components/ErrorBoundary'
 import { Flex, Text, styled } from 'ui/src'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
@@ -71,7 +72,9 @@ export default function Compensation() {
           </HeaderSection>
 
           <Flex alignItems="center" justifyContent="center" py="$spacing24">
-            <CompensationClaimSection />
+            <ErrorBoundary>
+              <CompensationClaimSection />
+            </ErrorBoundary>
           </Flex>
         </ContentWrapper>
       </PageContainer>
