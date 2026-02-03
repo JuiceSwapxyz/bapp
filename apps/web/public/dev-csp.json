@@ -21,6 +21,7 @@
     "wss://lightning.space",
     "wss://*.lightning.space",
     "https://gateway.pinata.cloud/",
+    "https://indigo-impossible-goldfish-326.mypinata.cloud/",
     "https://blockstream.info/"
   ]
 }
