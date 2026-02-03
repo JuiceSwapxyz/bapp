@@ -112,14 +112,18 @@ export function useCompensationClaim() {
     })
   }, [userProof, writeContract])
 
+  // Check if user is on the correct network
+  const isWrongNetwork = account.isConnected && account.chainId !== COMPENSATION_CLAIM_CHAIN_ID
+
   // Determine overall status
-  const canClaim = isEligible && !hasClaimed && !isDeadlinePassed && !isLoadingHasClaimed
+  const canClaim = isEligible && !hasClaimed && !isDeadlinePassed && !isLoadingHasClaimed && !isWrongNetwork
 
   return {
     // User state
     isConnected: account.isConnected,
     userAddress,
     chainId: account.chainId,
+    isWrongNetwork,
 
     // Eligibility
     isEligible,

@@ -1,5 +1,5 @@
 import { useCompensationClaim } from 'components/CompensationClaim/useCompensationClaim'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
 import { useWindowSize } from 'react-use'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
@@ -107,6 +107,7 @@ export function CompensationClaimSection() {
     claimError,
     txHash,
     isLoading,
+    isWrongNetwork,
   } = useCompensationClaim()
 
   const [showConfetti, setShowConfetti] = useState(false)
@@ -117,10 +118,14 @@ export function CompensationClaimSection() {
   }
 
   // Show confetti on success
-  if (isClaimSuccess && !showConfetti) {
-    setShowConfetti(true)
-    setTimeout(() => setShowConfetti(false), 8000)
-  }
+  useEffect(() => {
+    if (isClaimSuccess && !showConfetti) {
+      setShowConfetti(true)
+      const timer = setTimeout(() => setShowConfetti(false), 8000)
+      return () => clearTimeout(timer)
+    }
+    return undefined
+  }, [isClaimSuccess, showConfetti])
 
   const handleViewTransaction = () => {
     if (txHash) {
@@ -269,6 +274,14 @@ export function CompensationClaimSection() {
         </TokenAmount>
       </InfoContainer>
 
+      {isWrongNetwork && (
+        <ErrorContainer>
+          <Text variant="body3" color="$statusCritical">
+            Please switch to Citrea Mainnet to claim your tokens.
+          </Text>
+        </ErrorContainer>
+      )}
+
       {claimError && (
         <ErrorContainer>
           <Text variant="body3" color="$statusCritical">
@@ -277,7 +290,7 @@ export function CompensationClaimSection() {
         </ErrorContainer>
       )}
 
-      <ClaimButton onPress={handleClaim} disabled={!canClaim || isClaimPending || isLoading}>
+      <ClaimButton onPress={handleClaim} disabled={!canClaim || isClaimPending || isLoading || isWrongNetwork}>
         {isClaimPending ? (
           <Flex row gap="$spacing8" alignItems="center">
             <SpinningLoader size={20} />
