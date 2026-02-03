@@ -1,4 +1,5 @@
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
+import { useLaunchpadTokenPrice } from 'hooks/useLaunchpadTokenPrice'
 import { type LaunchpadToken } from 'hooks/useLaunchpadTokens'
 import { TokenLogo } from 'pages/Launchpad/components/TokenLogo'
 import {
@@ -11,10 +12,10 @@ import {
   StatValue,
   getProgressGradient,
 } from 'pages/Launchpad/components/shared'
-import { formatMarketCap } from 'pages/Launchpad/utils'
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Flex, Text, styled } from 'ui/src'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { formatUnits } from 'viem'
 
 const TokenHeader = styled(Flex, {
@@ -46,9 +47,20 @@ interface TokenCardProps {
 
 export function TokenCard({ token }: TokenCardProps) {
   const navigate = useNavigate()
+  const chainId = token.chainId as UniverseChainId
 
   // Fetch real-time progress from contract for accurate bonding curve state
-  const { progress, reserves } = useBondingCurveToken(token.address)
+  const { progress, reserves } = useBondingCurveToken(token.address, chainId)
+
+  // Use unified price hook for graduated/non-graduated tokens
+  const { marketCapFormatted: marketCap } = useLaunchpadTokenPrice({
+    tokenAddress: token.address,
+    graduated: token.graduated,
+    v2Pair: token.v2Pair ?? undefined,
+    baseAsset: token.baseAsset,
+    bondingCurveReserves: reserves,
+    chainId,
+  })
 
   const handleClick = useCallback(() => {
     navigate(`/launchpad/${token.address}`)
@@ -59,9 +71,6 @@ export function TokenCard({ token }: TokenCardProps) {
     const value = Number(formatUnits(BigInt(token.totalVolumeBase), 18))
     return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [token.totalVolumeBase])
-
-  // Calculate market cap from reserves (price × total supply)
-  const marketCap = useMemo(() => formatMarketCap(reserves), [reserves])
 
   // Format creator address
   const creatorShort = useMemo(() => {

@@ -1,4 +1,5 @@
 import { useBondingCurveToken } from 'hooks/useBondingCurveToken'
+import { useLaunchpadTokenPrice } from 'hooks/useLaunchpadTokenPrice'
 import { useLaunchpadToken } from 'hooks/useLaunchpadTokens'
 import { useTokenInfo } from 'hooks/useTokenFactory'
 import { getSocialLink, useTokenMetadata } from 'hooks/useTokenMetadata'
@@ -15,7 +16,6 @@ import {
   StatValue,
   getProgressGradient,
 } from 'pages/Launchpad/components/shared'
-import { formatMarketCap } from 'pages/Launchpad/utils'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Flex, ModalCloseIcon, Text, styled } from 'ui/src'
@@ -167,6 +167,16 @@ export default function TokenDetail() {
   const { data: metadata } = useTokenMetadata(launchpadData?.token.metadataURI)
   const [showBondingModal, setShowBondingModal] = useState(false)
 
+  // Use unified price hook for graduated/non-graduated tokens
+  const { priceFormatted: currentPrice, marketCapFormatted: marketCap } = useLaunchpadTokenPrice({
+    tokenAddress,
+    graduated,
+    v2Pair,
+    baseAsset,
+    bondingCurveReserves: reserves,
+    chainId,
+  })
+
   const handleBack = useCallback(() => {
     navigate('/launchpad')
   }, [navigate])
@@ -214,16 +224,6 @@ export default function TokenDetail() {
     }
     return Number(formatUnits(reserves.realToken, 18)).toLocaleString(undefined, { maximumFractionDigits: 0 })
   }, [reserves])
-
-  const currentPrice = useMemo(() => {
-    if (!reserves || reserves.virtualToken === 0n) {
-      return '0'
-    }
-    const price = Number(reserves.virtualBase) / Number(reserves.virtualToken)
-    return price.toFixed(8)
-  }, [reserves])
-
-  const marketCap = useMemo(() => formatMarketCap(reserves), [reserves])
 
   const creatorShort = useMemo(() => {
     if (!tokenInfo?.creator) {
