@@ -2,6 +2,7 @@
  * Hook for fetching launchpad tokens from API (which proxies to Ponder)
  */
 import { useQuery } from '@tanstack/react-query'
+import { ipfsToHttp, useTokenMetadata } from 'hooks/useTokenMetadata'
 
 // API URL with failover - API proxies to Ponder with automatic retry/failover
 const API_URL =
@@ -143,6 +144,17 @@ export function useLaunchpadToken(address: string | undefined, chainId?: number)
     staleTime: 10_000,
     refetchInterval: 30_000,
   })
+}
+
+export function useLaunchpadTokenLogoUrl(address: string | undefined, chainId?: number): string | undefined {
+  const { data: launchpadData } = useLaunchpadToken(address, chainId)
+  const metadataURI = launchpadData?.token.metadataURI ?? null
+  const { data: metadata } = useTokenMetadata(metadataURI)
+
+  if (metadata?.image) {
+    return ipfsToHttp(metadata.image)
+  }
+  return undefined
 }
 
 /**

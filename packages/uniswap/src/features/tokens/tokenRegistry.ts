@@ -308,6 +308,16 @@ export const ALL_KNOWN_TOKENS: Map<UniverseChainId, CurrencyInfo[]> = new Map([
   [UniverseChainId.CitreaTestnet, CITREA_TESTNET_TOKENS],
 ])
 
+export function getLogoUrlBySymbol(symbol: string | undefined): string | undefined {
+  if (!symbol) {
+    return undefined
+  }
+  const entry = Object.values(TOKEN_METADATA).find(
+    (m) => m.symbol.toLowerCase() === symbol.toLowerCase(),
+  )
+  return entry?.logoUrl
+}
+
 /**
  * Get the logo URL for a known token by address
  */
