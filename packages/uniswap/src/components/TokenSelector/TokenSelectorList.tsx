@@ -213,7 +213,7 @@ function _TokenSelectorList({
 
 function key(item: TokenSelectorOption): CurrencyId {
   if (isBridgePairOption(item)) {
-    return `bridge-${item.label}`
+    return `bridge-${item.url}`
   }
   if (isHorizontalListTokenItem(item)) {
     return item.map((token) => token.currencyInfo.currencyId).join('-')
