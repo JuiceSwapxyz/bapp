@@ -22,10 +22,10 @@ function getStablecoinAmountOut(chainId: UniverseChainId): CurrencyAmount<Token>
   return CurrencyAmount.fromRawAmount(primaryStablecoin, amount)
 }
 
-// Citrea Mainnet Gateway doesn't support EXACT_OUTPUT, so we need to use EXACT_INPUT
+// Citrea Gateway doesn't support EXACT_OUTPUT, so we need to use EXACT_INPUT
 // and calculate the price from the output amount
 function shouldUseExactInput(chainId: UniverseChainId | undefined): boolean {
-  return chainId === UniverseChainId.CitreaMainnet
+  return chainId === UniverseChainId.CitreaMainnet || chainId === UniverseChainId.CitreaTestnet
 }
 
 // Small amount for EXACT_INPUT quotes (0.0001 of the currency, adjusted for 18 decimals)
