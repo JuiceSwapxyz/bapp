@@ -48,6 +48,7 @@ export function useConfirmModalState({
 }) {
   const [confirmModalState, setConfirmModalState] = useState<ConfirmModalState>(ConfirmModalState.REVIEWING)
   const [approvalError, setApprovalError] = useState<PendingModalError>()
+  const [approvalErrorDetails, setApprovalErrorDetails] = useState<Error>()
   const [pendingModalSteps, setPendingModalSteps] = useState<PendingConfirmModalState[]>([])
   const { formatCurrencyAmount } = useLocalizationContext()
 
@@ -101,6 +102,7 @@ export function useConfirmModalState({
       }
       logger.warn('useConfirmModalState', 'catchUserReject', 'Failed to wrap', { error: e, trade })
       setApprovalError(errorType)
+      setApprovalErrorDetails(e instanceof Error ? e : new Error(String(e)))
     },
     [trade],
   )
@@ -231,6 +233,7 @@ export function useConfirmModalState({
   const onCancel = () => {
     setConfirmModalState(ConfirmModalState.REVIEWING)
     setApprovalError(undefined)
+    setApprovalErrorDetails(undefined)
   }
 
   const [lastExecutionPrice, setLastExecutionPrice] = useState(trade.executionPrice)
@@ -249,6 +252,7 @@ export function useConfirmModalState({
     confirmModalState,
     doesTradeDiffer,
     approvalError,
+    approvalErrorDetails,
     pendingModalSteps,
     priceUpdate,
     wrapTxHash,

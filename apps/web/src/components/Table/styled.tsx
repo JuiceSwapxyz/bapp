@@ -18,6 +18,7 @@ import { Token } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/t
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { useCurrentLocale } from 'uniswap/src/features/language/hooks'
+import { isSvJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
 
 export const SHOW_RETURN_TO_TOP_OFFSET = 500
 export const LOAD_MORE_BOTTOM_OFFSET = 50
@@ -300,6 +301,13 @@ export const TokenLinkCell = ({ token, hideLogo }: { token: Token; hideLogo?: bo
   const { defaultChainId } = useEnabledChains()
   const chainId = fromGraphQLChain(token.chain) ?? defaultChainId
   const unwrappedToken = unwrapToken(chainId, token)
+
+  // Transform svJUSD to JUSD for display
+  const displaySymbol =
+    unwrappedToken.address && isSvJusdAddress(chainId, unwrappedToken.address)
+      ? 'JUSD'
+      : unwrappedToken.symbol ?? t('common.unknown').toUpperCase()
+
   const isNative = unwrappedToken.address === NATIVE_CHAIN_ID
   const nativeCurrency = useCurrency({
     address: NATIVE_CHAIN_ID,
@@ -313,7 +321,7 @@ export const TokenLinkCell = ({ token, hideLogo }: { token: Token; hideLogo?: bo
       })}
     >
       <Flex row gap="$gap8" maxWidth="100px" alignItems="center">
-        <EllipsisText>{unwrappedToken.symbol ?? t('common.unknown').toUpperCase()}</EllipsisText>
+        <EllipsisText>{displaySymbol}</EllipsisText>
         {!hideLogo && (
           <PortfolioLogo
             chainId={chainId}

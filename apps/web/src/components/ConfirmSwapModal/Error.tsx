@@ -22,25 +22,35 @@ interface ErrorModalContentProps {
   showTrade?: boolean
   swapResult?: SwapResult
   onRetry: () => void
+  /** The actual error object, if available. Used to show specific error messages. */
+  error?: Error
 }
 
-function getErrorContent({ errorType, trade }: { errorType: PendingModalError; trade?: InterfaceTrade }): {
+function getErrorContent({
+  errorType,
+  trade,
+  error,
+}: {
+  errorType: PendingModalError
+  trade?: InterfaceTrade
+  error?: Error
+}): {
   title: JSX.Element
-  message?: JSX.Element
+  message?: JSX.Element | string
   supportArticleURL?: string
 } {
   switch (errorType) {
     case PendingModalError.TOKEN_APPROVAL_ERROR:
       return {
         title: <Trans i18nKey="error.tokenApproval" />,
-        message: <Trans i18nKey="error.tokenApproval.message" />,
+        message: error?.message || <Trans i18nKey="error.tokenApproval.message" />,
         // TODO: Re-enable once support.juiceswap.com is configured
         // supportArticleURL: uniswapUrls.helpArticleUrls.approvalsExplainer,
       }
     case PendingModalError.PERMIT_ERROR:
       return {
         title: <Trans i18nKey="permit.approval.fail" />,
-        message: <Trans i18nKey="permit.approval.fail.message" />,
+        message: error?.message || <Trans i18nKey="permit.approval.fail.message" />,
         // TODO: Re-enable once support.juiceswap.com is configured
         // supportArticleURL: uniswapUrls.helpArticleUrls.approvalsExplainer,
       }
@@ -55,13 +65,16 @@ function getErrorContent({ errorType, trade }: { errorType: PendingModalError; t
       if (isLimitTrade(trade)) {
         return {
           title: <Trans i18nKey="common.limit.failed" />,
+          // Show the actual error message if available, otherwise use generic limit failure message
+          message: error?.message || <Trans i18nKey="limit.fail.generic" />,
           // TODO: Re-enable once support.juiceswap.com is configured
           // supportArticleURL: uniswapUrls.helpArticleUrls.limitsFailure,
         }
       } else {
         return {
           title: <Trans i18nKey="common.swap.failed" />,
-          message: <Trans i18nKey="swap.fail.message" />,
+          // Show the actual error message if available, otherwise use generic swap failure message
+          message: error?.message || <Trans i18nKey="swap.fail.generic" />,
           // TODO: Re-enable once support.juiceswap.com is configured
           // supportArticleURL: isUniswapXTrade(trade)
           //   ? uniswapUrls.helpArticleUrls.uniswapXFailure
@@ -71,20 +84,20 @@ function getErrorContent({ errorType, trade }: { errorType: PendingModalError; t
     case PendingModalError.WRAP_ERROR:
       return {
         title: <Trans i18nKey="common.wrap.failed" />,
-        message: <Trans i18nKey="token.wrap.fail.message" />,
+        message: error?.message || <Trans i18nKey="token.wrap.fail.message" />,
         // TODO: Re-enable once support.juiceswap.com is configured
         // supportArticleURL: uniswapUrls.helpArticleUrls.wethExplainer,
       }
     default:
       return {
         title: <Trans i18nKey="common.unknownError.error" />,
-        message: <Trans i18nKey="common.swap.failed" />,
+        message: error?.message || <Trans i18nKey="common.swap.failed" />,
       }
   }
 }
 
-export default function Error({ errorType, trade, showTrade, swapResult, onRetry }: ErrorModalContentProps) {
-  const { title, message } = getErrorContent({ errorType, trade })
+export default function Error({ errorType, trade, showTrade, swapResult, onRetry, error }: ErrorModalContentProps) {
+  const { title, message } = getErrorContent({ errorType, trade, error })
   const { t } = useTranslation()
 
   return (

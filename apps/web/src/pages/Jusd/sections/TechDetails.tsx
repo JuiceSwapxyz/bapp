@@ -81,7 +81,7 @@ export function TechDetails() {
       desc: t('jusd.tech.contracts.juice.desc'),
     },
     {
-      name: 'svJUSD',
+      name: 'JUSD',
       address: '0x9580498224551E3f2e3A04330a684BF025111C53',
       desc: t('jusd.tech.contracts.svjusd.desc'),
     },
