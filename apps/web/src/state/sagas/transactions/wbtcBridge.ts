@@ -5,6 +5,7 @@ import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { call } from 'typed-redux-saga'
+import { getFetchErrorMessage } from 'uniswap/src/data/apiClients/FetchError'
 import {
   WBTC_ETHEREUM_ADDRESS,
   WbtcBridgeDirection,
@@ -27,6 +28,14 @@ import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { logger } from 'utilities/src/logger/logger'
 import type { Chain, Client, Transport } from 'viem'
 import { getAccount, getConnectorClient } from 'wagmi/actions'
+
+function getErrorMessage(error: unknown): string {
+  const fetchErrorMsg = getFetchErrorMessage(error)
+  if (fetchErrorMsg) {
+    return fetchErrorMsg
+  }
+  return error instanceof Error ? error.message : String(error)
+}
 
 async function getConnectorClientForChain(chainId: UniverseChainId): Promise<Client<Transport, Chain> | undefined> {
   try {
@@ -177,7 +186,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
       extra: { createChainSwapParams },
     })
     throw new TransactionStepFailedError({
-      message: `Failed to create WBTC bridge swap: ${error instanceof Error ? error.message : String(error)}`,
+      message: `Failed to create WBTC bridge swap: ${getErrorMessage(error)}`,
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })
