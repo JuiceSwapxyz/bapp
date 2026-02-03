@@ -106,7 +106,7 @@ export const CITREA_MAINNET_CHAIN_INFO = {
       http: ['https://rpc.citreascan.com'],
     },
   },
-  spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(mainnetTokens.JUSD, 100n * 10n ** 18n),
+  spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(mainnetTokens.JUSD, 100e18),
   tokens: mainnetTokens,
   statusPage: undefined,
   supportsV4: false,
