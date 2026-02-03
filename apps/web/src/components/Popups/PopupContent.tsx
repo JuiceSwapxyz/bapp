@@ -881,11 +881,8 @@ export function ClaimInProgressPopupContent({ count, onClose }: { count: number;
     >
       <TouchableArea onPress={handleClick} flex={1}>
         <Flex row alignItems="center" gap="$gap12" flex={1}>
-          <Flex position="relative">
-            <CheckCircleFilled color="$statusSuccess" size="$icon.28" />
-            <Flex position="absolute" top={-4} right={-4}>
-              <LoaderV3 color={colors.accent1.variable} size="16px" />
-            </Flex>
+          <Flex>
+            <LoaderV3 color={colors.accent1.variable} size="28px" />
           </Flex>
           <Flex gap="$gap4" flex={1}>
             <Text variant="body2" color="$neutral1">

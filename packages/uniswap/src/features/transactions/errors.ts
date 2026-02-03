@@ -139,6 +139,69 @@ export function getErrorContent(
   }
 }
 
+/**
+ * Known error patterns that indicate a slippage-related failure.
+ * Only show "adjust slippage" message when we're confident it's a slippage issue.
+ */
+const SLIPPAGE_ERROR_PATTERNS = [
+  /insufficient.*output/i,
+  /too little received/i,
+  /too much requested/i,
+  /slippage/i,
+  /price.*moved/i,
+  /price.*change/i,
+  /INSUFFICIENT_OUTPUT_AMOUNT/i,
+  /\bSTF\b/i, // "Swap Too Few" error from some DEXs (word boundary to avoid false positives)
+]
+
+/**
+ * Check if an error is likely caused by slippage tolerance being too low.
+ */
+function isSlippageError(error: TransactionStepFailedError): boolean {
+  const errorMessage = error.originalError?.message || error.message || ''
+  return SLIPPAGE_ERROR_PATTERNS.some((pattern) => pattern.test(errorMessage))
+}
+
+/**
+ * Extracts a user-friendly error message from the error.
+ * Only suggests slippage adjustment if we're confident that's the actual issue.
+ */
+function getSwapErrorMessage(error: TransactionStepFailedError, t: AppTFunction): string {
+  // If it's actually a slippage error, suggest adjusting slippage
+  if (isSlippageError(error)) {
+    return t('swap.fail.message')
+  }
+
+  // Otherwise, show the actual error message
+  if (error.originalError?.message) {
+    return error.originalError.message
+  }
+
+  // Fall back to the TransactionStepFailedError message if it's meaningful
+  if (error.message && !error.message.includes('failed during')) {
+    return error.message
+  }
+
+  // Generic fallback for swaps
+  return t('swap.fail.generic')
+}
+
+/**
+ * Extracts a user-friendly error message from a bridge transaction error.
+ * Falls back to a generic message if no specific error details are available.
+ */
+function getBridgeErrorMessage(error: TransactionStepFailedError, fallback: string): string {
+  // Try to get the original error message (most specific)
+  if (error.originalError?.message) {
+    return error.originalError.message
+  }
+  // Fall back to the TransactionStepFailedError message itself
+  if (error.message && !error.message.includes('failed during')) {
+    return error.message
+  }
+  return fallback
+}
+
 function getStepSpecificErrorContent(
   t: AppTFunction,
   error: TransactionStepFailedError,
@@ -157,7 +220,7 @@ function getStepSpecificErrorContent(
     case TransactionStepType.SwapTransactionAsync:
       return {
         title: t('common.swap.failed'),
-        message: t('swap.fail.message'),
+        message: getSwapErrorMessage(error, t),
       }
     case TransactionStepType.SwapTransactionBatched:
       return {
@@ -174,7 +237,7 @@ function getStepSpecificErrorContent(
       }
       return {
         title: t('common.swap.failed'),
-        message: t('swap.fail.message'),
+        message: getSwapErrorMessage(error, t),
       }
     case TransactionStepType.Permit2Signature:
       return {
@@ -200,19 +263,24 @@ function getStepSpecificErrorContent(
     case TransactionStepType.Erc20ChainSwapStep:
       return {
         title: t('common.swap.failed'),
-        message: t('swap.fail.message'),
+        message: getBridgeErrorMessage(error, t('bridge.fail.message')),
       }
     case TransactionStepType.BitcoinBridgeCitreaToBitcoinStep:
     case TransactionStepType.BitcoinBridgeBitcoinToCitreaStep:
       return {
         title: t('common.swap.failed'),
-        message: t('swap.fail.message'),
+        message: getBridgeErrorMessage(error, t('bridge.fail.message')),
       }
     case TransactionStepType.LightningBridgeSubmarineStep:
     case TransactionStepType.LightningBridgeReverseStep:
       return {
         title: t('common.swap.failed'),
-        message: t('swap.fail.message'),
+        message: getBridgeErrorMessage(error, t('bridge.fail.message')),
+      }
+    case TransactionStepType.WbtcBridgeStep:
+      return {
+        title: t('common.swap.failed'),
+        message: getBridgeErrorMessage(error, t('bridge.fail.message')),
       }
     case TransactionStepType.Permit2Transaction:
       return {
