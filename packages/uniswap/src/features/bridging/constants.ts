@@ -48,7 +48,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC',
   },
   {
-    label: 'USDT (Ethereum) ⇄ JUSD',
+    label: 'USDT ⇄ JUSD',
     fromSymbol: 'USDT',
     fromChain: UniverseChainId.Mainnet,
     fromAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
@@ -59,7 +59,7 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     url: '/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
   },
   {
-    label: 'USDT (Polygon) ⇄ JUSD',
+    label: 'USDT ⇄ JUSD',
     fromSymbol: 'USDT',
     fromChain: UniverseChainId.Polygon,
     fromAddress: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',

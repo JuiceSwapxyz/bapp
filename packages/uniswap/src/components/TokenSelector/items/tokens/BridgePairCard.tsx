@@ -2,8 +2,10 @@ import { memo } from 'react'
 import { Flex, Text, TouchableArea } from 'ui/src'
 import { iconSizes } from 'ui/src/theme'
 import { BridgeIcon, SplitLogo } from 'uniswap/src/components/CurrencyLogo/SplitLogo'
+import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { OnSelectCurrency } from 'uniswap/src/components/TokenSelector/types'
 import { BridgeArrowIcon } from 'uniswap/src/components/TokenSelector/items/tokens/BridgeArrowIcon'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/components/lists/OnchainItemList/types'
 import { BridgePairOption } from 'uniswap/src/components/lists/items/types'
 
@@ -28,6 +30,10 @@ function _BridgePairCard({
   const fromLabel = parts[0]
   const toLabel = parts[1]
 
+  const showChainBadge =
+    fromCurrencyInfo.currency.chainId === UniverseChainId.Mainnet ||
+    fromCurrencyInfo.currency.chainId === UniverseChainId.Polygon
+
   return (
     <TouchableArea
       hoverable
@@ -51,9 +57,14 @@ function _BridgePairCard({
           customIcon={BridgeIcon}
         />
         <Flex row alignItems="center" gap="$spacing4">
-          <Text color="$neutral1" variant="buttonLabel3">
-            {fromLabel}
-          </Text>
+          <Flex row alignItems="center" gap="$spacing4">
+            {showChainBadge && (
+              <NetworkLogo chainId={fromCurrencyInfo.currency.chainId} size={iconSizes.icon12} />
+            )}
+            <Text color="$neutral1" variant="buttonLabel3">
+              {fromLabel}
+            </Text>
+          </Flex>
           <BridgeArrowIcon />
           <Text color="$neutral1" variant="buttonLabel3">
             {toLabel}
