@@ -7,7 +7,7 @@ import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/com
 import { TokenSelectorOption } from 'uniswap/src/components/lists/items/types'
 import { useOnchainItemListSection } from 'uniswap/src/components/lists/utils'
 import { GqlResult } from 'uniswap/src/data/types'
-import { useBridgingTokensOptions } from 'uniswap/src/features/bridging/hooks/tokens'
+import { useBridgingTokensOptions, useCommonBridgeTokensOptions } from 'uniswap/src/features/bridging/hooks/tokens'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
@@ -42,6 +42,8 @@ function useTokenSectionsForSwap({
     shouldNest: shouldNestBridgingTokens,
   } = useBridgingTokensOptions({ oppositeSelectedToken, walletAddress: activeAccountAddress, chainFilter })
 
+  const { data: bridgePairOptions } = useCommonBridgeTokensOptions()
+
   const loading = !commonTokenOptions && commonTokenOptionsLoading && bridgingTokenOptionsLoading
 
   const refetchAllRef = useRef<() => void>(() => {})
@@ -67,8 +69,8 @@ function useTokenSectionsForSwap({
   })
 
   const bridgingSectionTokenOptions: TokenSelectorOption[] = useMemo(
-    () => (shouldNestBridgingTokens ? [bridgingTokenOptions ?? []] : bridgingTokenOptions ?? []),
-    [bridgingTokenOptions, shouldNestBridgingTokens],
+    () => [...(bridgePairOptions ?? []), ...(shouldNestBridgingTokens ? [bridgingTokenOptions ?? []] : bridgingTokenOptions ?? [])],
+    [bridgePairOptions, bridgingTokenOptions, shouldNestBridgingTokens],
   )
 
   const bridgingSection = useOnchainItemListSection({

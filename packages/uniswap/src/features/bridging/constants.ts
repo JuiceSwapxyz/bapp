@@ -2,6 +2,96 @@ import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { extractBaseUrl } from 'utilities/src/format/urls'
 
+export interface BridgePairDisplay {
+  label: string
+  fromSymbol: string
+  fromChain: UniverseChainId
+  fromAddress?: string
+  toSymbol: string
+  toChain: UniverseChainId
+  toAddress?: string
+  url: string
+}
+
+export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
+  {
+    label: 'BTC → cBTC',
+    fromSymbol: 'BTC',
+    fromChain: UniverseChainId.Bitcoin,
+    toSymbol: 'cBTC',
+    toChain: UniverseChainId.CitreaMainnet,
+    url: '/swap?inputCurrency=BTC&outputCurrency=cBTC',
+  },
+  {
+    label: 'lnBTC → cBTC',
+    fromSymbol: 'lnBTC',
+    fromChain: UniverseChainId.LightningNetwork,
+    toSymbol: 'cBTC',
+    toChain: UniverseChainId.CitreaMainnet,
+    url: '/swap?inputCurrency=lnBTC&outputCurrency=cBTC',
+  },
+  {
+    label: 'cBTC → lnBTC',
+    fromSymbol: 'cBTC',
+    fromChain: UniverseChainId.CitreaMainnet,
+    toSymbol: 'lnBTC',
+    toChain: UniverseChainId.LightningNetwork,
+    url: '/swap?inputCurrency=cBTC&outputCurrency=lnBTC',
+  },
+  {
+    label: 'WBTC → cBTC',
+    fromSymbol: 'WBTC',
+    fromChain: UniverseChainId.Mainnet,
+    fromAddress: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+    toSymbol: 'cBTC',
+    toChain: UniverseChainId.CitreaMainnet,
+    url: '/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC',
+  },
+  {
+    label: 'USDT (Ethereum) → JUSD',
+    fromSymbol: 'USDT',
+    fromChain: UniverseChainId.Mainnet,
+    fromAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    toSymbol: 'JUSD',
+    toChain: UniverseChainId.CitreaMainnet,
+    url: '/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
+  },
+  {
+    label: 'USDT (Polygon) → JUSD',
+    fromSymbol: 'USDT',
+    fromChain: UniverseChainId.Polygon,
+    fromAddress: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    toSymbol: 'JUSD',
+    toChain: UniverseChainId.CitreaMainnet,
+    url: '/swap?chain=polygon&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
+  },
+  {
+    label: 'USDC → JUSD',
+    fromSymbol: 'USDC',
+    fromChain: UniverseChainId.Mainnet,
+    fromAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    toSymbol: 'JUSD',
+    toChain: UniverseChainId.CitreaMainnet,
+    url: '/swap?chain=ethereum&inputCurrency=USDC&outputCurrency=JUSD&outputChain=citrea',
+  },
+  {
+    label: 'cBTC → JUSD',
+    fromSymbol: 'cBTC',
+    fromChain: UniverseChainId.CitreaMainnet,
+    toSymbol: 'JUSD',
+    toChain: UniverseChainId.CitreaMainnet,
+    url: '/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUSD',
+  },
+  {
+    label: 'cBTC → JUICE',
+    fromSymbol: 'cBTC',
+    fromChain: UniverseChainId.CitreaMainnet,
+    toSymbol: 'JUICE',
+    toChain: UniverseChainId.CitreaMainnet,
+    url: '/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUICE',
+  },
+]
+
 /*
  * Common bridging dapp urls
  */

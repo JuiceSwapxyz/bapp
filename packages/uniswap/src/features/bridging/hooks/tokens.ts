@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { filter } from 'uniswap/src/components/TokenSelector/filter'
 import { usePortfolioBalancesForAddressById } from 'uniswap/src/components/TokenSelector/hooks/usePortfolioBalancesForAddressById'
 import { createEmptyTokenOptionFromBridgingToken } from 'uniswap/src/components/TokenSelector/utils'
-import { OnchainItemListOptionType, TokenOption } from 'uniswap/src/components/lists/items/types'
+import { BridgePairOption, OnchainItemListOptionType, TokenOption } from 'uniswap/src/components/lists/items/types'
 import { useTradingApiSwappableTokensQuery } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import { tradingApiSwappableTokenToCurrencyInfo } from 'uniswap/src/data/apiClients/tradingApi/utils/tradingApiSwappableTokenToCurrencyInfo'
 import { useCrossChainBalances } from 'uniswap/src/data/balances/hooks/useCrossChainBalances'
@@ -10,6 +10,7 @@ import { useTokenProjectsQuery } from 'uniswap/src/data/graphql/uniswap-data-api
 import { GetSwappableTokensResponse } from 'uniswap/src/data/tradingApi/__generated__'
 import { GqlResult } from 'uniswap/src/data/types'
 import { TradeableAsset } from 'uniswap/src/entities/assets'
+import { BRIDGE_PAIR_DISPLAYS } from 'uniswap/src/features/bridging/constants'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { toSupportedChainId } from 'uniswap/src/features/chains/utils'
@@ -218,4 +219,73 @@ function useBridgingTokensToTokenOptions(
       })
       .filter((tokenOption): tokenOption is TokenOption => tokenOption !== undefined)
   }, [bridgingTokens, portfolioBalancesById, enabledChainIds])
+}
+
+export function useCommonBridgeTokensOptions(): GqlResult<BridgePairOption[] | undefined> {
+  const bridgePairOptions = useMemo(() => {
+    return BRIDGE_PAIR_DISPLAYS.map((pair): BridgePairOption | undefined => {
+      const fromChainId = toSupportedChainId(pair.fromChain)
+      const toChainId = toSupportedChainId(pair.toChain)
+
+      if (!fromChainId || !toChainId) {
+        return undefined
+      }
+
+      const fromIsNative = !pair.fromAddress || pair.fromAddress === NATIVE_ADDRESS_FOR_TRADING_API
+      const toIsNative = !pair.toAddress || pair.toAddress === NATIVE_ADDRESS_FOR_TRADING_API
+
+      const fromCurrencyId = fromIsNative
+        ? buildNativeCurrencyId(fromChainId)
+        : buildCurrencyId(fromChainId, pair.fromAddress!)
+
+      const toCurrencyId = toIsNative
+        ? buildNativeCurrencyId(toChainId)
+        : buildCurrencyId(toChainId, pair.toAddress!)
+
+      const fromCurrencyInfo: CurrencyInfo = {
+        currency: {
+          chainId: fromChainId,
+          address: pair.fromAddress,
+          decimals: 18,
+          symbol: pair.fromSymbol,
+          name: pair.fromSymbol,
+          isNative: fromIsNative,
+          isToken: !fromIsNative,
+        } as any,
+        currencyId: fromCurrencyId,
+        logoUrl: undefined,
+        isSpam: false,
+      }
+
+      const toCurrencyInfo: CurrencyInfo = {
+        currency: {
+          chainId: toChainId,
+          address: pair.toAddress,
+          decimals: 18,
+          symbol: pair.toSymbol,
+          name: pair.toSymbol,
+          isNative: toIsNative,
+          isToken: !toIsNative,
+        } as any,
+        currencyId: toCurrencyId,
+        logoUrl: undefined,
+        isSpam: false,
+      }
+
+      return {
+        type: OnchainItemListOptionType.BridgePair,
+        fromCurrencyInfo,
+        toCurrencyInfo,
+        label: pair.label,
+        url: pair.url,
+      }
+    }).filter((option): option is BridgePairOption => option !== undefined)
+  }, [])
+
+  return {
+    data: bridgePairOptions,
+    loading: false,
+    error: undefined,
+    refetch: () => Promise.resolve(),
+  }
 }
