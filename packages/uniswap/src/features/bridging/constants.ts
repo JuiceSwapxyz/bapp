@@ -7,9 +7,11 @@ export interface BridgePairDisplay {
   fromSymbol: string
   fromChain: UniverseChainId
   fromAddress?: string
+  fromLogoUrl: string
   toSymbol: string
   toChain: UniverseChainId
   toAddress?: string
+  toLogoUrl: string
   url: string
 }
 
@@ -18,16 +20,20 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     label: 'BTC ⇄ cBTC',
     fromSymbol: 'BTC',
     fromChain: UniverseChainId.Bitcoin,
+    fromLogoUrl: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
     toSymbol: 'cBTC',
     toChain: UniverseChainId.CitreaMainnet,
+    toLogoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
     url: '/swap?inputCurrency=BTC&outputCurrency=cBTC',
   },
   {
     label: 'lnBTC ⇄ cBTC',
     fromSymbol: 'lnBTC',
     fromChain: UniverseChainId.LightningNetwork,
+    fromLogoUrl: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
     toSymbol: 'cBTC',
     toChain: UniverseChainId.CitreaMainnet,
+    toLogoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
     url: '/swap?inputCurrency=lnBTC&outputCurrency=cBTC',
   },
   {
@@ -35,8 +41,10 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     fromSymbol: 'WBTC',
     fromChain: UniverseChainId.Mainnet,
     fromAddress: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+    fromLogoUrl: 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
     toSymbol: 'cBTC',
     toChain: UniverseChainId.CitreaMainnet,
+    toLogoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
     url: '/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC',
   },
   {
@@ -44,8 +52,10 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     fromSymbol: 'USDT',
     fromChain: UniverseChainId.Mainnet,
     fromAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    fromLogoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
     toSymbol: 'JUSD',
     toChain: UniverseChainId.CitreaMainnet,
+    toLogoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
     url: '/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
   },
   {
@@ -53,8 +63,10 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     fromSymbol: 'USDT',
     fromChain: UniverseChainId.Polygon,
     fromAddress: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    fromLogoUrl: 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
     toSymbol: 'JUSD',
     toChain: UniverseChainId.CitreaMainnet,
+    toLogoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
     url: '/swap?chain=polygon&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
   },
   {
@@ -62,24 +74,30 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     fromSymbol: 'USDC',
     fromChain: UniverseChainId.Mainnet,
     fromAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    fromLogoUrl: 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
     toSymbol: 'JUSD',
     toChain: UniverseChainId.CitreaMainnet,
+    toLogoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
     url: '/swap?chain=ethereum&inputCurrency=USDC&outputCurrency=JUSD&outputChain=citrea',
   },
   {
     label: 'cBTC ⇄ JUSD',
     fromSymbol: 'cBTC',
     fromChain: UniverseChainId.CitreaMainnet,
+    fromLogoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
     toSymbol: 'JUSD',
     toChain: UniverseChainId.CitreaMainnet,
+    toLogoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
     url: '/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUSD',
   },
   {
     label: 'cBTC ⇄ JUICE',
     fromSymbol: 'cBTC',
     fromChain: UniverseChainId.CitreaMainnet,
+    fromLogoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
     toSymbol: 'JUICE',
     toChain: UniverseChainId.CitreaMainnet,
+    toLogoUrl: 'https://docs.juiceswap.com/media/icons/juice.png',
     url: '/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUICE',
   },
 ]

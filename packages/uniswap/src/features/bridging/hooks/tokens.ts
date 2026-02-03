@@ -253,7 +253,7 @@ export function useCommonBridgeTokensOptions(): GqlResult<BridgePairOption[] | u
           isToken: !fromIsNative,
         } as any,
         currencyId: fromCurrencyId,
-        logoUrl: undefined,
+        logoUrl: pair.fromLogoUrl,
         isSpam: false,
       }
 
@@ -268,7 +268,7 @@ export function useCommonBridgeTokensOptions(): GqlResult<BridgePairOption[] | u
           isToken: !toIsNative,
         } as any,
         currencyId: toCurrencyId,
-        logoUrl: undefined,
+        logoUrl: pair.toLogoUrl,
         isSpam: false,
       }
 
