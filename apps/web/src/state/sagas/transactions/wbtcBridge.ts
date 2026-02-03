@@ -12,8 +12,10 @@ import {
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import {
   LdsSwapStatus,
+  approveErc20ForLdsBridge,
   buildErc20LockupTx,
   buildEvmLockupTx,
+  checkErc20Allowance,
   getLdsBridgeManager,
 } from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
@@ -206,6 +208,56 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
   const sourceSigner = sourceProvider.getSigner(account.address)
 
   const swapContractAddress = isWbtcToCbtc ? SWAP_CONTRACTS.ethereum : getCitreaSwapContract(citreaChainId)
+  const tokenAddress = TOKEN_CONFIGS[from].address
+  const amountBigInt = BigInt(inputAmount)
+
+  // Check and approve WBTC if needed (only for WBTC → cBTC direction)
+  if (isWbtcToCbtc) {
+    let needsApproval = false
+    try {
+      const allowanceResult = yield* call(checkErc20Allowance, {
+        signer: sourceSigner,
+        contractAddress: swapContractAddress,
+        tokenAddress,
+        amount: amountBigInt,
+      })
+      needsApproval = allowanceResult.needsApproval
+    } catch (error) {
+      logger.error(error instanceof Error ? error : new Error(String(error)), {
+        tags: { file: 'wbtcBridge', function: 'handleWbtcBridge' },
+        extra: { step: 'checkAllowance' },
+      })
+      throw new TransactionStepFailedError({
+        message: `Failed to check WBTC allowance: ${error instanceof Error ? error.message : String(error)}`,
+        step,
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
+    }
+
+    if (needsApproval) {
+      try {
+        const approveResult = yield* call(approveErc20ForLdsBridge, {
+          signer: sourceSigner,
+          contractAddress: swapContractAddress,
+          tokenAddress,
+          amount: amountBigInt,
+        })
+
+        // Wait for approval confirmation
+        yield* call([approveResult.tx, approveResult.tx.wait])
+      } catch (error) {
+        logger.error(error instanceof Error ? error : new Error(String(error)), {
+          tags: { file: 'wbtcBridge', function: 'handleWbtcBridge' },
+          extra: { step: 'approval' },
+        })
+        throw new TransactionStepFailedError({
+          message: `Failed to approve WBTC: ${error instanceof Error ? error.message : String(error)}`,
+          step,
+          originalError: error instanceof Error ? error : new Error(String(error)),
+        })
+      }
+    }
+  }
 
   let lockResult
   try {
@@ -214,9 +266,9 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
       lockResult = yield* call(buildErc20LockupTx, {
         signer: sourceSigner,
         contractAddress: swapContractAddress,
-        tokenAddress: TOKEN_CONFIGS[from].address,
+        tokenAddress,
         preimageHash: chainSwap.preimageHash,
-        amount: BigInt(inputAmount),
+        amount: amountBigInt,
         claimAddress: chainSwap.lockupDetails.claimAddress!,
         timelock: chainSwap.lockupDetails.timeoutBlockHeight,
       })
