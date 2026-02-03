@@ -1,22 +1,22 @@
 import { Currency, CurrencyAmount, Price, Token, TradeType } from '@juiceswapxyz/sdk-core'
 import { useMemo } from 'react'
 import { PollingInterval } from 'uniswap/src/constants/misc'
+import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getPrimaryStablecoin, isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { useTrade } from 'uniswap/src/features/transactions/swap/hooks/useTrade'
 import { isClassic, isGatewayJusd } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { areCurrencyIdsEqual, currencyId } from 'uniswap/src/utils/currencyId'
 
-const SONEIUM_AMOUNT_OVERRIDE = 30
 const DEFAULT_STABLECOIN_AMOUNT_OUT = 0.0001
 function getStablecoinAmountOut(chainId: UniverseChainId): CurrencyAmount<Token> {
-  const primaryStablecoin = getPrimaryStablecoin(chainId)
+  const chainInfo = getChainInfo(chainId)
 
-  if (chainId === UniverseChainId.Soneium) {
-    const amount = SONEIUM_AMOUNT_OVERRIDE * Math.pow(10, primaryStablecoin.decimals)
-    return CurrencyAmount.fromRawAmount(primaryStablecoin, amount)
+  if (chainInfo.spotPriceStablecoinAmountOverride) {
+    return chainInfo.spotPriceStablecoinAmountOverride
   }
 
+  const primaryStablecoin = getPrimaryStablecoin(chainId)
   const coefficient = primaryStablecoin.decimals === 18 ? 0.000001 : 1
   const amount = DEFAULT_STABLECOIN_AMOUNT_OUT * coefficient * Math.pow(10, primaryStablecoin.decimals)
   return CurrencyAmount.fromRawAmount(primaryStablecoin, amount)

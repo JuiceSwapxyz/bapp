@@ -1,4 +1,4 @@
-import { Token } from '@juiceswapxyz/sdk-core'
+import { CurrencyAmount, Token } from '@juiceswapxyz/sdk-core'
 import { ETH_LOGO, SONEIUM_LOGO } from 'ui/src/assets'
 import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
@@ -67,6 +67,7 @@ export const SONEIUM_CHAIN_INFO = {
     [RPCType.Default]: { http: ['https://rpc.soneium.org'] },
     [RPCType.Interface]: { http: [`https://soneium-mainnet.g.alchemy.com/v2/${config.alchemyApiKey}`] },
   },
+  spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(tokens.USDC, 30e6),
   tokens,
   statusPage: 'https://status.soneium.org/',
   supportsV4: true,
