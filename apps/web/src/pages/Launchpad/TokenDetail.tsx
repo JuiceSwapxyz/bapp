@@ -102,19 +102,29 @@ const TokenSymbol = styled(Text, {
 const MainContent = styled(Flex, {
   flexDirection: 'row',
   gap: '$spacing24',
-  flexWrap: 'wrap',
+  $md: {
+    flexDirection: 'column',
+  },
 })
 
 const LeftColumn = styled(Flex, {
   flex: 2,
-  minWidth: 300,
+  flexShrink: 1,
+  minWidth: 0,
   gap: '$spacing24',
 })
 
 const RightColumn = styled(Flex, {
   flex: 1,
-  minWidth: 320,
+  flexShrink: 0,
+  width: 360,
+  maxWidth: '100%',
   gap: '$spacing24',
+  overflow: 'hidden',
+  $md: {
+    width: '100%',
+    flexShrink: 1,
+  },
 })
 
 const CardTitle = styled(Text, {
@@ -476,6 +486,7 @@ export default function TokenDetail() {
                   graduated={graduated}
                   canGraduate={canGraduate}
                   chainId={chainId}
+                  reserves={reserves}
                   onTransactionComplete={refetchBondingCurve}
                   onGraduateComplete={refetchBondingCurve}
                 />
