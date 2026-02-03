@@ -1,5 +1,5 @@
-import { memo, useState } from 'react'
-import { Flex, Loader, Text, TextProps, UniversalImage, useColorSchemeFromSeed, useSporeColors } from 'ui/src'
+import { memo } from 'react'
+import { Flex, Loader, Text, TextProps, UniversalImage, useColorSchemeFromSeed } from 'ui/src'
 import { iconSizes, validColor, zIndexes } from 'ui/src/theme'
 import { STATUS_RATIO } from 'uniswap/src/components/CurrencyLogo/CurrencyLogo'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
@@ -60,10 +60,6 @@ export const TokenLogo = memo(function _TokenLogo({
     }
   }
 
-  // We want to avoid the extra render on mobile when updating the state, so we set this to `true` from the start.
-  const [showBackground, setShowBackground] = useState(isMobileApp ? true : false)
-
-  const colors = useSporeColors()
   const { foreground, background } = useColorSchemeFromSeed(name ?? symbol ?? '')
 
   const borderWidth = isTestnetToken ? size / TESTNET_BORDER_DIVISOR : 0
@@ -122,20 +118,6 @@ export const TokenLogo = memo(function _TokenLogo({
       width={size}
       position="relative"
     >
-      {!isTestnetToken && (
-        <Flex
-          opacity={showBackground ? 1 : 0}
-          height="96%"
-          width="96%"
-          zIndex={zIndexes.background}
-          backgroundColor={colors.white.val}
-          position="absolute"
-          top="2%"
-          left="2%"
-          borderRadius={size / 2}
-        />
-      )}
-
       <UniversalImage
         allowLocalUri
         fallback={fallback}
@@ -148,7 +130,6 @@ export const TokenLogo = memo(function _TokenLogo({
         }}
         testID="token-image"
         uri={logoUrl ?? undefined}
-        onLoad={() => setShowBackground(true)}
       />
 
       {isTestnetToken && (
