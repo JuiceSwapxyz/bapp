@@ -69,8 +69,8 @@ function useTokenSectionsForSwap({
   })
 
   const bridgingSectionTokenOptions: TokenSelectorOption[] = useMemo(
-    () => [...(bridgePairOptions ?? []), ...(shouldNestBridgingTokens ? [bridgingTokenOptions ?? []] : bridgingTokenOptions ?? [])],
-    [bridgePairOptions, bridgingTokenOptions, shouldNestBridgingTokens],
+    () => bridgePairOptions ?? [],
+    [bridgePairOptions],
   )
 
   const bridgingSection = useOnchainItemListSection({
