@@ -1,11 +1,13 @@
 import { PortfolioLogo } from 'components/AccountDrawer/MiniPortfolio/PortfolioLogo'
 import { AssetLogoBaseProps } from 'components/Logo/AssetLogo'
 import { NATIVE_CHAIN_ID } from 'constants/tokens'
+import { useLaunchpadTokenLogoUrl } from 'hooks/useLaunchpadTokens'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { useMemo } from 'react'
 import { TokenStat } from 'state/explore/types'
 import { getLocalTokenLogoUrlByAddress } from 'uniswap/src/components/CurrencyLogo/localTokenLogoMap'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { getLogoUrlBySymbol, getTokenLogoFromRegistry } from 'uniswap/src/features/tokens/tokenRegistry'
 import { getChainIdFromChainUrlParam } from 'utils/chainParams'
 
 export default function QueryTokenLogo(
@@ -21,25 +23,29 @@ export default function QueryTokenLogo(
 
   const currencies = useMemo(() => (!isNative ? undefined : [currency]), [currency, isNative])
 
-  // Use logo URL with fallback to project logo URL for compatibility with different token data structures
+  // Launchpad token logo - resolved from metadata when token is from launchpad
+  const launchpadLogoUrl = useLaunchpadTokenLogoUrl(props.token?.address, chainId)
+
   const logoUrl = useMemo(() => {
-    if (props.token?.logo) {
-      return props.token.logo
-    }
-    // Fallback to project.logo.url structure used in GraphQL responses
-    if (props.token?.project?.logo?.url) {
-      return props.token.project.logo.url
-    }
-
-    const urlFromAddress = props.token?.address
-      ? getLocalTokenLogoUrlByAddress(props.token.address.toLowerCase())
-      : undefined
-    if (urlFromAddress) {
-      return urlFromAddress
-    }
-
-    return undefined
-  }, [props.token?.logo, props.token?.project?.logo?.url, props.token?.address])
+    const { token } = props
+    const candidates = [
+      token?.logo,
+      token?.project?.logo?.url,
+      token?.address ? getLocalTokenLogoUrlByAddress(token.address.toLowerCase()) : undefined,
+      getLogoUrlBySymbol(token?.symbol),
+      token?.address ? getTokenLogoFromRegistry(chainId as UniverseChainId, token.address) : undefined,
+      launchpadLogoUrl,
+    ]
+    return candidates.find(Boolean) ?? undefined
+  }, [
+    props.token,
+    props.token?.logo,
+    props.token?.project?.logo?.url,
+    props.token?.address,
+    props.token?.symbol,
+    chainId,
+    launchpadLogoUrl,
+  ])
 
   return <PortfolioLogo currencies={currencies} chainId={chainId} images={[logoUrl]} {...props} />
 }
