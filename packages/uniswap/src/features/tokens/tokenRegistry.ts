@@ -312,7 +312,9 @@ export function getLogoUrlBySymbol(symbol: string | undefined): string | undefin
   if (!symbol) {
     return undefined
   }
-  const entry = Object.values(TOKEN_METADATA).find((m) => m.symbol === symbol)
+  const entry = Object.values(TOKEN_METADATA).find(
+    (m) => m.symbol.toLowerCase() === symbol.toLowerCase(),
+  )
   return entry?.logoUrl
 }
 
