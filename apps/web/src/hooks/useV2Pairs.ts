@@ -1,5 +1,6 @@
 import { Currency, CurrencyAmount, V2_FACTORY_ADDRESSES } from '@juiceswapxyz/sdk-core'
 import { Pair, computePairAddress } from '@juiceswapxyz/v2-sdk'
+import { V2_PAIR_RESERVES_ABI } from 'constants/v2'
 import { useMemo } from 'react'
 import { assume0xAddress } from 'utils/wagmi'
 import { useReadContracts } from 'wagmi'
@@ -38,33 +39,7 @@ export function useV2Pairs(currencies: [Maybe<Currency>, Maybe<Currency>][]): [P
         (pairAddress) =>
           ({
             address: assume0xAddress(pairAddress) ?? '0x', // Edge case: if an address is undefined, we pass in a blank address to keep the result array the same length as pairAddresses
-            abi: [
-              {
-                constant: true,
-                inputs: [],
-                name: 'getReserves',
-                outputs: [
-                  {
-                    internalType: 'uint112',
-                    name: 'reserve0',
-                    type: 'uint112',
-                  },
-                  {
-                    internalType: 'uint112',
-                    name: 'reserve1',
-                    type: 'uint112',
-                  },
-                  {
-                    internalType: 'uint32',
-                    name: 'blockTimestampLast',
-                    type: 'uint32',
-                  },
-                ],
-                payable: false,
-                stateMutability: 'view',
-                type: 'function',
-              },
-            ],
+            abi: V2_PAIR_RESERVES_ABI,
             functionName: 'getReserves',
             chainId,
           }) as const,

@@ -1,24 +1,8 @@
+import { V2_PAIR_RESERVES_ABI } from 'constants/v2'
 import { useMemo } from 'react'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { assume0xAddress } from 'utils/wagmi'
 import { useReadContract } from 'wagmi'
-
-// V2 Pair getReserves ABI
-const V2_PAIR_RESERVES_ABI = [
-  {
-    constant: true,
-    inputs: [],
-    name: 'getReserves',
-    outputs: [
-      { internalType: 'uint112', name: 'reserve0', type: 'uint112' },
-      { internalType: 'uint112', name: 'reserve1', type: 'uint112' },
-      { internalType: 'uint32', name: 'blockTimestampLast', type: 'uint32' },
-    ],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-] as const
 
 export interface V2PairReserves {
   reserve0: bigint

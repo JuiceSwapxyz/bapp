@@ -20,6 +20,7 @@ import RangeSelector from 'components/RangeSelector'
 import RateToggle from 'components/RateToggle'
 import { V2Unsupported } from 'components/V2Unsupported'
 import { Dots } from 'components/swap/styled'
+import { V2_PAIR_RESERVES_ABI } from 'constants/v2'
 import { useToken } from 'hooks/Tokens'
 import { useAccount } from 'hooks/useAccount'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
@@ -119,31 +120,7 @@ const MIGRATE_V2_ABI = [
     stateMutability: 'view',
     type: 'function',
   },
-  {
-    constant: true,
-    inputs: [],
-    name: 'getReserves',
-    outputs: [
-      {
-        internalType: 'uint112',
-        name: 'reserve0',
-        type: 'uint112',
-      },
-      {
-        internalType: 'uint112',
-        name: 'reserve1',
-        type: 'uint112',
-      },
-      {
-        internalType: 'uint32',
-        name: 'blockTimestampLast',
-        type: 'uint32',
-      },
-    ],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
+  ...V2_PAIR_RESERVES_ABI,
 ] as const
 
 function EmptyState({ message }: { message: ReactNode }) {
