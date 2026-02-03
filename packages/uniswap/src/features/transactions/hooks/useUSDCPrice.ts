@@ -22,6 +22,15 @@ function getStablecoinAmountOut(chainId: UniverseChainId): CurrencyAmount<Token>
   return CurrencyAmount.fromRawAmount(primaryStablecoin, amount)
 }
 
+// Citrea Mainnet Gateway doesn't support EXACT_OUTPUT, so we need to use EXACT_INPUT
+// and calculate the price from the output amount
+function shouldUseExactInput(chainId: UniverseChainId | undefined): boolean {
+  return chainId === UniverseChainId.CitreaMainnet
+}
+
+// Small amount for EXACT_INPUT quotes (0.0001 of the currency, adjusted for 18 decimals)
+const EXACT_INPUT_QUOTE_AMOUNT = '100000000000000' // 0.0001 * 10^18 = 1e14
+
 /**
  * Returns the price in USDC of the input currency
  * @param currency currency to compute the USDC price of
@@ -34,23 +43,41 @@ export function useUSDCPrice(
   isLoading: boolean
 } {
   const chainId = currency?.chainId
+  const useExactInput = shouldUseExactInput(isUniverseChainId(chainId) ? chainId : undefined)
 
-  const quoteAmount = useMemo(
+  const stablecoinAmount = useMemo(
     () => (isUniverseChainId(chainId) ? getStablecoinAmountOut(chainId) : undefined),
     [chainId],
   )
-  const stablecoin = quoteAmount?.currency
+  const stablecoin = stablecoinAmount?.currency
+
+  // For EXACT_INPUT mode, create a small amount of the input currency
+  const currencyInputAmount = useMemo(() => {
+    if (!useExactInput || !currency) {
+      return undefined
+    }
+    return CurrencyAmount.fromRawAmount(currency, EXACT_INPUT_QUOTE_AMOUNT)
+  }, [useExactInput, currency])
 
   // avoid requesting quotes for stablecoin input
   const currencyIsStablecoin = Boolean(
     stablecoin && currency && areCurrencyIdsEqual(currencyId(currency), currencyId(stablecoin)),
   )
-  const amountSpecified = currencyIsStablecoin ? undefined : quoteAmount
+
+  // For EXACT_INPUT: amountSpecified is the currency amount, otherCurrency is stablecoin
+  // For EXACT_OUTPUT: amountSpecified is the stablecoin amount, otherCurrency is currency
+  const amountSpecified = currencyIsStablecoin
+    ? undefined
+    : useExactInput
+      ? currencyInputAmount
+      : stablecoinAmount
+  const otherCurrency = useExactInput ? stablecoin : currency
+  const tradeType = useExactInput ? TradeType.EXACT_INPUT : TradeType.EXACT_OUTPUT
 
   const { trade, isLoading } = useTrade({
     amountSpecified,
-    otherCurrency: currency,
-    tradeType: TradeType.EXACT_OUTPUT,
+    otherCurrency,
+    tradeType,
     pollInterval,
     isUSDQuote: true,
   })
