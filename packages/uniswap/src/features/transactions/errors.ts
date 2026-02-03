@@ -1,6 +1,6 @@
 import { datadogRum } from '@datadog/browser-rum'
 import { AppTFunction } from 'ui/src/i18n/types'
-import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
+import { FetchError, getFetchErrorMessage } from 'uniswap/src/data/apiClients/FetchError'
 import { TokenApprovalTransactionStep } from 'uniswap/src/features/transactions/steps/approve'
 import { TokenRevocationTransactionStep } from 'uniswap/src/features/transactions/steps/revoke'
 import { TransactionStep, TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
@@ -191,6 +191,11 @@ function getSwapErrorMessage(error: TransactionStepFailedError, t: AppTFunction)
  * Falls back to a generic message if no specific error details are available.
  */
 function getBridgeErrorMessage(error: TransactionStepFailedError, fallback: string): string {
+  // Try to get the actual error message from FetchError.data first
+  const fetchErrorMsg = getFetchErrorMessage(error.originalError)
+  if (fetchErrorMsg) {
+    return fetchErrorMsg
+  }
   // Try to get the original error message (most specific)
   if (error.originalError?.message) {
     return error.originalError.message
