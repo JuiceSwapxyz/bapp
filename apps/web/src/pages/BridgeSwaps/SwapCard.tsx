@@ -270,7 +270,9 @@ const useRefundEtaEstimate = (swap: SomeSwap) => {
   const currentTip = useChainTipBlockNumber(ASSET_CHAIN_ID_MAP[swap.assetSend], isEligibleForRefund)
   const timeoutBlockHeight = Number(lockupDetails?.timeoutBlockHeight)
   const remainingBlocks =
-    Number(timeoutBlockHeight) - Number(currentTip.data) > 0 ? Number(timeoutBlockHeight) - Number(currentTip.data) : 0
+    1 + Number(timeoutBlockHeight) - Number(currentTip.data) > 0
+      ? 1 + Number(timeoutBlockHeight) - Number(currentTip.data)
+      : 0
 
   return {
     isEligibleForRefund: isEligibleForRefund && !isNonRefundableStatus,
