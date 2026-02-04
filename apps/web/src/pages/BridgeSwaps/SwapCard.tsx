@@ -13,6 +13,7 @@ import { ChainTransactionsResponse } from 'uniswap/src/features/lds-bridge/lds-t
 import { ChainSwap, SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { LdsSwapStatus, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
+import { ellipseMiddle } from 'utilities/src/addresses'
 
 const Card = styled(Flex, {
   backgroundColor: '$surface2',
@@ -397,6 +398,25 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
           <DetailRow>
             <DetailLabel>Status:</DetailLabel>
             <DetailValue>{swap.status || 'Unknown'}</DetailValue>
+          </DetailRow>
+
+          <DetailRow>
+            <DetailLabel>User Address:</DetailLabel>
+            <DetailValue>
+              <TxLink
+                tag="a"
+                href={getExplorerLink({
+                  chainId: ASSET_CHAIN_ID_MAP[swap.assetReceive],
+                  type: ExplorerDataType.ADDRESS,
+                  data: swap.claimAddress,
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              >
+                {ellipseMiddle({ str: swap.claimAddress, charsEnd: 7, charsStart: 7 })}
+              </TxLink>
+            </DetailValue>
           </DetailRow>
 
           {/* Chain Swap: Show all transactions from API data */}

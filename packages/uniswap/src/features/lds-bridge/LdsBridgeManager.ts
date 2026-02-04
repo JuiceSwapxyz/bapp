@@ -385,7 +385,23 @@ class LdsBridgeManager extends SwapEventEmitter {
       throw new Error('Swap not found')
     }
 
+    this.socketClient.unsubscribeFromSwapById(swapId)
+
     swap.refundTx = refundTxId
+    await this.storageManager.setSwap(swapId, swap)
+    await this._notifySwapChanges()
+  }
+
+  updateSwapClaimTx = async (swapId: string, claimTxId: string): Promise<void> => {
+    const swap = await this.storageManager.getSwap(swapId)
+    if (!swap) {
+      throw new Error('Swap not found')
+    }
+    
+    this.socketClient.unsubscribeFromSwapById(swapId)
+    
+    swap.claimTx = claimTxId
+    swap.status = LdsSwapStatus.UserClaimed
     await this.storageManager.setSwap(swapId, swap)
     await this._notifySwapChanges()
   }
