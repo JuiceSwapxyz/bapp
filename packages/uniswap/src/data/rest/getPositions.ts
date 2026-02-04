@@ -18,7 +18,7 @@ import {
   ListPositionsRequest,
   ListPositionsResponse,
 } from '@uniswap/client-pools/dist/pools/v1/api_pb'
-import { ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
+import { PoolPosition, ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
 import { useMemo } from 'react'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { uniswapPostTransport } from 'uniswap/src/data/rest/base'
@@ -47,7 +47,7 @@ async function fetchPositionsFromCustomServer(
           return {
             position: {
               case: 'v3Position' as const,
-              value: position.v3Position,
+              value: new PoolPosition(position.v3Position),
             },
             status: position.status || 0,
           }
@@ -77,7 +77,7 @@ async function fetchPositionsInfiniteFromCustomServer({
           return {
             position: {
               case: 'v3Position' as const,
-              value: position.v3Position,
+              value: new PoolPosition(position.v3Position),
             },
             status: position.status || 0,
           }
