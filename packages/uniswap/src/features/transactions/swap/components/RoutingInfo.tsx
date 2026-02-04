@@ -40,11 +40,11 @@ export function RoutingInfo({
   const gasFeeFormatted =
     gasFeeUSD !== undefined ? convertFiatAmountFormatted(gasFeeUSD, NumberType.FiatGasPrice) : undefined
 
-  // Gateway swaps also use ClassicTrade underneath
   const isClassicOrGateway = trade && (isClassic(trade) || isGatewayJusd(trade))
+  const isClassicTrade = trade && isClassic(trade)
   const routes = useMemo(
-    () => (isClassicOrGateway ? getRoutingDiagramEntries(trade as ClassicTrade) : []),
-    [isClassicOrGateway, trade],
+    () => (isClassicTrade ? getRoutingDiagramEntries(trade as ClassicTrade) : []),
+    [isClassicTrade, trade],
   )
 
   const caption = useMemo(() => {
