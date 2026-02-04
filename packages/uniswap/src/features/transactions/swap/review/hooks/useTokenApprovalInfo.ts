@@ -87,7 +87,7 @@ export function useTokenApprovalInfo(params: TokenApprovalInfoParams): ApprovalT
     routing,
   ])
 
-  const shouldSkip = !approvalRequestArgs || isWrap || !address
+  const shouldSkip = !approvalRequestArgs || isWrap || !address || isBridge
 
   const { data, isLoading, error } = useCheckApprovalQuery({
     params: shouldSkip ? undefined : approvalRequestArgs,
