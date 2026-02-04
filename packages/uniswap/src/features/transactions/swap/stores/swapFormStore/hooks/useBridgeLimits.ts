@@ -1,8 +1,13 @@
-import { formatUnits, parseUnits } from '@ethersproject/units'
+import { parseUnits } from '@ethersproject/units'
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useQuery } from '@tanstack/react-query'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { ChainPairsResponse, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import {
+  ChainPairsResponse,
+  fetchBoltzBalance,
+  getBoltzAvailableBalance,
+  getLdsBridgeManager,
+} from 'uniswap/src/features/lds-bridge'
 import type {
   LightningBridgeReverseGetResponse,
   LightningBridgeSubmarineGetResponse,
@@ -141,6 +146,12 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   const pairInfo = usePairInfo(params)
   const { currencyIn, currencyOut } = params
 
+  const { data: boltzBalance } = useQuery({
+    queryKey: ['boltz-balance'],
+    queryFn: fetchBoltzBalance,
+    enabled: !!currencyIn && !!currencyOut && !!pairInfo,
+  })
+
   if (!currencyIn || !currencyOut || !pairInfo) {
     return undefined
   }
@@ -172,25 +183,30 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   const limitsCurrency = isInputSide ? currencyIn : currencyOut
 
   const { minimal, maximal } = limits
-  // 2% buffer for fees when limits are cross-field (cBTC → lnBTC)
   const feeBuffer = isInputSide ? 1 : 1.02
   const adjustedMinimal = Math.floor(minimal * feeBuffer)
 
-  // For ERC20 bridges, API returns limits in Boltz format (8 decimals)
-  // Convert to token raw amount using the token's native decimals
+  const availableBalance = boltzBalance
+    ? getBoltzAvailableBalance(
+        boltzBalance,
+        { chainId: currencyIn.chainId, symbol: currencyIn.symbol ?? '' },
+        { chainId: currencyOut.chainId, symbol: currencyOut.symbol ?? '' },
+      )
+    : undefined
+  const availableRaw =
+    availableBalance !== undefined ? Math.floor(availableBalance * 1e8) : undefined
+  const effectiveMax = availableRaw !== undefined ? availableRaw : maximal
+
   let minRaw: string
   let maxRaw: string
 
   if (isErc20ChainBridge(params)) {
-    // Convert: Boltz (8 decimals) → decimal string → token raw amount
-    const minDecimal = formatUnits(adjustedMinimal, 8)
-    const maxDecimal = formatUnits(maximal, 8)
-    minRaw = parseUnits(minDecimal, limitsCurrency.decimals).toString()
-    maxRaw = parseUnits(maxDecimal, limitsCurrency.decimals).toString()
+    const decimals = limitsCurrency.decimals
+    minRaw = parseUnits((adjustedMinimal / 1e8).toFixed(decimals), decimals).toString()
+    maxRaw = parseUnits((effectiveMax / 1e8).toFixed(decimals), decimals).toString()
   } else {
-    // BTC bridges: limits already in satoshis (native 8 decimals)
     minRaw = adjustedMinimal.toString()
-    maxRaw = maximal.toString()
+    maxRaw = effectiveMax.toString()
   }
 
   const bridgeLimits: BridgeLimits = {
