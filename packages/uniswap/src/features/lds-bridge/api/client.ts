@@ -134,7 +134,7 @@ export async function broadcastChainSwap(hex: string): Promise<{ id: string }> {
   })
 }
 
-export async function fetchSwapCurrentStatus(swapId: string): Promise<{ status: LdsSwapStatus }> {
+export async function fetchSwapCurrentStatus(swapId: string): Promise<{ status: LdsSwapStatus, failureReason?: string }> {
   return await LdsApiClient.get<{ status: LdsSwapStatus }>(`/swap/v2/swap/${swapId}`)
 }
 
