@@ -168,8 +168,8 @@ function getStatusInfo(swap: SomeSwap): {
     case LdsSwapStatus.UserRefunded:
       return {
         label: 'Refunded',
-        status: 'failed',
-        icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
+        status: 'completed',
+        icon: <CheckCircleFilled size="$icon.16" color="$statusSuccess" />,
       }
 
     case LdsSwapStatus.TransactionFailed:
