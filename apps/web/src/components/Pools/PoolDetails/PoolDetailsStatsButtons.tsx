@@ -1,4 +1,3 @@
-import { ChainId, WETH9 } from '@juiceswapxyz/sdk-core'
 import { gqlToCurrency } from 'appGraphql/data/util'
 import { PositionInfo } from 'components/AccountDrawer/MiniPortfolio/Pools/cache'
 import useMultiChainPositions from 'components/AccountDrawer/MiniPortfolio/Pools/useMultiChainPositions'
@@ -20,7 +19,7 @@ import { Z_INDEX } from 'theme/zIndex'
 import { Button, Flex, Spacer, useIsTouchDevice, useMedia } from 'ui/src'
 import { CoinConvert } from 'ui/src/components/icons/CoinConvert'
 import { breakpoints } from 'ui/src/theme'
-import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
+import { getWrappedNativeAddress } from 'uniswap/src/constants/addresses'
 import { ProtocolVersion, Token } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
@@ -115,13 +114,10 @@ const PoolButton = ({ isOpen, icon, onPress, children, 'data-testid': dataTestId
 function normalizeTokenAddress(address: string | undefined, chainId: UniverseChainId | undefined): string {
   if (!address || address === NATIVE_CHAIN_ID) {
     // V3 positions store wrapped token address for native tokens
-    if (chainId === UniverseChainId.CitreaMainnet) {
-      return WETH9[ChainId.CITREA_MAINNET].address.toLowerCase()
+    if (chainId) {
+      return getWrappedNativeAddress(chainId).toLowerCase()
     }
-    if (chainId === UniverseChainId.CitreaTestnet) {
-      return WETH9[ChainId.CITREA_TESTNET].address.toLowerCase()
-    }
-    return ZERO_ADDRESS.toLowerCase()
+    return ''
   }
   return address.toLowerCase()
 }
