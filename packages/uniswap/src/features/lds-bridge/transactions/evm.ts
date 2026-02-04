@@ -1,6 +1,20 @@
 import type { Signer } from '@ethersproject/abstract-signer'
-import type { Contract } from '@ethersproject/contracts'
+import type { Contract, PopulatedTransaction } from '@ethersproject/contracts'
 import { Contract as EthersContract } from '@ethersproject/contracts'
+import type { JsonRpcProvider } from '@ethersproject/providers'
+
+// Extended Contract interface with populateTransaction
+interface ContractWithPopulate extends Contract {
+  populateTransaction: {
+    lock(
+      preimageHash: string,
+      amount: bigint,
+      tokenAddress: string,
+      claimAddress: string,
+      timelock: number
+    ): Promise<PopulatedTransaction>
+  }
+}
 import { COIN_SWAP_ABI } from 'uniswap/src/abis/coin_swap'
 import { satoshiToWei } from 'uniswap/src/features/lds-bridge/utils/conversion'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
@@ -57,6 +71,27 @@ const ERC20_TOKEN_ABI = [
 // MaxUint256 for unlimited approvals
 const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
 
+/**
+ * Sends a transaction using low-level provider.send to bypass ethers.js Formatter.transactionResponse.
+ * This fixes the "invalid BigNumber string value=undefined" error when using viem transport with ethers.js.
+ */
+async function sendTransactionRaw(signer: Signer, txRequest: { to: string; data: string }): Promise<string> {
+  const provider = signer.provider as JsonRpcProvider | undefined
+  if (!provider) {
+    throw new Error('Signer has no provider')
+  }
+
+  const from = await signer.getAddress()
+
+  const hash = await provider.send('eth_sendTransaction', [{
+    from,
+    to: txRequest.to,
+    data: txRequest.data,
+  }])
+
+  return hash as string
+}
+
 export type CheckErc20AllowanceParams = {
   signer: Signer
   contractAddress: string
@@ -102,7 +137,7 @@ export type ApproveErc20Result = {
  * Approve ERC20 token for LDS Bridge contract (does not wait for confirmation)
  */
 export async function approveErc20ForLdsBridge(params: ApproveErc20Params): Promise<ApproveErc20Result> {
-  const { signer, contractAddress, tokenAddress, amount } = params
+  const { signer, contractAddress, tokenAddress } = params
 
   const tokenContract = new EthersContract(tokenAddress, ERC20_TOKEN_ABI, signer)
   const currentAllowance = await tokenContract.allowance(await signer.getAddress(), contractAddress)
@@ -135,12 +170,24 @@ export async function buildErc20LockupTx(params: {
 }): Promise<{ hash: string }> {
   const { signer, contractAddress, tokenAddress, preimageHash, amount, claimAddress, timelock } = params
 
-  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer)
+  const swapContract = new EthersContract(contractAddress, ERC20_SWAP_ABI, signer) as ContractWithPopulate
 
-  // Lock (approval should already be done)
-  const lockTx = await swapContract.lock(prefix0x(preimageHash), amount, tokenAddress, claimAddress, timelock)
+  // Use populateTransaction + sendTransactionRaw to bypass ethers.js Formatter issue
+  // when using viem transport (value field is undefined for ERC20 transactions)
+  const lockTxData = await swapContract.populateTransaction.lock(
+    prefix0x(preimageHash),
+    amount,
+    tokenAddress,
+    claimAddress,
+    timelock
+  )
 
-  return { hash: lockTx.hash }
+  const hash = await sendTransactionRaw(signer, {
+    to: lockTxData.to,
+    data: lockTxData.data,
+  } as { to: string; data: string })
+
+  return { hash }
 }
 
 export async function claimErc20Swap(params: {
