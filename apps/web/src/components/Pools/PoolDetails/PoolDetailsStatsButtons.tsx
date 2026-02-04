@@ -19,6 +19,7 @@ import { Z_INDEX } from 'theme/zIndex'
 import { Button, Flex, Spacer, useIsTouchDevice, useMedia } from 'ui/src'
 import { CoinConvert } from 'ui/src/components/icons/CoinConvert'
 import { breakpoints } from 'ui/src/theme'
+import { getWrappedNativeAddress } from 'uniswap/src/constants/addresses'
 import { ProtocolVersion, Token } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
@@ -105,26 +106,49 @@ const PoolButton = ({ isOpen, icon, onPress, children, 'data-testid': dataTestId
   )
 }
 
+/**
+ * Normalizes a token address for comparison with position data.
+ * Native tokens (no address or NATIVE_CHAIN_ID) are normalized to the wrapped token address
+ * because V3 positions store wrapped tokens on-chain, not native tokens.
+ */
+function normalizeTokenAddress(address: string | undefined, chainId: UniverseChainId | undefined): string {
+  if (!address || address === NATIVE_CHAIN_ID) {
+    // V3 positions store wrapped token address for native tokens
+    if (chainId) {
+      return getWrappedNativeAddress(chainId).toLowerCase()
+    }
+    return ''
+  }
+  return address.toLowerCase()
+}
+
 function findMatchingPosition({
   positions,
   token0,
   token1,
   feeTier,
+  chainId,
 }: {
   positions: PositionInfo[]
   token0?: Token
   token1?: Token
   feeTier?: number
+  chainId?: UniverseChainId
 }) {
-  return positions.find(
-    (position) =>
-      (position.details.token0.toLowerCase() === token0?.address ||
-        position.details.token0.toLowerCase() === token1?.address) &&
-      (position.details.token1.toLowerCase() === token0?.address ||
-        position.details.token1.toLowerCase() === token1?.address) &&
-      position.details.fee == feeTier &&
-      !position.closed,
-  )
+  const normalizedToken0 = normalizeTokenAddress(token0?.address, chainId)
+  const normalizedToken1 = normalizeTokenAddress(token1?.address, chainId)
+
+  return positions.find((position) => {
+    const posToken0 = position.details.token0.toLowerCase()
+    const posToken1 = position.details.token1.toLowerCase()
+
+    // Check if tokens match (in either order)
+    const tokensMatch =
+      (posToken0 === normalizedToken0 || posToken0 === normalizedToken1) &&
+      (posToken1 === normalizedToken0 || posToken1 === normalizedToken1)
+
+    return tokensMatch && position.details.fee == feeTier && !position.closed
+  })
 }
 
 export function PoolDetailsStatsButtons({
@@ -141,7 +165,7 @@ export function PoolDetailsStatsButtons({
   const { t } = useTranslation()
   const { positions: userOwnedPositions } = useMultiChainPositions(account.address ?? '')
   const position =
-    userOwnedPositions && findMatchingPosition({ positions: userOwnedPositions, token0, token1, feeTier })
+    userOwnedPositions && findMatchingPosition({ positions: userOwnedPositions, token0, token1, feeTier, chainId })
   const tokenId = position?.details.tokenId
 
   const navigate = useNavigate()
