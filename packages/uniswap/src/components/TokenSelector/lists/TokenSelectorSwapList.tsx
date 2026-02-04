@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo, useRef } from 'react'
 import { TokenSelectorList } from 'uniswap/src/components/TokenSelector/TokenSelectorList'
 import { useHardcodedCommonTokensOptions } from 'uniswap/src/components/TokenSelector/hooks/useHardcodedCommonTokensOptions'
+import { usePortfolioBalancesForAddressById } from 'uniswap/src/components/TokenSelector/hooks/usePortfolioBalancesForAddressById'
 import { usePortfolioTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/usePortfolioTokenOptions'
 import { OnSelectCurrency, TokenSectionsHookProps } from 'uniswap/src/components/TokenSelector/types'
 import { OnchainItemSectionName, type OnchainItemSection } from 'uniswap/src/components/lists/OnchainItemList/types'
@@ -21,11 +22,14 @@ function useTokenSectionsForSwap({
   // Compute effective chain filter once, use for all hooks to ensure consistent filtering
   const effectiveChainFilter = chainFilter ?? oppositeSelectedToken?.chainId ?? defaultChainId
 
+  const { data: portfolioBalancesById } = usePortfolioBalancesForAddressById(
+    activeAccountAddress as `0x${string}` | undefined,
+  )
   const {
     data: commonTokenOptions,
     refetch: refetchCommonTokenOptions,
     loading: commonTokenOptionsLoading,
-  } = useHardcodedCommonTokensOptions(effectiveChainFilter)
+  } = useHardcodedCommonTokensOptions(effectiveChainFilter, portfolioBalancesById)
 
   const {
     data: portfolioTokenOptions,
