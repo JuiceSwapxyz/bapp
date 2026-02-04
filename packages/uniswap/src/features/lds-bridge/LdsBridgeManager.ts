@@ -463,21 +463,18 @@ class LdsBridgeManager extends SwapEventEmitter {
       .filter(swap => swap.status && swap.status === LdsSwapStatus.TransactionClaimPending)
 
     btcSwaps.forEach(async (swap) => {
-      let lockupTx: string | undefined = swap.lockupTx
-      
-      if(!lockupTx) {
-        const swapTransactions = await fetchChainTransactionsBySwapId(swap.id)
-        lockupTx = swapTransactions.serverLock?.transaction.id
-        
-        // If still unknown, skip
-        if (!lockupTx) {
-          return
-        }
+      const swapTransactions = await fetchChainTransactionsBySwapId(swap.id)
+      const lockupTx = swapTransactions.serverLock?.transaction.id
 
-        swap.lockupTx = lockupTx
-        await this.storageManager.setSwap(swap.id, swap)
+      // If still unknown, skip
+      if (!lockupTx) {
+        return
       }
-    
+
+      swap.lockupTx = lockupTx
+      await this.storageManager.setSwap(swap.id, swap)
+
+
 
       const transactionChain = await fetchTransactionByAddress(swap.claimAddress)
       const claimTxData = transactionChain.find(tx => tx.vin.some(vin => vin.txid === lockupTx))
@@ -490,7 +487,7 @@ class LdsBridgeManager extends SwapEventEmitter {
       await this.storageManager.setSwap(swap.id, swap)
       await this._notifySwapChanges()
     })
-    
+
   }
 
   _subscribeToSwapUpdates = (swapId: string): void => {
