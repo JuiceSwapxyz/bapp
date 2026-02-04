@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
 
 type SwapWithId = SomeSwap & { id: string }
 
 export function useBridgeSwaps(enabled = true) {
-  return useQuery({
+  const queryResponse = useQuery({
     queryKey: ['bridge-swaps'],
     queryFn: async (): Promise<SwapWithId[]> => {
       const ldsBridgeManager = getLdsBridgeManager()
@@ -16,7 +17,16 @@ export function useBridgeSwaps(enabled = true) {
       })
     },
     enabled,
-    staleTime: 5000,
     refetchInterval: 30000,
   })
+
+  useEffect(() => {
+    const ldsBridgeManager = getLdsBridgeManager()
+    ldsBridgeManager.addSwapChangeListener(queryResponse.refetch)
+    return () => {
+      ldsBridgeManager.removeSwapChangeListener(queryResponse.refetch)
+    }
+  }, [queryResponse.refetch])
+
+  return queryResponse
 }
