@@ -400,6 +400,12 @@ export default function CreatePosition() {
 
   const initialInputs = useLiquidityUrlState()
 
+  // Wait for URL state migration to complete before rendering the form
+  // This ensures fee tier from URL is properly parsed before form initialization
+  if (initialInputs.loading) {
+    return null
+  }
+
   return (
     <CreatePositionContent
       initialInputs={initialInputs}

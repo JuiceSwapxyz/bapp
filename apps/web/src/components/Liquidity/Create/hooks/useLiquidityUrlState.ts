@@ -15,7 +15,7 @@ import type { DepositState } from 'components/Liquidity/types'
 import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import { MatchType, PageType, useIsPage } from 'hooks/useIsPage'
 import { parseAsBoolean, parseAsString, useQueryState, useQueryStates } from 'nuqs'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
@@ -81,7 +81,16 @@ export function useLiquidityUrlState() {
   const { currencyA, currencyB, chain, fee, hook, priceRangeState, depositState } = replaceState
 
   // Apply URL parameter migrations for backwards compatibility
+  // Use a ref to track if migration has been attempted to avoid re-running
+  const migrationAttempted = useRef(false)
+
   useEffect(() => {
+    // Only run migration once on mount
+    if (migrationAttempted.current) {
+      return
+    }
+    migrationAttempted.current = true
+
     const migrationResult = applyUrlMigrations(replaceState)
 
     if (migrationResult) {
@@ -98,11 +107,16 @@ export function useLiquidityUrlState() {
         newState[param] = null
       }
 
-      setReplaceState(newState)
+      // Set migrated AFTER state update to ensure correct order
+      setReplaceState(newState).then(() => {
+        setIsMigrated(true)
+      })
+    } else {
+      // No migration needed, mark as done
+      setIsMigrated(true)
     }
-
-    setIsMigrated(true)
-  }, [replaceState, setReplaceState])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run on mount
+  }, [])
 
   const parsedChainId = chain ?? undefined
   const supportedChainId = useSupportedChainId(parsedChainId) ?? defaultChainId
@@ -135,7 +149,8 @@ export function useLiquidityUrlState() {
       const tokenAAddress = data.currencyInputs.tokenA?.isNative ? NATIVE_CHAIN_ID : data.currencyInputs.tokenA?.address
       const tokenBAddress = data.currencyInputs.tokenB?.isNative ? NATIVE_CHAIN_ID : data.currencyInputs.tokenB?.address
 
-      const hookAddress = data.positionState.hook ? assume0xAddress(data.positionState.hook) : undefined
+      // Use null (not undefined) to clear params - nuqs treats undefined as "keep current" but null as "clear"
+      const hookAddress = data.positionState.hook ? assume0xAddress(data.positionState.hook) : null
 
       setReplaceState({
         currencyA: tokenAAddress,
