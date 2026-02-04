@@ -40,9 +40,6 @@ export function getBoltzAvailableBalance(
   }
 
   if (chainIdIn === UniverseChainId.LightningNetwork && (symbolIn === 'lnBTC' || symbolIn === 'BTC')) {
-    if (isCitreaChainId(chainIdOut)) {
-      return findBalance(items, 'lightning', 'BTC', 'incoming')
-    }
     return findBalance(items, 'lightning', 'BTC')
   }
 

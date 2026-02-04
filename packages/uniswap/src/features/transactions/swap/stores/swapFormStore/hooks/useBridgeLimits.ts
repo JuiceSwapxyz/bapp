@@ -195,7 +195,7 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
     : undefined
   const availableRaw =
     availableBalance !== undefined ? Math.floor(availableBalance * 1e8) : undefined
-  const effectiveMax = availableRaw !== undefined ? availableRaw : maximal
+  const effectiveMax = availableRaw !== undefined ? Math.min(maximal, availableRaw) : maximal
 
   let minRaw: string
   let maxRaw: string
