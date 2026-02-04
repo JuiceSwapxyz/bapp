@@ -76,7 +76,7 @@ const TOKEN_METADATA: Record<string, TokenMetadata> = {
   CTUSD: {
     symbol: 'ctUSD',
     name: 'Citrus USD',
-    decimals: 18,
+    decimals: 6,
     logoUrl: 'https://docs.juiceswap.com/media/icons/cusd.png',
     displayInUI: true,
   },
