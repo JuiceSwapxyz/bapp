@@ -4,6 +4,7 @@ export const createLdsSocketClient = (): {
   disconnect: () => void
   subscribeToSwapUpdates: (swapId: string, callback: (event: SwapUpdateEvent) => void) => () => void
   unsubscribeFromSwapUpdates: (callback: (event: SwapUpdateEvent) => void) => void
+  unsubscribeFromSwapById: (swapId: string) => void
 } => {
   const apiUrl = process.env.REACT_APP_LDS_API_URL
   if (!apiUrl) {
@@ -86,6 +87,12 @@ export const createLdsSocketClient = (): {
     })
   }
 
+  const unsubscribeFromSwapById = (swapId: string): void => {
+    listeners.delete(swapId)
+    subscribedSwaps.delete(swapId)
+    pendingSubscriptions.delete(swapId)
+  }
+
   socket.onmessage = (event: MessageEvent): void => {
     const data = JSON.parse(event.data) as WebSocketMessage
     if (data.event === 'update' && data.channel === 'swap.update') {
@@ -105,5 +112,6 @@ export const createLdsSocketClient = (): {
     disconnect,
     subscribeToSwapUpdates,
     unsubscribeFromSwapUpdates,
+    unsubscribeFromSwapById,
   }
 }

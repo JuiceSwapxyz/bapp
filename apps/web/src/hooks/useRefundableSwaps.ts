@@ -13,7 +13,6 @@ export function useRefundableSwaps(enabled = true) {
       return refundable.map((swap) => Object.assign({}, swap, { id: swap.id }))
     },
     enabled,
-    staleTime: 5000, // Consider data fresh for 5 seconds
     refetchInterval: 30000, // Refetch every 30 seconds
   })
 }

@@ -8,18 +8,19 @@ export function useSyncBridgeSwaps(enabled = true) {
   return useQuery({
     queryKey: ['sync-bridge-swaps', account.address],
     queryFn: async (): Promise<{ synced: boolean }> => {
-      if (!account.address) {
-        return { synced: false }
+      const ldsBridgeManager = getLdsBridgeManager()
+
+      if (account.address) {
+        await ldsBridgeManager.syncSwapsWithIndexedData(account.address)
       }
 
-      const ldsBridgeManager = getLdsBridgeManager()
-      await ldsBridgeManager.syncSwapsWithGraphQLData(account.address)
+      await ldsBridgeManager.syncSwapsWithChainAndMempoolData()
+
       return { synced: true }
     },
-    enabled: enabled && !!account.address,
-    staleTime: Infinity, // Only run once per account.address change
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
+    enabled,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   })
 }

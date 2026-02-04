@@ -2,6 +2,7 @@ import { PartialMessage } from '@bufbuild/protobuf'
 import { ConnectError } from '@connectrpc/connect'
 import { createQueryOptions } from '@connectrpc/connect-query'
 import { Pair } from '@juiceswapxyz/v2-sdk'
+import { Address } from 'viem'
 import {
   InfiniteData,
   UseInfiniteQueryResult,
@@ -19,19 +20,24 @@ import {
 } from '@uniswap/client-pools/dist/pools/v1/api_pb'
 import { ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
 import { useMemo } from 'react'
-import { createPonderApiClient } from 'uniswap/src/data/apiClients/ponderApi/PonderApi'
+import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { uniswapPostTransport } from 'uniswap/src/data/rest/base'
 import { SerializedToken } from 'uniswap/src/features/tokens/slice/types'
 import { deserializeToken } from 'uniswap/src/utils/currency'
 
-const ponderApiClient = createPonderApiClient()
+const juiceSwapApiClient = createApiClient({
+  baseUrl: process.env.REACT_APP_JUICESWAP_API_URL as string,
+})
 
 async function fetchPositionsFromCustomServer(
   input?: PartialMessage<ListPositionsRequest>,
 ): Promise<ListPositionsResponse> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = await ponderApiClient.post<any>(`/positions/owner`, {
-    body: JSON.stringify(input),
+  const data = await juiceSwapApiClient.post<any>(`/v1/positions/owner`, {
+    body: JSON.stringify({
+      address: input?.address,
+      chainIds: input?.chainIds,
+    }),
   })
 
   const transformedData = {
@@ -56,14 +62,12 @@ async function fetchPositionsFromCustomServer(
 async function fetchPositionsInfiniteFromCustomServer({
   ...input
 }: PartialMessage<ListPositionsRequest> & { pageToken?: string }): Promise<ListPositionsResponse> {
-  const requestBody = {
-    ...input,
-    pageToken: input.pageToken || undefined,
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = await ponderApiClient.post<any>(`/positions/owner`, {
-    body: JSON.stringify(requestBody),
+  const data = await juiceSwapApiClient.post<any>(`/v1/positions/owner`, {
+    body: JSON.stringify({
+      address: input?.address,
+      chainIds: input?.chainIds,
+    }),
   })
 
   const transformedData = {

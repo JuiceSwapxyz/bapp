@@ -143,6 +143,7 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
   //
 
   const { id: txHash } = yield* call(broadcastChainSwap, claimTx.toHex())
+  yield* call(ldsBridge.updateSwapClaimTx, chainSwap.id, txHash)
 
   popupRegistry.removePopup(chainSwap.id)
 
