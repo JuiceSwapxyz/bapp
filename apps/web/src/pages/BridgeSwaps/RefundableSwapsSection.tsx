@@ -2,7 +2,6 @@ import { popupRegistry } from 'components/Popups/registry'
 import { PopupType } from 'components/Popups/types'
 import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { useEvmRefund } from 'hooks/useEvmRefund'
-import { EvmRefundableLockup } from 'hooks/useEvmRefundableSwaps'
 import { AddressInput, RefundButton, RefundableSection, RefundableSwapCard } from 'pages/BridgeSwaps/styles'
 import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
 import { useCallback, useMemo, useState } from 'react'
@@ -14,6 +13,7 @@ import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { useValidateBitcoinAddress } from 'uniswap/src/data/apiClients/tradingApi/useValidateBitcoinAddress'
 import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/utils'
+import { EvmRefundableLockup } from 'uniswap/src/features/lds-bridge'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 import { logger } from 'utilities/src/logger/logger'
@@ -53,8 +53,8 @@ function RefundableSwapCardItem({
     return !isError && validationData?.validated === true
   }, [address, isError, validationData])
 
-  const showError = address.trim() && isValid === false
-  const showSuccess = address.trim() && isValid === true
+  const showError = !!address.trim() && isValid === false
+  const showSuccess = !!address.trim() && isValid === true
 
   return (
     <RefundableSwapCard>

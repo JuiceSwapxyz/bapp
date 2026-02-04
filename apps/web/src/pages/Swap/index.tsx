@@ -88,8 +88,11 @@ export default function SwapPage() {
   } = useInitialCurrencyState()
 
   const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
-  const { data: refundableSwaps = [] } = useRefundableSwaps(crossChainSwapsEnabled)
-  const { data: evmRefundableSwaps = { refundable: [], locked: [], claimable: [] } } = useEvmClaimableAndRefundableSwaps(crossChainSwapsEnabled)
+  const { data: refundableSwaps = [], isLoading: isLoadingRefundable } = useRefundableSwaps(crossChainSwapsEnabled)
+  const {
+    data: evmRefundableSwaps = { refundable: [], locked: [], claimable: [] },
+    isLoading: isLoadingEvmRefundable,
+  } = useEvmClaimableAndRefundableSwaps(crossChainSwapsEnabled)
 
   useEffect(() => {
     if (triggerConnect) {
@@ -101,11 +104,10 @@ export default function SwapPage() {
   useEffect(() => {
     const refundableCount = refundableSwaps.length + evmRefundableSwaps.refundable.length
     const claimableCount = evmRefundableSwaps.claimable.length
+    const isLoading = isLoadingRefundable || isLoadingEvmRefundable
+    const hasPendingActions = refundableCount > 0 || claimableCount > 0
 
-    // Remove existing popup first to ensure it refreshes with new counts
-    popupRegistry.removePopup('refundable-swaps')
-
-    if (refundableCount > 0 || claimableCount > 0) {
+    if (hasPendingActions && !isLoading) {
       popupRegistry.addPopup(
         {
           type: PopupType.RefundableSwaps,
@@ -115,6 +117,10 @@ export default function SwapPage() {
         'refundable-swaps',
         Infinity,
       )
+    }
+
+    return () => {
+      popupRegistry.removePopup('refundable-swaps')
     }
   }, [refundableSwaps.length, evmRefundableSwaps.refundable.length, evmRefundableSwaps.claimable.length])
 

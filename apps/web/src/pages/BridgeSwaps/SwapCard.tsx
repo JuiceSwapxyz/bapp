@@ -1,122 +1,32 @@
+import { useQuery } from '@tanstack/react-query'
+import { useChainTipBlockNumber } from 'hooks/useEvmRefundableSwaps'
+import {
+  Card,
+  CardHeader,
+  DetailLabel,
+  DetailRow,
+  DetailValue,
+  ExpandButton,
+  StatusBadge,
+  SwapAmounts,
+  SwapInfo,
+  TxLink,
+} from 'pages/BridgeSwaps/SwapCard.styles'
 import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
-import { useEffect, useState } from 'react'
-import { Flex, Text, styled } from 'ui/src'
+import { useState } from 'react'
+import { Flex, Text } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { Clock } from 'ui/src/components/icons/Clock'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/utils'
-import { ASSET_CHAIN_ID_MAP } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
-import { fetchChainTransactionsBySwapId } from 'uniswap/src/features/lds-bridge/api/client'
-import { ChainTransactionsResponse } from 'uniswap/src/features/lds-bridge/lds-types/api'
+import { ASSET_CHAIN_ID_MAP, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
+import { fetchChainTransactionsBySwapId, fetchSwapCurrentStatus } from 'uniswap/src/features/lds-bridge/api/client'
 import { ChainSwap, SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { LdsSwapStatus, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { ellipseMiddle } from 'utilities/src/addresses'
-
-const Card = styled(Flex, {
-  backgroundColor: '$surface2',
-  borderRadius: '$rounded16',
-  padding: '$spacing16',
-  gap: '$spacing12',
-  cursor: 'pointer',
-  pressStyle: {
-    opacity: 0.9,
-  },
-  hoverStyle: {
-    backgroundColor: '$surface3',
-  },
-})
-
-const CardHeader = styled(Flex, {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  width: '100%',
-})
-
-const SwapInfo = styled(Flex, {
-  flex: 1,
-  gap: '$spacing8',
-})
-
-const SwapAmounts = styled(Flex, {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: '$spacing8',
-  flexWrap: 'wrap',
-})
-
-const StatusBadge = styled(Flex, {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: '$spacing4',
-  paddingHorizontal: '$spacing12',
-  paddingVertical: '$spacing4',
-  borderRadius: '$rounded8',
-  variants: {
-    status: {
-      pending: {
-        backgroundColor: '$DEP_accentWarning',
-      },
-      completed: {
-        backgroundColor: '$statusSuccess',
-      },
-      failed: {
-        backgroundColor: '$statusCritical',
-      },
-    },
-  },
-})
-
-const DetailRow = styled(Flex, {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingVertical: '$spacing4',
-  gap: '$spacing8',
-})
-
-const DetailLabel = styled(Text, {
-  variant: 'body3',
-  color: '$neutral2',
-})
-
-const DetailValue = styled(Text, {
-  variant: 'body3',
-  color: '$neutral1',
-  fontFamily: '$mono',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  maxWidth: '60%',
-})
-
-const TxLink = styled(Text, {
-  variant: 'body3',
-  color: '$accent1',
-  fontFamily: '$mono',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  maxWidth: '60%',
-  cursor: 'pointer',
-  textDecorationLine: 'none',
-  hoverStyle: {
-    textDecorationLine: 'underline',
-  },
-})
-
-const ExpandButton = styled(Flex, {
-  padding: '$spacing8',
-  borderRadius: '$rounded8',
-  variants: {
-    expanded: {
-      true: {
-        transform: [{ rotate: '180deg' }],
-      },
-    },
-  },
-})
 
 interface SwapCardProps {
   swap: SomeSwap & { id: string }
@@ -142,7 +52,7 @@ function getStatusInfo(swap: SomeSwap): {
     return {
       label: 'Completed',
       status: 'completed',
-      icon: <CheckCircleFilled size="$icon.16" color="$statusSuccess" />,
+      icon: <CheckCircleFilled size="$icon.16" />,
     }
   }
 
@@ -150,7 +60,7 @@ function getStatusInfo(swap: SomeSwap): {
     return {
       label: 'Awaiting Refund',
       status: 'failed',
-      icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
+      icon: <AlertTriangleFilled size="$icon.16" />,
     }
   }
 
@@ -161,7 +71,7 @@ function getStatusInfo(swap: SomeSwap): {
       return {
         label: 'Completed',
         status: 'completed',
-        icon: <CheckCircleFilled size="$icon.16" color="$statusSuccess" />,
+        icon: <CheckCircleFilled size="$icon.16" />,
       }
 
     case LdsSwapStatus.SwapRefunded:
@@ -169,7 +79,7 @@ function getStatusInfo(swap: SomeSwap): {
       return {
         label: 'Refunded',
         status: 'completed',
-        icon: <CheckCircleFilled size="$icon.16" color="$statusSuccess" />,
+        icon: <CheckCircleFilled size="$icon.16" />,
       }
 
     case LdsSwapStatus.TransactionFailed:
@@ -178,7 +88,7 @@ function getStatusInfo(swap: SomeSwap): {
       return {
         label: 'Failed',
         status: 'failed',
-        icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
+        icon: <AlertTriangleFilled size="$icon.16" />,
       }
 
     case LdsSwapStatus.SwapExpired:
@@ -186,7 +96,7 @@ function getStatusInfo(swap: SomeSwap): {
       return {
         label: 'Expired',
         status: 'failed',
-        icon: <AlertTriangleFilled size="$icon.16" color="$statusCritical" />,
+        icon: <AlertTriangleFilled size="$icon.16" />,
       }
 
     case LdsSwapStatus.SwapCreated:
@@ -214,7 +124,7 @@ function getStatusInfo(swap: SomeSwap): {
         return {
           label: 'Completed',
           status: 'completed',
-          icon: <CheckCircleFilled size="$icon.16" color="$statusSuccess" />,
+          icon: <CheckCircleFilled size="$icon.16" />,
         }
       }
       // Chain/Reverse Swaps: Claim is actually pending - user still needs to receive funds
@@ -324,29 +234,59 @@ function getExplorerUrl(txHash: string, chainId: UniverseChainId | undefined): s
   return getExplorerLink({ chainId, data: txHash, type: ExplorerDataType.TRANSACTION })
 }
 
+const useChainTxData = (swap: SomeSwap, enabled: boolean) => {
+  return useQuery({
+    queryKey: ['chain-tx-data', swap.id],
+    queryFn: () => fetchChainTransactionsBySwapId(swap.id),
+    enabled: isChainSwap(swap) && enabled,
+  })
+}
+
+const useFailureReason = (swap: SomeSwap, enabled: boolean) => {
+  return useQuery({
+    queryKey: ['failure-reason', swap.id],
+    queryFn: async () => fetchSwapCurrentStatus(swap.id),
+    enabled,
+  })
+}
+
+const useSwapLockupDetails = (swap: SomeSwap, enabled: boolean) => {
+  return useQuery({
+    queryKey: ['swap-lockup-details', swap.id],
+    queryFn: () => getLdsBridgeManager().getLockupTransactions(swap.id),
+    enabled,
+  })
+}
+
+const useRefundEtaEstimate = (swap: SomeSwap) => {
+  const isClaimedOrRefunded = swap.claimTx || swap.refundTx
+  const isInSuccessState = Object.values(swapStatusSuccess).includes(swap.status as LdsSwapStatus)
+  const isNonRefundableStatus = [LdsSwapStatus.SwapCreated].includes(swap.status as LdsSwapStatus)
+  const isRefundable = swap.type === SwapType.Chain || swap.type === SwapType.Submarine
+  const isPotentialRefundable = !isClaimedOrRefunded && !isInSuccessState && isRefundable && !isNonRefundableStatus
+  const { data: lockupDetails } = useSwapLockupDetails(swap, isPotentialRefundable)
+  const isEligibleForRefund = isPotentialRefundable && Boolean(lockupDetails?.timeoutBlockHeight)
+
+  const currentTip = useChainTipBlockNumber(ASSET_CHAIN_ID_MAP[swap.assetSend], isEligibleForRefund)
+  const timeoutBlockHeight = Number(lockupDetails?.timeoutBlockHeight)
+  const remainingBlocks =
+    Number(timeoutBlockHeight) - Number(currentTip.data) > 0 ? Number(timeoutBlockHeight) - Number(currentTip.data) : 0
+
+  return {
+    isEligibleForRefund: isEligibleForRefund && !isNonRefundableStatus,
+    isAvailableForRefund: isEligibleForRefund && remainingBlocks === 0,
+    currentBlockHeight: Number(currentTip.data),
+    remainingBlocks,
+  }
+}
+
 export function SwapCard({ swap }: SwapCardProps): JSX.Element {
   const [expanded, setExpanded] = useState(false)
-  const [chainTxData, setChainTxData] = useState<ChainTransactionsResponse | null>(null)
-  const [loadingTxData, setLoadingTxData] = useState(false)
+  const { data: chainTxData, isLoading: loadingTxData } = useChainTxData(swap, expanded)
   const statusInfo = getStatusInfo(swap)
+  const { data: failureData } = useFailureReason(swap, expanded && statusInfo.status === 'failed')
 
-  // Load chain transaction data from API when expanded (for Chain Swaps only)
-  useEffect(() => {
-    if (expanded && isChainSwap(swap) && !chainTxData && !loadingTxData) {
-      setLoadingTxData(true)
-      fetchChainTransactionsBySwapId(swap.id)
-        .then((data) => {
-          setChainTxData(data)
-        })
-        .catch((error) => {
-          // eslint-disable-next-line no-console
-          console.warn('Failed to fetch chain transactions:', error)
-        })
-        .finally(() => {
-          setLoadingTxData(false)
-        })
-    }
-  }, [expanded, swap, chainTxData, loadingTxData])
+  const { remainingBlocks, isAvailableForRefund, isEligibleForRefund } = useRefundEtaEstimate(swap)
 
   return (
     <Card onPress={() => setExpanded(!expanded)}>
@@ -356,12 +296,19 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
             <Text variant="body1" color="$neutral1" fontWeight="600">
               {getSwapTypeLabel(swap.type)}
             </Text>
-            <StatusBadge status={statusInfo.status}>
-              {statusInfo.icon}
-              <Text variant="body4" color="$neutral1" fontWeight="600">
-                {statusInfo.label}
+            <Text variant="body3" color="$neutral2">
+              <StatusBadge status={statusInfo.status}>
+                {statusInfo.icon}
+                <Text variant="body4" color="$neutral1" fontWeight="600">
+                  {statusInfo.label}
+                </Text>
+              </StatusBadge>
+            </Text>
+            {isEligibleForRefund && (
+              <Text variant="body3" color="$neutral2">
+                {isAvailableForRefund ? 'Available for refund' : `Available for refund in ${remainingBlocks} blocks`}
               </Text>
-            </StatusBadge>
+            )}
           </Flex>
           <SwapAmounts>
             <Text variant="body2" color="$neutral1">
@@ -377,6 +324,14 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
           <Text variant="body3" color="$neutral2">
             {formatDate(swap.date)}
           </Text>
+          {failureData?.failureReason && expanded && (
+            <Text variant="body4" color="$statusCritical" fontWeight="600">
+              Reason:{' '}
+              <Text variant="body3" color="$neutral2">
+                {failureData.failureReason}
+              </Text>
+            </Text>
+          )}
         </SwapInfo>
         <ExpandButton expanded={expanded}>
           <RotatableChevron direction={expanded ? 'up' : 'down'} width={20} height={20} color="$neutral2" />
