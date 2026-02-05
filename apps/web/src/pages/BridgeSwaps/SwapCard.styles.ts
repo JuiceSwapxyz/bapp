@@ -51,6 +51,9 @@ export const StatusBadge = styled(Flex, {
       failed: {
         backgroundColor: '$statusCritical',
       },
+      abandoned: {
+        backgroundColor: '$neutral3',
+      },
     },
   },
 })
