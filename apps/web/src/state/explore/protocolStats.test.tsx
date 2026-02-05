@@ -1,7 +1,7 @@
-import { ProtocolStatsResponse } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
 import { ExploreContext } from 'state/explore'
 import { use24hProtocolVolume, useDailyTVLWithChange } from 'state/explore/protocolStats'
 import { render, screen } from 'test-utils/render'
+import { JuiceswapProtocolStatsResponse } from 'uniswap/src/data/rest/juiceswapProtocolStats'
 import * as GatingHooks from 'uniswap/src/features/gating/hooks'
 import type { Mock } from 'vitest'
 
@@ -39,7 +39,7 @@ mockDailyProtocolTvl.v4.push(createTimestampedAmount(2, 700))
 const mockProtocolStatsData = {
   historicalProtocolVolume: mockHistoricalProtocolVolume,
   dailyProtocolTvl: mockDailyProtocolTvl,
-} as unknown as ProtocolStatsResponse
+} as unknown as JuiceswapProtocolStatsResponse
 
 const mockContextValue = {
   exploreStats: { data: undefined, isLoading: false, error: false },
