@@ -23,6 +23,7 @@ import type {
   UserClaimsAndRefundsResponse,
 } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { prefix0x } from '..'
 
 export type {
   ChainPairsResponse,
@@ -250,4 +251,36 @@ export async function fetchUserClaimsAndRefunds(address: string): Promise<UserCl
     claims: response.data.myClaims.items.filter((item) => item.claimTxHash != null),
     refunds: response.data.myRefunds.items.filter((item) => item.refundTxHash != null),
   }
+}
+
+export async function fetchLockupsByPreimageHashes(preimageHashes: string[]): Promise<{ data: { lockupss: { items: EvmLockup[] | null } } }> {
+  return await LdsApiClient.post<{ data: { lockupss: { items: EvmLockup[] | null } } }>('/claim/graphql', {
+    body: JSON.stringify({
+      query: `{
+        lockupss(
+          where: {
+            preimageHash_in: [${preimageHashes.map((hash) => `"${prefix0x(hash)}"`).join(',')}]
+          }
+          limit: 1000
+        ) {
+          items {
+            id
+            preimageHash
+            chainId
+            amount
+            claimAddress
+            refundAddress
+            timelock
+            tokenAddress
+            swapType
+            claimed
+            refunded
+            claimTxHash
+            refundTxHash
+            lockupTxHash
+          }
+        }
+      }`,
+    }),
+  })
 }

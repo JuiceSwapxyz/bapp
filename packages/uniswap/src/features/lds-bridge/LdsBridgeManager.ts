@@ -9,13 +9,12 @@ import {
   createSubmarineSwap,
   fetchChainPairs,
   fetchChainTransactionsBySwapId,
+  fetchLockupsByPreimageHashes,
   fetchReversePairs,
   fetchSubmarinePairs,
   fetchSubmarineTransactionsBySwapId,
   fetchSwapCurrentStatus,
-  fetchUserClaimsAndRefunds,
   helpMeClaim,
-  registerPreimage,
 } from 'uniswap/src/features/lds-bridge/api/client'
 import { fetchBlockTipHeight, fetchTransactionByAddress } from 'uniswap/src/features/lds-bridge/api/mempool'
 import { createLdsSocketClient } from 'uniswap/src/features/lds-bridge/api/socket'
@@ -37,6 +36,7 @@ import {
   LdsSwapStatus,
   hasReachedStatus,
   isSwapPending,
+  localUserFinalStatuses,
   swapStatusFinal,
   swapStatusPending,
 } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
@@ -414,8 +414,26 @@ class LdsBridgeManager extends SwapEventEmitter {
       return
     }
 
-    const { claims, refunds } = await fetchUserClaimsAndRefunds(userAddress)
     const swaps = await this.storageManager.getSwaps()
+    const swapsWithIncompleteTransactions = Object.values(swaps)
+      .filter((swap) => !swap.claimTx && !swap.refundTx)
+      .filter((swap) => swap.status && !localUserFinalStatuses.includes(swap.status))
+
+    const preimageHashes = swapsWithIncompleteTransactions.map((swap) => swap.preimageHash)
+
+    if (preimageHashes.length === 0) {
+      return
+    }
+
+    const lockups = await fetchLockupsByPreimageHashes(preimageHashes)
+    const lockupsItems = lockups.data.lockupss?.items
+    if (!lockupsItems || lockupsItems.length === 0) {
+      return
+    }
+
+    const claims = lockupsItems.filter((lockup) => lockup.claimAddress.toLowerCase() === userAddress.toLowerCase())
+    const refunds = lockupsItems.filter((lockup) => lockup.refundAddress.toLowerCase() === userAddress.toLowerCase())
+
     let hasUpdates = false
 
     // Update swaps with claim transactions
@@ -452,6 +470,21 @@ class LdsBridgeManager extends SwapEventEmitter {
       }
     }
 
+    // Update expired EVM swaps with no transactions
+    const expiredSwaps = Object.values(swaps)
+      .filter((swap) => swap.status && swap.status === LdsSwapStatus.SwapExpired)
+      .filter((swap) => swap.type === SwapType.Chain)
+      .filter((swap) => swap.assetSend !== 'BTC' && swap.assetReceive !== 'BTC')
+
+    expiredSwaps.forEach(async (expiredSwap) => {
+      const relatedLockups = lockupsItems.filter((lockup) => prefix0x(lockup.preimageHash) === prefix0x(expiredSwap.preimageHash))
+      if (relatedLockups.length === 0) {
+        expiredSwap.status = LdsSwapStatus.UserAbandoned
+        await this.storageManager.setSwap(expiredSwap.id, expiredSwap)
+        hasUpdates = true
+      }
+    })
+
     if (hasUpdates) {
       await this._notifySwapChanges()
     }
@@ -459,6 +492,29 @@ class LdsBridgeManager extends SwapEventEmitter {
 
   syncSwapsWithChainAndMempoolData = async (): Promise<void> => {
     const swaps = await this.storageManager.getSwaps()
+
+    const btcSendBtcSwaps = Object.values(swaps)
+      .filter((swap) => swap.assetSend === 'BTC')
+      .filter((swap) => swap.status && !localUserFinalStatuses.includes(swap.status))
+      .filter((swap) => swap.status && !Object.values(swapStatusPending).includes(swap.status))
+      .filter((swap) => swap.status && Object.values(swapStatusFinal).includes(swap.status))
+      .filter((swap) => swap.status !== LdsSwapStatus.TransactionLockupFailed)
+      .filter((swap) => swap.type === SwapType.Chain)
+      .filter((swap) => !swap.claimTx && !swap.refundTx)
+
+    btcSendBtcSwaps.forEach(async (swap) => {
+      const lockupAddress = (swap as ChainSwap).lockupDetails.lockupAddress
+      if (!lockupAddress) {
+        return
+      }
+      const swapTransactions = await fetchTransactionByAddress(lockupAddress)
+      if (swapTransactions.length === 0) {
+        swap.status = LdsSwapStatus.UserAbandoned
+        await this.storageManager.setSwap(swap.id, swap)
+        await this._notifySwapChanges()
+        return
+      }
+    })
 
     const btcSwaps = Object.values(swaps)
       .filter((swap) => isBitcoinAddress(swap.claimAddress))

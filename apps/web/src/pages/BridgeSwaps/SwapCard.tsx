@@ -24,7 +24,11 @@ import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/ut
 import { ASSET_CHAIN_ID_MAP, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
 import { fetchChainTransactionsBySwapId, fetchSwapCurrentStatus } from 'uniswap/src/features/lds-bridge/api/client'
 import { ChainSwap, SomeSwap, SwapType } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { LdsSwapStatus, swapStatusSuccess } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import {
+  LdsSwapStatus,
+  localUserFinalStatuses,
+  swapStatusSuccess,
+} from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { ellipseMiddle } from 'utilities/src/addresses'
 
@@ -34,7 +38,7 @@ interface SwapCardProps {
 
 function getStatusInfo(swap: SomeSwap): {
   label: string
-  status: 'pending' | 'completed' | 'failed'
+  status: 'pending' | 'completed' | 'failed' | 'abandoned'
   icon: JSX.Element
 } {
   if (!swap.status) {
@@ -42,6 +46,14 @@ function getStatusInfo(swap: SomeSwap): {
       label: 'Pending',
       status: 'pending',
       icon: <Clock size="$icon.16" color="$neutral1" />,
+    }
+  }
+
+  if (swap.status === LdsSwapStatus.UserAbandoned) {
+    return {
+      label: 'No payment sent',
+      status: 'abandoned',
+      icon: <Clock size="$icon.16" />,
     }
   }
 
@@ -262,8 +274,10 @@ const useRefundEtaEstimate = (swap: SomeSwap) => {
   const isClaimedOrRefunded = swap.claimTx || swap.refundTx
   const isInSuccessState = Object.values(swapStatusSuccess).includes(swap.status as LdsSwapStatus)
   const isNonRefundableStatus = [LdsSwapStatus.SwapCreated].includes(swap.status as LdsSwapStatus)
+  const isFinalUserStatus = localUserFinalStatuses.includes(swap.status as LdsSwapStatus)
   const isRefundable = swap.type === SwapType.Chain || swap.type === SwapType.Submarine
-  const isPotentialRefundable = !isClaimedOrRefunded && !isInSuccessState && isRefundable && !isNonRefundableStatus
+  const isPotentialRefundable =
+    !isClaimedOrRefunded && !isInSuccessState && isRefundable && !isNonRefundableStatus && !isFinalUserStatus
   const { data: lockupDetails } = useSwapLockupDetails(swap, isPotentialRefundable)
   const isEligibleForRefund = isPotentialRefundable && Boolean(lockupDetails?.timeoutBlockHeight)
 
