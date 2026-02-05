@@ -1,6 +1,10 @@
-import { TimestampedAmount } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
 import { useContext, useMemo } from 'react'
 import { ExploreContext } from 'state/explore'
+
+interface TimestampedAmount {
+  timestamp: number
+  value: number
+}
 
 function mapDataByTimestamp({
   v2Data,
@@ -48,9 +52,9 @@ export function use24hProtocolVolume() {
     protocolStats: { data, isLoading },
   } = useContext(ExploreContext)
 
-  const v2Data: TimestampedAmount[] | undefined = data?.historicalProtocolVolume?.Month?.v2
-  const v3Data: TimestampedAmount[] | undefined = data?.historicalProtocolVolume?.Month?.v3
-  const v4Data: TimestampedAmount[] | undefined = data?.historicalProtocolVolume?.Month?.v4
+  const v2Data: TimestampedAmount[] | undefined = data?.historicalProtocolVolume.Month.v2
+  const v3Data: TimestampedAmount[] | undefined = data?.historicalProtocolVolume.Month.v3
+  const v4Data: TimestampedAmount[] | undefined = data?.historicalProtocolVolume.Month.v4
 
   const dataByTime = mapDataByTimestamp({ v2Data, v3Data, v4Data })
 
@@ -114,9 +118,9 @@ export function useDailyTVLWithChange() {
     protocolStats: { data, isLoading },
   } = useContext(ExploreContext)
 
-  const v2Data: TimestampedAmount[] | undefined = data?.dailyProtocolTvl?.v2
-  const v3Data: TimestampedAmount[] | undefined = data?.dailyProtocolTvl?.v3
-  const v4Data: TimestampedAmount[] | undefined = data?.dailyProtocolTvl?.v4
+  const v2Data: TimestampedAmount[] | undefined = data?.dailyProtocolTvl.v2
+  const v3Data: TimestampedAmount[] | undefined = data?.dailyProtocolTvl.v3
+  const v4Data: TimestampedAmount[] | undefined = data?.dailyProtocolTvl.v4
 
   return useMemo(() => {
     const dataByTime = mapDataByTimestamp({ v2Data, v3Data, v4Data })
