@@ -3,11 +3,13 @@ import { TransactionStepType } from 'uniswap/src/features/transactions/steps/typ
 
 export interface LightningBridgeSubmarineStep {
   type: TransactionStepType.LightningBridgeSubmarineStep
+  backendAccepted?: boolean
 }
 
 export interface LightningBridgeReverseStep {
   type: TransactionStepType.LightningBridgeReverseStep
   invoice?: string
+  backendAccepted?: boolean
 }
 
 export type LightningBridgeTransactionStep = LightningBridgeSubmarineStep | LightningBridgeReverseStep

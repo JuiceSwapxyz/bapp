@@ -530,73 +530,61 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
 
     if (swapStatusFinal.includes(swap.status!) && !hasReachedStatus(swap.status!, state)) {
-      throw new Error(`Swap is in final state: ${swap.status}`)
+      throw new Error(`Swap is in state: ${swap.status}, click below to see more details.`)
     }
 
+    const abortController = new AbortController()
+    const { signal } = abortController
+
+    try {
+      await Promise.race([
+        this.waitViaWebSocket(swapId, state, signal),
+        this.pollUntilState(swapId, state, signal),
+      ])
+    } finally {
+      abortController.abort()
+    }
+  }
+
+  private waitViaWebSocket(swapId: string, state: LdsSwapStatus, signal: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
-      let resolved = false
-      let pollInterval: ReturnType<typeof setInterval> | null = null
-      let timeoutId: ReturnType<typeof setTimeout> | null = null
-      let pollCount = 0
-
-      const cleanup = () => {
-        if (pollInterval) {
-          clearInterval(pollInterval)
-        }
-        if (timeoutId) {
-          clearTimeout(timeoutId)
-        }
-        this.socketClient.unsubscribeFromSwapUpdates(updateCallback)
-      }
-
-      const checkAndResolve = (currentStatus: LdsSwapStatus) => {
-        if (resolved) {
-          return
-        }
-        if (hasReachedStatus(currentStatus, state)) {
-          resolved = true
-          cleanup()
+      const callback = (event: SwapUpdateEvent) => {
+        if (hasReachedStatus(event.status, state)) {
           resolve()
-        } else if (swapStatusFinal.includes(currentStatus)) {
-          resolved = true
-          cleanup()
-          reject(new Error(`Swap reached final state ${currentStatus} before reaching ${state}`))
+        } else if (event.failureReason) {
+          reject(new Error(event.failureReason))
+        } else if (swapStatusFinal.includes(event.status)) {
+          reject(new Error(`Swap reached state ${event.status}, click below to see more details.`))
         }
       }
 
-      const updateCallback = async (event: SwapUpdateEvent) => {
-        checkAndResolve(event.status)
+      this.socketClient.subscribeToSwapUpdates(swapId, callback)
+      signal.addEventListener('abort', () => {
+        this.socketClient.unsubscribeFromSwapUpdates(callback)
+      })
+    })
+  }
+
+  private async pollUntilState(swapId: string, state: LdsSwapStatus, signal: AbortSignal): Promise<void> {
+    while (!signal.aborted) {
+      await new Promise((r) => setTimeout(r, 15000))
+      if (signal.aborted) {
+        break
       }
 
-      // Subscribe to WebSocket updates
-      this.socketClient.subscribeToSwapUpdates(swapId, updateCallback)
-
-      // Also poll the API periodically in case WebSocket updates are missed
-      pollInterval = setInterval(async () => {
-        if (resolved) {
+      try {
+        const status = await fetchSwapCurrentStatus(swapId)
+        if (hasReachedStatus(status.status, state)) {
           return
         }
-        pollCount++
-        try {
-          const status = await fetchSwapCurrentStatus(swapId)
-          checkAndResolve(status.status)
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('[LdsBridgeManager] Error polling status:', error)
+        if (swapStatusFinal.includes(status.status)) {
+          throw new Error(`Swap reached final state ${status.status} before ${state}`)
         }
-      }, 3000) // Poll every 3 seconds
-
-      // Set timeout
-      timeoutId = setTimeout(() => {
-        if (!resolved) {
-          resolved = true
-          cleanup()
-          // eslint-disable-next-line no-console
-          console.error(`[LdsBridgeManager] ✗ Timeout after ${timeoutMs}ms waiting for state ${state}`)
-          reject(new Error(`Timeout waiting for swap ${swapId} to reach state ${state} (waited ${timeoutMs}ms)`))
-        }
-      }, timeoutMs)
-    })
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('[LdsBridgeManager] Error polling status:', error)
+      }
+    }
   }
 
   getSwaps = async (): Promise<Record<string, SomeSwap>> => {

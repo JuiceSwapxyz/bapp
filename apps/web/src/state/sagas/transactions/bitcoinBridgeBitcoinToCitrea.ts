@@ -34,6 +34,8 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
     userLockAmount,
     chainId: citreaChainId,
   })
+
+  step.backendAccepted = true
   step.bip21 = chainSwapResponse.lockupDetails.bip21
   setCurrentStep({ step, accepted: true })
 

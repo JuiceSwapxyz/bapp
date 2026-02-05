@@ -35,6 +35,8 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
   })
 
   step.invoice = reverseSwap.invoice as string
+  step.backendAccepted = true
+
   setCurrentStep({ step, accepted: true })
 
   yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], reverseSwap.id, LdsSwapStatus.TransactionConfirmed)

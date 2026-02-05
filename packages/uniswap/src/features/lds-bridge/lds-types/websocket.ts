@@ -111,6 +111,7 @@ export function getSwapStatusCategory(status?: LdsSwapStatus): 'pending' | 'succ
 export interface SwapUpdateEvent {
   id?: string
   status: LdsSwapStatus
+  failureReason?: string
 }
 
 export interface WebSocketMessage {
