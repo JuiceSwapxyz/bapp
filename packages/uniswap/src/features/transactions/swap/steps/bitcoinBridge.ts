@@ -3,11 +3,13 @@ import { TransactionStepType } from 'uniswap/src/features/transactions/steps/typ
 
 export interface BitcoinBridgeCitreaToBitcoinStep {
   type: TransactionStepType.BitcoinBridgeCitreaToBitcoinStep
+  backendAccepted?: boolean
 }
 
 export interface BitcoinBridgeBitcoinToCitreaStep {
   type: TransactionStepType.BitcoinBridgeBitcoinToCitreaStep
   bip21?: string
+  backendAccepted?: boolean
 }
 
 export type BitcoinBridgeTransactionStep = BitcoinBridgeCitreaToBitcoinStep | BitcoinBridgeBitcoinToCitreaStep

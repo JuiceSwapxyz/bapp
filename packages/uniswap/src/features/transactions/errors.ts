@@ -269,18 +269,21 @@ function getStepSpecificErrorContent(
       return {
         title: t('common.swap.failed'),
         message: getBridgeErrorMessage(error, t('bridge.fail.message')),
+        buttonText: error.step.backendAccepted ? "Go to my bridge swaps" : undefined,
       }
     case TransactionStepType.BitcoinBridgeCitreaToBitcoinStep:
     case TransactionStepType.BitcoinBridgeBitcoinToCitreaStep:
       return {
         title: t('common.swap.failed'),
         message: getBridgeErrorMessage(error, t('bridge.fail.message')),
+        buttonText: error.step.backendAccepted ? "Go to my bridge swaps" : undefined,
       }
     case TransactionStepType.LightningBridgeSubmarineStep:
     case TransactionStepType.LightningBridgeReverseStep:
       return {
         title: t('common.swap.failed'),
         message: getBridgeErrorMessage(error, t('bridge.fail.message')),
+        buttonText: error.step.backendAccepted ? "Go to my bridge swaps" : undefined,
       }
     case TransactionStepType.WbtcBridgeStep:
       return {
