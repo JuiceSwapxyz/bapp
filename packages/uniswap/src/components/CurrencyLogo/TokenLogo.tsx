@@ -42,21 +42,22 @@ export const TokenLogo = memo(function _TokenLogo({
   // Override logo URLs for Citrea Testnet tokens
   let logoUrl = url
   if (chainId === UniverseChainId.CitreaTestnet || chainId === UniverseChainId.CitreaMainnet) {
-    const tokenLogoOverrides: Record<string, string> = {
-      WcBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
-      cBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
-      ctUSD: 'https://dev.docs.juiceswap.com/media/icons/ctUSD.png',
-      lnBTC: 'https://docs.juiceswap.com/media/icons/cbtc.png',
-      JUICE: 'https://docs.juiceswap.com/media/icons/juice.png',
-      JUSD: 'https://docs.juiceswap.com/media/icons/jusd.png',
-      syBTC: 'https://docs.juiceswap.com/media/icons/sybtc.png',
+    const tokenLogoOverridesBySymbol: Record<string, string> = {
+      wcbtc: 'https://docs.juiceswap.com/media/icons/cbtc.png',
+      cbtc: 'https://docs.juiceswap.com/media/icons/cbtc.png',
+      ctusd: 'https://dev.docs.juiceswap.com/media/icons/ctUSD.png',
+      lnbtc: 'https://docs.juiceswap.com/media/icons/cbtc.png',
+      juice: 'https://docs.juiceswap.com/media/icons/juice.png',
+      jusd: 'https://docs.juiceswap.com/media/icons/jusd.png',
+      sybtc: 'https://docs.juiceswap.com/media/icons/sybtc.png',
       // L0 bridged tokens (LayerZero)
-      'WBTC.e': 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
-      'USDC.e': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-      'USDT.e': 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+      'wbtc.e': 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
+      'usdc.e': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+      'usdt.e': 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
     }
-    if (symbol && tokenLogoOverrides[symbol]) {
-      logoUrl = tokenLogoOverrides[symbol]
+    const override = symbol && tokenLogoOverridesBySymbol[symbol.toLowerCase()]
+    if (override) {
+      logoUrl = override
     }
   }
 

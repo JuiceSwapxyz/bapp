@@ -3,6 +3,7 @@ import { useCurrencyInfosToTokenOptions } from 'uniswap/src/components/TokenSele
 import { applyTokenDisplayRules } from 'uniswap/src/components/TokenSelector/tokenDisplayRules'
 import { TokenOption } from 'uniswap/src/components/lists/items/types'
 import { GqlResult } from 'uniswap/src/data/types'
+import { PortfolioBalance } from 'uniswap/src/features/dataApi/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { hardcodedCommonBaseCurrencies } from 'uniswap/src/features/tokens/hardcodedTokens'
 
@@ -12,6 +13,7 @@ import { hardcodedCommonBaseCurrencies } from 'uniswap/src/features/tokens/hardc
  */
 export function useHardcodedCommonTokensOptions(
   chainFilter: UniverseChainId | null,
+  portfolioBalancesById?: Record<string, PortfolioBalance>,
 ): GqlResult<TokenOption[] | undefined> {
   const filteredCurrencies = useMemo(() => {
     if (!chainFilter) {
@@ -24,16 +26,13 @@ export function useHardcodedCommonTokensOptions(
 
   const tokenOptions = useCurrencyInfosToTokenOptions({
     currencyInfos: filteredCurrencies,
-    portfolioBalancesById: {},
+    portfolioBalancesById: portfolioBalancesById ?? {},
   })
 
-  const filteredTokenOptions = useMemo(() => {
-    if (!tokenOptions) {
-      return undefined
-    }
-    const tokensWithZeroBalance = tokenOptions.map((token) => ({ ...token, quantity: 0 }))
-    return applyTokenDisplayRules(tokensWithZeroBalance)
-  }, [tokenOptions])
+  const filteredTokenOptions = useMemo(
+    () => (tokenOptions ? applyTokenDisplayRules(tokenOptions) : undefined),
+    [tokenOptions],
+  )
 
   return useMemo(
     () => ({
