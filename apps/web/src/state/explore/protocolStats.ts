@@ -1,6 +1,10 @@
-import { TimestampedAmount } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
 import { useContext, useMemo } from 'react'
 import { ExploreContext } from 'state/explore'
+
+interface TimestampedAmount {
+  timestamp: number
+  value: number
+}
 
 function mapDataByTimestamp({
   v2Data,

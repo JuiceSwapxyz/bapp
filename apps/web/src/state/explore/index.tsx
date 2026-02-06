@@ -1,8 +1,10 @@
-import { ExploreStatsResponse, ProtocolStatsResponse } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
+import { ExploreStatsResponse } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
 import { createContext, useMemo } from 'react'
-import { ALL_NETWORKS_ARG } from 'uniswap/src/data/rest/base'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
-import { useProtocolStatsQuery } from 'uniswap/src/data/rest/protocolStats'
+import {
+  JuiceswapProtocolStatsResponse,
+  useJuiceswapProtocolStatsQuery,
+} from 'uniswap/src/data/rest/juiceswapProtocolStats'
 import { useIsSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
@@ -19,7 +21,7 @@ interface QueryResult<T> {
  */
 interface ExploreContextType {
   exploreStats: QueryResult<ExploreStatsResponse>
-  protocolStats: QueryResult<ProtocolStatsResponse>
+  protocolStats: QueryResult<JuiceswapProtocolStatsResponse>
 }
 
 export const giveExploreStatDefaultValue = (value: number | undefined, defaultValue = 0): number => {
@@ -63,9 +65,7 @@ export function ExploreContextProvider({
     data: protocolStatsData,
     isLoading: protocolStatsLoading,
     error: protocolStatsError,
-  } = useProtocolStatsQuery({
-    chainId: isSupportedChain ? chainId.toString() : ALL_NETWORKS_ARG,
-  })
+  } = useJuiceswapProtocolStatsQuery(isSupportedChain ? chainId : UniverseChainId.CitreaMainnet, isSupportedChain)
 
   const exploreContext = useMemo(() => {
     return {

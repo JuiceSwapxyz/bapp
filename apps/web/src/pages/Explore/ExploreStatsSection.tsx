@@ -47,7 +47,6 @@ const ExploreStatsSection = () => {
         value: formatPrice(totalVolume),
         change: volume24hChangePercent,
         protocolPopoverFormattedData: [
-          { label: t('common.protocol.v4'), value: protocolVolumes.v4 },
           { label: t('common.protocol.v3'), value: protocolVolumes.v3 },
           { label: t('common.protocol.v2'), value: protocolVolumes.v2 },
         ],
@@ -55,7 +54,6 @@ const ExploreStatsSection = () => {
       { label: t('common.totalUniswapTVL'), value: formatPrice(totalTVL), change: totalTVL24hrChangePercent },
       { label: t('explore.v2TVL'), value: formatPrice(protocolTVL.v2), change: protocolChangePercent.v2 },
       { label: t('explore.v3TVL'), value: formatPrice(protocolTVL.v3), change: protocolChangePercent.v3 },
-      { label: t('explore.v4TVL'), value: formatPrice(protocolTVL.v4), change: protocolChangePercent.v4 },
     ]
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -65,17 +63,14 @@ const ExploreStatsSection = () => {
     convertFiatAmountFormatted,
     totalVolume,
     volume24hChangePercent,
-    protocolVolumes.v4,
     protocolVolumes.v3,
     protocolVolumes.v2,
     totalTVL,
     totalTVL24hrChangePercent,
     protocolTVL.v2,
     protocolTVL.v3,
-    protocolTVL.v4,
     protocolChangePercent.v2,
     protocolChangePercent.v3,
-    protocolChangePercent.v4,
   ])
 
   return (
