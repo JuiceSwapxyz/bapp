@@ -80,7 +80,7 @@ function WebUniswapProviderInner({ children }: PropsWithChildren) {
   )
 
   const navigateToBridgesSwaps = useCallback(() => {
-    window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
+    navigate('/bridge-swaps')
   }, [])
 
   const navigateToUrl = useCallback(

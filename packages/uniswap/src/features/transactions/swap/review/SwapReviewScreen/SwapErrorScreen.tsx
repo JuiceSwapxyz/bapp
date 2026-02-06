@@ -3,6 +3,7 @@ import { Flex, IconButton } from 'ui/src'
 import { X } from 'ui/src/components/icons/X'
 import { WarningModalContent } from 'uniswap/src/components/modals/WarningModal/WarningModal'
 import { WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
+import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import { ModalName } from 'uniswap/src/features/telemetry/constants'
 import { TransactionModalInnerContainer } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModal'
 import { useTransactionModalContext } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModalContext'
@@ -13,6 +14,7 @@ import {
 import { TransactionStepFailedError, getErrorContent } from 'uniswap/src/features/transactions/errors'
 import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 import { isWeb } from 'utilities/src/platform'
+import { BitcoinBridgeBitcoinToCitreaStep, BitcoinBridgeCitreaToBitcoinStep } from '../../steps/bitcoinBridge'
 
 export function SwapErrorScreen({
   submissionError,
@@ -33,6 +35,7 @@ export function SwapErrorScreen({
     selectedProtocols: s.selectedProtocols,
   }))
   const { setSelectedProtocols } = useTransactionSettingsActions()
+  const { navigateToBridgesSwaps } = useUniswapContext()
 
   const { title, message, buttonText } = getErrorContent(t, submissionError)
 
@@ -41,7 +44,23 @@ export function SwapErrorScreen({
     submissionError.isBackendRejection &&
     submissionError.step.type === TransactionStepType.UniswapXSignature
 
+  const isBridgeError = submissionError instanceof TransactionStepFailedError &&
+    (submissionError.step.type === TransactionStepType.BitcoinBridgeBitcoinToCitreaStep ||
+      submissionError.step.type === TransactionStepType.BitcoinBridgeCitreaToBitcoinStep ||
+      submissionError.step.type === TransactionStepType.LightningBridgeSubmarineStep ||
+      submissionError.step.type === TransactionStepType.LightningBridgeReverseStep ||
+      submissionError.step.type === TransactionStepType.WbtcBridgeStep)
+
+  const isBridgeBackendAccepted = isBridgeError && (submissionError.step as BitcoinBridgeBitcoinToCitreaStep | BitcoinBridgeCitreaToBitcoinStep).backendAccepted
+
   const handleTryAgain = (): void => {
+    if (isBridgeBackendAccepted) {
+      setSubmissionError(undefined)
+      onClose()
+      navigateToBridgesSwaps?.()
+      return
+    }
+
     if (onPressRetry) {
       onPressRetry()
     } else if (isUniswapXBackendError) {

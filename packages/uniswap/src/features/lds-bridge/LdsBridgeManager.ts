@@ -9,13 +9,12 @@ import {
   createSubmarineSwap,
   fetchChainPairs,
   fetchChainTransactionsBySwapId,
+  fetchLockupsByPreimageHashes,
   fetchReversePairs,
   fetchSubmarinePairs,
   fetchSubmarineTransactionsBySwapId,
   fetchSwapCurrentStatus,
-  fetchUserClaimsAndRefunds,
   helpMeClaim,
-  registerPreimage,
 } from 'uniswap/src/features/lds-bridge/api/client'
 import { fetchBlockTipHeight, fetchTransactionByAddress } from 'uniswap/src/features/lds-bridge/api/mempool'
 import { createLdsSocketClient } from 'uniswap/src/features/lds-bridge/api/socket'
@@ -37,6 +36,7 @@ import {
   LdsSwapStatus,
   hasReachedStatus,
   isSwapPending,
+  localUserFinalStatuses,
   swapStatusFinal,
   swapStatusPending,
 } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
@@ -414,8 +414,26 @@ class LdsBridgeManager extends SwapEventEmitter {
       return
     }
 
-    const { claims, refunds } = await fetchUserClaimsAndRefunds(userAddress)
     const swaps = await this.storageManager.getSwaps()
+    const swapsWithIncompleteTransactions = Object.values(swaps)
+      .filter((swap) => !swap.claimTx && !swap.refundTx)
+      .filter((swap) => swap.status && !localUserFinalStatuses.includes(swap.status))
+
+    const preimageHashes = swapsWithIncompleteTransactions.map((swap) => swap.preimageHash)
+
+    if (preimageHashes.length === 0) {
+      return
+    }
+
+    const lockups = await fetchLockupsByPreimageHashes(preimageHashes)
+    const lockupsItems = lockups.data.lockupss?.items
+    if (!lockupsItems || lockupsItems.length === 0) {
+      return
+    }
+
+    const claims = lockupsItems.filter((lockup) => lockup.claimAddress.toLowerCase() === userAddress.toLowerCase())
+    const refunds = lockupsItems.filter((lockup) => lockup.refundAddress.toLowerCase() === userAddress.toLowerCase())
+
     let hasUpdates = false
 
     // Update swaps with claim transactions
@@ -452,6 +470,21 @@ class LdsBridgeManager extends SwapEventEmitter {
       }
     }
 
+    // Update expired EVM swaps with no transactions
+    const expiredSwaps = Object.values(swaps)
+      .filter((swap) => swap.status && swap.status === LdsSwapStatus.SwapExpired)
+      .filter((swap) => swap.type === SwapType.Chain)
+      .filter((swap) => swap.assetSend !== 'BTC' && swap.assetReceive !== 'BTC')
+
+    expiredSwaps.forEach(async (expiredSwap) => {
+      const relatedLockups = lockupsItems.filter((lockup) => prefix0x(lockup.preimageHash) === prefix0x(expiredSwap.preimageHash))
+      if (relatedLockups.length === 0) {
+        expiredSwap.status = LdsSwapStatus.UserAbandoned
+        await this.storageManager.setSwap(expiredSwap.id, expiredSwap)
+        hasUpdates = true
+      }
+    })
+
     if (hasUpdates) {
       await this._notifySwapChanges()
     }
@@ -459,6 +492,29 @@ class LdsBridgeManager extends SwapEventEmitter {
 
   syncSwapsWithChainAndMempoolData = async (): Promise<void> => {
     const swaps = await this.storageManager.getSwaps()
+
+    const btcSendBtcSwaps = Object.values(swaps)
+      .filter((swap) => swap.assetSend === 'BTC')
+      .filter((swap) => swap.status && !localUserFinalStatuses.includes(swap.status))
+      .filter((swap) => swap.status && !Object.values(swapStatusPending).includes(swap.status))
+      .filter((swap) => swap.status && Object.values(swapStatusFinal).includes(swap.status))
+      .filter((swap) => swap.status !== LdsSwapStatus.TransactionLockupFailed)
+      .filter((swap) => swap.type === SwapType.Chain)
+      .filter((swap) => !swap.claimTx && !swap.refundTx)
+
+    btcSendBtcSwaps.forEach(async (swap) => {
+      const lockupAddress = (swap as ChainSwap).lockupDetails.lockupAddress
+      if (!lockupAddress) {
+        return
+      }
+      const swapTransactions = await fetchTransactionByAddress(lockupAddress)
+      if (swapTransactions.length === 0) {
+        swap.status = LdsSwapStatus.UserAbandoned
+        await this.storageManager.setSwap(swap.id, swap)
+        await this._notifySwapChanges()
+        return
+      }
+    })
 
     const btcSwaps = Object.values(swaps)
       .filter((swap) => isBitcoinAddress(swap.claimAddress))
@@ -530,73 +586,61 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
 
     if (swapStatusFinal.includes(swap.status!) && !hasReachedStatus(swap.status!, state)) {
-      throw new Error(`Swap is in final state: ${swap.status}`)
+      throw new Error(`Swap is in state: ${swap.status}, click below to see more details.`)
     }
 
+    const abortController = new AbortController()
+    const { signal } = abortController
+
+    try {
+      await Promise.race([
+        this.waitViaWebSocket(swapId, state, signal),
+        this.pollUntilState(swapId, state, signal),
+      ])
+    } finally {
+      abortController.abort()
+    }
+  }
+
+  private waitViaWebSocket(swapId: string, state: LdsSwapStatus, signal: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
-      let resolved = false
-      let pollInterval: ReturnType<typeof setInterval> | null = null
-      let timeoutId: ReturnType<typeof setTimeout> | null = null
-      let pollCount = 0
-
-      const cleanup = () => {
-        if (pollInterval) {
-          clearInterval(pollInterval)
-        }
-        if (timeoutId) {
-          clearTimeout(timeoutId)
-        }
-        this.socketClient.unsubscribeFromSwapUpdates(updateCallback)
-      }
-
-      const checkAndResolve = (currentStatus: LdsSwapStatus) => {
-        if (resolved) {
-          return
-        }
-        if (hasReachedStatus(currentStatus, state)) {
-          resolved = true
-          cleanup()
+      const callback = (event: SwapUpdateEvent) => {
+        if (hasReachedStatus(event.status, state)) {
           resolve()
-        } else if (swapStatusFinal.includes(currentStatus)) {
-          resolved = true
-          cleanup()
-          reject(new Error(`Swap reached final state ${currentStatus} before reaching ${state}`))
+        } else if (event.failureReason) {
+          reject(new Error(event.failureReason))
+        } else if (swapStatusFinal.includes(event.status)) {
+          reject(new Error(`Swap reached state ${event.status}, click below to see more details.`))
         }
       }
 
-      const updateCallback = async (event: SwapUpdateEvent) => {
-        checkAndResolve(event.status)
+      this.socketClient.subscribeToSwapUpdates(swapId, callback)
+      signal.addEventListener('abort', () => {
+        this.socketClient.unsubscribeFromSwapUpdates(callback)
+      })
+    })
+  }
+
+  private async pollUntilState(swapId: string, state: LdsSwapStatus, signal: AbortSignal): Promise<void> {
+    while (!signal.aborted) {
+      await new Promise((r) => setTimeout(r, 15000))
+      if (signal.aborted) {
+        break
       }
 
-      // Subscribe to WebSocket updates
-      this.socketClient.subscribeToSwapUpdates(swapId, updateCallback)
-
-      // Also poll the API periodically in case WebSocket updates are missed
-      pollInterval = setInterval(async () => {
-        if (resolved) {
+      try {
+        const status = await fetchSwapCurrentStatus(swapId)
+        if (hasReachedStatus(status.status, state)) {
           return
         }
-        pollCount++
-        try {
-          const status = await fetchSwapCurrentStatus(swapId)
-          checkAndResolve(status.status)
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('[LdsBridgeManager] Error polling status:', error)
+        if (swapStatusFinal.includes(status.status)) {
+          throw new Error(`Swap reached final state ${status.status} before ${state}`)
         }
-      }, 3000) // Poll every 3 seconds
-
-      // Set timeout
-      timeoutId = setTimeout(() => {
-        if (!resolved) {
-          resolved = true
-          cleanup()
-          // eslint-disable-next-line no-console
-          console.error(`[LdsBridgeManager] ✗ Timeout after ${timeoutMs}ms waiting for state ${state}`)
-          reject(new Error(`Timeout waiting for swap ${swapId} to reach state ${state} (waited ${timeoutMs}ms)`))
-        }
-      }, timeoutMs)
-    })
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('[LdsBridgeManager] Error polling status:', error)
+      }
+    }
   }
 
   getSwaps = async (): Promise<Record<string, SomeSwap>> => {

@@ -20,6 +20,7 @@ export interface Erc20ChainSwapStep {
   direction: Erc20ChainSwapDirection
   subStep?: Erc20ChainSwapSubStep
   txHash?: string
+  backendAccepted?: boolean
 }
 
 export const createErc20ChainSwapStep = (direction: Erc20ChainSwapDirection): Erc20ChainSwapStep => {

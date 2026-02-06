@@ -54,6 +54,8 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
     chainId: citreaChainId,
   })
 
+  step.backendAccepted = true
+
   // Ensure wallet is on Citrea before signing the lockup transaction
   yield* call(ensureCorrectChain, {
     targetChainId: citreaChainId,

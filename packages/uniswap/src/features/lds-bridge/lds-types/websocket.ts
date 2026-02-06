@@ -25,6 +25,7 @@ export enum LdsSwapStatus {
   // Local user statuses (not from LDS)
   UserRefunded = 'local.userRefunded',
   UserClaimed = 'local.userClaimed',
+  UserAbandoned = 'local.userAbandoned',
 }
 
 export const swapStatusPending = {
@@ -61,7 +62,14 @@ export const swapStatusFinal = [
   ...Object.values(swapStatusSuccess),
   LdsSwapStatus.UserRefunded,
   LdsSwapStatus.UserClaimed,
+  LdsSwapStatus.UserAbandoned,
   swapStatusPending.TransactionClaimPending, // Stop polling once claim is pending
+]
+
+export const localUserFinalStatuses = [
+  LdsSwapStatus.UserRefunded,
+  LdsSwapStatus.UserClaimed,
+  LdsSwapStatus.UserAbandoned,
 ]
 
 // Chain swap status progression order (for ERC20 chain swaps)
@@ -111,6 +119,7 @@ export function getSwapStatusCategory(status?: LdsSwapStatus): 'pending' | 'succ
 export interface SwapUpdateEvent {
   id?: string
   status: LdsSwapStatus
+  failureReason?: string
 }
 
 export interface WebSocketMessage {

@@ -51,6 +51,8 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
     chainId: citreaChainId,
   })
 
+  step.backendAccepted = true
+
   // Ensure wallet is on Citrea before signing the lockup transaction
   yield* call(ensureCorrectChain, {
     targetChainId: citreaChainId,

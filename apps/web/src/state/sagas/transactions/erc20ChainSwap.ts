@@ -229,6 +229,8 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     })
   }
 
+  step.backendAccepted = true
+
   // Update step to show swap creation is complete, now waiting for lockup
   setCurrentStep({ step, accepted: false })
 
