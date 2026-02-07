@@ -52,10 +52,3 @@ export function getBoltzBalanceForSide(items: BoltzBalanceItem[], side: BridgeSi
   return undefined
 }
 
-export function getBoltzAvailableBalance(
-  items: BoltzBalanceItem[],
-  currencyIn: BridgeSide,
-  _currencyOut: BridgeSide,
-): number | undefined {
-  return getBoltzBalanceForSide(items, currencyIn)
-}

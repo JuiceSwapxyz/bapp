@@ -226,7 +226,7 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
 
   const decimals = limitsCurrency.decimals
   const minRaw = parseUnits((adjustedMinimal / 1e8).toFixed(decimals), decimals).toString()
-  const maxRaw = parseUnits((effectiveMax / 1e8).toFixed(decimals), decimals).toString()
+  const maxRaw = BigInt(Math.floor((effectiveMax / 1e8) * 10 ** decimals)).toString()
 
   const bridgeLimits: BridgeLimits = {
     min: CurrencyAmount.fromRawAmount(limitsCurrency, minRaw),
