@@ -2,12 +2,14 @@ import { parseUnits } from '@ethersproject/units'
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useQuery } from '@tanstack/react-query'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { fetchLdsOnChainBalance } from 'uniswap/src/features/lds-bridge/api/ldsOnChainBalance'
 import {
   ChainPairsResponse,
   fetchBoltzBalance,
-  getBoltzAvailableBalance,
+  getBoltzBalanceForSide,
   getLdsBridgeManager,
 } from 'uniswap/src/features/lds-bridge'
+import { calculateEffectiveBridgeMax } from 'uniswap/src/features/lds-bridge/utils/limits'
 import type {
   LightningBridgeReverseGetResponse,
   LightningBridgeSubmarineGetResponse,
@@ -152,6 +154,18 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
     enabled: !!currencyIn && !!currencyOut && !!pairInfo,
   })
 
+  const { data: onChainIn } = useQuery({
+    queryKey: ['lds-onchain-balance', currencyIn?.chainId, currencyIn?.symbol],
+    queryFn: () => fetchLdsOnChainBalance(currencyIn!.chainId, currencyIn!.symbol ?? ''),
+    enabled: !!currencyIn?.chainId && !!currencyIn?.symbol && !!pairInfo,
+  })
+
+  const { data: onChainOut } = useQuery({
+    queryKey: ['lds-onchain-balance', currencyOut?.chainId, currencyOut?.symbol],
+    queryFn: () => fetchLdsOnChainBalance(currencyOut!.chainId, currencyOut!.symbol ?? ''),
+    enabled: !!currencyOut?.chainId && !!currencyOut?.symbol && !!pairInfo,
+  })
+
   if (!currencyIn || !currencyOut || !pairInfo) {
     return undefined
   }
@@ -186,28 +200,33 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   const feeBuffer = isInputSide ? 1 : 1.02
   const adjustedMinimal = Math.floor(minimal * feeBuffer)
 
-  const availableBalance = boltzBalance
-    ? getBoltzAvailableBalance(
-        boltzBalance,
-        { chainId: currencyIn.chainId, symbol: currencyIn.symbol ?? '' },
-        { chainId: currencyOut.chainId, symbol: currencyOut.symbol ?? '' },
-      )
+  const balanceInBoltz = boltzBalance
+    ? getBoltzBalanceForSide(boltzBalance, { chainId: currencyIn.chainId, symbol: currencyIn.symbol ?? '' })
     : undefined
-  const availableRaw =
-    availableBalance !== undefined ? Math.floor(availableBalance * 1e8) : undefined
-  const effectiveMax = availableRaw !== undefined ? Math.min(maximal, availableRaw) : maximal
+  const balanceOutBoltz = boltzBalance
+    ? getBoltzBalanceForSide(boltzBalance, { chainId: currencyOut.chainId, symbol: currencyOut.symbol ?? '' })
+    : undefined
 
-  let minRaw: string
-  let maxRaw: string
+  const effectiveBalanceIn =
+    balanceInBoltz !== undefined
+      ? onChainIn !== undefined
+        ? Math.min(balanceInBoltz, onChainIn)
+        : balanceInBoltz
+      : undefined
+  const effectiveBalanceOut =
+    balanceOutBoltz !== undefined
+      ? onChainOut !== undefined
+        ? Math.min(balanceOutBoltz, onChainOut)
+        : balanceOutBoltz
+      : undefined
 
-  if (isErc20ChainBridge(params)) {
-    const decimals = limitsCurrency.decimals
-    minRaw = parseUnits((adjustedMinimal / 1e8).toFixed(decimals), decimals).toString()
-    maxRaw = parseUnits((effectiveMax / 1e8).toFixed(decimals), decimals).toString()
-  } else {
-    minRaw = adjustedMinimal.toString()
-    maxRaw = effectiveMax.toString()
-  }
+  const rawIn = effectiveBalanceIn !== undefined ? Math.floor(effectiveBalanceIn) : undefined
+  const rawOut = effectiveBalanceOut !== undefined ? Math.floor(effectiveBalanceOut) : undefined
+  const effectiveMax = calculateEffectiveBridgeMax(maximal, rawIn, rawOut)
+
+  const decimals = limitsCurrency.decimals
+  const minRaw = parseUnits((adjustedMinimal / 1e8).toFixed(decimals), decimals).toString()
+  const maxRaw = parseUnits((effectiveMax / 1e8).toFixed(decimals), decimals).toString()
 
   const bridgeLimits: BridgeLimits = {
     min: CurrencyAmount.fromRawAmount(limitsCurrency, minRaw),

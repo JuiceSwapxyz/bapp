@@ -24,45 +24,38 @@ function findBalance(
       i.asset === asset &&
       (direction === undefined ? i.direction === undefined : i.direction === direction),
   )
-  return match?.balance
+  return match?.balance !== undefined ? match.balance * 1e8 : undefined
+}
+
+export function getBoltzBalanceForSide(items: BoltzBalanceItem[], side: BridgeSide): number | undefined {
+  const { chainId, symbol } = side
+  if (chainId === UniverseChainId.Bitcoin && (symbol === 'BTC' || symbol === 'btc')) {
+    return findBalance(items, 'bitcoin', 'BTC')
+  }
+  if (chainId === UniverseChainId.LightningNetwork && (symbol === 'lnBTC' || symbol === 'BTC')) {
+    return findBalance(items, 'lightning', 'BTC')
+  }
+  if (isCitreaChainId(chainId) && (symbol === 'cBTC' || symbol === 'WBTCe')) {
+    return symbol === 'cBTC' ? findBalance(items, 'citrea', 'cBTC') : findBalance(items, 'citrea', 'WBTCe')
+  }
+  if (chainId === UniverseChainId.Mainnet) {
+    if (symbol === 'WBTC') return findBalance(items, 'ethereum', 'WBTC')
+    if (symbol === 'USDT') return findBalance(items, 'ethereum', 'USDT')
+    if (symbol === 'USDC') return findBalance(items, 'ethereum', 'USDC')
+  }
+  if (chainId === UniverseChainId.Polygon && symbol === 'USDT') {
+    return findBalance(items, 'polygon', 'USDT')
+  }
+  if (isCitreaChainId(chainId) && symbol === 'JUSD') {
+    return findBalance(items, 'citrea', 'JUSD')
+  }
+  return undefined
 }
 
 export function getBoltzAvailableBalance(
   items: BoltzBalanceItem[],
   currencyIn: BridgeSide,
-  currencyOut: BridgeSide,
+  _currencyOut: BridgeSide,
 ): number | undefined {
-  const { chainId: chainIdIn, symbol: symbolIn } = currencyIn
-  const { chainId: chainIdOut } = currencyOut
-
-  if (chainIdIn === UniverseChainId.Bitcoin && (symbolIn === 'BTC' || symbolIn === 'btc')) {
-    return findBalance(items, 'bitcoin', 'BTC')
-  }
-
-  if (chainIdIn === UniverseChainId.LightningNetwork && (symbolIn === 'lnBTC' || symbolIn === 'BTC')) {
-    return findBalance(items, 'lightning', 'BTC')
-  }
-
-  if (isCitreaChainId(chainIdIn) && (symbolIn === 'cBTC' || symbolIn === 'WBTCe')) {
-    if (symbolIn === 'cBTC') {
-      return findBalance(items, 'citrea', 'cBTC')
-    }
-    return findBalance(items, 'citrea', 'WBTCe')
-  }
-
-  if (chainIdIn === UniverseChainId.Mainnet) {
-    if (symbolIn === 'WBTC') return findBalance(items, 'ethereum', 'WBTC')
-    if (symbolIn === 'USDT') return findBalance(items, 'ethereum', 'USDT')
-    if (symbolIn === 'USDC') return findBalance(items, 'ethereum', 'USDC')
-  }
-
-  if (chainIdIn === UniverseChainId.Polygon && symbolIn === 'USDT') {
-    return findBalance(items, 'polygon', 'USDT')
-  }
-
-  if (isCitreaChainId(chainIdIn) && symbolIn === 'JUSD') {
-    return findBalance(items, 'citrea', 'JUSD')
-  }
-
-  return undefined
+  return getBoltzBalanceForSide(items, currencyIn)
 }
