@@ -1,5 +1,6 @@
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import type {
+  BoltzBalanceItem,
   ChainPairsResponse,
   ChainTransactionsResponse,
   ClaimChainSwapRequest,
@@ -26,6 +27,7 @@ import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websock
 import { prefix0x } from '..'
 
 export type {
+  BoltzBalanceItem,
   ChainPairsResponse,
   ChainTransactionsResponse,
   ClaimChainSwapRequest,
@@ -149,6 +151,10 @@ export async function fetchSubmarineTransactionsBySwapId(
 
 export async function fetchChainFee(): Promise<{ BTC: number }> {
   return await LdsApiClient.get<{ BTC: number }>(`/swap/v2/chain/fees`)
+}
+
+export async function fetchBoltzBalance(): Promise<BoltzBalanceItem[]> {
+  return await LdsApiClient.get<BoltzBalanceItem[]>('/boltz/balance')
 }
 
 export async function fetchEvmRefundableAndClaimableLockups(address: string): Promise<{ refundable: EvmLockup[]; claimable: EvmLockup[] }> {
