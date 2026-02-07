@@ -1,8 +1,15 @@
-import { formatUnits, parseUnits } from '@ethersproject/units'
+import { parseUnits } from '@ethersproject/units'
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useQuery } from '@tanstack/react-query'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { ChainPairsResponse, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import { fetchLdsOnChainBalance } from 'uniswap/src/features/lds-bridge/api/ldsOnChainBalance'
+import {
+  ChainPairsResponse,
+  fetchBoltzBalance,
+  getBoltzBalanceForSide,
+  getLdsBridgeManager,
+} from 'uniswap/src/features/lds-bridge'
+import { calculateEffectiveBridgeMax } from 'uniswap/src/features/lds-bridge/utils/limits'
 import type {
   LightningBridgeReverseGetResponse,
   LightningBridgeSubmarineGetResponse,
@@ -141,6 +148,24 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   const pairInfo = usePairInfo(params)
   const { currencyIn, currencyOut } = params
 
+  const { data: boltzBalance } = useQuery({
+    queryKey: ['boltz-balance'],
+    queryFn: fetchBoltzBalance,
+    enabled: !!currencyIn && !!currencyOut && !!pairInfo,
+  })
+
+  const { data: onChainIn } = useQuery({
+    queryKey: ['lds-onchain-balance', currencyIn?.chainId, currencyIn?.symbol],
+    queryFn: () => fetchLdsOnChainBalance(currencyIn!.chainId, currencyIn!.symbol ?? ''),
+    enabled: !!currencyIn?.chainId && !!currencyIn?.symbol && !!pairInfo,
+  })
+
+  const { data: onChainOut } = useQuery({
+    queryKey: ['lds-onchain-balance', currencyOut?.chainId, currencyOut?.symbol],
+    queryFn: () => fetchLdsOnChainBalance(currencyOut!.chainId, currencyOut!.symbol ?? ''),
+    enabled: !!currencyOut?.chainId && !!currencyOut?.symbol && !!pairInfo,
+  })
+
   if (!currencyIn || !currencyOut || !pairInfo) {
     return undefined
   }
@@ -172,26 +197,36 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   const limitsCurrency = isInputSide ? currencyIn : currencyOut
 
   const { minimal, maximal } = limits
-  // 2% buffer for fees when limits are cross-field (cBTC → lnBTC)
   const feeBuffer = isInputSide ? 1 : 1.02
   const adjustedMinimal = Math.floor(minimal * feeBuffer)
 
-  // For ERC20 bridges, API returns limits in Boltz format (8 decimals)
-  // Convert to token raw amount using the token's native decimals
-  let minRaw: string
-  let maxRaw: string
+  const balanceInBoltz = boltzBalance
+    ? getBoltzBalanceForSide(boltzBalance, { chainId: currencyIn.chainId, symbol: currencyIn.symbol ?? '' })
+    : undefined
+  const balanceOutBoltz = boltzBalance
+    ? getBoltzBalanceForSide(boltzBalance, { chainId: currencyOut.chainId, symbol: currencyOut.symbol ?? '' })
+    : undefined
 
-  if (isErc20ChainBridge(params)) {
-    // Convert: Boltz (8 decimals) → decimal string → token raw amount
-    const minDecimal = formatUnits(adjustedMinimal, 8)
-    const maxDecimal = formatUnits(maximal, 8)
-    minRaw = parseUnits(minDecimal, limitsCurrency.decimals).toString()
-    maxRaw = parseUnits(maxDecimal, limitsCurrency.decimals).toString()
-  } else {
-    // BTC bridges: limits already in satoshis (native 8 decimals)
-    minRaw = adjustedMinimal.toString()
-    maxRaw = maximal.toString()
-  }
+  const effectiveBalanceIn =
+    balanceInBoltz !== undefined
+      ? onChainIn !== undefined
+        ? Math.min(balanceInBoltz, onChainIn)
+        : balanceInBoltz
+      : undefined
+  const effectiveBalanceOut =
+    balanceOutBoltz !== undefined
+      ? onChainOut !== undefined
+        ? Math.min(balanceOutBoltz, onChainOut)
+        : balanceOutBoltz
+      : undefined
+
+  const rawIn = effectiveBalanceIn !== undefined ? Math.floor(effectiveBalanceIn) : undefined
+  const rawOut = effectiveBalanceOut !== undefined ? Math.floor(effectiveBalanceOut) : undefined
+  const effectiveMax = calculateEffectiveBridgeMax(maximal, rawIn, rawOut)
+
+  const decimals = limitsCurrency.decimals
+  const minRaw = parseUnits((adjustedMinimal / 1e8).toFixed(decimals), decimals).toString()
+  const maxRaw = BigInt(Math.floor((effectiveMax / 1e8) * 10 ** decimals)).toString()
 
   const bridgeLimits: BridgeLimits = {
     min: CurrencyAmount.fromRawAmount(limitsCurrency, minRaw),

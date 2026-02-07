@@ -13,6 +13,7 @@ export * from './transactions/evm'
 export * from './transactions/musig'
 
 // Utils
+export * from './utils/boltzBalance'
 export * from './utils/conversion'
 export * from './utils/hex'
 export * from './utils/polling'
