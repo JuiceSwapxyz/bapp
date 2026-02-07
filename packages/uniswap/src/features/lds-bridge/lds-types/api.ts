@@ -1,3 +1,10 @@
+export interface BoltzBalanceItem {
+  blockchain: string
+  asset: string
+  balance: number
+  direction?: 'incoming' | 'outgoing'
+}
+
 interface LightningBridgePairInfo {
   hash: string
   rate: number
