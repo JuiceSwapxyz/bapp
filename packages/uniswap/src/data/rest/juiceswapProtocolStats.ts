@@ -11,19 +11,19 @@ export interface JuiceswapProtocolStatsResponse {
   dailyProtocolTvl: {
     v2: TimestampedAmount[]
     v3: TimestampedAmount[]
-    v4: TimestampedAmount[]
+    bridge: TimestampedAmount[]
   }
   historicalProtocolVolume: {
     Month: {
       v2: TimestampedAmount[]
       v3: TimestampedAmount[]
-      v4: TimestampedAmount[]
+      bridge: TimestampedAmount[]
     }
   }
 }
 
 const juiceSwapApiClient = createApiClient({
-  baseUrl: process.env.REACT_APP_JUICESWAP_API_URL as string,
+  baseUrl: (process.env.REACT_APP_TRADING_API_URL_OVERRIDE || process.env.REACT_APP_JUICESWAP_API_URL) as string,
 })
 
 const fetchProtocolStats = (chainId: number): Promise<JuiceswapProtocolStatsResponse> => {

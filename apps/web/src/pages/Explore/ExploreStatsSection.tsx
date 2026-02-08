@@ -49,11 +49,13 @@ const ExploreStatsSection = () => {
         protocolPopoverFormattedData: [
           { label: t('common.protocol.v3'), value: protocolVolumes.v3 },
           { label: t('common.protocol.v2'), value: protocolVolumes.v2 },
+          { label: t('explore.bridge'), value: protocolVolumes.bridge },
         ],
       },
       { label: t('common.totalUniswapTVL'), value: formatPrice(totalTVL), change: totalTVL24hrChangePercent },
       { label: t('explore.v2TVL'), value: formatPrice(protocolTVL.v2), change: protocolChangePercent.v2 },
       { label: t('explore.v3TVL'), value: formatPrice(protocolTVL.v3), change: protocolChangePercent.v3 },
+      { label: t('explore.bridgeTVL'), value: formatPrice(protocolTVL.bridge), change: protocolChangePercent.bridge },
     ]
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -65,12 +67,15 @@ const ExploreStatsSection = () => {
     volume24hChangePercent,
     protocolVolumes.v3,
     protocolVolumes.v2,
+    protocolVolumes.bridge,
     totalTVL,
     totalTVL24hrChangePercent,
     protocolTVL.v2,
     protocolTVL.v3,
+    protocolTVL.bridge,
     protocolChangePercent.v2,
     protocolChangePercent.v3,
+    protocolChangePercent.bridge,
   ])
 
   return (
