@@ -125,18 +125,20 @@ const StatDisplay = memo(({ data, isLoading, isHoverable }: StatDisplayProps) =>
           {data.value}
         </Text>
       )}
-      <Flex row alignItems="center" gap="$spacing2" style={{ fontSize: 12 }}>
-        {isLoading ? (
-          <LoadingBubble height="12px" width="30px" />
-        ) : (
-          <Fragment>
-            <DeltaArrow delta={data.change} formattedDelta={formatPercent(Math.abs(data.change))} size={12} />
-            <Text variant="body4" color="$neutral1">
-              {formatPercent(Math.abs(data.change))}
-            </Text>
-          </Fragment>
-        )}
-      </Flex>
+      {(isLoading || data.change !== 0) && (
+        <Flex row alignItems="center" gap="$spacing2" style={{ fontSize: 12 }}>
+          {isLoading ? (
+            <LoadingBubble height="12px" width="30px" />
+          ) : (
+            <Fragment>
+              <DeltaArrow delta={data.change} formattedDelta={formatPercent(Math.abs(data.change))} size={12} />
+              <Text variant="body4" color="$neutral1">
+                {formatPercent(Math.abs(data.change))}
+              </Text>
+            </Fragment>
+          )}
+        </Flex>
+      )}
     </Flex>
   )
 })
