@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { CopyHelper } from 'theme/components/CopyHelper'
-import { EllipsisTamaguiStyle } from 'theme/components/styles'
 import { Flex, Text } from 'ui/src'
 import { Unitag } from 'ui/src/components/icons/Unitag'
 import { iconSizes } from 'ui/src/theme'
@@ -24,13 +23,7 @@ function AddressDisplay({
 }) {
   return (
     <Flex row gap="$spacing2" alignItems="center" data-testid={TestID.AddressDisplay}>
-      <Text
-        variant="subheading1"
-        color="$neutral1"
-        maxWidth="120px"
-        $xxl={{ maxWidth: '180px' }}
-        {...EllipsisTamaguiStyle}
-      >
+      <Text variant="body2" color="$neutral1">
         {unitag ?? ensName ?? shortenedEvmAddress}
       </Text>
       {unitag && <Unitag size={18} />}
