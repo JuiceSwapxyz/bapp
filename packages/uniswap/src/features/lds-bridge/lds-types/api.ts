@@ -246,6 +246,9 @@ export interface EvmLockup {
   refunded: boolean
   claimTxHash: string | null
   refundTxHash: string | null
+  knownPreimage: {
+    preimage: string | null
+  } | null
 }
 
 export interface LockupsResponse {

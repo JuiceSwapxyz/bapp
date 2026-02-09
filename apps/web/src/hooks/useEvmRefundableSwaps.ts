@@ -138,12 +138,11 @@ export function useEvmClaimableAndRefundableSwaps(enabled = true) {
         (swap) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash),
       )
 
-      if (
-        !isExpired &&
-        localSwap &&
-        localSwap.preimage &&
-        swapStatusFinal.includes(localSwap.status as LdsSwapStatus)
-      ) {
+      const isLocalSwapWithPreimage =
+        localSwap && localSwap.preimage && swapStatusFinal.includes(localSwap.status as LdsSwapStatus)
+      const isIndexedSwapWithPreimage = lockup.knownPreimage && lockup.knownPreimage.preimage
+
+      if (!isExpired && (isLocalSwapWithPreimage || isIndexedSwapWithPreimage)) {
         claimable.push(lockup)
       }
     })
