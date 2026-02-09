@@ -178,7 +178,11 @@ export default function TokenDetail() {
   const [showBondingModal, setShowBondingModal] = useState(false)
 
   // Use unified price hook for graduated/non-graduated tokens
-  const { priceFormatted: currentPrice, marketCapFormatted: marketCap } = useLaunchpadTokenPrice({
+  const {
+    priceFormatted: currentPrice,
+    marketCapFormatted: marketCap,
+    liquidityFormatted: liquidity,
+  } = useLaunchpadTokenPrice({
     tokenAddress,
     graduated,
     v2Pair,
@@ -207,14 +211,6 @@ export default function TokenDetail() {
       window.open(url, '_blank')
     }
   }, [tokenAddress, chainId])
-
-  // Format values
-  const liquidity = useMemo(() => {
-    if (!reserves) {
-      return '0'
-    }
-    return Number(formatUnits(reserves.realBase, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
-  }, [reserves])
 
   // Format volume from indexed data
   const volume = useMemo(() => {
