@@ -152,9 +152,9 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
           </Flex>
         </Flex>
         <Flex gap="$spacing4">
-          <Flex row gap="$spacing8" alignItems="center">
+          <Flex row gap="$spacing4" alignItems="center">
             <MultiBlockchainAddressDisplay enableCopyAddress={false} wallet={wallet} />
-            <CopyHelper toCopy={account} iconSize={14} iconPosition="right" alwaysShowIcon>
+            <CopyHelper toCopy={account} iconSize={12} iconPosition="right" alwaysShowIcon>
               <Text variant="body3" color="$neutral2">
                 {' '}
               </Text>
