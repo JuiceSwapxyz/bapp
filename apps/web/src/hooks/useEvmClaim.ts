@@ -1,14 +1,32 @@
 import { useCallback } from 'react'
-import { EvmLockup, getLdsBridgeManager, prefix0x } from 'uniswap/src/features/lds-bridge'
+import { EvmLockup, getLdsBridgeManager, helpMeClaim, prefix0x } from 'uniswap/src/features/lds-bridge'
 import { logger } from 'utilities/src/logger/logger'
 
 export function useEvmClaim() {
-  const executeClaim = useCallback(async (lockup: EvmLockup): Promise<string> => {
+  const executeClaimIndexed = useCallback(async (lockup: EvmLockup): Promise<string> => {
     try {
-      // Get local swap to retrieve swap ID
+      const preimage = lockup.knownPreimage?.preimage
+      if (!preimage) {
+        throw new Error('Preimage not found')
+      }
+      const { txHash } = await helpMeClaim({
+        preimage: prefix0x(preimage),
+        preimageHash: prefix0x(lockup.preimageHash),
+        chainId: Number(lockup.chainId),
+      })
+
+      return txHash
+    } catch (error) {
+      logger.error(error, { tags: { file: 'useEvmClaim', function: 'executeClaimIndexed' } })
+      throw error
+    }
+  }, [])
+
+  const executeClaimLocal = useCallback(async (lockup: EvmLockup): Promise<string> => {
+    try {
       const swaps = await getLdsBridgeManager().getSwaps()
       const localSwap = Object.entries(swaps).find(
-        ([, swap]) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash)
+        ([, swap]) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash),
       )
 
       if (!localSwap) {
@@ -17,7 +35,6 @@ export function useEvmClaim() {
 
       const [swapId] = localSwap
 
-      // Use autoClaimSwap which handles ponder confirmation and claim
       const claimedSwap = await getLdsBridgeManager().autoClaimSwap(swapId)
 
       if (!claimedSwap.claimTx) {
@@ -29,6 +46,15 @@ export function useEvmClaim() {
     } catch (error) {
       logger.error(error, { tags: { file: 'useEvmClaim', function: 'executeClaim' } })
       throw error
+    }
+  }, [])
+
+  const executeClaim = useCallback(async (lockup: EvmLockup): Promise<string> => {
+    try {
+      return await executeClaimLocal(lockup)
+    } catch (error) {
+      logger.error(error, { tags: { file: 'useEvmClaim', function: 'executeClaim' } })
+      return await executeClaimIndexed(lockup)
     }
   }, [])
 
