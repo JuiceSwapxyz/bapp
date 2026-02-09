@@ -10,8 +10,6 @@ import { LimitedSupportBanner } from 'components/Banner/LimitedSupportBanner'
 import { Power } from 'components/Icons/Power'
 import { Settings } from 'components/Icons/Settings'
 import StatusIcon from 'components/Identicon/StatusIcon'
-import { ExternalLink } from 'react-feather'
-
 import DelegationMismatchModal from 'components/delegation/DelegationMismatchModal'
 import { useAccount } from 'hooks/useAccount'
 import { useDisconnect } from 'hooks/useDisconnect'
@@ -22,6 +20,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useUserHasAvailableClaim, useUserUnclaimedAmount } from 'state/claim/hooks'
 import { CopyHelper } from 'theme/components/CopyHelper'
+import { ExternalLink } from 'theme/components/Links'
 import { Button, Flex, Text } from 'ui/src'
 import { Shine } from 'ui/src/loading/Shine'
 import AnimatedNumber, {
@@ -31,6 +30,7 @@ import { RelativeChange } from 'uniswap/src/components/RelativeChange/RelativeCh
 import { TestnetModeBanner } from 'uniswap/src/components/banners/TestnetModeBanner'
 import { useUnitagsAddressQuery } from 'uniswap/src/data/apiClients/unitagsApi/useUnitagsAddressQuery'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { usePortfolioTotalValue } from 'uniswap/src/features/dataApi/balances/balances'
 import { useENSName } from 'uniswap/src/features/ens/api'
 import { FiatCurrency } from 'uniswap/src/features/fiatCurrency/constants'
@@ -81,9 +81,13 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
     navigate(`/buy`, { replace: true })
   }, [accountDrawer, navigate])
 
-  const explorerUrl = connectedAccount.chainId
-    ? getExplorerLink({ chainId: connectedAccount.chainId, data: account, type: ExplorerDataType.ADDRESS })
-    : undefined
+  const chainIdForExplorer =
+    connectedAccount.chainId ?? (isTestnetModeEnabled ? UniverseChainId.CitreaTestnet : UniverseChainId.CitreaMainnet)
+  const explorerUrl = getExplorerLink({
+    chainId: chainIdForExplorer,
+    data: account,
+    type: ExplorerDataType.ADDRESS,
+  })
 
   const { data, networkStatus, loading } = usePortfolioTotalValue({
     address: account,
@@ -147,26 +151,27 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
             </Trace>
           </Flex>
         </Flex>
-        <Flex row gap="$spacing8" alignItems="center">
-          <Flex gap="$spacing4">
-            <MultiBlockchainAddressDisplay enableCopyAddress={!showAddress} wallet={wallet} />
-            {showAddress && (
-              <CopyHelper iconSize={14} iconPosition="right" toCopy={account}>
-                <Text variant="body3" color="neutral3" data-testid={TestID.AddressDisplayCopyHelper}>
-                  {shortenAddress(account)}
-                </Text>
-              </CopyHelper>
-            )}
+        <Flex gap="$spacing4">
+          <Flex row gap="$spacing4" alignItems="center">
+            <MultiBlockchainAddressDisplay enableCopyAddress={false} wallet={wallet} />
+            <CopyHelper toCopy={account} iconSize={12} iconPosition="right" alwaysShowIcon>
+              <Text variant="body3" color="$neutral2">
+                {' '}
+              </Text>
+            </CopyHelper>
           </Flex>
-          {explorerUrl && (
-            <IconButton
-              Icon={ExternalLink}
-              href={explorerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="wallet-explorer-link"
-            />
+          {showAddress && (
+            <Text variant="body3" color="$neutral3" data-testid={TestID.AddressDisplayCopyHelper}>
+              {shortenAddress(account)}
+            </Text>
           )}
+          <ExternalLink
+            href={explorerUrl}
+            data-testid="wallet-explorer-link"
+            style={{ fontSize: 'inherit', fontWeight: 400 }}
+          >
+            Explorer
+          </ExternalLink>
         </Flex>
         <Flex flex={1} mt="$spacing16">
           <Flex gap="$spacing4" mb="$spacing16" data-testid="portfolio-total-balance">

@@ -206,6 +206,9 @@ export async function fetchEvmRefundableAndClaimableLockups(address: string): Pr
               refunded
               claimTxHash
               refundTxHash
+              knownPreimage {
+                preimage
+              }
             }
           }
         }

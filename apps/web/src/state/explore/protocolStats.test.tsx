@@ -1,7 +1,7 @@
-import { ProtocolStatsResponse } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
 import { ExploreContext } from 'state/explore'
 import { use24hProtocolVolume, useDailyTVLWithChange } from 'state/explore/protocolStats'
 import { render, screen } from 'test-utils/render'
+import { JuiceswapProtocolStatsResponse } from 'uniswap/src/data/rest/juiceswapProtocolStats'
 import * as GatingHooks from 'uniswap/src/features/gating/hooks'
 import type { Mock } from 'vitest'
 
@@ -19,27 +19,27 @@ const mockHistoricalProtocolVolume = {
   Month: {
     v2: [createTimestampedAmount(1, 100)],
     v3: [createTimestampedAmount(1, 150)],
-    v4: [createTimestampedAmount(1, 200)],
+    bridge: [createTimestampedAmount(1, 200)],
   },
 }
 
 mockHistoricalProtocolVolume.Month.v2.push(createTimestampedAmount(2, 200))
 mockHistoricalProtocolVolume.Month.v3.push(createTimestampedAmount(2, 300))
-mockHistoricalProtocolVolume.Month.v4.push(createTimestampedAmount(2, 400))
+mockHistoricalProtocolVolume.Month.bridge.push(createTimestampedAmount(2, 400))
 
 const mockDailyProtocolTvl = {
   v2: [createTimestampedAmount(1, 250)],
   v3: [createTimestampedAmount(1, 300)],
-  v4: [createTimestampedAmount(1, 350)],
+  bridge: [createTimestampedAmount(1, 350)],
 }
 mockDailyProtocolTvl.v2.push(createTimestampedAmount(2, 500))
 mockDailyProtocolTvl.v3.push(createTimestampedAmount(2, 600))
-mockDailyProtocolTvl.v4.push(createTimestampedAmount(2, 700))
+mockDailyProtocolTvl.bridge.push(createTimestampedAmount(2, 700))
 
 const mockProtocolStatsData = {
   historicalProtocolVolume: mockHistoricalProtocolVolume,
   dailyProtocolTvl: mockDailyProtocolTvl,
-} as unknown as ProtocolStatsResponse
+} as unknown as JuiceswapProtocolStatsResponse
 
 const mockContextValue = {
   exploreStats: { data: undefined, isLoading: false, error: false },
@@ -73,7 +73,7 @@ describe('use24hProtocolVolume', () => {
     expect(result.isLoading).toBe(false)
     expect(result.totalVolume).toBe(900)
     expect(result.totalChangePercent).toBe(100)
-    expect(result.protocolVolumes).toEqual({ v2: 200, v3: 300, v4: 400 })
+    expect(result.protocolVolumes).toEqual({ v2: 200, v3: 300, bridge: 400 })
   })
 })
 
@@ -90,7 +90,7 @@ describe('useDailyTVLWithChange', () => {
     expect(result.isLoading).toBe(false)
     expect(result.totalTVL).toBe(1800)
     expect(result.totalChangePercent).toBe(100)
-    expect(result.protocolTVL).toEqual({ v2: 500, v3: 600, v4: 700 })
-    expect(result.protocolChangePercent).toEqual({ v2: 100, v3: 100, v4: 100 })
+    expect(result.protocolTVL).toEqual({ v2: 500, v3: 600, bridge: 700 })
+    expect(result.protocolChangePercent).toEqual({ v2: 100, v3: 100, bridge: 100 })
   })
 })

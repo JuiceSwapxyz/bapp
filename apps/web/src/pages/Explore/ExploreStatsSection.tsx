@@ -47,15 +47,15 @@ const ExploreStatsSection = () => {
         value: formatPrice(totalVolume),
         change: volume24hChangePercent,
         protocolPopoverFormattedData: [
-          { label: t('common.protocol.v4'), value: protocolVolumes.v4 },
           { label: t('common.protocol.v3'), value: protocolVolumes.v3 },
           { label: t('common.protocol.v2'), value: protocolVolumes.v2 },
+          { label: t('explore.bridge'), value: protocolVolumes.bridge },
         ],
       },
       { label: t('common.totalUniswapTVL'), value: formatPrice(totalTVL), change: totalTVL24hrChangePercent },
       { label: t('explore.v2TVL'), value: formatPrice(protocolTVL.v2), change: protocolChangePercent.v2 },
       { label: t('explore.v3TVL'), value: formatPrice(protocolTVL.v3), change: protocolChangePercent.v3 },
-      { label: t('explore.v4TVL'), value: formatPrice(protocolTVL.v4), change: protocolChangePercent.v4 },
+      { label: t('explore.bridgeTVL'), value: formatPrice(protocolTVL.bridge), change: protocolChangePercent.bridge },
     ]
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -65,17 +65,17 @@ const ExploreStatsSection = () => {
     convertFiatAmountFormatted,
     totalVolume,
     volume24hChangePercent,
-    protocolVolumes.v4,
     protocolVolumes.v3,
     protocolVolumes.v2,
+    protocolVolumes.bridge,
     totalTVL,
     totalTVL24hrChangePercent,
     protocolTVL.v2,
     protocolTVL.v3,
-    protocolTVL.v4,
+    protocolTVL.bridge,
     protocolChangePercent.v2,
     protocolChangePercent.v3,
-    protocolChangePercent.v4,
+    protocolChangePercent.bridge,
   ])
 
   return (
@@ -125,18 +125,20 @@ const StatDisplay = memo(({ data, isLoading, isHoverable }: StatDisplayProps) =>
           {data.value}
         </Text>
       )}
-      <Flex row alignItems="center" gap="$spacing2" style={{ fontSize: 12 }}>
-        {isLoading ? (
-          <LoadingBubble height="12px" width="30px" />
-        ) : (
-          <Fragment>
-            <DeltaArrow delta={data.change} formattedDelta={formatPercent(Math.abs(data.change))} size={12} />
-            <Text variant="body4" color="$neutral1">
-              {formatPercent(Math.abs(data.change))}
-            </Text>
-          </Fragment>
-        )}
-      </Flex>
+      {(isLoading || data.change !== 0) && (
+        <Flex row alignItems="center" gap="$spacing2" style={{ fontSize: 12 }}>
+          {isLoading ? (
+            <LoadingBubble height="12px" width="30px" />
+          ) : (
+            <Fragment>
+              <DeltaArrow delta={data.change} formattedDelta={formatPercent(Math.abs(data.change))} size={12} />
+              <Text variant="body4" color="$neutral1">
+                {formatPercent(Math.abs(data.change))}
+              </Text>
+            </Fragment>
+          )}
+        </Flex>
+      )}
     </Flex>
   )
 })
