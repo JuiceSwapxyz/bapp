@@ -1,9 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { Flex, SpinningLoader, Text } from 'ui/src'
-import { Check } from 'ui/src/components/icons/Check'
-import { TimePast } from 'ui/src/components/icons/TimePast'
+import { Flex } from 'ui/src'
 import { Separator } from 'ui/src/components/layout/Separator'
-import { iconSizes } from 'ui/src/theme'
 import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 import { InvoiceLikeStringDisplay } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/InvoiceLikeStringDisplay'
@@ -11,6 +8,7 @@ import {
   BitcoinLikeAddressType,
   SwapEnterBitcoinLikeAddress,
 } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapEnterBitcoinLikeAddress'
+import { getStepStatus, StepItem } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/StepItem'
 import { useLnBrideSwapDetails } from 'uniswap/src/features/transactions/swap/review/hooks/useLnBrideSwapDetails'
 import { useSwapReviewStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewStore/useSwapReviewStore'
 import {
@@ -37,54 +35,6 @@ const LN_REVERSE_ORDER = [
   LnReverseSubStep.Claiming,
   LnReverseSubStep.Complete,
 ]
-
-interface StepItemProps {
-  label: string
-  status: 'pending' | 'active' | 'completed'
-}
-
-function StepItem({ label, status }: StepItemProps): JSX.Element {
-  return (
-    <Flex row alignItems="center" gap="$spacing8">
-      {status === 'completed' ? (
-        <Check size={iconSizes.icon16} color="$accent1" />
-      ) : status === 'active' ? (
-        <SpinningLoader size={iconSizes.icon16} color="$accent1" />
-      ) : (
-        <Flex width={iconSizes.icon16} height={iconSizes.icon16} alignItems="center" justifyContent="center">
-          <TimePast size={iconSizes.icon12} color="$neutral3" />
-        </Flex>
-      )}
-      <Text
-        variant="body3"
-        color={status === 'completed' ? '$accent1' : status === 'active' ? '$neutral1' : '$neutral3'}
-      >
-        {label}
-      </Text>
-    </Flex>
-  )
-}
-
-function getStepStatus<T extends string>(
-  order: T[],
-  stepSubSteps: T[],
-  currentSubStep: T | undefined,
-): 'pending' | 'active' | 'completed' {
-  if (!currentSubStep) {
-    return 'pending'
-  }
-  const currentIndex = order.indexOf(currentSubStep)
-  const stepMinIndex = Math.min(...stepSubSteps.map((s) => order.indexOf(s)))
-  const stepMaxIndex = Math.max(...stepSubSteps.map((s) => order.indexOf(s)))
-
-  if (currentIndex > stepMaxIndex) {
-    return 'completed'
-  }
-  if (currentIndex >= stepMinIndex && currentIndex <= stepMaxIndex) {
-    return 'active'
-  }
-  return 'pending'
-}
 
 function LnReverseSteps({ subStep }: { subStep: LnReverseSubStep | undefined }): JSX.Element | null {
   const { t } = useTranslation()
