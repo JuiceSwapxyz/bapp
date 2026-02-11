@@ -1,5 +1,5 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import { createPonderApiClient } from 'uniswap/src/data/apiClients/ponderApi/PonderApi'
+import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 type ExploreStatsResponse = {
@@ -8,10 +8,12 @@ type ExploreStatsResponse = {
   }
 }
 
-const PonderApiClient = createPonderApiClient()
+const juiceSwapApiClient = createApiClient({
+  baseUrl: (process.env.REACT_APP_TRADING_API_URL_OVERRIDE || process.env.REACT_APP_JUICESWAP_API_URL) as string,
+})
 
 const fetchExploreStats = (chainId?: number): Promise<ExploreStatsResponse> => {
-  return PonderApiClient.get<ExploreStatsResponse>(`/exploreStats`, {
+  return juiceSwapApiClient.get<ExploreStatsResponse>('/v1/explore/stats', {
     params: chainId ? { chainId } : undefined,
   })
 }
