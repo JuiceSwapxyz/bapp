@@ -1,12 +1,7 @@
+import { ExploreStatsResponse } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-
-type ExploreStatsResponse = {
-  stats: {
-    transactionStats: unknown[]
-  }
-}
 
 const juiceSwapApiClient = createApiClient({
   baseUrl: (process.env.REACT_APP_TRADING_API_URL_OVERRIDE || process.env.REACT_APP_JUICESWAP_API_URL) as string,
