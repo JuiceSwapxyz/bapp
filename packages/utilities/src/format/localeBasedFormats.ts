@@ -513,8 +513,7 @@ export const fiatTokenPricesFormatter: Formatter = {
 
 export const fiatTokenStatsFormatter: Formatter = {
   rules: [
-    // if token stat value is 0, we probably don't have the data for it, so show '-' as a placeholder
-    { exact: 0, formatter: '-' },
+    { exact: 0, formatter: NoDecimalsCurrency },
     {
       upperBound: 0.01,
       overrideValue: 0.01,
@@ -529,8 +528,7 @@ export const fiatTokenStatsFormatter: Formatter = {
 
 const tokenQuantityStatsFormatter: Formatter = {
   rules: [
-    // if token stat value is 0, we probably don't have the data for it, so show '-' as a placeholder
-    { exact: 0, formatter: '-' },
+    { exact: 0, formatter: NoDecimals },
     { upperBound: 0.01, formatter: '<0.01' },
     { upperBound: 1000, formatter: TwoDecimals },
     { upperBound: Infinity, formatter: ShorthandOneDecimal },
