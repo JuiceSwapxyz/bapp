@@ -2,6 +2,7 @@ import { BigNumber } from 'bignumber.js'
 import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { ensureCorrectChain } from 'state/sagas/transactions/chainSwitchUtils'
+import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { getSigner } from 'state/sagas/transactions/utils'
 import { call } from 'typed-redux-saga'
 import { fetchLightningInvoice } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
@@ -14,7 +15,11 @@ import {
   pollForClaimablePreimage,
 } from 'uniswap/src/features/lds-bridge'
 import { ASSET_CHAIN_ID_MAP } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
-import { LightningBridgeSubmarineStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
+import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
+import {
+  LightningBridgeSubmarineStep,
+  LnSubmarineSubStep,
+} from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
@@ -28,10 +33,47 @@ interface HandleLightningBridgeSubmarineParams {
   selectChain: (chainId: UniverseChainId) => Promise<boolean>
   onTransactionHash?: (hash: string) => void
   onSuccess?: () => void
+  auth: JuiceswapAuthFunctions
 }
 
 export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSubmarineParams) {
-  const { step, setCurrentStep, trade, account, destinationAddress, selectChain, onTransactionHash, onSuccess } = params
+  const { step, setCurrentStep, trade, account, destinationAddress, selectChain, onTransactionHash, onSuccess, auth } =
+    params
+
+  // --- Auth check ---
+  setCurrentStep({
+    step: { ...step, subStep: LnSubmarineSubStep.CheckingAuth },
+    accepted: false,
+  })
+
+  const isAuthenticated = auth.getIsAuthenticated(account.address)
+
+  if (!isAuthenticated) {
+    setCurrentStep({
+      step: { ...step, subStep: LnSubmarineSubStep.WaitingForAuth },
+      accepted: false,
+    })
+
+    setCurrentStep({
+      step: { ...step, subStep: LnSubmarineSubStep.Authenticating },
+      accepted: false,
+    })
+
+    const authResult = yield* call(auth.handleAuthenticate)
+    if (!authResult) {
+      throw new TransactionStepFailedError({
+        message: 'Authentication failed. Please sign the message to continue.',
+        step,
+        originalError: new Error('Authentication rejected'),
+      })
+    }
+  }
+
+  // --- Lock ---
+  setCurrentStep({
+    step: { ...step, subStep: LnSubmarineSubStep.LockingTokens },
+    accepted: false,
+  })
 
   const outputAmountBTC = new BigNumber(trade.outputAmount.toExact())
 
@@ -49,6 +91,7 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
   const submarineSwap = yield* call([ldsBridge, ldsBridge.createSubmarineSwap], {
     invoice,
     chainId: citreaChainId,
+    userId: account.address,
   })
 
   step.backendAccepted = true
@@ -75,7 +118,7 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
     onTransactionHash(evmTxResult.hash)
   }
 
-  setCurrentStep({ step, accepted: true })
+  setCurrentStep({ step: { ...step, subStep: LnSubmarineSubStep.LockingTokens }, accepted: true })
 
   popupRegistry.addPopup(
     {
@@ -87,12 +130,22 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
     evmTxResult.hash,
   )
 
-  if (onSuccess) {
-    yield* call(onSuccess)
-  }
+  // --- Bridge ---
+  setCurrentStep({
+    step: { ...step, subStep: LnSubmarineSubStep.WaitingForBridge },
+    accepted: true,
+  })
 
   const chainId = ASSET_CHAIN_ID_MAP[submarineSwap.assetReceive]
   yield* call(pollForClaimablePreimage, preimageHash, chainId)
+
+  // --- Complete ---
+  setCurrentStep({
+    step: { ...step, subStep: LnSubmarineSubStep.Complete },
+    accepted: true,
+  })
+
+  popupRegistry.removePopup(evmTxResult.hash)
 
   popupRegistry.addPopup(
     {
@@ -103,4 +156,8 @@ export function* handleLightningBridgeSubmarine(params: HandleLightningBridgeSub
     },
     preimageHash,
   )
+
+  if (onSuccess) {
+    yield* call(onSuccess)
+  }
 }

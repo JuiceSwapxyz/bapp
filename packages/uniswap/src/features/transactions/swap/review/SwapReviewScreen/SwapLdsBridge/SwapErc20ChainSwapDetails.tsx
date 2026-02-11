@@ -11,6 +11,9 @@ import {
 } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
 
 const SUB_STEP_ORDER = [
+  Erc20ChainSwapSubStep.CheckingAuth,
+  Erc20ChainSwapSubStep.WaitingForAuth,
+  Erc20ChainSwapSubStep.Authenticating,
   Erc20ChainSwapSubStep.CheckingAllowance,
   Erc20ChainSwapSubStep.WaitingForApproval,
   Erc20ChainSwapSubStep.ApprovingToken,
@@ -89,7 +92,13 @@ export function SwapErc20ChainSwapDetails(): JSX.Element | null {
   // 2. Lock (WaitingForLock, LockingTokens)
   // 3. Bridge (WaitingForBridge)
   // 4. Claim (ClaimingTokens, Complete)
-
+  
+  const authSubSteps = [
+    Erc20ChainSwapSubStep.CheckingAuth,
+    Erc20ChainSwapSubStep.WaitingForAuth,
+    Erc20ChainSwapSubStep.Authenticating,
+  ]
+  
   const approveSubSteps = [
     Erc20ChainSwapSubStep.CheckingAllowance,
     Erc20ChainSwapSubStep.WaitingForApproval,
@@ -99,6 +108,7 @@ export function SwapErc20ChainSwapDetails(): JSX.Element | null {
   const bridgeSubSteps = [Erc20ChainSwapSubStep.WaitingForBridge]
   const claimSubSteps = [Erc20ChainSwapSubStep.ClaimingTokens, Erc20ChainSwapSubStep.Complete]
 
+  const authStatus = getStepStatus(authSubSteps, subStep)
   const approveStatus = getStepStatus(approveSubSteps, subStep)
   const lockStatus = getStepStatus(lockSubSteps, subStep)
   const bridgeStatus = getStepStatus(bridgeSubSteps, subStep)
@@ -107,6 +117,7 @@ export function SwapErc20ChainSwapDetails(): JSX.Element | null {
   return (
     <Flex gap="$spacing12" px="$spacing12" py="$spacing8">
       <Flex gap="$spacing8" pl="$spacing4">
+      <StepItem label={t('swap.crossChain.step.authorize')} status={authStatus} />
         <StepItem label={t('swap.crossChain.step.approve')} status={approveStatus} />
         <StepItem label={t('swap.crossChain.step.lock')} status={lockStatus} />
         <StepItem label={t('swap.crossChain.step.bridge')} status={bridgeStatus} />

@@ -4,6 +4,7 @@ import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
+import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { call } from 'typed-redux-saga'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -136,10 +137,11 @@ interface HandleErc20ChainSwapParams {
   selectChain: (chainId: UniverseChainId) => Promise<boolean>
   onTransactionHash?: (hash: string) => void
   onSuccess?: () => void
+  auth: JuiceswapAuthFunctions
 }
 
 export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
-  const { step, setCurrentStep, trade, account, selectChain, onTransactionHash, onSuccess } = params
+  const { step, setCurrentStep, trade, account, selectChain, onTransactionHash, onSuccess, auth } = params
   const isPolygonToCitrea = step.direction === Erc20ChainSwapDirection.PolygonToCitrea
   const isEthereumToCitrea = step.direction === Erc20ChainSwapDirection.EthereumToCitrea
   const isCitreaToPolygon = step.direction === Erc20ChainSwapDirection.CitreaToPolygon
@@ -206,6 +208,24 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     to,
     claimAddress: account.address,
     userLockAmount,
+    userId: account.address,
+  }
+
+  const isAuthenticated = auth.getIsAuthenticated(account.address)
+
+  if (!isAuthenticated) {
+    const authResult = yield* call(auth.handleAuthenticate)
+    setCurrentStep({
+      step: { ...step, subStep: Erc20ChainSwapSubStep.WaitingForAuth },
+      accepted: false,
+    })
+    if (!authResult) {
+      throw new TransactionStepFailedError({
+        message: 'Authentication failed. Please sign the message to continue.',
+        step,
+        originalError: new Error('Authentication rejected'),
+      })
+    }
   }
 
   // Set initial substep immediately so UI shows progress

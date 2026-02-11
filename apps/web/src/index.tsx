@@ -36,6 +36,7 @@ import { LocalizationContextProvider } from 'uniswap/src/features/language/Local
 import i18n from 'uniswap/src/i18n'
 // import { initializeDatadog } from 'uniswap/src/utils/datadog' // Commented out - Datadog disabled
 // import { localDevDatadogEnabled } from 'utilities/src/environment/constants' // Commented out - Datadog disabled
+import { JuiceswapAuthProvider } from 'hooks/useJuiceswapAuth'
 import { isTestEnv } from 'utilities/src/environment/env'
 import { isBrowserRouterEnabled } from 'utils/env'
 import { unregister as unregisterServiceWorker } from 'utils/serviceWorker'
@@ -182,8 +183,10 @@ createRoot(container).render(
                                   <ThemeProvider>
                                     <TamaguiProvider>
                                       <PortalProvider>
-                                        <ThemedGlobalStyle />
-                                        <App />
+                                        <JuiceswapAuthProvider>
+                                          <ThemedGlobalStyle />
+                                          <App />
+                                        </JuiceswapAuthProvider>
                                       </PortalProvider>
                                     </TamaguiProvider>
                                   </ThemeProvider>

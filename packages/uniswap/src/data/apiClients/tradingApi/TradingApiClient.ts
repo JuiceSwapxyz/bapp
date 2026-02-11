@@ -71,9 +71,13 @@ import {
 } from 'uniswap/src/data/tradingApi/__generated__'
 import {
   BitcoinBridgeDirection,
+  BulkCreateBridgeSwapResponse,
+  CreateBridgeSwapRequest,
+  CreateBridgeSwapResponse,
   Erc20ChainSwapDirection,
   FeeType,
   GasStrategy,
+  GetBridgeSwapsByUserResponse,
   LightningBridgeDirection,
   LightningInvoice,
   PoolDetailsResponse,
@@ -169,6 +173,53 @@ type TokenApprovalResponse = {
   maxPriorityFeePerGas: string
 }
 
+const AUTH_TOKENS_KEY = 'juiceSwapAuthTokens'
+
+function isTokenExpired(token: string): boolean {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3 || !parts[1]) {
+      return true
+    }
+    const payload = JSON.parse(atob(parts[1]))
+    return payload.exp * 1000 < Date.now()
+  } catch {
+    return true
+  }
+}
+
+function getStoredTokens(): Record<string, string> {
+  try {
+    const stored = localStorage.getItem(AUTH_TOKENS_KEY)
+    return stored ? JSON.parse(stored) : {}
+  } catch {
+    return {}
+  }
+}
+
+export function getTokenForAddress(address: string): string {
+  const tokens = getStoredTokens()
+  const token = tokens[address.toLowerCase()]
+  
+  if (!token || isTokenExpired(token)) {
+    return ''
+  }
+  
+  return token
+}
+
+function saveTokenForAddress(address: string, token: string): void {
+  const tokens = getStoredTokens()
+  tokens[address.toLowerCase()] = token
+  localStorage.setItem(AUTH_TOKENS_KEY, JSON.stringify(tokens))
+}
+
+function removeTokenForAddress(address: string): void {
+  const tokens = getStoredTokens()
+  delete tokens[address.toLowerCase()]
+  localStorage.setItem(AUTH_TOKENS_KEY, JSON.stringify(tokens))
+}
+
 const TradingApiClient = createApiClient({
   baseUrl: uniswapUrls.tradingApiUrl,
   additionalHeaders: {
@@ -176,13 +227,46 @@ const TradingApiClient = createApiClient({
   },
 })
 
-// Custom quote client for selective endpoint override
-const CustomQuoteApiClient = createApiClient({
-  baseUrl: uniswapUrls.tradingApiUrl,
-  additionalHeaders: {
-    'x-api-key': config.tradingApiKey,
-  },
-})
+export const authenticate = async (address: string, signFunction: ({ message }: { message: string }) => Promise<string>) => {
+  const { message } = await TradingApiClient.get<{ message: string }>(`/v1/auth/nonce?address=${address}`)
+  const signature = await signFunction({ message })
+
+  const { token } = await TradingApiClient.post<{ token: string }>('/v1/auth/verify', {
+    body: JSON.stringify({
+      address,
+      signature,
+    }),
+  })
+
+  TradingApiClient.setAuthorizationHeader(token)
+  saveTokenForAddress(address, token)
+}
+
+export const setAuthForAddress = (address: string): void => {
+  const token = getTokenForAddress(address)
+  if (token) {
+    TradingApiClient.setAuthorizationHeader(token)
+  } else {
+    TradingApiClient.setAuthorizationHeader('')
+  }
+}
+
+export const checkAuthentication = async (address: string): Promise<boolean> => {
+  try {
+    const token = getTokenForAddress(address)
+    if (!token) {
+      return false
+    }
+    
+    TradingApiClient.setAuthorizationHeader(token)
+    await TradingApiClient.get<{ message: string }>(`/v1/auth/me`)
+    return true
+  } catch (error) {
+    removeTokenForAddress(address)
+    TradingApiClient.setAuthorizationHeader('')
+    return false
+  }
+}
 
 const V4_HEADERS = {
   'x-universal-router-version': UniversalRouterVersion._2_0,
@@ -664,7 +748,7 @@ async function getWbtcBridgeQuote(params: QuoteRequest): Promise<BridgeQuoteResp
 }
 
 export const swapQuote = async (params: QuoteRequest): Promise<DiscriminatedQuoteResponse> => {
-  return CustomQuoteApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
+  return TradingApiClient.post<DiscriminatedQuoteResponse>(uniswapUrls.tradingApiPaths.quote, {
     body: JSON.stringify({
       ...params,
       type: 'EXACT_INPUT', // TODO: Remove this once the backend is updated
@@ -785,7 +869,7 @@ export async function fetchSwap({ ...params }: CreateSwapRequest): Promise<Creat
     ...params.customSwapData,
   }
 
-  const response = await CustomQuoteApiClient.post<{
+  const response = await TradingApiClient.post<{
     data: string
     to: string
     value: string
@@ -904,9 +988,9 @@ async function computeApprovalTransaction(params: ApprovalRequestWithRouting): P
         cancel: null,
       } as unknown as ApprovalResponse
     }
-  } catch (error) {}
+  } catch (error) { }
 
-  const result = await CustomQuoteApiClient.post<{
+  const result = await TradingApiClient.post<{
     gasFee: string
     tokenApproval: TokenApprovalResponse
     requestId: string
@@ -1019,7 +1103,7 @@ export async function fetchSwappableTokens(params: SwappableTokensParams): Promi
 }
 
 export async function createLpPosition(params: CreateLPPositionRequest): Promise<CreateLPPositionResponse> {
-  return await CustomQuoteApiClient.post<CreateLPPositionResponse>(uniswapUrls.tradingApiPaths.createLp, {
+  return await TradingApiClient.post<CreateLPPositionResponse>(uniswapUrls.tradingApiPaths.createLp, {
     body: JSON.stringify({
       ...params,
     }),
@@ -1052,7 +1136,7 @@ export async function checkLpApproval(
   params: CheckApprovalLPRequest,
   headers?: Record<string, string>,
 ): Promise<CheckApprovalLPResponse> {
-  return await CustomQuoteApiClient.post<CheckApprovalLPResponse>(uniswapUrls.tradingApiPaths.lpApproval, {
+  return await TradingApiClient.post<CheckApprovalLPResponse>(uniswapUrls.tradingApiPaths.lpApproval, {
     body: JSON.stringify({
       ...params,
     }),
@@ -1075,7 +1159,7 @@ export async function claimLpFees(params: ClaimLPFeesRequest): Promise<ClaimLPFe
 }
 
 export async function fetchSwaps(params: { txHashes: TransactionHash[]; chainId: ChainId }): Promise<GetSwapsResponse> {
-  return await CustomQuoteApiClient.get<GetSwapsResponse>(uniswapUrls.tradingApiPaths.swaps, {
+  return await TradingApiClient.get<GetSwapsResponse>(uniswapUrls.tradingApiPaths.swaps, {
     params: {
       txHashes: params.txHashes.join(','),
       chainId: params.chainId,
@@ -1337,5 +1421,26 @@ export async function fetchSvJusdSharePrice(params: { chainId: number }): Promis
     params: {
       chainId: params.chainId.toString(),
     },
+  })
+}
+
+
+export const saveBridgeSwap = async (params: CreateBridgeSwapRequest): Promise<CreateBridgeSwapResponse> => {
+  return await TradingApiClient.post<CreateBridgeSwapResponse>('/v1/bridge-swap', {
+    body: JSON.stringify({
+      ...params,
+    }),
+  })
+}
+
+export const fetchBridgeSwaps = async (address: string): Promise<GetBridgeSwapsByUserResponse> => {
+  return await TradingApiClient.get<GetBridgeSwapsByUserResponse>(`/v1/bridge-swap/user/${address}`)
+}
+
+export const saveBridgeSwapBulk = async (params: CreateBridgeSwapRequest[]): Promise<BulkCreateBridgeSwapResponse> => {
+  return await TradingApiClient.post<BulkCreateBridgeSwapResponse>('/v1/bridge-swap/bulk', {
+    body: JSON.stringify({
+      swaps: params,
+    }),
   })
 }

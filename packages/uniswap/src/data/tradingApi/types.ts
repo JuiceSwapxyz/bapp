@@ -150,3 +150,148 @@ export interface PoolDetailsResponse {
     }
   }
 }
+
+export type SwapType = "submarine" | "reverse" | "chain";
+
+/**
+ * POST /v1/bridge-swaps
+ * Create a new bridge swap record
+ */
+export interface CreateBridgeSwapRequest {
+  id: string;
+  userId: string;
+  type: SwapType;
+  version: number;
+  status: string;
+  assetSend: string;
+  assetReceive: string;
+  sendAmount: string | number;
+  receiveAmount: string | number;
+  date: string | number;
+  preimage: string;
+  preimageHash: string;
+  preimageSeed: string;
+  keyIndex: number;
+  claimPrivateKeyIndex?: number;
+  refundPrivateKeyIndex?: number;
+  claimAddress: string;
+  address?: string;
+  refundAddress?: string;
+  lockupAddress?: string;
+  claimTx?: string;
+  refundTx?: string;
+  lockupTx?: string;
+  invoice?: string;
+  acceptZeroConf?: boolean;
+  expectedAmount?: string | number;
+  onchainAmount?: string | number;
+  timeoutBlockHeight?: number;
+  claimDetails?: any;
+  lockupDetails?: any;
+  referralId?: string;
+  chainId?: number;
+}
+
+/**
+ * POST /v1/bridge-swaps/bulk
+ * Create multiple bridge swap records in a single transaction
+ */
+export interface BulkCreateBridgeSwapRequest {
+  swaps: CreateBridgeSwapRequest[];
+}
+
+/**
+ * GET /v1/bridge-swaps/user/:userId
+ * Query parameters for getting bridge swaps by user
+ */
+export interface GetBridgeSwapsByUserQuery {
+  limit?: string | number; // Default: 50, Max: 100
+  offset?: string | number; // Default: 0
+  status?: string;
+}
+
+// ============================================================================
+// Response Types
+// ============================================================================
+
+/**
+ * Bridge swap record returned from GET endpoints
+ */
+export interface BridgeSwapResponse {
+  id: string;
+  userId: string;
+  type: SwapType;
+  version: number;
+  status: string;
+  assetSend: string;
+  assetReceive: string;
+  sendAmount: string; // BigInt as string
+  receiveAmount: string; // BigInt as string
+  date: string; // Unix timestamp as string
+  preimage: string;
+  preimageHash: string;
+  preimageSeed: string;
+  keyIndex: number;
+  claimPrivateKeyIndex: number | null;
+  refundPrivateKeyIndex: number | null;
+  claimAddress: string;
+  address: string | null;
+  refundAddress: string | null;
+  lockupAddress: string | null;
+  claimTx: string | null;
+  refundTx: string | null;
+  lockupTx: string | null;
+  invoice: string | null;
+  acceptZeroConf: boolean | null;
+  expectedAmount: string | null; // BigInt as string
+  onchainAmount: string | null; // BigInt as string
+  timeoutBlockHeight: number | null;
+  claimDetails: any | null;
+  lockupDetails: any | null;
+  referralId: string | null;
+  chainId: number | null;
+  createdAt: string; // ISO 8601 timestamp
+  updatedAt: string; // ISO 8601 timestamp
+}
+
+/**
+ * POST /v1/bridge-swaps
+ * Response: 201 Created
+ */
+export type CreateBridgeSwapResponse = BridgeSwapResponse;
+
+/**
+ * POST /v1/bridge-swaps/bulk
+ * Response: 201 Created
+ */
+export interface BulkCreateBridgeSwapResponse {
+  count: number; // Number of swaps successfully created
+  requested: number; // Number of swaps in the request
+  skipped: number; // Number of duplicate swaps skipped
+}
+
+/**
+ * GET /v1/bridge-swaps/:id
+ * Response: 200 OK
+ */
+export type GetBridgeSwapByIdResponse = BridgeSwapResponse;
+
+/**
+ * GET /v1/bridge-swaps/user/:userId
+ * Response: 200 OK
+ */
+export interface GetBridgeSwapsByUserResponse {
+  swaps: BridgeSwapResponse[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+// ============================================================================
+// Error Response Types
+// ============================================================================
+
+export interface ErrorResponse {
+  error: string;
+  detail: string;
+}
