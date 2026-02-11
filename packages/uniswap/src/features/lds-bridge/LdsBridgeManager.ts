@@ -440,58 +440,67 @@ class LdsBridgeManager extends SwapEventEmitter {
     const claims = lockupsItems.filter((lockup) => lockup.claimAddress.toLowerCase() === userAddress.toLowerCase())
     const refunds = lockupsItems.filter((lockup) => lockup.refundAddress.toLowerCase() === userAddress.toLowerCase())
 
-    let hasUpdates = false
-
     // Update swaps with claim transactions
+    const updatedClaims: SomeSwap[] = []
     for (const claim of claims) {
       const swapEntry = Object.entries(swaps).find(
         ([_, swap]) => prefix0x(swap.preimageHash) === prefix0x(claim.preimageHash),
       )
 
       if (swapEntry) {
-        const [swapId, swap] = swapEntry
+        const [_swapId, swap] = swapEntry
         if (!swap.claimTx && claim.claimTxHash) {
           swap.claimTx = claim.claimTxHash
           swap.status = LdsSwapStatus.UserClaimed
-          await this.storageManager.setSwap(swapId, swap)
-          hasUpdates = true
+          updatedClaims.push(swap)
         }
       }
     }
 
+    if (updatedClaims.length > 0) {
+      await this.storageManager.saveBulkSwaps(updatedClaims)
+      await this._notifySwapChanges()
+    }
+
     // Update swaps with refund transactions
+    const updatedRefunds: SomeSwap[] = []
     for (const refund of refunds) {
       const swapEntry = Object.entries(swaps).find(
         ([_, swap]) => prefix0x(swap.preimageHash) === prefix0x(refund.preimageHash),
       )
 
       if (swapEntry) {
-        const [swapId, swap] = swapEntry
+        const [_swapId, swap] = swapEntry
         if (!swap.refundTx && refund.refundTxHash) {
           swap.refundTx = refund.refundTxHash
           swap.status = LdsSwapStatus.UserRefunded
-          await this.storageManager.setSwap(swapId, swap)
-          hasUpdates = true
+          updatedRefunds.push(swap)
         }
       }
     }
 
+    if (updatedRefunds.length > 0) {
+      await this.storageManager.saveBulkSwaps(updatedRefunds)
+      await this._notifySwapChanges()
+    }
+
     // Update expired EVM swaps with no transactions
+    const updatedExpiredSwaps: SomeSwap[] = []
     const expiredSwaps = Object.values(swaps)
       .filter((swap) => swap.status && swap.status === LdsSwapStatus.SwapExpired)
       .filter((swap) => swap.type === SwapType.Chain)
       .filter((swap) => swap.assetSend !== 'BTC' && swap.assetReceive !== 'BTC')
 
-    expiredSwaps.forEach(async (expiredSwap) => {
+    for (const expiredSwap of expiredSwaps) {
       const relatedLockups = lockupsItems.filter((lockup) => prefix0x(lockup.preimageHash) === prefix0x(expiredSwap.preimageHash))
       if (relatedLockups.length === 0) {
         expiredSwap.status = LdsSwapStatus.UserAbandoned
-        await this.storageManager.setSwap(expiredSwap.id, expiredSwap)
-        hasUpdates = true
+        updatedExpiredSwaps.push(expiredSwap)
       }
-    })
+    }
 
-    if (hasUpdates) {
+    if (updatedExpiredSwaps.length > 0) {
+      await this.storageManager.saveBulkSwaps(updatedExpiredSwaps)
       await this._notifySwapChanges()
     }
   }
@@ -508,49 +517,57 @@ class LdsBridgeManager extends SwapEventEmitter {
       .filter((swap) => swap.type === SwapType.Chain)
       .filter((swap) => !swap.claimTx && !swap.refundTx)
 
-    btcSendBtcSwaps.forEach(async (swap) => {
+    const updatedBtcSendBtcSwaps: SomeSwap[] = []
+    for (const swap of btcSendBtcSwaps) {
       const lockupAddress = (swap as ChainSwap).lockupDetails.lockupAddress
       if (!lockupAddress) {
-        return
+        continue
       }
       const swapTransactions = await fetchTransactionByAddress(lockupAddress)
       if (swapTransactions.length === 0) {
         swap.status = LdsSwapStatus.UserAbandoned
-        await this.storageManager.setSwap(swap.id, swap)
-        await this._notifySwapChanges()
-        return
+        updatedBtcSendBtcSwaps.push(swap)
+        continue
       }
-    })
+    }
 
+    if (updatedBtcSendBtcSwaps.length > 0) {
+      await this.storageManager.saveBulkSwaps(updatedBtcSendBtcSwaps)
+      await this._notifySwapChanges()
+    }
+
+    const updatedBtcClaimBtcSwaps: SomeSwap[] = []
     const btcSwaps = Object.values(swaps)
       .filter((swap) => isBitcoinAddress(swap.claimAddress))
       .filter(swap => swap.status && swap.status === LdsSwapStatus.TransactionClaimPending)
 
-    btcSwaps.forEach(async (swap) => {
+    for (const swap of btcSwaps) {
       const swapTransactions = await fetchChainTransactionsBySwapId(swap.id)
       const lockupTx = swapTransactions.serverLock?.transaction.id
 
       // If still unknown, skip
       if (!lockupTx) {
-        return
+        continue
       }
 
       swap.lockupTx = lockupTx
-      await this.storageManager.setSwap(swap.id, swap)
-
-
-
       const transactionChain = await fetchTransactionByAddress(swap.claimAddress)
       const claimTxData = transactionChain.find(tx => tx.vin.some(vin => vin.txid === lockupTx))
+
       if (!claimTxData) {
-        return
+        updatedBtcClaimBtcSwaps.push(swap)
+        continue
       }
 
       swap.claimTx = claimTxData.txid
       swap.status = LdsSwapStatus.UserClaimed
-      await this.storageManager.setSwap(swap.id, swap)
+      updatedBtcClaimBtcSwaps.push(swap)
+    }
+
+    if (updatedBtcClaimBtcSwaps.length > 0) {
+      await this.storageManager.saveBulkSwaps(updatedBtcClaimBtcSwaps)
       await this._notifySwapChanges()
-    })
+    }
   }
 
   _subscribeToSwapUpdates = (swapId: string): void => {
