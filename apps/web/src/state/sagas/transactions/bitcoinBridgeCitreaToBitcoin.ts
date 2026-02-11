@@ -5,6 +5,7 @@ import { Buffer } from 'buffer'
 import { popupRegistry } from 'components/Popups/registry'
 import { BitcoinBridgeDirection, LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { ensureCorrectChain } from 'state/sagas/transactions/chainSwitchUtils'
+import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { getSigner } from 'state/sagas/transactions/utils'
 import { call } from 'typed-redux-saga'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -18,7 +19,11 @@ import {
   LdsSwapStatus,
   prepareClaimMusig,
 } from 'uniswap/src/features/lds-bridge'
-import { BitcoinBridgeCitreaToBitcoinStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
+import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
+import {
+  BitcoinBridgeCitreaToBitcoinStep,
+  CitreaToBtcSubStep,
+} from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
@@ -33,14 +38,61 @@ interface HandleBitcoinBridgeCitreaToBitcoinParams {
   selectChain: (chainId: UniverseChainId) => Promise<boolean>
   onTransactionHash?: (hash: string) => void
   onSuccess?: () => void
+  auth: JuiceswapAuthFunctions
 }
 
 export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeCitreaToBitcoinParams) {
-  const { step, destinationAddress: claimAddress, trade, account, selectChain, onSuccess, onTransactionHash } = params
+  const {
+    step,
+    destinationAddress: claimAddress,
+    trade,
+    account,
+    selectChain,
+    onSuccess,
+    onTransactionHash,
+    auth,
+  } = params
 
   if (!claimAddress) {
     throw new Error('Claim address is required for Bitcoin bridge swap')
   }
+
+  const { setCurrentStep } = params
+
+  // --- Auth check ---
+  setCurrentStep({
+    step: { ...step, subStep: CitreaToBtcSubStep.CheckingAuth },
+    accepted: false,
+  })
+
+  const isAuthenticated = auth.getIsAuthenticated(account.address)
+
+  if (!isAuthenticated) {
+    setCurrentStep({
+      step: { ...step, subStep: CitreaToBtcSubStep.WaitingForAuth },
+      accepted: false,
+    })
+
+    setCurrentStep({
+      step: { ...step, subStep: CitreaToBtcSubStep.Authenticating },
+      accepted: false,
+    })
+
+    const authResult = yield* call(auth.handleAuthenticate)
+    if (!authResult) {
+      throw new TransactionStepFailedError({
+        message: 'Authentication failed. Please sign the message to continue.',
+        step,
+        originalError: new Error('Authentication rejected'),
+      })
+    }
+  }
+
+  // --- Lock ---
+  setCurrentStep({
+    step: { ...step, subStep: CitreaToBtcSubStep.LockingTokens },
+    accepted: false,
+  })
 
   const ldsBridge = getLdsBridgeManager()
   const userLockAmount = btcToSat(new BigNumber(trade.inputAmount.toExact())).toNumber()
@@ -52,6 +104,7 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
     claimAddress,
     userLockAmount,
     chainId: citreaChainId,
+    userId: account.address,
   })
 
   step.backendAccepted = true
@@ -89,7 +142,19 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
     chainSwap.id,
   )
 
+  // --- Bridge ---
+  setCurrentStep({
+    step: { ...step, subStep: CitreaToBtcSubStep.WaitingForBridge },
+    accepted: true,
+  })
+
   yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
+
+  // --- Claim ---
+  setCurrentStep({
+    step: { ...step, subStep: CitreaToBtcSubStep.ClaimingBtc },
+    accepted: true,
+  })
 
   const chainTransactionsResponse = yield* call(fetchChainTransactionsBySwapId, chainSwap.id)
 
@@ -146,6 +211,11 @@ export function* handleBitcoinBridgeCitreaToBitcoin(params: HandleBitcoinBridgeC
 
   const { id: txHash } = yield* call(broadcastChainSwap, claimTx.toHex())
   yield* call(ldsBridge.updateSwapClaimTx, chainSwap.id, txHash)
+
+  setCurrentStep({
+    step: { ...step, subStep: CitreaToBtcSubStep.Complete },
+    accepted: true,
+  })
 
   popupRegistry.removePopup(chainSwap.id)
 

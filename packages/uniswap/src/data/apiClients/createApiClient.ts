@@ -25,6 +25,7 @@ export function createApiClient({
   includeBaseUniswapHeaders?: boolean
   additionalHeaders?: HeadersInit & {
     'x-uniquote-enabled'?: string
+    Authorization?: string
   }
 }): {
   readonly fetch: (path: string, options: StandardFetchOptions) => Promise<Response>
@@ -32,6 +33,7 @@ export function createApiClient({
   readonly post: <T>(path: string, options: CustomOptions) => Promise<T>
   readonly put: <T>(path: string, options: CustomOptions) => Promise<T>
   readonly delete: <T>(path: string, options: CustomOptions) => Promise<T>
+  setAuthorizationHeader: (token: string) => void
 } {
   const headers = includeBaseUniswapHeaders ? { ...BASE_UNISWAP_HEADERS, ...additionalHeaders } : additionalHeaders
 
@@ -112,6 +114,10 @@ export function createApiClient({
       return async <T>(path: string, options: CustomOptions = {}): Promise<T> => {
         return await this.get(path, { ...options, method: 'DELETE' })
       }
+    },
+
+    setAuthorizationHeader(token: string) {
+      headers['Authorization'] = `Bearer ${token}`
     },
   }
 }
