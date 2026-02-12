@@ -30,7 +30,7 @@ import useSimplePagination from 'hooks/useSimplePagination'
 import { useAtomValue } from 'jotai/utils'
 import { ReactElement, ReactNode, memo, useMemo } from 'react'
 import { Trans } from 'react-i18next'
-import { TABLE_PAGE_SIZE, giveExploreStatDefaultValue } from 'state/explore'
+import { TABLE_PAGE_SIZE } from 'state/explore'
 import { useTopTokens as useRestTopTokens } from 'state/explore/topTokens'
 import { TokenStat } from 'state/explore/types'
 import { Flex, Text, View, styled, useMedia } from 'ui/src'
@@ -52,11 +52,11 @@ const TableWrapper = styled(Flex, {
 interface TokenTableValue {
   index: number
   tokenDescription: ReactElement
-  price: number
+  price: number | undefined
   percentChange1hr: ReactElement
   percentChange1d: ReactElement
-  fdv: number
-  volume: number
+  fdv: number | undefined
+  volume: number | undefined
   sparkline: ReactElement
   link: string
   /** Used for pre-loading TDP with logo to extract color from */
@@ -180,7 +180,7 @@ function TokenTable({
         return {
           index: tokenSortIndex,
           tokenDescription: <TokenDescription token={unwrappedToken} />,
-          price: giveExploreStatDefaultValue(token.price?.value),
+          price: token.price?.value,
           testId: `${TestID.TokenTableRowPrefix}${unwrappedToken.address}`,
           percentChange1hr: (
             <Flex row gap="$gap4" alignItems="center">
@@ -194,8 +194,8 @@ function TokenTable({
               <TableText>{formatPercent(delta1dAbs)}</TableText>
             </Flex>
           ),
-          fdv: giveExploreStatDefaultValue(token.fullyDilutedValuation?.value),
-          volume: giveExploreStatDefaultValue(token.volume?.value),
+          fdv: token.fullyDilutedValuation?.value,
+          volume: token.volume?.value,
           sparkline: (
             <SparklineChart
               width={80}
@@ -282,12 +282,7 @@ function TokenTable({
         ),
         cell: (price) => (
           <Cell loading={showLoadingSkeleton} testId={TestID.PriceCell} justifyContent="flex-end">
-            <TableText>
-              {/* A simple 0 price indicates the price is not currently available from the api */}
-              {price.getValue?.() === 0
-                ? '-'
-                : convertFiatAmountFormatted(price.getValue?.(), NumberType.FiatTokenPrice)}
-            </TableText>
+            <TableText>{convertFiatAmountFormatted(price.getValue?.(), NumberType.FiatTokenPrice)}</TableText>
           </Cell>
         ),
       }),

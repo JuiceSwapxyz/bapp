@@ -30,7 +30,7 @@ export function sortPools(pools: TablePool[], sortState: PoolTableSortState) {
 }
 
 export function calculate1DVolOverTvl(volume24h: number | undefined, tvl: number | undefined): number | undefined {
-  if (!volume24h || !tvl) {
+  if (volume24h == null || tvl == null || tvl === 0) {
     return undefined
   }
 
