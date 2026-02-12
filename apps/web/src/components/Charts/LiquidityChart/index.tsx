@@ -354,7 +354,7 @@ export function useLiquidityBarData({
         let price0 = t.sdkPrice
         let price1 = t.sdkPrice.invert()
 
-        if (isActive && activeTick && currentTick) {
+        if (isActive && currentTick != null) {
           activeRangeIndex = index
           activeRangePercentage = (currentTick - t.tick) / TICK_SPACINGS[feeTier]
 
@@ -438,5 +438,9 @@ export function useLiquidityBarData({
     hooks,
   ])
 
-  return { tickData, activeTick: activePoolData.activeTick, loading: activePoolData.isLoading || !tickData }
+  return {
+    tickData,
+    activeTick: activePoolData.activeTick,
+    loading: activePoolData.isLoading || (!tickData && !!activePoolData.data),
+  }
 }

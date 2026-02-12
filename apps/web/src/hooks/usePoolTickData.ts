@@ -1,4 +1,4 @@
-import { Currency, Token, V3_CORE_FACTORY_ADDRESSES } from '@juiceswapxyz/sdk-core'
+import { Currency, V3_CORE_FACTORY_ADDRESSES } from '@juiceswapxyz/sdk-core'
 import { FeeAmount, TICK_SPACINGS, Pool as V3Pool, tickToPrice as tickToPriceV3 } from '@juiceswapxyz/v3-sdk'
 import { Pool as V4Pool, tickToPrice as tickToPriceV4 } from '@juiceswapxyz/v4-sdk'
 import { ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
@@ -24,7 +24,7 @@ function getActiveTick({
   feeAmount?: FeeAmount
   tickSpacing?: number
 }): number | undefined {
-  return tickCurrent && feeAmount !== undefined && tickSpacing
+  return tickCurrent != null && feeAmount !== undefined && tickSpacing
     ? Math.floor(tickCurrent / tickSpacing) * tickSpacing
     : undefined
 }
@@ -147,7 +147,8 @@ export function usePoolActiveLiquidity({
     // find where the active tick would be to partition the array
     // if the active tick is initialized, the pivot will be an element
     // if not, take the previous tick as pivot
-    const pivot = ticks.findIndex((tickData: { tick?: number }) => tickData.tick && tickData.tick > activeTick) - 1
+    const pivot =
+      ticks.findIndex((tickData: { tick?: number }) => tickData.tick != null && tickData.tick > activeTick) - 1
 
     if (pivot < 0) {
       logger.debug('usePoolTickData', 'usePoolActiveLiquidity', 'TickData pivot not found', {
@@ -167,7 +168,7 @@ export function usePoolActiveLiquidity({
     try {
       sdkPrice =
         version === ProtocolVersion.V3
-          ? tickToPriceV3(token0 as Token, token1 as Token, activeTick)
+          ? tickToPriceV3(token0.wrapped, token1.wrapped, activeTick)
           : tickToPriceV4(token0, token1, activeTick)
     } catch (e) {
       logger.debug('usePoolTickData', 'usePoolActiveLiquidity', 'Error getting price', {

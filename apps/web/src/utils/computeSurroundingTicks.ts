@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { Currency, Price, Token } from '@juiceswapxyz/sdk-core'
+import { Currency, Price } from '@juiceswapxyz/sdk-core'
 import { tickToPrice as tickToPriceV3 } from '@juiceswapxyz/v3-sdk'
 import { tickToPrice as tickToPriceV4 } from '@juiceswapxyz/v4-sdk'
 import { ProtocolVersion } from '@uniswap/client-pools/dist/pools/v1/types_pb'
@@ -39,10 +39,6 @@ export default function computeSurroundingTicks({
     ...activeTickProcessed,
   }
 
-  if (version === ProtocolVersion.V3 && (token0.isNative || token1.isNative)) {
-    return []
-  }
-
   // Iterate outwards (either up or down depending on direction) from the active tick,
   // building active liquidity for every tick.
   let processedTicks: TickProcessed[] = []
@@ -50,7 +46,7 @@ export default function computeSurroundingTicks({
     const tick = Number(sortedTickData[i]?.tick)
     const sdkPrice =
       version === ProtocolVersion.V3
-        ? tickToPriceV3(token0 as Token, token1 as Token, tick)
+        ? tickToPriceV3(token0.wrapped, token1.wrapped, tick)
         : tickToPriceV4(token0, token1, tick)
     const currentTickProcessed: TickProcessed = {
       liquidityActive: previousTickProcessed.liquidityActive,
