@@ -13,5 +13,6 @@ export function usePoolTicks(params: {
     queryFn: () => fetchPoolTicks({ address: params.address!, chainId: params.chainId! }),
     enabled: !!params.address && !!params.chainId,
     staleTime: 30_000,
+    refetchInterval: 30_000,
   })
 }

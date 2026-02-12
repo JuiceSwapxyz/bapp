@@ -155,11 +155,14 @@ export function usePoolTransactions({
   const [v3Transactions, setV3Transactions] = useState<PoolTransactionEntry[]>([])
   const [loadingV3, setLoadingV3] = useState(protocolVersion === ProtocolVersion.V3)
   const [errorV3, setErrorV3] = useState<Error | null>(null)
+  const fetchGeneration = useRef(0)
 
   useEffect(() => {
     if (protocolVersion !== ProtocolVersion.V3 || !address) {
       return
     }
+    const currentGeneration = ++fetchGeneration.current
+    setV3Transactions([])
     setLoadingV3(true)
     setErrorV3(null)
     fetchPoolTransactions({
@@ -168,10 +171,16 @@ export function usePoolTransactions({
       first,
     })
       .then((result: PoolTransactionsResponse) => {
+        if (currentGeneration !== fetchGeneration.current) {
+          return
+        }
         setV3Transactions(result.v3Pool.transactions)
         setLoadingV3(false)
       })
       .catch((err: Error) => {
+        if (currentGeneration !== fetchGeneration.current) {
+          return
+        }
         setErrorV3(err)
         setLoadingV3(false)
       })
@@ -201,6 +210,7 @@ export function usePoolTransactions({
         if (v3Transactions.length > 0) {
           const lastTx = v3Transactions[v3Transactions.length - 1]
           const cursor = lastTx.timestamp.toString()
+          const currentGeneration = fetchGeneration.current
           fetchPoolTransactions({
             address,
             chainId: chainId ?? defaultChainId,
@@ -208,13 +218,23 @@ export function usePoolTransactions({
             cursor,
           })
             .then((result: PoolTransactionsResponse) => {
+              if (currentGeneration !== fetchGeneration.current) {
+                loadingMore.current = false
+                return
+              }
               if (result.v3Pool.transactions.length > 0) {
                 setV3Transactions((prev) => [...prev, ...result.v3Pool.transactions])
               }
               onComplete?.()
               loadingMore.current = false
             })
-            .catch(() => {
+            .catch((err: Error) => {
+              if (currentGeneration !== fetchGeneration.current) {
+                loadingMore.current = false
+                return
+              }
+              setErrorV3(err)
+              onComplete?.()
               loadingMore.current = false
             })
         } else {
@@ -286,22 +306,7 @@ export function usePoolTransactions({
   const filteredTransactions = useMemo(() => {
     if (protocolVersion === ProtocolVersion.V3) {
       return v3Transactions
-        .map((tx) =>
-          mapTransaction(
-            tx as {
-              timestamp: number
-              hash: string
-              account: string
-              token0: { address?: string | null; symbol?: string | null }
-              token1: { address?: string | null; symbol?: string | null }
-              token0Quantity: string
-              token1Quantity: string
-              usdValue: { value: number }
-              type: string
-            },
-            { token0Address, filter },
-          ),
-        )
+        .map((tx) => mapTransaction(tx, { token0Address, filter }))
         .filter((value): value is PoolTableTransaction => value !== undefined)
     }
 
