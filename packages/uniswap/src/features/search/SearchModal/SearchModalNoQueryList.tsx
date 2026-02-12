@@ -1,5 +1,5 @@
 import { ExploreStatsResponse, PoolStats } from '@uniswap/client-explore/dist/uniswap/explore/v1/service_pb'
-import { memo, useMemo } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useCurrencyInfosToTokenOptions } from 'uniswap/src/components/TokenSelector/hooks/useCurrencyInfosToTokenOptions'
 import { useTrendingTokensCurrencyInfos } from 'uniswap/src/components/TokenSelector/hooks/useTrendingTokensCurrencyInfos'
@@ -10,7 +10,6 @@ import { SearchModalOption } from 'uniswap/src/components/lists/items/types'
 import { useFavoriteWalletOptions } from 'uniswap/src/components/lists/items/wallets/useFavoriteWalletOptions'
 import { useOnchainItemListSection } from 'uniswap/src/components/lists/utils'
 import { useSearchPopularNftCollectionsQuery } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
-import { ALL_NETWORKS_ARG } from 'uniswap/src/data/rest/base'
 import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
 import { GqlResult } from 'uniswap/src/data/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -80,17 +79,13 @@ function useSectionsForNoQuerySearch({
 
   // Load trending pools by 24H volume
   const numberOfTrendingPools = activeTab === SearchTab.All ? NUMBER_OF_RESULTS_SHORT : NUMBER_OF_RESULTS_LONG
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const poolQueryVariables = useMemo(
-    () => ({
-      input: { chainId: chainFilter ? chainFilter.toString() : ALL_NETWORKS_ARG },
-      enabled: isWeb && (activeTab === SearchTab.All || activeTab === SearchTab.Pools),
-      select: (data: ExploreStatsResponse): PoolStats[] | undefined =>
-        data.stats?.poolStats
-          .sort((a, b) => (b.volume1Day?.value ?? 0) - (a.volume1Day?.value ?? 0)) // Sort by 24h volume
-          .slice(0, numberOfTrendingPools),
-    }),
-    [activeTab, chainFilter, numberOfTrendingPools],
+  const selectTrendingPools = useCallback(
+    (data: ExploreStatsResponse): PoolStats[] | undefined =>
+      data.stats?.poolStats
+        ?.slice()
+        .sort((a, b) => (b.volume1Day?.value ?? 0) - (a.volume1Day?.value ?? 0))
+        .slice(0, numberOfTrendingPools),
+    [numberOfTrendingPools],
   )
   const {
     data: topPools,
@@ -100,6 +95,7 @@ function useSectionsForNoQuerySearch({
   } = useExploreStatsQuery<PoolStats[] | undefined>({
     chainId: chainFilter ?? undefined,
     enabled: isWeb && (activeTab === SearchTab.All || activeTab === SearchTab.Pools),
+    select: selectTrendingPools,
   })
 
   // Pools come from API/Ponder only - no hardcoded fallbacks
