@@ -419,7 +419,14 @@ export function useLiquidityBarData({
       }
 
       // TODO(WEB-3672): investigate why negative/inaccurate liquidity values that are appearing from computeSurroundingTicks
-      setTickData({ barData: barData.filter((t) => t.liquidity > 0), activeRangeData, activeRangePercentage })
+      const MAX_TICK_DISTANCE = 100000
+      setTickData({
+        barData: barData.filter(
+          (t) => t.liquidity > 0 && (activeTick == null || Math.abs(t.tick - activeTick) <= MAX_TICK_DISTANCE),
+        ),
+        activeRangeData,
+        activeRangePercentage,
+      })
     }
 
     formatData()
