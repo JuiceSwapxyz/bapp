@@ -1,11 +1,8 @@
 import { NATIVE_CHAIN_ID } from 'constants/tokens'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { WRAPPED_NATIVE_CURRENCY } from 'uniswap/src/constants/tokens'
-import {
-  PoolTransactionEntry,
-  PoolTransactionsResponse,
-  fetchPoolTransactions,
-} from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
+import { PoolTransactionEntry, PoolTransactionsResponse } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
+import { useV3PoolTransactions } from 'uniswap/src/data/apiClients/tradingApi/useV3PoolTransactions'
 import {
   PoolTransactionType,
   ProtocolVersion,
@@ -151,40 +148,23 @@ export function usePoolTransactions({
     skip: protocolVersion !== ProtocolVersion.V4,
   })
 
-  // V3 - REST API (managed with useState + useEffect)
-  const [v3Transactions, setV3Transactions] = useState<PoolTransactionEntry[]>([])
-  const [loadingV3, setLoadingV3] = useState(protocolVersion === ProtocolVersion.V3)
-  const [errorV3, setErrorV3] = useState<Error | null>(null)
-  const fetchGeneration = useRef(0)
+  // V3 - REST API (React Query useInfiniteQuery)
+  const {
+    data: v3Data,
+    isLoading: loadingV3,
+    error: errorV3,
+    fetchNextPage: fetchNextPageV3,
+    hasNextPage: hasNextPageV3,
+  } = useV3PoolTransactions({
+    address: protocolVersion === ProtocolVersion.V3 ? address : null,
+    chainId: chainId ?? defaultChainId,
+    first,
+  })
 
-  useEffect(() => {
-    if (protocolVersion !== ProtocolVersion.V3 || !address) {
-      return
-    }
-    const currentGeneration = ++fetchGeneration.current
-    setV3Transactions([])
-    setLoadingV3(true)
-    setErrorV3(null)
-    fetchPoolTransactions({
-      address,
-      chainId: chainId ?? defaultChainId,
-      first,
-    })
-      .then((result: PoolTransactionsResponse) => {
-        if (currentGeneration !== fetchGeneration.current) {
-          return
-        }
-        setV3Transactions(result.v3Pool.transactions)
-        setLoadingV3(false)
-      })
-      .catch((err: Error) => {
-        if (currentGeneration !== fetchGeneration.current) {
-          return
-        }
-        setErrorV3(err)
-        setLoadingV3(false)
-      })
-  }, [address, chainId, defaultChainId, first, protocolVersion])
+  const v3Transactions: PoolTransactionEntry[] = useMemo(
+    () => v3Data?.pages.flatMap((page: PoolTransactionsResponse) => page.v3Pool.transactions) ?? [],
+    [v3Data],
+  )
 
   // V2 - GraphQL
   const {
@@ -207,33 +187,13 @@ export function usePoolTransactions({
       loadingMore.current = true
 
       if (protocolVersion === ProtocolVersion.V3) {
-        if (v3Transactions.length > 0) {
-          const lastTx = v3Transactions[v3Transactions.length - 1]
-          const cursor = lastTx.timestamp.toString()
-          const currentGeneration = fetchGeneration.current
-          fetchPoolTransactions({
-            address,
-            chainId: chainId ?? defaultChainId,
-            first,
-            cursor,
-          })
-            .then((result: PoolTransactionsResponse) => {
-              if (currentGeneration !== fetchGeneration.current) {
-                loadingMore.current = false
-                return
-              }
-              if (result.v3Pool.transactions.length > 0) {
-                setV3Transactions((prev) => [...prev, ...result.v3Pool.transactions])
-              }
+        if (hasNextPageV3 && v3Transactions.length > 0) {
+          fetchNextPageV3()
+            .then(() => {
               onComplete?.()
               loadingMore.current = false
             })
-            .catch((err: Error) => {
-              if (currentGeneration !== fetchGeneration.current) {
-                loadingMore.current = false
-                return
-              }
-              setErrorV3(err)
+            .catch(() => {
               onComplete?.()
               loadingMore.current = false
             })
@@ -286,14 +246,12 @@ export function usePoolTransactions({
     [
       fetchMoreV4,
       fetchMoreV2,
+      fetchNextPageV3,
+      hasNextPageV3,
       v3Transactions,
       dataV4?.v4Pool?.transactions,
       dataV2?.v2Pair?.transactions,
       protocolVersion,
-      address,
-      chainId,
-      defaultChainId,
-      first,
     ],
   )
 
