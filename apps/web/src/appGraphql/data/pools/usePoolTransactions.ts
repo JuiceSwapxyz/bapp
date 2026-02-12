@@ -1,15 +1,18 @@
 import { NATIVE_CHAIN_ID } from 'constants/tokens'
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { WRAPPED_NATIVE_CURRENCY } from 'uniswap/src/constants/tokens'
+import {
+  PoolTransactionEntry,
+  PoolTransactionsResponse,
+  fetchPoolTransactions,
+} from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import {
   PoolTransactionType,
   ProtocolVersion,
   Token,
   V2PairTransactionsQuery,
-  V3PoolTransactionsQuery,
   V4PoolTransactionsQuery,
   useV2PairTransactionsQuery,
-  useV3PoolTransactionsQuery,
   useV4PoolTransactionsQuery,
 } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
@@ -61,6 +64,59 @@ export interface PoolTableTransaction {
 
 const PoolTransactionDefaultQuerySize = 25
 
+/**
+ * Map a transaction (REST or GraphQL shape) to PoolTableTransaction.
+ * Handles both shapes transparently.
+ */
+function mapTransaction(
+  tx: {
+    timestamp: number
+    hash: string
+    account: string
+    token0: { address?: string | null; symbol?: string | null }
+    token1: { address?: string | null; symbol?: string | null }
+    token0Quantity: string
+    token1Quantity: string
+    usdValue: { value: number }
+    type: string
+  },
+  opts: { token0Address: string | undefined; filter: PoolTableTransactionType[] },
+): PoolTableTransaction | undefined {
+  const { token0Address, filter } = opts
+  const tokenIn = parseFloat(tx.token0Quantity) > 0 ? tx.token0 : tx.token1
+  const isSell = tokenIn.address?.toLowerCase() === token0Address?.toLowerCase()
+  const type =
+    tx.type === PoolTransactionType.Swap || tx.type === 'SWAP'
+      ? isSell
+        ? PoolTableTransactionType.SELL
+        : PoolTableTransactionType.BUY
+      : tx.type === PoolTransactionType.Remove
+        ? PoolTableTransactionType.REMOVE
+        : PoolTableTransactionType.ADD
+  if (!filter.includes(type)) {
+    return undefined
+  }
+  return {
+    timestamp: tx.timestamp,
+    transaction: tx.hash,
+    pool: {
+      token0: {
+        id: tx.token0.address ?? null,
+        symbol: tx.token0.symbol ?? '',
+      },
+      token1: {
+        id: tx.token1.address ?? null,
+        symbol: tx.token1.symbol ?? '',
+      },
+    },
+    maker: tx.account,
+    amount0: parseFloat(tx.token0Quantity),
+    amount1: parseFloat(tx.token1Quantity),
+    amountUSD: tx.usdValue.value,
+    type,
+  }
+}
+
 export function usePoolTransactions({
   address,
   chainId,
@@ -76,7 +132,6 @@ export function usePoolTransactions({
 }: {
   address: string
   chainId?: UniverseChainId
-  // sortState: PoolTxTableSortState, TODO(WEB-3706): Implement sorting when BE supports
   filter?: PoolTableTransactionType[]
   token0?: Token
   protocolVersion?: ProtocolVersion
@@ -84,49 +139,56 @@ export function usePoolTransactions({
 }) {
   const { defaultChainId } = useEnabledChains()
   const variables = { first, chain: toGraphQLChain(chainId ?? defaultChainId) }
+
+  // V4 - GraphQL
   const {
     loading: loadingV4,
     error: errorV4,
     data: dataV4,
     fetchMore: fetchMoreV4,
   } = useV4PoolTransactionsQuery({
-    variables: {
-      ...variables,
-      poolId: address,
-    },
+    variables: { ...variables, poolId: address },
     skip: protocolVersion !== ProtocolVersion.V4,
   })
-  const {
-    loading: loadingV3,
-    error: errorV3,
-    data: dataV3,
-    fetchMore: fetchMoreV3,
-  } = useV3PoolTransactionsQuery({
-    variables: {
-      ...variables,
+
+  // V3 - REST API (managed with useState + useEffect)
+  const [v3Transactions, setV3Transactions] = useState<PoolTransactionEntry[]>([])
+  const [loadingV3, setLoadingV3] = useState(protocolVersion === ProtocolVersion.V3)
+  const [errorV3, setErrorV3] = useState<Error | null>(null)
+
+  useEffect(() => {
+    if (protocolVersion !== ProtocolVersion.V3 || !address) {
+      return
+    }
+    setLoadingV3(true)
+    setErrorV3(null)
+    fetchPoolTransactions({
       address,
-    },
-    skip: protocolVersion !== ProtocolVersion.V3,
-  })
+      chainId: chainId ?? defaultChainId,
+      first,
+    })
+      .then((result: PoolTransactionsResponse) => {
+        setV3Transactions(result.v3Pool.transactions)
+        setLoadingV3(false)
+      })
+      .catch((err: Error) => {
+        setErrorV3(err)
+        setLoadingV3(false)
+      })
+  }, [address, chainId, defaultChainId, first, protocolVersion])
+
+  // V2 - GraphQL
   const {
     loading: loadingV2,
     error: errorV2,
     data: dataV2,
     fetchMore: fetchMoreV2,
   } = useV2PairTransactionsQuery({
-    variables: {
-      ...variables,
-      address,
-    },
+    variables: { ...variables, address },
     skip: !chainId || protocolVersion !== ProtocolVersion.V2,
   })
+
   const loadingMore = useRef(false)
-  const { transactions, loading, fetchMore, error } =
-    protocolVersion === ProtocolVersion.V4
-      ? { transactions: dataV4?.v4Pool?.transactions, loading: loadingV4, fetchMore: fetchMoreV4, error: errorV4 }
-      : protocolVersion === ProtocolVersion.V3
-        ? { transactions: dataV3?.v3Pool?.transactions, loading: loadingV3, fetchMore: fetchMoreV3, error: errorV3 }
-        : { transactions: dataV2?.v2Pair?.transactions, loading: loadingV2, fetchMore: fetchMoreV2, error: errorV2 }
 
   const loadMore = useCallback(
     ({ onComplete }: { onComplete?: () => void }) => {
@@ -134,11 +196,43 @@ export function usePoolTransactions({
         return
       }
       loadingMore.current = true
+
+      if (protocolVersion === ProtocolVersion.V3) {
+        if (v3Transactions.length > 0) {
+          const lastTx = v3Transactions[v3Transactions.length - 1]
+          const cursor = lastTx.timestamp.toString()
+          fetchPoolTransactions({
+            address,
+            chainId: chainId ?? defaultChainId,
+            first,
+            cursor,
+          })
+            .then((result: PoolTransactionsResponse) => {
+              if (result.v3Pool.transactions.length > 0) {
+                setV3Transactions((prev) => [...prev, ...result.v3Pool.transactions])
+              }
+              onComplete?.()
+              loadingMore.current = false
+            })
+            .catch(() => {
+              loadingMore.current = false
+            })
+        } else {
+          loadingMore.current = false
+        }
+        return
+      }
+
+      // V4 / V2 - GraphQL pagination
+      const fetchMore = protocolVersion === ProtocolVersion.V4 ? fetchMoreV4 : fetchMoreV2
+      const txList =
+        protocolVersion === ProtocolVersion.V4 ? dataV4?.v4Pool?.transactions : dataV2?.v2Pair?.transactions
       fetchMore({
         variables: {
-          cursor: transactions?.[transactions.length - 1]?.timestamp,
+          cursor: txList?.[txList.length - 1]?.timestamp,
         },
-        updateQuery: (prev, { fetchMoreResult }: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        updateQuery: (prev: any, { fetchMoreResult }: { fetchMoreResult: any }) => {
           if (!fetchMoreResult) {
             loadingMore.current = false
             return prev
@@ -148,85 +242,86 @@ export function usePoolTransactions({
             protocolVersion === ProtocolVersion.V4
               ? {
                   v4Pool: {
-                    ...fetchMoreResult.v4Pool,
+                    ...(fetchMoreResult as V4PoolTransactionsQuery).v4Pool,
                     transactions: [
                       ...((prev as V4PoolTransactionsQuery).v4Pool?.transactions ?? []),
-                      ...fetchMoreResult.v4Pool.transactions,
+                      ...((fetchMoreResult as V4PoolTransactionsQuery).v4Pool?.transactions ?? []),
                     ],
                   },
                 }
-              : protocolVersion === ProtocolVersion.V3
-                ? {
-                    v3Pool: {
-                      ...fetchMoreResult.v3Pool,
-                      transactions: [
-                        ...((prev as V3PoolTransactionsQuery).v3Pool?.transactions ?? []),
-                        ...fetchMoreResult.v3Pool.transactions,
-                      ],
-                    },
-                  }
-                : {
-                    v2Pair: {
-                      ...fetchMoreResult.v2Pair,
-                      transactions: [
-                        ...((prev as V2PairTransactionsQuery).v2Pair?.transactions ?? []),
-                        ...fetchMoreResult.v2Pair.transactions,
-                      ],
-                    },
-                  }
+              : {
+                  v2Pair: {
+                    ...(fetchMoreResult as V2PairTransactionsQuery).v2Pair,
+                    transactions: [
+                      ...((prev as V2PairTransactionsQuery).v2Pair?.transactions ?? []),
+                      ...((fetchMoreResult as V2PairTransactionsQuery).v2Pair?.transactions ?? []),
+                    ],
+                  },
+                }
           loadingMore.current = false
           return mergedData
         },
       })
     },
-    [fetchMore, transactions, protocolVersion],
+    [
+      fetchMoreV4,
+      fetchMoreV2,
+      v3Transactions,
+      dataV4?.v4Pool?.transactions,
+      dataV2?.v2Pair?.transactions,
+      protocolVersion,
+      address,
+      chainId,
+      defaultChainId,
+      first,
+    ],
   )
 
+  const token0Address = useMemo(() => {
+    return token0?.address === NATIVE_CHAIN_ID
+      ? WRAPPED_NATIVE_CURRENCY[chainId ?? UniverseChainId.Mainnet]?.address
+      : token0?.address
+  }, [token0?.address, chainId])
+
   const filteredTransactions = useMemo(() => {
-    return (transactions ?? [])
+    if (protocolVersion === ProtocolVersion.V3) {
+      return v3Transactions
+        .map((tx) =>
+          mapTransaction(
+            tx as {
+              timestamp: number
+              hash: string
+              account: string
+              token0: { address?: string | null; symbol?: string | null }
+              token1: { address?: string | null; symbol?: string | null }
+              token0Quantity: string
+              token1Quantity: string
+              usdValue: { value: number }
+              type: string
+            },
+            { token0Address, filter },
+          ),
+        )
+        .filter((value): value is PoolTableTransaction => value !== undefined)
+    }
+
+    const gqlTransactions =
+      protocolVersion === ProtocolVersion.V4 ? dataV4?.v4Pool?.transactions : dataV2?.v2Pair?.transactions
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return ((gqlTransactions ?? []) as any[])
       .map((tx) => {
         if (!tx) {
           return undefined
         }
-        const tokenIn = parseFloat(tx.token0Quantity) > 0 ? tx.token0 : tx.token1
-        const token0Address =
-          token0?.address === NATIVE_CHAIN_ID
-            ? WRAPPED_NATIVE_CURRENCY[chainId ?? UniverseChainId.Mainnet]?.address
-            : token0?.address
-        const isSell = tokenIn.address?.toLowerCase() === token0Address?.toLowerCase()
-        const type =
-          tx.type === PoolTransactionType.Swap
-            ? isSell
-              ? PoolTableTransactionType.SELL
-              : PoolTableTransactionType.BUY
-            : tx.type === PoolTransactionType.Remove
-              ? PoolTableTransactionType.REMOVE
-              : PoolTableTransactionType.ADD
-        if (!filter.includes(type)) {
-          return undefined
-        }
-        return {
-          timestamp: tx.timestamp,
-          transaction: tx.hash,
-          pool: {
-            token0: {
-              id: tx.token0.address ?? null,
-              symbol: tx.token0.symbol ?? '',
-            },
-            token1: {
-              id: tx.token1.address ?? null,
-              symbol: tx.token1.symbol ?? '',
-            },
-          },
-          maker: tx.account,
-          amount0: parseFloat(tx.token0Quantity),
-          amount1: parseFloat(tx.token1Quantity),
-          amountUSD: tx.usdValue.value,
-          type,
-        }
+        return mapTransaction(tx, { token0Address, filter })
       })
-      .filter((value: PoolTableTransaction | undefined): value is PoolTableTransaction => value !== undefined)
-  }, [transactions, token0?.address, chainId, filter])
+      .filter((value): value is PoolTableTransaction => value !== undefined)
+  }, [protocolVersion, v3Transactions, dataV4, dataV2, token0Address, filter])
+
+  const loading =
+    protocolVersion === ProtocolVersion.V4 ? loadingV4 : protocolVersion === ProtocolVersion.V3 ? loadingV3 : loadingV2
+  const error =
+    protocolVersion === ProtocolVersion.V4 ? errorV4 : protocolVersion === ProtocolVersion.V3 ? errorV3 : errorV2
 
   return useMemo(() => {
     return {

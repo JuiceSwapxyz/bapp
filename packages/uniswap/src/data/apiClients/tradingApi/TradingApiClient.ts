@@ -1444,3 +1444,130 @@ export const saveBridgeSwapBulk = async (params: CreateBridgeSwapRequest[]): Pro
     }),
   })
 }
+
+// ===== Pool Detail Data APIs =====
+
+export interface PoolVolumeHistoryEntry {
+  id: string
+  value: number
+  timestamp: number
+}
+
+export interface PoolPriceHistoryEntry {
+  id: string
+  token0Price: number
+  token1Price: number
+  timestamp: number
+}
+
+export interface PoolTransactionEntry {
+  timestamp: number
+  hash: string
+  account: string
+  token0: {
+    id: string
+    address: string
+    symbol: string
+    chain: string
+    decimals: number
+    project: { id: string; name: string; logo: null }
+  }
+  token0Quantity: string
+  token1: {
+    id: string
+    address: string
+    symbol: string
+    chain: string
+    decimals: number
+    project: { id: string; name: string; logo: null }
+  }
+  token1Quantity: string
+  usdValue: { value: number }
+  type: string
+}
+
+export interface PoolTransactionsResponse {
+  v3Pool: {
+    id: string
+    transactions: PoolTransactionEntry[]
+  }
+}
+
+export async function fetchPoolVolumeHistory(params: {
+  address: string
+  chainId: number
+  duration: string
+}): Promise<PoolVolumeHistoryEntry[]> {
+  return await TradingApiClient.get<PoolVolumeHistoryEntry[]>(
+    `/v1/pools/${params.address}/volume-history`,
+    {
+      params: {
+        chainId: params.chainId.toString(),
+        duration: params.duration,
+      },
+    },
+  )
+}
+
+export async function fetchPoolPriceHistory(params: {
+  address: string
+  chainId: number
+  duration: string
+}): Promise<PoolPriceHistoryEntry[]> {
+  return await TradingApiClient.get<PoolPriceHistoryEntry[]>(
+    `/v1/pools/${params.address}/price-history`,
+    {
+      params: {
+        chainId: params.chainId.toString(),
+        duration: params.duration,
+      },
+    },
+  )
+}
+
+export interface PoolTickEntry {
+  tick: number
+  liquidityNet: string
+  liquidityGross: string
+}
+
+export interface PoolTicksResponse {
+  ticks: PoolTickEntry[]
+  pool: {
+    tick: number
+    sqrtPriceX96: string
+    liquidity: string
+    tickSpacing: number
+  }
+}
+
+export async function fetchPoolTicks(params: {
+  address: string
+  chainId: number
+}): Promise<PoolTicksResponse> {
+  return await TradingApiClient.get<PoolTicksResponse>(
+    `/v1/pools/${params.address}/ticks`,
+    { params: { chainId: params.chainId.toString() } },
+  )
+}
+
+export async function fetchPoolTransactions(params: {
+  address: string
+  chainId: number
+  first?: number
+  cursor?: string
+}): Promise<PoolTransactionsResponse> {
+  const queryParams: Record<string, string> = {
+    chainId: params.chainId.toString(),
+  }
+  if (params.first) {
+    queryParams.first = params.first.toString()
+  }
+  if (params.cursor) {
+    queryParams.cursor = params.cursor
+  }
+  return await TradingApiClient.get<PoolTransactionsResponse>(
+    `/v1/pools/${params.address}/transactions`,
+    { params: queryParams },
+  )
+}
