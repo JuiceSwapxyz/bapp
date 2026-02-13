@@ -264,6 +264,7 @@ export function usePoolTransactions({
   const filteredTransactions = useMemo(() => {
     if (protocolVersion === ProtocolVersion.V3) {
       return v3Transactions
+        .filter(Boolean)
         .map((tx) => mapTransaction(tx, { token0Address, filter }))
         .filter((value): value is PoolTableTransaction => value !== undefined)
     }

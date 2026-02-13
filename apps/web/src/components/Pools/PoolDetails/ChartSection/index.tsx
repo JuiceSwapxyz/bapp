@@ -202,6 +202,7 @@ export default function ChartSection(props: ChartSectionProps) {
       return <ChartSkeleton type={activeQuery.chartType} height={PDP_CHART_HEIGHT_PX} errorText={errorText} />
     }
 
+    // TODO(JSWAP-XXX): re-enable stale detection for REST — wire up freshness check based on REST response metadata
     const stale = false
 
     switch (activeQuery.chartType) {
