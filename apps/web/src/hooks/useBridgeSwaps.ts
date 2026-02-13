@@ -11,13 +11,19 @@ interface UseBridgeSwapsProps {
 
 export function useBridgeSwaps(props: UseBridgeSwapsProps = {}) {
   const { enabled = true, statuses = [] } = props
-  const { data: syncBridgeSwaps } = useSyncBridgeSwaps(enabled)
-  const { isAuthenticated } = useJuiceswapAuth()
+  const { data: syncBridgeSwaps, isLoading: isLoadingSyncBridgeSwaps } = useSyncBridgeSwaps(enabled)
+  const { isAuthenticated, autenticationSignal } = useJuiceswapAuth()
 
   return useQuery({
-    queryKey: ['bridge-swaps', syncBridgeSwaps?.currentAddress, isAuthenticated, statuses.join(',')],
+    queryKey: [
+      'bridge-swaps',
+      syncBridgeSwaps?.currentAddress,
+      isAuthenticated,
+      autenticationSignal,
+      statuses.join(','),
+    ],
     queryFn: () => fetchBridgeSwaps({ statuses }),
-    enabled: enabled && syncBridgeSwaps?.synced && Boolean(syncBridgeSwaps.currentAddress),
+    enabled: enabled && syncBridgeSwaps?.synced && Boolean(syncBridgeSwaps.currentAddress) && !isLoadingSyncBridgeSwaps,
     refetchInterval: 30000,
   })
 }
