@@ -87,7 +87,7 @@ function mapTransaction(
       ? isSell
         ? PoolTableTransactionType.SELL
         : PoolTableTransactionType.BUY
-      : tx.type === PoolTransactionType.Remove
+      : tx.type === PoolTransactionType.Remove || tx.type === 'REMOVE'
         ? PoolTableTransactionType.REMOVE
         : PoolTableTransactionType.ADD
   if (!filter.includes(type)) {
@@ -248,7 +248,7 @@ export function usePoolTransactions({
       fetchMoreV2,
       fetchNextPageV3,
       hasNextPageV3,
-      v3Transactions,
+      v3Transactions.length,
       dataV4?.v4Pool?.transactions,
       dataV2?.v2Pair?.transactions,
       protocolVersion,

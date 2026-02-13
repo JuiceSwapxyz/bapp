@@ -8,13 +8,12 @@ import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
+  WbtcBridgeDirection,
   isBitcoinBridgeQuote,
   isCitreaChainId,
   isErc20ChainSwapQuote,
   isLnBitcoinBridgeQuote,
   isWbtcBridgeQuote,
-  WBTC_ETHEREUM_ADDRESS,
-  WbtcBridgeDirection,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import {
   swappableTokensData,
@@ -200,11 +199,11 @@ function getStoredTokens(): Record<string, string> {
 export function getTokenForAddress(address: string): string {
   const tokens = getStoredTokens()
   const token = tokens[address.toLowerCase()]
-  
+
   if (!token || isTokenExpired(token)) {
     return ''
   }
-  
+
   return token
 }
 
@@ -227,7 +226,10 @@ const TradingApiClient = createApiClient({
   },
 })
 
-export const authenticate = async (address: string, signFunction: ({ message }: { message: string }) => Promise<string>) => {
+export const authenticate = async (
+  address: string,
+  signFunction: ({ message }: { message: string }) => Promise<string>,
+) => {
   const { message } = await TradingApiClient.get<{ message: string }>(`/v1/auth/nonce?address=${address}`)
   const signature = await signFunction({ message })
 
@@ -257,7 +259,7 @@ export const checkAuthentication = async (address: string): Promise<boolean> => 
     if (!token) {
       return false
     }
-    
+
     TradingApiClient.setAuthorizationHeader(token)
     await TradingApiClient.get<{ message: string }>(`/v1/auth/me`)
     return true
@@ -988,7 +990,7 @@ async function computeApprovalTransaction(params: ApprovalRequestWithRouting): P
         cancel: null,
       } as unknown as ApprovalResponse
     }
-  } catch (error) { }
+  } catch (error) {}
 
   const result = await TradingApiClient.post<{
     gasFee: string
@@ -1424,7 +1426,6 @@ export async function fetchSvJusdSharePrice(params: { chainId: number }): Promis
   })
 }
 
-
 export const saveBridgeSwap = async (params: CreateBridgeSwapRequest): Promise<CreateBridgeSwapResponse> => {
   return await TradingApiClient.post<CreateBridgeSwapResponse>('/v1/bridge-swap', {
     body: JSON.stringify({
@@ -1470,7 +1471,7 @@ export interface PoolTransactionEntry {
     symbol: string
     chain: string
     decimals: number
-    project: { id: string; name: string; logo: null }
+    project: { id: string; name: string; logo: string | null }
   }
   token0Quantity: string
   token1: {
@@ -1479,7 +1480,7 @@ export interface PoolTransactionEntry {
     symbol: string
     chain: string
     decimals: number
-    project: { id: string; name: string; logo: null }
+    project: { id: string; name: string; logo: string | null }
   }
   token1Quantity: string
   usdValue: { value: number }
@@ -1490,6 +1491,7 @@ export interface PoolTransactionsResponse {
   v3Pool: {
     id: string
     transactions: PoolTransactionEntry[]
+    cursor?: string
   }
 }
 
@@ -1498,15 +1500,12 @@ export async function fetchPoolVolumeHistory(params: {
   chainId: number
   duration: string
 }): Promise<PoolVolumeHistoryEntry[]> {
-  return await TradingApiClient.get<PoolVolumeHistoryEntry[]>(
-    `/v1/pools/${params.address}/volume-history`,
-    {
-      params: {
-        chainId: params.chainId.toString(),
-        duration: params.duration,
-      },
+  return await TradingApiClient.get<PoolVolumeHistoryEntry[]>(`/v1/pools/${params.address}/volume-history`, {
+    params: {
+      chainId: params.chainId.toString(),
+      duration: params.duration,
     },
-  )
+  })
 }
 
 export async function fetchPoolPriceHistory(params: {
@@ -1514,15 +1513,12 @@ export async function fetchPoolPriceHistory(params: {
   chainId: number
   duration: string
 }): Promise<PoolPriceHistoryEntry[]> {
-  return await TradingApiClient.get<PoolPriceHistoryEntry[]>(
-    `/v1/pools/${params.address}/price-history`,
-    {
-      params: {
-        chainId: params.chainId.toString(),
-        duration: params.duration,
-      },
+  return await TradingApiClient.get<PoolPriceHistoryEntry[]>(`/v1/pools/${params.address}/price-history`, {
+    params: {
+      chainId: params.chainId.toString(),
+      duration: params.duration,
     },
-  )
+  })
 }
 
 export interface PoolTickEntry {
@@ -1541,14 +1537,10 @@ export interface PoolTicksResponse {
   }
 }
 
-export async function fetchPoolTicks(params: {
-  address: string
-  chainId: number
-}): Promise<PoolTicksResponse> {
-  return await TradingApiClient.get<PoolTicksResponse>(
-    `/v1/pools/${params.address}/ticks`,
-    { params: { chainId: params.chainId.toString() } },
-  )
+export async function fetchPoolTicks(params: { address: string; chainId: number }): Promise<PoolTicksResponse> {
+  return await TradingApiClient.get<PoolTicksResponse>(`/v1/pools/${params.address}/ticks`, {
+    params: { chainId: params.chainId.toString() },
+  })
 }
 
 export async function fetchPoolTransactions(params: {
@@ -1566,8 +1558,7 @@ export async function fetchPoolTransactions(params: {
   if (params.cursor) {
     queryParams.cursor = params.cursor
   }
-  return await TradingApiClient.get<PoolTransactionsResponse>(
-    `/v1/pools/${params.address}/transactions`,
-    { params: queryParams },
-  )
+  return await TradingApiClient.get<PoolTransactionsResponse>(`/v1/pools/${params.address}/transactions`, {
+    params: queryParams,
+  })
 }
