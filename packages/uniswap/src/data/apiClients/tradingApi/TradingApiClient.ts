@@ -8,13 +8,12 @@ import { FetchError } from 'uniswap/src/data/apiClients/FetchError'
 import { createApiClient } from 'uniswap/src/data/apiClients/createApiClient'
 import { SwappableTokensParams } from 'uniswap/src/data/apiClients/tradingApi/useTradingApiSwappableTokensQuery'
 import {
+  WbtcBridgeDirection,
   isBitcoinBridgeQuote,
   isCitreaChainId,
   isErc20ChainSwapQuote,
   isLnBitcoinBridgeQuote,
   isWbtcBridgeQuote,
-  WBTC_ETHEREUM_ADDRESS,
-  WbtcBridgeDirection,
 } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import {
   swappableTokensData,
@@ -200,11 +199,11 @@ function getStoredTokens(): Record<string, string> {
 export function getTokenForAddress(address: string): string {
   const tokens = getStoredTokens()
   const token = tokens[address.toLowerCase()]
-  
+
   if (!token || isTokenExpired(token)) {
     return ''
   }
-  
+
   return token
 }
 
@@ -227,7 +226,10 @@ const TradingApiClient = createApiClient({
   },
 })
 
-export const authenticate = async (address: string, signFunction: ({ message }: { message: string }) => Promise<string>) => {
+export const authenticate = async (
+  address: string,
+  signFunction: ({ message }: { message: string }) => Promise<string>,
+) => {
   const { message } = await TradingApiClient.get<{ message: string }>(`/v1/auth/nonce?address=${address}`)
   const signature = await signFunction({ message })
 
@@ -257,7 +259,7 @@ export const checkAuthentication = async (address: string): Promise<boolean> => 
     if (!token) {
       return false
     }
-    
+
     TradingApiClient.setAuthorizationHeader(token)
     await TradingApiClient.get<{ message: string }>(`/v1/auth/me`)
     return true
@@ -988,7 +990,7 @@ async function computeApprovalTransaction(params: ApprovalRequestWithRouting): P
         cancel: null,
       } as unknown as ApprovalResponse
     }
-  } catch (error) { }
+  } catch (error) {}
 
   const result = await TradingApiClient.post<{
     gasFee: string
@@ -1215,93 +1217,12 @@ export async function fetchLightningInvoice(params: {
   })
 }
 
-// Default maximum amount of combinations wallet<>chainId per check delegation request
-const DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD = 140
-
-/*
-// Utility function to chunk wallet addresses for batching
-function chunkWalletAddresses(params: {
-  walletAddresses: Address[]
-  chainIds: ChainId[]
-  batchThreshold: number
-}): Address[][] {
-  const { walletAddresses, chainIds, batchThreshold } = params
-  const totalCombinations = walletAddresses.length * chainIds.length
-
-  if (totalCombinations <= batchThreshold) {
-    return [walletAddresses]
-  }
-
-  const maxWalletsPerBatch = Math.floor(batchThreshold / chainIds.length)
-  const chunks: Address[][] = []
-
-  for (let i = 0; i < walletAddresses.length; i += maxWalletsPerBatch) {
-    chunks.push(walletAddresses.slice(i, i + maxWalletsPerBatch))
-  }
-
-  return chunks
-}
-*/
-
-export async function checkWalletDelegationWithoutBatching(
-  _params: WalletCheckDelegationRequestBody,
-): Promise<WalletCheckDelegationResponseBody> {
-  // DISABLED: Endpoint /v1/wallet/check_delegation does not exist in backend API
-  return {
-    requestId: '',
-    delegationDetails: {},
-  }
-
-  // return await TradingApiClient.post<WalletCheckDelegationResponseBody>(
-  //   uniswapUrls.tradingApiPaths.wallet.checkDelegation,
-  //   {
-  //     body: JSON.stringify({
-  //       ..._params,
-  //     }),
-  //     headers: {
-  //       ...getFeatureFlaggedHeaders(),
-  //     },
-  //   },
-  // )
-}
-
-/*
-function mergeDelegationResponses(responses: WalletCheckDelegationResponseBody[]): WalletCheckDelegationResponseBody {
-  if (responses.length === 0) {
-    throw new Error('No responses to merge')
-  }
-
-  const firstResponse = responses[0]
-  if (!firstResponse) {
-    throw new Error('First response is undefined')
-  }
-
-  if (responses.length === 1) {
-    return firstResponse
-  }
-
-  const mergedDelegationDetails: Record<string, ChainDelegationMap> = {}
-
-  for (const response of responses) {
-    for (const [walletAddress, chainDelegationMap] of Object.entries(response.delegationDetails)) {
-      mergedDelegationDetails[walletAddress] = chainDelegationMap
-    }
-  }
-
-  return {
-    requestId: firstResponse.requestId,
-    delegationDetails: mergedDelegationDetails,
-  }
-}
-*/
-
 export type CheckWalletDelegation = (
   params: WalletCheckDelegationRequestBody,
 ) => Promise<WalletCheckDelegationResponseBody>
 
 export async function checkWalletDelegation(
   params: WalletCheckDelegationRequestBody,
-  _batchThreshold: number = DEFAULT_CHECK_VALIDATIONS_BATCH_THRESHOLD,
 ): Promise<WalletCheckDelegationResponseBody> {
   const { walletAddresses } = params
 
@@ -1313,30 +1234,11 @@ export async function checkWalletDelegation(
     }
   }
 
-  // Batching disabled - always make a single request
-  return await checkWalletDelegationWithoutBatching(params)
-
-  /*
-  if (totalCombinations <= effectiveBatchThreshold) {
-    return await checkWalletDelegationWithoutBatching(params)
+  // DISABLED: Endpoint /v1/wallet/check_delegation does not exist in backend API
+  return {
+    requestId: '',
+    delegationDetails: {},
   }
-
-  // Split into batches
-  const walletChunks = chunkWalletAddresses({ walletAddresses, chainIds, batchThreshold: effectiveBatchThreshold })
-
-  // Make batched requests
-  const batchPromises = walletChunks.map((chunk) =>
-    checkWalletDelegationWithoutBatching({
-      walletAddresses: chunk,
-      chainIds,
-    }),
-  )
-
-  const responses = await Promise.all(batchPromises)
-
-  // Merge all responses
-  return mergeDelegationResponses(responses)
-  */
 }
 
 export async function validateLightningAddress(params: { lnLikeAddress: string }): Promise<{ validated: boolean }> {
@@ -1424,7 +1326,6 @@ export async function fetchSvJusdSharePrice(params: { chainId: number }): Promis
   })
 }
 
-
 export const saveBridgeSwap = async (params: CreateBridgeSwapRequest): Promise<CreateBridgeSwapResponse> => {
   return await TradingApiClient.post<CreateBridgeSwapResponse>('/v1/bridge-swap', {
     body: JSON.stringify({
@@ -1454,4 +1355,117 @@ export const fetchClaimRefund = async (): Promise<UserClaimsAndRefundsResponse> 
 
 export const fetchBridgeSwapByPreimageHash = async (params: { preimageHash: string }): Promise<SomeSwap> => {
   return await TradingApiClient.get<SomeSwap>(`/v1/bridge-swap/preimage-hash/${params.preimageHash}`)
+}
+
+// ===== Pool Detail Data APIs =====
+
+export interface PoolVolumeHistoryEntry {
+  id: string
+  value: number
+  timestamp: number
+}
+
+export interface PoolPriceHistoryEntry {
+  id: string
+  token0Price: number
+  token1Price: number
+  timestamp: number
+}
+
+export interface PoolTransactionEntry {
+  timestamp: number
+  hash: string
+  account: string
+  token0: {
+    address: string
+    symbol: string
+    chain: string
+    decimals: number
+  }
+  token0Quantity: string
+  token1: {
+    address: string
+    symbol: string
+    chain: string
+    decimals: number
+  }
+  token1Quantity: string
+  usdValue: { value: number }
+  type: string
+}
+
+export interface PoolTransactionsResponse {
+  v3Pool: {
+    id: string
+    transactions: PoolTransactionEntry[]
+    cursor?: string
+  }
+}
+
+export async function fetchPoolVolumeHistory(params: {
+  address: string
+  chainId: number
+  duration: string
+}): Promise<PoolVolumeHistoryEntry[]> {
+  return await TradingApiClient.get<PoolVolumeHistoryEntry[]>(`/v1/pools/${params.address}/volume-history`, {
+    params: {
+      chainId: params.chainId.toString(),
+      duration: params.duration,
+    },
+  })
+}
+
+export async function fetchPoolPriceHistory(params: {
+  address: string
+  chainId: number
+  duration: string
+}): Promise<PoolPriceHistoryEntry[]> {
+  return await TradingApiClient.get<PoolPriceHistoryEntry[]>(`/v1/pools/${params.address}/price-history`, {
+    params: {
+      chainId: params.chainId.toString(),
+      duration: params.duration,
+    },
+  })
+}
+
+export interface PoolTickEntry {
+  tick: number
+  liquidityNet: string
+  liquidityGross: string
+}
+
+export interface PoolTicksResponse {
+  ticks: PoolTickEntry[]
+  pool: {
+    tick: number
+    sqrtPriceX96: string
+    liquidity: string
+    tickSpacing: number
+  }
+}
+
+export async function fetchPoolTicks(params: { address: string; chainId: number }): Promise<PoolTicksResponse> {
+  return await TradingApiClient.get<PoolTicksResponse>(`/v1/pools/${params.address}/ticks`, {
+    params: { chainId: params.chainId.toString() },
+  })
+}
+
+export async function fetchPoolTransactions(params: {
+  address: string
+  chainId: number
+  first?: number
+  cursor?: string
+}): Promise<PoolTransactionsResponse> {
+  const queryParams: Record<string, string> = {
+    chainId: params.chainId.toString(),
+  }
+  if (params.first) {
+    queryParams.first = params.first.toString()
+  }
+  if (params.cursor) {
+    queryParams.cursor = params.cursor
+  }
+  return await TradingApiClient.get<PoolTransactionsResponse>(`/v1/pools/${params.address}/transactions`, {
+    params: queryParams,
+  })
 }

@@ -354,7 +354,7 @@ export function useLiquidityBarData({
         let price0 = t.sdkPrice
         let price1 = t.sdkPrice.invert()
 
-        if (isActive && activeTick && currentTick) {
+        if (isActive && currentTick != null) {
           activeRangeIndex = index
           activeRangePercentage = (currentTick - t.tick) / TICK_SPACINGS[feeTier]
 
@@ -419,7 +419,15 @@ export function useLiquidityBarData({
       }
 
       // TODO(WEB-3672): investigate why negative/inaccurate liquidity values that are appearing from computeSurroundingTicks
-      setTickData({ barData: barData.filter((t) => t.liquidity > 0), activeRangeData, activeRangePercentage })
+      const effectiveTickSpacing = tickSpacing ?? TICK_SPACINGS[feeTier]
+      const MAX_TICK_DISTANCE = Math.max(100000, effectiveTickSpacing * 500)
+      setTickData({
+        barData: barData.filter(
+          (t) => t.liquidity > 0 && (activeTick == null || Math.abs(t.tick - activeTick) <= MAX_TICK_DISTANCE),
+        ),
+        activeRangeData,
+        activeRangePercentage,
+      })
     }
 
     formatData()
@@ -438,5 +446,9 @@ export function useLiquidityBarData({
     hooks,
   ])
 
-  return { tickData, activeTick: activePoolData.activeTick, loading: activePoolData.isLoading || !tickData }
+  return {
+    tickData,
+    activeTick: activePoolData.activeTick,
+    loading: activePoolData.isLoading || (!tickData && !!activePoolData.data),
+  }
 }

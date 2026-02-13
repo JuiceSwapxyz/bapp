@@ -24,6 +24,7 @@ import { Text } from 'rebass'
 import { ThemeProvider } from 'theme'
 import { Flex } from 'ui/src'
 import { breakpoints } from 'ui/src/theme'
+import { useColorSchemeFromSeed } from 'ui/src/utils/colors'
 import { ProtocolVersion, Token } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
@@ -148,6 +149,9 @@ export default function PoolDetailsPage() {
     darkMode,
   })
 
+  const { foreground: fallbackColor0 } = useColorSchemeFromSeed(token0?.name ?? token0?.symbol ?? '')
+  const { foreground: fallbackColor1 } = useColorSchemeFromSeed(token1?.name ?? token1?.symbol ?? '')
+
   const isInvalidPool = !poolAddress || !chainInfo
   const poolNotFound = (!loading && !poolData) || isInvalidPool
 
@@ -184,7 +188,10 @@ export default function PoolDetailsPage() {
   }
 
   return (
-    <ThemeProvider token0={color0 !== accent1 ? color0 : undefined} token1={color1 !== accent1 ? color1 : undefined}>
+    <ThemeProvider
+      token0={color0 !== accent1 ? color0 : (fallbackColor0 as string)}
+      token1={color1 !== accent1 ? color1 : (fallbackColor1 as string)}
+    >
       <Helmet>
         <title>{getPoolDetailPageTitle(t, poolData)}</title>
         {metatags.map((tag, index) => (
