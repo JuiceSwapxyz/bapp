@@ -48,7 +48,6 @@ export const useTabsContent = (): TabsSection[] => {
             items: [
               { label: 'BTC → cBTC', href: '/swap?inputCurrency=BTC&outputCurrency=cBTC', internal: true },
               { label: 'lnBTC → cBTC', href: '/swap?inputCurrency=lnBTC&outputCurrency=cBTC', internal: true },
-              { label: 'cBTC → lnBTC', href: '/swap?inputCurrency=cBTC&outputCurrency=lnBTC', internal: true },
               {
                 label: 'USDT (ETH) → JUSD',
                 href: '/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
