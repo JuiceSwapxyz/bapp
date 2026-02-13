@@ -8,5 +8,6 @@ export function useRefundsAndClaims() {
     queryKey: ['refunds-and-claims'],
     queryFn: fetchClaimRefund,
     enabled: isAuthenticated,
+    refetchInterval: 30000,
   })
 }
