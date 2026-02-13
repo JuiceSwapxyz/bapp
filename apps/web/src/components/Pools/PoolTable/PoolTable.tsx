@@ -29,7 +29,7 @@ import { atomWithReset, useAtomValue, useResetAtom, useUpdateAtom } from 'jotai/
 import { exploreProtocolVersionFilterAtom } from 'pages/Explore/ProtocolFilter'
 import { ReactElement, memo, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TABLE_PAGE_SIZE, giveExploreStatDefaultValue } from 'state/explore'
+import { TABLE_PAGE_SIZE } from 'state/explore'
 import { useExploreContextTopPools } from 'state/explore/topPools'
 import { PoolStat } from 'state/explore/types'
 import { Flex, Text, styled, useMedia } from 'ui/src'
@@ -56,10 +56,10 @@ const TableWrapper = styled(Flex, {
 interface PoolTableValues {
   index: number
   poolDescription: ReactElement
-  tvl: number
+  tvl: number | undefined
   apr: Percent
-  volume24h: number
-  volume30d: number
+  volume24h: number | undefined
+  volume30d: number | undefined
   volOverTvl?: number
   link: string
   protocolVersion?: string
@@ -281,9 +281,9 @@ export function PoolsTable({
                     ? pool.protocolVersion.toLowerCase()
                     : undefined,
           feeTier: pool.feeTier,
-          tvl: isGqlPool ? pool.tvl : giveExploreStatDefaultValue(pool.totalLiquidity?.value),
-          volume24h: isGqlPool ? pool.volume24h : giveExploreStatDefaultValue(pool.volume1Day?.value),
-          volume30d: isGqlPool ? pool.volume30d : giveExploreStatDefaultValue(pool.volume30Day?.value),
+          tvl: isGqlPool ? pool.tvl : pool.totalLiquidity?.value,
+          volume24h: isGqlPool ? pool.volume24h : pool.volume1Day?.value,
+          volume30d: isGqlPool ? pool.volume30d : pool.volume30Day?.value,
           volOverTvl: pool.volOverTvl,
           apr: pool.apr,
           rewardApr: pool.boostedApr,

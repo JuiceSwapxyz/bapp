@@ -71,6 +71,8 @@ function convertTokenStatsToTokenStat(tokenStats: TokenStats, duration: TimePeri
       volume = tokenStats.volume1Day
       priceHistory = convertPriceHistoryToPricePoints(tokenStats.priceHistoryDay)
   }
+  // Fall back to 1D sparkline when the selected timeframe has no price history
+  priceHistory ??= convertPriceHistoryToPricePoints(tokenStats.priceHistoryDay)
   return {
     ...tokenStats,
     priceHistory,

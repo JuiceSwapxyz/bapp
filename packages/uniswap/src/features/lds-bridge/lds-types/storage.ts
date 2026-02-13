@@ -11,7 +11,8 @@ export enum SwapType {
 
 export type SwapBase = {
   type: SwapType
-  status?: LdsSwapStatus
+  userId: string
+  status: LdsSwapStatus
   assetSend: string
   assetReceive: string
   sendAmount: number
@@ -19,7 +20,7 @@ export type SwapBase = {
   version: number
   date: number
   preimageHash: string
-  mnemonic: string
+  preimageSeed: string
   keyIndex: number
   chainId?: UniverseChainId
   // Not set for submarine swaps; but set for interface compatibility
@@ -38,7 +39,6 @@ export type SubmarineSwap = SwapBase &
     invoice: string
     preimage?: string
     refundPrivateKeyIndex?: number
-    mnemonic?: string
     blindingKey?: string
     // Deprecated; used for backwards compatibility
     refundPrivateKey?: string
@@ -49,7 +49,6 @@ export type ReverseSwap = SwapBase &
     preimage: string
     claimAddress: string
     claimPrivateKeyIndex?: number
-    mnemonic: string
     blindingKey?: string
     // Deprecated; used for backwards compatibility
     claimPrivateKey?: string
@@ -62,7 +61,6 @@ export type ChainSwap = SwapBase &
     claimPrivateKeyIndex?: number
     refundPrivateKeyIndex?: number
     magicRoutingHintSavedFees?: string
-    mnemonic: string
 
     // Deprecated; used for backwards compatibility
     claimPrivateKey?: string

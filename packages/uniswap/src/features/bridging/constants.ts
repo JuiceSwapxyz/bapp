@@ -80,26 +80,6 @@ export const BRIDGE_PAIR_DISPLAYS: BridgePairDisplay[] = [
     toLogoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
     url: '/swap?chain=ethereum&inputCurrency=USDC&outputCurrency=JUSD&outputChain=citrea',
   },
-  {
-    label: 'cBTC ⇄ JUSD',
-    fromSymbol: 'cBTC',
-    fromChain: UniverseChainId.CitreaMainnet,
-    fromLogoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
-    toSymbol: 'JUSD',
-    toChain: UniverseChainId.CitreaMainnet,
-    toLogoUrl: 'https://docs.juiceswap.com/media/icons/jusd.png',
-    url: '/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUSD',
-  },
-  {
-    label: 'cBTC ⇄ JUICE',
-    fromSymbol: 'cBTC',
-    fromChain: UniverseChainId.CitreaMainnet,
-    fromLogoUrl: 'https://docs.juiceswap.com/media/icons/cbtc.png',
-    toSymbol: 'JUICE',
-    toChain: UniverseChainId.CitreaMainnet,
-    toLogoUrl: 'https://docs.juiceswap.com/media/icons/juice.png',
-    url: '/swap?chain=citrea&inputCurrency=cBTC&outputCurrency=JUICE',
-  },
 ]
 
 /*

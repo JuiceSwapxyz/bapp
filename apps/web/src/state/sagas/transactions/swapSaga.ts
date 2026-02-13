@@ -4,6 +4,7 @@ import { PopupType } from 'components/Popups/types'
 import { DEFAULT_TXN_DISMISS_MS, L2_TXN_DISMISS_MS, ZERO_PERCENT } from 'constants/misc'
 import { NATIVE_CHAIN_ID } from 'constants/tokens'
 import { useAccount } from 'hooks/useAccount'
+import { useJuiceswapAuth } from 'hooks/useJuiceswapAuth'
 import useSelectChain from 'hooks/useSelectChain'
 import { formatSwapSignedAnalyticsEventProperties } from 'lib/utils/analytics'
 import { useSetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap'
@@ -199,6 +200,12 @@ function* getSwapTxRequest(step: SwapTransactionStep | SwapTransactionStepAsync,
   return txRequest
 }
 
+export type JuiceswapAuthFunctions = {
+  handleCheckAuthentication: () => Promise<boolean>
+  handleAuthenticate: () => Promise<boolean>
+  getIsAuthenticated: (address?: string) => boolean
+}
+
 type SwapParams = {
   selectChain: (chainId: number) => Promise<boolean>
   startChainId?: number
@@ -214,6 +221,7 @@ type SwapParams = {
   onFailure: (error?: Error, onPressRetry?: () => void) => void
   onTransactionHash?: (hash: string) => void
   v4Enabled: boolean
+  auth: JuiceswapAuthFunctions
 }
 
 /** Asserts that a given object fits a given routing variant. */
@@ -350,6 +358,7 @@ function* swap(params: SwapParams) {
             selectChain: params.selectChain,
             onTransactionHash: params.onTransactionHash,
             onSuccess: params.onSuccess,
+            auth: params.auth,
           })
           break
         }
@@ -363,6 +372,7 @@ function* swap(params: SwapParams) {
             destinationAddress: swapTxContext.destinationAddress,
             onTransactionHash: params.onTransactionHash,
             onSuccess: params.onSuccess,
+            auth: params.auth,
           })
           break
         }
@@ -377,6 +387,7 @@ function* swap(params: SwapParams) {
             selectChain: params.selectChain,
             onTransactionHash: params.onTransactionHash,
             onSuccess: params.onSuccess,
+            auth: params.auth,
           })
           break
         }
@@ -390,6 +401,7 @@ function* swap(params: SwapParams) {
             destinationAddress: swapTxContext.destinationAddress,
             onTransactionHash: params.onTransactionHash,
             onSuccess: params.onSuccess,
+            auth: params.auth,
           })
           break
         }
@@ -403,6 +415,7 @@ function* swap(params: SwapParams) {
             selectChain: params.selectChain,
             onTransactionHash: params.onTransactionHash,
             onSuccess: params.onSuccess,
+            auth: params.auth,
           })
           break
         }
@@ -463,6 +476,7 @@ export function useSwapCallback(
   const disableOneClickSwap = useSetOverrideOneClickSwapFlag()
   const getOnPressRetry = useGetOnPressRetry()
   const wallet = useWallet()
+  const auth = useJuiceswapAuth()
 
   return useCallback(
     (args: SwapCallbackParams) => {
@@ -517,6 +531,7 @@ export function useSwapCallback(
         selectChain,
         startChainId,
         v4Enabled: v4SwapEnabled,
+        auth,
         onTransactionHash: async (hash: string): Promise<void> => {
           updateSwapForm({ txHash: hash, txHashReceivedTime: Date.now() })
           // Call onSubmitSwap if provided to trigger campaign tracking
@@ -564,6 +579,7 @@ export function useSwapCallback(
       wallet.evmAccount,
       updateSwapForm,
       onSubmitSwapRef,
+      auth,
     ],
   )
 }

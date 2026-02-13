@@ -16,23 +16,24 @@ export type ChainSwapKeys = {
   claimPublicKey: string
   derivedKey: HDKey
   claimKeyPair: ECPairInterface
-  mnemonic: string
+  preimageSeed: string
   keyIndex: number
 }
 
 const DERIVATION_PATH = 'm/44/0/0/0'
+const PREIMAGE_SEED_KEY = 'preimage-seed'
 
 const getLastMnemonic = (): string | null => {
   if (typeof localStorage === 'undefined') {
     return null
   }
-  const mnemonic = localStorage.getItem('mnemonic')
-  return mnemonic
+  const preimageSeed = localStorage.getItem(PREIMAGE_SEED_KEY)
+  return preimageSeed
 }
 
 const saveMnemonic = (mnemonic: string): void => {
   if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('mnemonic', mnemonic)
+    localStorage.setItem(PREIMAGE_SEED_KEY, mnemonic)
   }
 }
 
@@ -87,7 +88,7 @@ export const generateChainSwapKeys = (mnemonic?: string, index?: number): ChainS
     claimPublicKey,
     derivedKey,
     claimKeyPair,
-    mnemonic: finalMnemonic,
+    preimageSeed: finalMnemonic,
     keyIndex: finalKeyIndex,
   }
 }
