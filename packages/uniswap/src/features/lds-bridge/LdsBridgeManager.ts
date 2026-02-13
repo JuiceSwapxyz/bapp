@@ -1,7 +1,6 @@
 import { randomBytes } from '@ethersproject/random'
 import { crypto } from 'bitcoinjs-lib'
 import { Buffer } from 'buffer'
-import { getFetchErrorMessage } from 'uniswap/src/data/apiClients/FetchError'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import {
   createChainSwap,
@@ -9,14 +8,13 @@ import {
   createSubmarineSwap,
   fetchChainPairs,
   fetchChainTransactionsBySwapId,
-  fetchLockupsByPreimageHashes,
   fetchReversePairs,
   fetchSubmarinePairs,
   fetchSubmarineTransactionsBySwapId,
   fetchSwapCurrentStatus,
   helpMeClaim,
 } from 'uniswap/src/features/lds-bridge/api/client'
-import { fetchBlockTipHeight, fetchTransactionByAddress } from 'uniswap/src/features/lds-bridge/api/mempool'
+import { fetchBlockTipHeight } from 'uniswap/src/features/lds-bridge/api/mempool'
 import { createLdsSocketClient } from 'uniswap/src/features/lds-bridge/api/socket'
 import { ChainSwapKeys, generateChainSwapKeys } from 'uniswap/src/features/lds-bridge/keys/chainSwapKeys'
 import type {
@@ -35,26 +33,13 @@ import type { SwapUpdateEvent } from 'uniswap/src/features/lds-bridge/lds-types/
 import {
   LdsSwapStatus,
   hasReachedStatus,
-  isSwapPending,
-  localUserFinalStatuses,
   swapStatusFinal,
   swapStatusPending,
 } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { StorageManager } from 'uniswap/src/features/lds-bridge/storage/StorageManager'
-import { SwapEventEmitter } from 'uniswap/src/features/lds-bridge/storage/SwapEventEmitter'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 import { pollForLockupConfirmation } from 'uniswap/src/features/lds-bridge/utils/polling'
-import { isBitcoinAddress } from './utils/bitcoinAddress'
 import { applyMigrationV4 } from './utils/migrations'
-
-const POLLING_INTERVALS = {
-  BACKGROUND_CHECK_MS: 30_000,
-  FRESH_SWAP_AGE_MS: 5 * 60_000, // 5 minutes
-  FRESH_SWAP_POLL_MS: 30_000, // Poll every 30s for fresh swaps
-  MEDIUM_SWAP_AGE_MS: 60 * 60_000, // 1 hour
-  MEDIUM_SWAP_POLL_MS: 60_000, // Poll every 60s for medium-age swaps
-  OLD_SWAP_POLL_MS: 120_000, // Poll every 2min for old swaps
-} as const
 
 export const ASSET_CHAIN_ID_MAP: Record<string, UniverseChainId> = {
   'cBTC': UniverseChainId.CitreaMainnet,
@@ -68,19 +53,13 @@ export const ASSET_CHAIN_ID_MAP: Record<string, UniverseChainId> = {
 }
 
 /* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type, max-lines */
-class LdsBridgeManager extends SwapEventEmitter {
+class LdsBridgeManager {
   private socketClient: ReturnType<typeof createLdsSocketClient>
   private storageManager: StorageManager
   private submarinePairs: LightningBridgeSubmarineGetResponse | null = null
   private reversePairs: LightningBridgeReverseGetResponse | null = null
   private chainPairs: ChainPairsResponse | null = null
-  private pollingInterval: ReturnType<typeof setInterval> | null = null
-  private lastPollTime: number = 0
-  private visibilityHandler: (() => void) | null = null
-  private wasPollingBeforeHidden: boolean = false
-
   constructor() {
-    super()
     this.socketClient = createLdsSocketClient()
     this.storageManager = new StorageManager()
   }
@@ -104,84 +83,6 @@ class LdsBridgeManager extends SwapEventEmitter {
       this.chainPairs = await fetchChainPairs()
     }
     return this.chainPairs
-  }
-
-  startBackgroundPolling = (): void => {
-    if (this.pollingInterval) {
-      return // Already running
-    }
-
-    this.setupVisibilityHandling()
-
-    this.pollingInterval = setInterval(() => {
-      this.pollPendingSwapsIfNeeded().catch(() => {
-        // Errors are logged inside pollPendingSwapsIfNeeded
-      })
-    }, POLLING_INTERVALS.BACKGROUND_CHECK_MS)
-  }
-
-  stopBackgroundPolling = (): void => {
-    if (this.pollingInterval) {
-      clearInterval(this.pollingInterval)
-      this.pollingInterval = null
-    }
-  }
-
-  private setupVisibilityHandling = (): void => {
-    if (typeof document === 'undefined' || this.visibilityHandler) {
-      return
-    }
-
-    this.visibilityHandler = () => {
-      if (document.hidden) {
-        if (this.pollingInterval) {
-          this.wasPollingBeforeHidden = true
-          this.stopBackgroundPolling()
-        }
-      } else if (this.wasPollingBeforeHidden) {
-        this.wasPollingBeforeHidden = false
-        this.startBackgroundPolling()
-      }
-    }
-
-    document.addEventListener('visibilitychange', this.visibilityHandler)
-  }
-
-  private cleanupVisibilityHandling = (): void => {
-    if (typeof document === 'undefined' || !this.visibilityHandler) {
-      return
-    }
-
-    document.removeEventListener('visibilitychange', this.visibilityHandler)
-    this.visibilityHandler = null
-    this.wasPollingBeforeHidden = false
-  }
-
-  private pollPendingSwapsIfNeeded = async (): Promise<void> => {
-    const pendingSwaps = await this.getPendingSwaps()
-
-    if (pendingSwaps.length === 0) {
-      this.stopBackgroundPolling()
-      this.cleanupVisibilityHandling()
-      return
-    }
-
-    const now = Date.now()
-    const oldestSwapAge = Math.max(...pendingSwaps.map((s) => now - s.date))
-    const timeSinceLastPoll = now - this.lastPollTime
-
-    // Adaptive polling: more frequent for fresh swaps
-    const shouldPoll =
-      (oldestSwapAge < POLLING_INTERVALS.FRESH_SWAP_AGE_MS &&
-        timeSinceLastPoll >= POLLING_INTERVALS.FRESH_SWAP_POLL_MS) ||
-      (oldestSwapAge < POLLING_INTERVALS.MEDIUM_SWAP_AGE_MS &&
-        timeSinceLastPoll >= POLLING_INTERVALS.MEDIUM_SWAP_POLL_MS) ||
-      timeSinceLastPoll >= POLLING_INTERVALS.OLD_SWAP_POLL_MS
-
-    if (shouldPoll) {
-      this.lastPollTime = now
-      await this.updatePendingSwapsStatuses()
-    }
   }
 
   createReverseSwap = async (params: {
@@ -231,8 +132,6 @@ class LdsBridgeManager extends SwapEventEmitter {
     await this.storageManager.setSwap(reverseInvoiceResponse.id, reverseSwap)
 
     this._subscribeToSwapUpdates(reverseInvoiceResponse.id)
-    this.startBackgroundPolling()
-    await this._notifySwapChanges()
     await this.waitForSwapUntilState(reverseInvoiceResponse.id, LdsSwapStatus.SwapCreated)
     return reverseSwap
   }
@@ -275,9 +174,7 @@ class LdsBridgeManager extends SwapEventEmitter {
 
     await this.storageManager.setSwap(lockupResponse.id, submarineSwap)
     this._subscribeToSwapUpdates(lockupResponse.id)
-    this.startBackgroundPolling()
     await this.waitForSwapUntilState(lockupResponse.id, LdsSwapStatus.InvoiceSet)
-    await this._notifySwapChanges()
     return submarineSwap
   }
 
@@ -346,19 +243,11 @@ class LdsBridgeManager extends SwapEventEmitter {
     await this.storageManager.setSwap(chainSwapResponse.id, chainSwap)
 
     this._subscribeToSwapUpdates(chainSwapResponse.id)
-    this.startBackgroundPolling()
     await this.waitForSwapUntilState(chainSwapResponse.id, LdsSwapStatus.SwapCreated)
-    await this._notifySwapChanges()
     return chainSwap
   }
 
-  autoClaimSwap = async (swapId: string): Promise<SomeSwap> => {
-    const swap = await this.storageManager.getSwap(swapId)
-    if (!swap) {
-      throw new Error('Swap not found')
-    }
-
-    // Wait for Ponder to confirm lockup before claiming.
+  autoClaimSwap = async (swap: SomeSwap): Promise<SomeSwap> => {
     const chainId = ASSET_CHAIN_ID_MAP[swap.assetReceive]
     if (!chainId) {
       throw new Error('Chain ID not found')
@@ -379,11 +268,8 @@ class LdsBridgeManager extends SwapEventEmitter {
     })
 
     swap.claimTx = txHash
-    // Update status locally since we know the claim succeeded
-    // This ensures the UI shows completion even if backend status lags
     swap.status = LdsSwapStatus.TransactionClaimed
-    await this.storageManager.setSwap(swapId, swap)
-    this._notifySwapChanges()
+    await this.storageManager.setSwap(swap.id, swap)
     return swap
   }
 
@@ -398,7 +284,6 @@ class LdsBridgeManager extends SwapEventEmitter {
     swap.refundTx = refundTxId
     swap.status = LdsSwapStatus.UserRefunded
     await this.storageManager.setSwap(swapId, swap)
-    await this._notifySwapChanges()
   }
 
   updateSwapClaimTx = async (swapId: string, claimTxId: string): Promise<void> => {
@@ -412,162 +297,6 @@ class LdsBridgeManager extends SwapEventEmitter {
     swap.claimTx = claimTxId
     swap.status = LdsSwapStatus.UserClaimed
     await this.storageManager.setSwap(swapId, swap)
-    await this._notifySwapChanges()
-  }
-
-  syncSwapsWithIndexedData = async (userAddress: string): Promise<void> => {
-    if (!userAddress) {
-      return
-    }
-
-    const swaps = await this.storageManager.getSwaps()
-    const swapsWithIncompleteTransactions = Object.values(swaps)
-      .filter((swap) => !swap.claimTx && !swap.refundTx)
-      .filter((swap) => swap.status && !localUserFinalStatuses.includes(swap.status))
-
-    const preimageHashes = swapsWithIncompleteTransactions.map((swap) => swap.preimageHash)
-
-    if (preimageHashes.length === 0) {
-      return
-    }
-
-    const lockups = await fetchLockupsByPreimageHashes(preimageHashes)
-    const lockupsItems = lockups.data.lockupss?.items
-    if (!lockupsItems || lockupsItems.length === 0) {
-      return
-    }
-
-    const claims = lockupsItems.filter((lockup) => lockup.claimAddress.toLowerCase() === userAddress.toLowerCase())
-    const refunds = lockupsItems.filter((lockup) => lockup.refundAddress.toLowerCase() === userAddress.toLowerCase())
-
-    // Update swaps with claim transactions
-    const updatedClaims: SomeSwap[] = []
-    for (const claim of claims) {
-      const swapEntry = Object.entries(swaps).find(
-        ([_, swap]) => prefix0x(swap.preimageHash) === prefix0x(claim.preimageHash),
-      )
-
-      if (swapEntry) {
-        const [_swapId, swap] = swapEntry
-        if (!swap.claimTx && claim.claimTxHash) {
-          swap.claimTx = claim.claimTxHash
-          swap.status = LdsSwapStatus.UserClaimed
-          updatedClaims.push(swap)
-        }
-      }
-    }
-
-    if (updatedClaims.length > 0) {
-      await this.storageManager.saveBulkSwaps(updatedClaims)
-      await this._notifySwapChanges()
-    }
-
-    // Update swaps with refund transactions
-    const updatedRefunds: SomeSwap[] = []
-    for (const refund of refunds) {
-      const swapEntry = Object.entries(swaps).find(
-        ([_, swap]) => prefix0x(swap.preimageHash) === prefix0x(refund.preimageHash),
-      )
-
-      if (swapEntry) {
-        const [_swapId, swap] = swapEntry
-        if (!swap.refundTx && refund.refundTxHash) {
-          swap.refundTx = refund.refundTxHash
-          swap.status = LdsSwapStatus.UserRefunded
-          updatedRefunds.push(swap)
-        }
-      }
-    }
-
-    if (updatedRefunds.length > 0) {
-      await this.storageManager.saveBulkSwaps(updatedRefunds)
-      await this._notifySwapChanges()
-    }
-
-    // Update expired EVM swaps with no transactions
-    const updatedExpiredSwaps: SomeSwap[] = []
-    const expiredSwaps = Object.values(swaps)
-      .filter((swap) => swap.status && swap.status === LdsSwapStatus.SwapExpired)
-      .filter((swap) => swap.type === SwapType.Chain)
-      .filter((swap) => swap.assetSend !== 'BTC' && swap.assetReceive !== 'BTC')
-
-    for (const expiredSwap of expiredSwaps) {
-      const relatedLockups = lockupsItems.filter((lockup) => prefix0x(lockup.preimageHash) === prefix0x(expiredSwap.preimageHash))
-      if (relatedLockups.length === 0) {
-        expiredSwap.status = LdsSwapStatus.UserAbandoned
-        updatedExpiredSwaps.push(expiredSwap)
-      }
-    }
-
-    if (updatedExpiredSwaps.length > 0) {
-      await this.storageManager.saveBulkSwaps(updatedExpiredSwaps)
-      await this._notifySwapChanges()
-    }
-  }
-
-  syncSwapsWithChainAndMempoolData = async (): Promise<void> => {
-    const swaps = await this.storageManager.getSwaps()
-
-    const btcSendBtcSwaps = Object.values(swaps)
-      .filter((swap) => swap.assetSend === 'BTC')
-      .filter((swap) => swap.status && !localUserFinalStatuses.includes(swap.status))
-      .filter((swap) => swap.status && !Object.values(swapStatusPending).includes(swap.status))
-      .filter((swap) => swap.status && Object.values(swapStatusFinal).includes(swap.status))
-      .filter((swap) => swap.status !== LdsSwapStatus.TransactionLockupFailed)
-      .filter((swap) => swap.type === SwapType.Chain)
-      .filter((swap) => !swap.claimTx && !swap.refundTx)
-
-    const updatedBtcSendBtcSwaps: SomeSwap[] = []
-    for (const swap of btcSendBtcSwaps) {
-      const lockupAddress = (swap as ChainSwap).lockupDetails.lockupAddress
-      if (!lockupAddress) {
-        continue
-      }
-      const swapTransactions = await fetchTransactionByAddress(lockupAddress)
-      if (swapTransactions.length === 0) {
-        swap.status = LdsSwapStatus.UserAbandoned
-        updatedBtcSendBtcSwaps.push(swap)
-        continue
-      }
-    }
-
-    if (updatedBtcSendBtcSwaps.length > 0) {
-      await this.storageManager.saveBulkSwaps(updatedBtcSendBtcSwaps)
-      await this._notifySwapChanges()
-    }
-
-    const updatedBtcClaimBtcSwaps: SomeSwap[] = []
-    const btcSwaps = Object.values(swaps)
-      .filter((swap) => isBitcoinAddress(swap.claimAddress))
-      .filter(swap => swap.status && swap.status === LdsSwapStatus.TransactionClaimPending)
-
-    for (const swap of btcSwaps) {
-      const swapTransactions = await fetchChainTransactionsBySwapId(swap.id)
-      const lockupTx = swapTransactions.serverLock?.transaction.id
-
-      // If still unknown, skip
-      if (!lockupTx) {
-        continue
-      }
-
-      swap.lockupTx = lockupTx
-      const transactionChain = await fetchTransactionByAddress(swap.claimAddress)
-      const claimTxData = transactionChain.find(tx => tx.vin.some(vin => vin.txid === lockupTx))
-
-      if (!claimTxData) {
-        updatedBtcClaimBtcSwaps.push(swap)
-        continue
-      }
-
-      swap.claimTx = claimTxData.txid
-      swap.status = LdsSwapStatus.UserClaimed
-      updatedBtcClaimBtcSwaps.push(swap)
-    }
-
-    if (updatedBtcClaimBtcSwaps.length > 0) {
-      await this.storageManager.saveBulkSwaps(updatedBtcClaimBtcSwaps)
-      await this._notifySwapChanges()
-    }
   }
 
   _subscribeToSwapUpdates = (swapId: string): void => {
@@ -579,14 +308,8 @@ class LdsBridgeManager extends SwapEventEmitter {
       }
       swap.status = event.status
       await this.storageManager.setSwap(swapId, swap)
-      await this._notifySwapChanges()
     }
     this.socketClient.subscribeToSwapUpdates(swapId, updateCallback)
-  }
-
-  private async _notifySwapChanges(): Promise<void> {
-    const swaps = await this.storageManager.getSwaps()
-    this.notifyListeners(swaps)
   }
 
   getKeysForSwap = async (swapId: string): Promise<ChainSwapKeys> => {
@@ -666,89 +389,19 @@ class LdsBridgeManager extends SwapEventEmitter {
     }
   }
 
-  getSwaps = async (): Promise<Record<string, SomeSwap>> => {
+  /**
+   * @deprecated Only for backwards compatibility
+   */
+  getLocalStorageSwaps = async (): Promise<Record<string, SomeSwap>> => {
     return await this.storageManager.getSwaps()
   }
 
-  getSwap = async (swapId: string): Promise<SomeSwap | undefined> => {
-    return await this.storageManager.getSwap(swapId)
-  }
-
-  getPendingSwaps = async (): Promise<SomeSwap[]> => {
-    const swaps = await this.storageManager.getSwaps()
-    // Include swaps with missing status so they can be polled and recover
-    return Object.values(swaps).filter((swap) => isSwapPending(swap.status))
-  }
-
-  updatePendingSwapsStatuses = async (): Promise<void> => {
-    const swaps = await this.storageManager.getSwaps()
-    // Include swaps with missing status so they can be polled and recover
-    const pendingSwaps = Object.values(swaps).filter((swap) => isSwapPending(swap.status))
-
-    if (pendingSwaps.length === 0) {
-      return
-    }
-
-    const state = { hasChanges: false }
-
-    await Promise.all(
-      pendingSwaps.map(async (swap) => {
-        try {
-          const status = await fetchSwapCurrentStatus(swap.id)
-          if (swap.status !== status.status) {
-            swap.status = status.status
-            await this.storageManager.setSwap(swap.id, swap)
-            state.hasChanges = true
-          }
-        } catch (error) {
-          // If swap not found on backend (expired/cleaned up), mark as expired
-          const apiErrorMessage = getFetchErrorMessage(error)
-          if (apiErrorMessage?.includes('could not find swap')) {
-            // eslint-disable-next-line no-console
-            console.warn(`[LdsBridgeManager] Swap ${swap.id} not found on backend, marking as expired`)
-            swap.status = LdsSwapStatus.SwapExpired
-            await this.storageManager.setSwap(swap.id, swap)
-            state.hasChanges = true
-          } else {
-            // eslint-disable-next-line no-console
-            console.error('[LdsBridgeManager] Error updating swap status:', error)
-          }
-        }
-      }),
-    )
-
-    // Only notify once at the end if there were changes
-    if (state.hasChanges) {
-      await this._notifySwapChanges()
-    }
-  }
-
-  suscribeAllPendingSwaps = async (): Promise<void> => {
-    await this.updatePendingSwapsStatuses()
-    const swaps = await this.storageManager.getSwaps()
-    // Include swaps with missing status so they can be polled and recover
-    const pendingSwaps = Object.values(swaps).filter((swap) => isSwapPending(swap.status))
-    pendingSwaps.forEach((swap) => {
-      this._subscribeToSwapUpdates(swap.id)
-    })
-
-    // Start background polling if there are pending swaps
-    if (pendingSwaps.length > 0) {
-      this.startBackgroundPolling()
-    }
-  }
-
   getLockupTransactions = async (
-    swapId: string,
+    swap: SomeSwap,
   ): Promise<{ id: string; hex: string; timeoutBlockHeight: number; timeoutEta?: number }> => {
-    const swap = await this.storageManager.getSwap(swapId)
-    if (!swap) {
-      throw new Error('Swap not found')
-    }
-
     switch (swap.type) {
       case SwapType.Chain: {
-        const chainTransactionsResponse = await fetchChainTransactionsBySwapId(swapId)
+        const chainTransactionsResponse = await fetchChainTransactionsBySwapId(swap.id)
         const userLock = chainTransactionsResponse.userLock
         if (!userLock?.transaction.id || !userLock.transaction.hex || !userLock.timeout.blockHeight) {
           throw new Error('Missing required transaction data')
@@ -761,44 +414,16 @@ class LdsBridgeManager extends SwapEventEmitter {
         }
       }
       case SwapType.Submarine:
-        return fetchSubmarineTransactionsBySwapId(swapId)
+        return fetchSubmarineTransactionsBySwapId(swap.id)
       default:
         throw new Error('Swap type not supported')
     }
   }
 
-  getChainRefundbleSwaps = async (): Promise<SomeSwap[]> => {
-    const swaps = await this.getSwaps()
-    const refundableCandidates = Object.values(swaps)
-      .filter((swap) => !swap.refundTx && !swap.claimTx)
-      .filter((swap) => swap.type === SwapType.Chain)
-      .filter((swap) => swap.assetSend === 'BTC')
-      .filter((swap) => swap.status !== LdsSwapStatus.SwapCreated)
-      .filter((swap) => !Object.values(swapStatusPending).includes(swap.status!))
-
-    const blockTipHeight = await fetchBlockTipHeight()
-    const refundableSwaps = await Promise.all(
-      refundableCandidates.map(async (swap) => {
-        try {
-          const { timeoutBlockHeight } = await this.getLockupTransactions(swap.id)
-          if (timeoutBlockHeight < blockTipHeight) {
-            return swap
-          }
-          return null
-        } catch (error) {
-          return null
-        }
-      }),
-    )
-
-    return refundableSwaps.filter((swap): swap is SomeSwap => swap !== null)
-  }
-
   applyMigrations = async (): Promise<void> => {
-    const swaps = await this.getSwaps()
+    const swaps = await this.getLocalStorageSwaps()
     const migratedSwaps = applyMigrationV4(swaps)
     await this.storageManager.saveBulkSwaps(migratedSwaps)
-    await this._notifySwapChanges()
   }
 }
 

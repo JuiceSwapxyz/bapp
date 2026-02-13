@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import { useAccount } from 'hooks/useAccount'
 import { useJuiceswapAuth } from 'hooks/useJuiceswapAuth'
 import { saveBridgeSwapBulk } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { CreateBridgeSwapRequest } from 'uniswap/src/data/tradingApi/types'
@@ -26,36 +25,28 @@ function getSwapKey(swap: SomeSwap | CreateBridgeSwapRequest): string {
 }
 
 export function useSyncBridgeSwaps(enabled = true) {
-  const account = useAccount()
-  const { isAuthenticated, autenticationSignal } = useJuiceswapAuth()
+  const { isAuthenticated, currentAddress } = useJuiceswapAuth()
 
-  return useQuery({
-    queryKey: ['sync-bridge-swaps', account.address, autenticationSignal, isAuthenticated],
-    queryFn: async (): Promise<{ synced: boolean }> => {
+  const syncBridgeSwaps = useQuery({
+    queryKey: ['sync-bridge-swaps', currentAddress],
+    queryFn: async (): Promise<{ synced: boolean; currentAddress: string | undefined }> => {
       const ldsBridgeManager = getLdsBridgeManager()
 
       await ldsBridgeManager.applyMigrations()
 
-      if (account.address) {
-        await ldsBridgeManager.syncSwapsWithIndexedData(account.address)
-      }
-
-      await ldsBridgeManager.syncSwapsWithChainAndMempoolData()
-
-      if (isAuthenticated && account.address) {
-        const userAddress = account.address.toLowerCase()
-        const swaps = await ldsBridgeManager.getSwaps()
+      if (isAuthenticated && currentAddress) {
+        const swaps = await ldsBridgeManager.getLocalStorageSwaps()
         const syncedKeys = getSyncedSwapKeys()
 
         const swapsToSave = Object.values(swaps)
           .filter((swap) => swap.version >= 4)
-          .filter((swap) => !swap.userId || swap.userId.toLowerCase() === userAddress)
+          .filter((swap) => !swap.userId || swap.userId.toLowerCase() === currentAddress.toLowerCase())
           .filter((swap) => !syncedKeys.has(getSwapKey(swap)))
           .map(
             (swap: SomeSwap) =>
               ({
                 ...swap,
-                userId: swap.userId ? swap.userId.toLowerCase() : userAddress,
+                userId: swap.userId ? swap.userId.toLowerCase() : currentAddress.toLowerCase(),
               }) as CreateBridgeSwapRequest,
           )
 
@@ -68,11 +59,13 @@ export function useSyncBridgeSwaps(enabled = true) {
         }
       }
 
-      return { synced: true }
+      return { synced: true, currentAddress }
     },
     enabled,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
   })
+
+  return syncBridgeSwaps
 }

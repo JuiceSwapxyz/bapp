@@ -7,6 +7,7 @@ import { Arrow } from 'ui/src/components/arrow/Arrow'
 import { iconSizes } from 'ui/src/theme'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
 import { TransactionType } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
+import { GetBridgeSwapsByUserResponse } from 'uniswap/src/data/tradingApi/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { LdsSwapStatus, getSwapStatusCategory } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
@@ -233,11 +234,11 @@ export function swapToActivity(swap: SomeSwap & { id: string }): Activity {
   }
 }
 
-export function swapsToActivityMap(swaps: Record<string, SomeSwap>): ActivityMap {
+export function swapsToActivityMap(swaps: GetBridgeSwapsByUserResponse['swaps']): ActivityMap {
   const activityMap: ActivityMap = {}
 
-  for (const [id, swap] of Object.entries(swaps)) {
-    activityMap[`${LDS_ACTIVITY_PREFIX}${id}`] = swapToActivity({ ...swap, id })
+  for (const swap of swaps) {
+    activityMap[`${LDS_ACTIVITY_PREFIX}${swap.id}`] = swapToActivity(swap as unknown as SomeSwap & { id: string })
   }
 
   return activityMap

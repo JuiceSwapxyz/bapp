@@ -11,6 +11,7 @@ import {
   ChainSwap,
   fetchChainFee,
   prepareRefundMusig,
+  SomeSwap,
   SwapType,
 } from 'uniswap/src/features/lds-bridge'
 import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
@@ -18,18 +19,18 @@ import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeMa
 export interface RefundSwapAction {
   type: 'bridge/refundSwap'
   payload: {
-    swapId: string
+    swap: SomeSwap
     refundAddress: string
   }
 }
 
-export const refundSwap = (swapId: string, refundAddress: string): RefundSwapAction => ({
+export const refundSwap = (swap: SomeSwap, refundAddress: string): RefundSwapAction => ({
   type: 'bridge/refundSwap',
-  payload: { swapId, refundAddress },
+  payload: { swap, refundAddress },
 })
 
 function* refundSwapSaga(action: RefundSwapAction) {
-  const { swapId, refundAddress } = action.payload
+  const { swap, refundAddress } = action.payload
   const ldsBridgeManager = getLdsBridgeManager()
 
   popupRegistry.addPopup(
@@ -37,20 +38,19 @@ function* refundSwapSaga(action: RefundSwapAction) {
       type: PopupType.RefundsInProgress,
       count: 1,
     },
-    `refund-in-progress-${swapId}`,
+    `refund-in-progress-${swap.id}`,
     DEFAULT_TXN_DISMISS_MS,
   )
 
   try {
-    const { hex, timeoutBlockHeight } = yield* call([ldsBridgeManager, ldsBridgeManager.getLockupTransactions], swapId)
+    const { hex, timeoutBlockHeight } = yield* call([ldsBridgeManager, ldsBridgeManager.getLockupTransactions], swap)
 
-    const swap = yield* call([ldsBridgeManager, ldsBridgeManager.getSwap], swapId)
-    if (!swap || swap.type !== SwapType.Chain) {
+    if (swap.type !== SwapType.Chain) {
       throw new Error('Swap not found')
     }
 
     const chainSwap = swap as ChainSwap
-    const { claimKeyPair } = yield* call([ldsBridgeManager, ldsBridgeManager.getKeysForSwap], swapId)
+    const { claimKeyPair } = yield* call([ldsBridgeManager, ldsBridgeManager.getKeysForSwap], swap.id)
 
     const { musig, tweakedKey, swapTree } = yield* call(prepareRefundMusig, claimKeyPair, chainSwap)
     const lockupTx = Transaction.fromHex(hex)
@@ -74,16 +74,16 @@ function* refundSwapSaga(action: RefundSwapAction) {
 
     const { id: txId } = yield* call(broadcastChainSwap, refundTx.toHex())
 
-    yield* call([ldsBridgeManager, ldsBridgeManager.updateSwapRefundTx], swapId, txId)
+    yield* call([ldsBridgeManager, ldsBridgeManager.updateSwapRefundTx], swap.id, txId)
 
-    popupRegistry.removePopup(`refund-in-progress-${swapId}`)
+    popupRegistry.removePopup(`refund-in-progress-${swap.id}`)
 
     popupRegistry.addPopup(
       {
         type: PopupType.RefundsCompleted,
         count: 1,
       },
-      `refund-completed-${swapId}`,
+      `refund-completed-${swap.id}`,
       DEFAULT_TXN_DISMISS_MS,
     )
 
@@ -98,7 +98,7 @@ function* refundSwapSaga(action: RefundSwapAction) {
       txId,
     )
   } catch (error) {
-    popupRegistry.removePopup(`refund-in-progress-${swapId}`)
+    popupRegistry.removePopup(`refund-in-progress-${swap.id}`)
     throw error
   }
 }

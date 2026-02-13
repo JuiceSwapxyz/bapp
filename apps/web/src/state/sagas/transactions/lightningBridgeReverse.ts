@@ -99,7 +99,7 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
     reverseSwap.id,
   )
 
-  const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], reverseSwap.id)
+  const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], reverseSwap)
 
   setCurrentStep({
     step: { ...step, subStep: LnReverseSubStep.Complete },

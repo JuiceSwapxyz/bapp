@@ -85,7 +85,7 @@ import {
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
-import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import { getLdsBridgeManager, LdsSwapStatus, SomeSwap, UserClaimsAndRefundsResponse } from 'uniswap/src/features/lds-bridge'
 import { getSpenderAddress } from 'uniswap/src/utils/approvalCalldata'
 import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 
@@ -1433,8 +1433,11 @@ export const saveBridgeSwap = async (params: CreateBridgeSwapRequest): Promise<C
   })
 }
 
-export const fetchBridgeSwaps = async (address: string): Promise<GetBridgeSwapsByUserResponse> => {
-  return await TradingApiClient.get<GetBridgeSwapsByUserResponse>(`/v1/bridge-swap/user/${address}`)
+export const fetchBridgeSwaps = async (params: { statuses?: LdsSwapStatus[] }): Promise<GetBridgeSwapsByUserResponse> => {
+  const statusFilter = params.statuses?.length
+    ? params.statuses.map((s) => `status=${encodeURIComponent(s)}`).join('&')
+    : ''
+  return await TradingApiClient.get<GetBridgeSwapsByUserResponse>(`/v1/bridge-swap/user/?${statusFilter}`)
 }
 
 export const saveBridgeSwapBulk = async (params: CreateBridgeSwapRequest[]): Promise<BulkCreateBridgeSwapResponse> => {
@@ -1443,4 +1446,12 @@ export const saveBridgeSwapBulk = async (params: CreateBridgeSwapRequest[]): Pro
       swaps: params,
     }),
   })
+}
+
+export const fetchClaimRefund = async (): Promise<UserClaimsAndRefundsResponse> => {
+  return await TradingApiClient.get<UserClaimsAndRefundsResponse>('/v1/bridge-swap/claim-refund')
+}
+
+export const fetchBridgeSwapByPreimageHash = async (params: { preimageHash: string }): Promise<SomeSwap> => {
+  return await TradingApiClient.get<SomeSwap>(`/v1/bridge-swap/preimage-hash/${params.preimageHash}`)
 }

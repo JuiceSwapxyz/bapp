@@ -1,7 +1,8 @@
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { useCallback } from 'react'
-import { EvmLockup, getLdsBridgeManager, prefix0x } from 'uniswap/src/features/lds-bridge'
+import { fetchBridgeSwapByPreimageHash } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
+import { EvmLockup, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
 import { refundCoinSwap, refundErc20Swap } from 'uniswap/src/features/lds-bridge/transactions/evm'
 import { logger } from 'utilities/src/logger/logger'
 import { getConnectorClient, switchChain } from 'wagmi/actions'
@@ -97,14 +98,9 @@ export function useEvmRefund() {
         })
       }
 
-      const swaps = await getLdsBridgeManager().getSwaps()
-      const currentSwap = Object.values(swaps).find(
-        (swap) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash),
-      )
-      if (currentSwap) {
-        currentSwap.refundTx = txHash
-        await getLdsBridgeManager().updateSwapRefundTx(currentSwap.id, txHash)
-      }
+      const swap = await fetchBridgeSwapByPreimageHash({ preimageHash: lockup.preimageHash })
+      swap.refundTx = txHash
+      await getLdsBridgeManager().updateSwapRefundTx(swap.id, txHash)
 
       logger.info('useEvmRefund', 'executeRefund', `Refund successful: ${txHash}`)
       return txHash
