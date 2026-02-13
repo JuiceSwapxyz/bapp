@@ -203,7 +203,7 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
     if (effectiveBalanceOut === undefined) return undefined
 
     const decimalsIn = currencyIn.decimals
-    const maxInput = Math.floor(effectiveBalanceOut)
+    const maxInput = parseFloat((effectiveBalanceOut / 1e8).toFixed(2))
     const minRaw = parseUnits('1', decimalsIn).toString()
     const maxRaw = parseUnits(maxInput.toString(), decimalsIn).toString()
 
