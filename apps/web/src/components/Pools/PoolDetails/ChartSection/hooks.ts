@@ -23,13 +23,19 @@ export function usePDPVolumeChartData({
   })
 
   return useMemo(() => {
-    const entries =
-      data
-        ?.filter((entry: PoolVolumeHistoryEntry) => entry.value > 0)
-        .map((entry: PoolVolumeHistoryEntry) => withUTCTimestamp({ value: entry.value, timestamp: entry.timestamp })) ??
-      []
+    const allEntries =
+      data?.map((entry: PoolVolumeHistoryEntry) =>
+        withUTCTimestamp({ value: entry.value, timestamp: entry.timestamp }),
+      ) ?? []
 
-    const dataQuality = checkDataQuality({ data: entries, chartType: ChartType.VOLUME, duration: variables.duration })
+    // Check staleness before filtering zeros so idle periods don't appear stale
+    const dataQuality = checkDataQuality({
+      data: allEntries,
+      chartType: ChartType.VOLUME,
+      duration: variables.duration,
+    })
+
+    const entries = allEntries.filter((entry) => entry.value > 0)
 
     return { chartType: ChartType.VOLUME, entries, loading, dataQuality }
   }, [data, loading, variables.duration])

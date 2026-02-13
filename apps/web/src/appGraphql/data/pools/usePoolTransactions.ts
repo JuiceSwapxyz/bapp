@@ -62,22 +62,25 @@ export interface PoolTableTransaction {
 
 const PoolTransactionDefaultQuerySize = 25
 
+/** Minimal transaction shape shared by REST (PoolTransactionEntry) and GraphQL responses. */
+interface MappableTransaction {
+  timestamp: number
+  hash: string
+  account: string
+  token0: { address?: string | null; symbol?: string | null }
+  token1: { address?: string | null; symbol?: string | null }
+  token0Quantity: string
+  token1Quantity: string
+  usdValue: { value: number }
+  type: string
+}
+
 /**
  * Map a transaction (REST or GraphQL shape) to PoolTableTransaction.
  * Handles both shapes transparently.
  */
 function mapTransaction(
-  tx: {
-    timestamp: number
-    hash: string
-    account: string
-    token0: { address?: string | null; symbol?: string | null }
-    token1: { address?: string | null; symbol?: string | null }
-    token0Quantity: string
-    token1Quantity: string
-    usdValue: { value: number }
-    type: string
-  },
+  tx: MappableTransaction,
   opts: { token0Address: string | undefined; filter: PoolTableTransactionType[] },
 ): PoolTableTransaction | undefined {
   const { token0Address, filter } = opts
