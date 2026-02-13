@@ -50,6 +50,7 @@ export const TokenLogo = memo(function _TokenLogo({
       juice: 'https://docs.juiceswap.com/media/icons/juice.png',
       jusd: 'https://docs.juiceswap.com/media/icons/jusd.png',
       sybtc: 'https://docs.juiceswap.com/media/icons/sybtc.png',
+      susd: 'https://docs.juiceswap.com/media/icons/susd.png',
       // L0 bridged tokens (LayerZero)
       'wbtc.e': 'https://assets.coingecko.com/coins/images/7598/large/wrapped_bitcoin_wbtc.png',
       'usdc.e': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
