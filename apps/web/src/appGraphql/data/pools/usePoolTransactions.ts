@@ -16,6 +16,7 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { toGraphQLChain } from 'uniswap/src/features/chains/utils'
 import i18n from 'uniswap/src/i18n'
+import { logger } from 'utilities/src/logger/logger'
 
 export enum PoolTableTransactionType {
   BUY = 'Buy',
@@ -193,7 +194,8 @@ export function usePoolTransactions({
               onComplete?.()
               loadingMore.current = false
             })
-            .catch(() => {
+            .catch((err: unknown) => {
+              logger.error('usePoolTransactions', 'loadMore', 'Failed to fetch next V3 page', { error: err })
               onComplete?.()
               loadingMore.current = false
             })

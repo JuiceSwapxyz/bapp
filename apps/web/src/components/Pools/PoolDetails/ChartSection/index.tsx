@@ -202,8 +202,7 @@ export default function ChartSection(props: ChartSectionProps) {
       return <ChartSkeleton type={activeQuery.chartType} height={PDP_CHART_HEIGHT_PX} errorText={errorText} />
     }
 
-    // TODO(JSWAP-XXX): re-enable stale detection for REST — wire up freshness check based on REST response metadata
-    const stale = false
+    const stale = activeQuery.dataQuality === DataQuality.STALE
 
     switch (activeQuery.chartType) {
       case ChartType.PRICE:
@@ -220,9 +219,9 @@ export default function ChartSection(props: ChartSectionProps) {
     }
   })()
 
-  // BE does not support hourly price data for pools
+  // REST endpoints don't support hourly granularity — filter HOUR for PRICE and VOLUME charts
   const filteredTimeOptions = useMemo(() => {
-    if (activeQuery.chartType === ChartType.PRICE) {
+    if (activeQuery.chartType !== ChartType.LIQUIDITY) {
       const filtered = DEFAULT_PILL_TIME_SELECTOR_OPTIONS.filter((option) => option.value !== TimePeriodDisplay.HOUR)
       if (timePeriod === TimePeriod.HOUR) {
         setTimePeriod(TimePeriod.DAY)

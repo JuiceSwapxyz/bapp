@@ -1,6 +1,6 @@
 import { PriceChartData } from 'components/Charts/PriceChart'
 import { ChartType } from 'components/Charts/utils'
-import { ChartQueryResult, DataQuality } from 'components/Tokens/TokenDetails/ChartSection/util'
+import { ChartQueryResult, DataQuality, checkDataQuality } from 'components/Tokens/TokenDetails/ChartSection/util'
 import { UTCTimestamp } from 'lightweight-charts'
 import { useMemo } from 'react'
 import { PoolPriceHistoryEntry } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
@@ -21,6 +21,9 @@ export type PDPChartQueryVars = {
 
 export function historyDurationToString(duration: HistoryDuration): string {
   switch (duration) {
+    case HistoryDuration.Hour:
+      // REST endpoints don't support hourly granularity; fall back to DAY
+      return 'DAY'
     case HistoryDuration.Day:
       return 'DAY'
     case HistoryDuration.Week:
@@ -69,8 +72,15 @@ export function usePoolPriceChartData({
 
     const filteredEntries = removeOutliers(entries)
 
-    const dataQuality = loading || !data || data.length === 0 ? DataQuality.INVALID : DataQuality.VALID
+    const dataQuality =
+      loading || !data || data.length === 0
+        ? DataQuality.INVALID
+        : checkDataQuality({
+            data: filteredEntries,
+            chartType: ChartType.PRICE,
+            duration: variables?.duration ?? HistoryDuration.Day,
+          })
 
     return { chartType: ChartType.PRICE, entries: filteredEntries, loading, dataQuality }
-  }, [data, loading, priceInverted])
+  }, [data, loading, priceInverted, variables?.duration])
 }

@@ -81,14 +81,16 @@ export function usePoolActiveLiquidity({
     return undefined
   }, [poolId, sdkCurrencies, feeAmount, version, effectiveChainId, tickSpacing, hooks])
 
-  // Fetch tick data + pool state from REST endpoint
+  // Fetch tick data + pool state from REST endpoint (V3 only — V4 uses PoolManager, not individual contracts)
+  const isV3 = version === ProtocolVersion.V3
+
   const {
     data: ticksData,
     isLoading: ticksLoading,
     error: ticksError,
   } = usePoolTicks({
-    address: skip ? null : poolAddress,
-    chainId: skip ? null : effectiveChainId,
+    address: skip || !isV3 ? null : poolAddress,
+    chainId: skip || !isV3 ? null : effectiveChainId,
   })
 
   // Extract pool state from REST response
