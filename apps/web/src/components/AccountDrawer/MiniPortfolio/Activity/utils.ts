@@ -51,15 +51,21 @@ const CONTRACT_TO_CHAIN_ID: Record<string, UniverseChainId> = {
 }
 
 export function inferChainIdFromSwap(swap: SomeSwap): UniverseChainId | undefined {
-  if ('claimDetails' in swap && swap.claimDetails.lockupAddress) {
-    const address = swap.claimDetails.lockupAddress.toLowerCase()
+  const claimDetails =
+    'claimDetails' in swap ? (swap as { claimDetails?: { lockupAddress?: unknown } | null }).claimDetails : undefined
+  const claimLockupAddress = typeof claimDetails?.lockupAddress === 'string' ? claimDetails.lockupAddress : undefined
+  if (claimLockupAddress) {
+    const address = claimLockupAddress.toLowerCase()
     if (address in CONTRACT_TO_CHAIN_ID) {
       return CONTRACT_TO_CHAIN_ID[address]
     }
   }
 
-  if ('lockupDetails' in swap && swap.lockupDetails.lockupAddress) {
-    const address = swap.lockupDetails.lockupAddress.toLowerCase()
+  const lockupDetails =
+    'lockupDetails' in swap ? (swap as { lockupDetails?: { lockupAddress?: unknown } | null }).lockupDetails : undefined
+  const lockupAddress = typeof lockupDetails?.lockupAddress === 'string' ? lockupDetails.lockupAddress : undefined
+  if (lockupAddress) {
+    const address = lockupAddress.toLowerCase()
     if (address in CONTRACT_TO_CHAIN_ID) {
       return CONTRACT_TO_CHAIN_ID[address]
     }

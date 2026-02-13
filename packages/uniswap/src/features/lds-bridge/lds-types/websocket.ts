@@ -107,7 +107,7 @@ export function getSwapStatusCategory(status?: LdsSwapStatus): 'pending' | 'succ
   if (!status) {
     return 'pending'
   }
-  if (Object.values(swapStatusSuccess).includes(status)) {
+  if (Object.values(swapStatusSuccess).includes(status) || localUserFinalStatuses.includes(status)) {
     return 'success'
   }
   if (Object.values(swapStatusFailed).includes(status)) {
@@ -116,7 +116,7 @@ export function getSwapStatusCategory(status?: LdsSwapStatus): 'pending' | 'succ
   if(Object.values(swapStatusPending).includes(status)) {
     return 'pending'
   }
-  return 'success'
+  return 'pending'
 }
 
 export interface SwapUpdateEvent {
