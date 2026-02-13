@@ -13,6 +13,7 @@ const JuiceswapAuthProviderContext = createContext<
       handleCheckAuthentication: () => Promise<boolean>
       handleAuthenticate: () => Promise<boolean>
       getIsAuthenticated: (address?: string) => boolean
+      currentAddress: string | undefined
       autenticationSignal: string
       isAuthenticated: boolean
     }
@@ -74,6 +75,7 @@ export function JuiceswapAuthProvider({ children }: PropsWithChildren): JSX.Elem
         getIsAuthenticated,
         autenticationSignal,
         isAuthenticated,
+        currentAddress: account.address,
       }}
     >
       {children}

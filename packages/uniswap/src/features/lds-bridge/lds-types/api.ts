@@ -1,3 +1,5 @@
+import { SomeSwap } from "./storage"
+
 export interface BoltzBalanceItem {
   blockchain: string
   asset: string
@@ -223,16 +225,6 @@ export interface ClaimChainSwapResponse {
 
 export type ChainPairsResponse = Record<string, Record<string, ChainPairInfo>>
 
-export interface RegisterPreimageRequest {
-  preimageHash: string
-  preimage: string
-  swapId?: string
-}
-
-export interface RegisterPreimageResponse {
-  success: boolean
-}
-
 export interface EvmLockup {
   preimageHash: string
   chainId: number
@@ -262,78 +254,15 @@ export interface LockupsResponse {
   }
 }
 
-export interface UserClaimItem {
-  preimageHash: string
-  claimTxHash: string
-}
-
-export interface UserRefundItem {
-  preimageHash: string
-  refundTxHash: string
-}
-
 export interface UserClaimsAndRefundsResponse {
-  data: {
-    myClaims: {
-      items: UserClaimItem[]
-    }
-    myRefunds: {
-      items: UserRefundItem[]
-    }
+  btc: {
+    readyToRefund: SomeSwap[]
+    locked: SomeSwap[]
+  }
+  evm: {
+    readyToRefund: EvmLockup[]
+    readyToClaim: EvmLockup[]
+    locked: EvmLockup[]
   }
 }
-
-export interface UserClaimsAndRefunds {
-  claims: UserClaimItem[]
-  refunds: UserRefundItem[]
-}
-
-// Bitcoin mempool.space/blockstream.info API types
-export interface BitcoinTransactionStatus {
-  confirmed: boolean
-  block_height?: number
-  block_hash?: string
-  block_time?: number
-}
-
-export interface BitcoinTransactionPrevout {
-  scriptpubkey: string
-  scriptpubkey_asm: string
-  scriptpubkey_type: string
-  scriptpubkey_address: string
-  value: number
-}
-
-export interface BitcoinTransactionVin {
-  txid: string
-  vout: number
-  prevout: BitcoinTransactionPrevout
-  scriptsig: string
-  scriptsig_asm: string
-  witness: string[]
-  is_coinbase: boolean
-  sequence: number
-}
-
-export interface BitcoinTransactionVout {
-  scriptpubkey: string
-  scriptpubkey_asm: string
-  scriptpubkey_type: string
-  scriptpubkey_address: string
-  value: number
-}
-
-export interface BitcoinTransaction {
-  txid: string
-  version: number
-  locktime: number
-  vin: BitcoinTransactionVin[]
-  vout: BitcoinTransactionVout[]
-  size: number
-  weight: number
-  fee: number
-  status: BitcoinTransactionStatus
-}
-
-export type BitcoinAddressTransactions = BitcoinTransaction[]
 

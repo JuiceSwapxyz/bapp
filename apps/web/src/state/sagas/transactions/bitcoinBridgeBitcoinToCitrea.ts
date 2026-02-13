@@ -68,7 +68,7 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
     accepted: false,
   })
 
-  const chainSwapResponse = yield* call([ldsBridge, ldsBridge.createChainSwap], {
+  const chainSwap = yield* call([ldsBridge, ldsBridge.createChainSwap], {
     from: 'BTC',
     to: 'cBTC',
     claimAddress,
@@ -78,11 +78,11 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
   })
 
   step.backendAccepted = true
-  step.bip21 = chainSwapResponse.lockupDetails.bip21
+  step.bip21 = chainSwap.lockupDetails.bip21
   setCurrentStep({ step: { ...step, subStep: BtcToCitreaSubStep.ShowingInvoice }, accepted: true })
 
   // --- Wait for mempool (Lock) ---
-  yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwapResponse.id, LdsSwapStatus.TransactionMempool)
+  yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionMempool)
 
   setCurrentStep({
     step: { ...step, subStep: BtcToCitreaSubStep.WaitingForMempool },
@@ -92,23 +92,23 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
   popupRegistry.addPopup(
     {
       type: PopupType.BitcoinBridge,
-      id: chainSwapResponse.id,
+      id: chainSwap.id,
       status: LdsBridgeStatus.Pending,
       direction: BitcoinBridgeDirection.BitcoinToCitrea,
       url: '/bridge-swaps',
     },
-    chainSwapResponse.id,
+    chainSwap.id,
   )
 
   // --- Claim ---
-  yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwapResponse.id, LdsSwapStatus.TransactionConfirmed)
+  yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionConfirmed)
 
   setCurrentStep({
     step: { ...step, subStep: BtcToCitreaSubStep.Claiming },
     accepted: true,
   })
 
-  const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwapResponse.id)
+  const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
 
   setCurrentStep({
     step: { ...step, subStep: BtcToCitreaSubStep.Complete },
