@@ -9,6 +9,7 @@ import {
   sortPortfolioBalances,
   useTokenBalancesGroupedByVisibility,
 } from 'uniswap/src/features/dataApi/balances/balances'
+import { getTokenLogoFromRegistry } from 'uniswap/src/features/tokens/tokenRegistry'
 
 export function usePortfolioTokenOptions({
   address,
@@ -29,10 +30,21 @@ export function usePortfolioTokenOptions({
   const portfolioBalances: TokenOption[] | undefined = useMemo(
     () =>
       shownTokens
-        ? sortPortfolioBalances({ balances: shownTokens, isTestnetModeEnabled }).map((balance) => ({
-            ...balance,
-            type: OnchainItemListOptionType.Token,
-          }))
+        ? sortPortfolioBalances({ balances: shownTokens, isTestnetModeEnabled }).map((balance) => {
+            const { currencyInfo } = balance
+            return {
+              ...balance,
+              currencyInfo: {
+                ...currencyInfo,
+                logoUrl:
+                  currencyInfo.logoUrl ||
+                  (!currencyInfo.currency.isNative
+                    ? getTokenLogoFromRegistry(currencyInfo.currency.chainId, currencyInfo.currency.address)
+                    : undefined),
+              },
+              type: OnchainItemListOptionType.Token,
+            }
+          })
         : undefined,
     [shownTokens, isTestnetModeEnabled],
   )
