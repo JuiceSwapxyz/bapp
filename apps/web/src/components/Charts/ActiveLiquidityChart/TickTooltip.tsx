@@ -64,19 +64,55 @@ export function TickTooltipContent({
   baseCurrency: Currency
   showQuoteCurrencyFirst?: boolean
 } & FlexProps) {
-  const { formatPercent, convertFiatAmountFormatted } = useLocalizationContext()
+  const { formatPercent, convertFiatAmountFormatted, formatNumberOrString } = useLocalizationContext()
   const amountBaseLockedUSD = useUSDCValue(tryParseCurrencyAmount(hoveredTick.amount1Locked?.toFixed(2), baseCurrency))
   const amountQuoteLockedUSD = useUSDCValue(
     tryParseCurrencyAmount(hoveredTick.amount0Locked?.toFixed(2), quoteCurrency),
   )
+  const hasUSDValues = !!amountQuoteLockedUSD && !!amountBaseLockedUSD
 
-  if (!amountQuoteLockedUSD || !amountBaseLockedUSD) {
+  if (!hasUSDValues && !hoveredTick.amount0Locked && !hoveredTick.amount1Locked) {
     return null
   }
 
   const price0 = typeof hoveredTick.price0 === 'string' ? parseFloat(hoveredTick.price0) : hoveredTick.price0
   const showQuoteCurrency = showQuoteCurrencyFirst ? currentPrice >= price0 : currentPrice <= price0
   const isCurrentTick = hoveredTick.tick === currentTick
+
+  if (!hasUSDValues) {
+    return (
+      <Flex
+        p="$padding8"
+        gap="$gap4"
+        minWidth={150}
+        borderRadius="$rounded12"
+        borderColor="$surface3"
+        borderWidth="$spacing1"
+        backgroundColor="$surface2"
+        pointerEvents="none"
+        {...props}
+      >
+        <Flex justifyContent="space-between" row alignItems="center" gap="$gap8">
+          <Flex row gap="$gap4" alignItems="center">
+            <DoubleCurrencyLogo currencies={[quoteCurrency]} size={iconSizes.icon16} />
+            <Text variant="body4">{quoteCurrency.symbol}</Text>
+          </Flex>
+          <Text variant="body4">
+            {formatNumberOrString({ value: hoveredTick.amount0Locked, type: NumberType.TokenQuantityStats })}
+          </Text>
+        </Flex>
+        <Flex justifyContent="space-between" row alignItems="center" gap="$gap8">
+          <Flex row gap="$gap4" alignItems="center">
+            <DoubleCurrencyLogo currencies={[baseCurrency]} size={iconSizes.icon16} />
+            <Text variant="body4">{baseCurrency.symbol}</Text>
+          </Flex>
+          <Text variant="body4">
+            {formatNumberOrString({ value: hoveredTick.amount1Locked, type: NumberType.TokenQuantityStats })}
+          </Text>
+        </Flex>
+      </Flex>
+    )
+  }
 
   const displayAmountQuoteUSD = isCurrentTick ? amountQuoteLockedUSD.divide(2) : amountQuoteLockedUSD
   const displayAmountBaseUSD = isCurrentTick ? amountBaseLockedUSD.divide(2) : amountBaseLockedUSD

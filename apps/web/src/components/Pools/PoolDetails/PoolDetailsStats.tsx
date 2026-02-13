@@ -183,20 +183,26 @@ export function PoolDetailsStats({ poolData, isReversed, chainId, loading }: Poo
   })
 
   const [token0, token1]: [TokenFullData | undefined, TokenFullData | undefined] = useMemo(() => {
-    if (poolData && poolData.tvlToken0 && poolData.token0Price && poolData.tvlToken1 && poolData.token1Price) {
+    if (
+      poolData &&
+      poolData.tvlToken0 != null &&
+      poolData.token0Price != null &&
+      poolData.tvlToken1 != null &&
+      poolData.token1Price != null
+    ) {
       const fullWidth = poolData.tvlToken0 * poolData.token0Price + poolData.tvlToken1 * poolData.token1Price
       const token0FullData: TokenFullData = {
         ...poolData.token0,
         price: poolData.token0Price,
         tvl: poolData.tvlToken0,
-        percent: (poolData.tvlToken0 * poolData.token0Price) / fullWidth,
+        percent: fullWidth > 0 ? (poolData.tvlToken0 * poolData.token0Price) / fullWidth : 0,
         currency: currency0,
       }
       const token1FullData: TokenFullData = {
         ...poolData.token1,
         price: poolData.token1Price,
         tvl: poolData.tvlToken1,
-        percent: (poolData.tvlToken1 * poolData.token1Price) / fullWidth,
+        percent: fullWidth > 0 ? (poolData.tvlToken1 * poolData.token1Price) / fullWidth : 0,
         currency: currency1,
       }
       return isReversed ? [token1FullData, token0FullData] : [token0FullData, token1FullData]
@@ -241,7 +247,7 @@ export function PoolDetailsStats({ poolData, isReversed, chainId, loading }: Poo
           </Row>
         )}
       </StatItemColumn>
-      {poolData.tvlUSD && (
+      {poolData.tvlUSD != null && (
         <StatItem
           title={<Trans i18nKey="common.totalValueLocked" />}
           value={poolData.tvlUSD}

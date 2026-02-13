@@ -202,7 +202,7 @@ export default function ChartSection(props: ChartSectionProps) {
       return <ChartSkeleton type={activeQuery.chartType} height={PDP_CHART_HEIGHT_PX} errorText={errorText} />
     }
 
-    const stale = activeQuery.dataQuality === DataQuality.STALE
+    const stale = false
 
     switch (activeQuery.chartType) {
       case ChartType.PRICE:
