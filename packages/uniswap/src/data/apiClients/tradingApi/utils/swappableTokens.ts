@@ -354,3 +354,27 @@ export const swappableTokensData: Partial<Record<ChainId, Record<string, GetSwap
 }
 
 export const swappableTokensMappping: Partial<Record<ChainId, Record<string, GetSwappableTokensResponse['tokens']>>> = swappableTokensData
+
+/**
+ * Returns all unique swappable tokens across all chains and input tokens.
+ * Used to display all available cross-chain swap options regardless of selected input token.
+ */
+export function getAllSwappableTokens(): GetSwappableTokensResponse['tokens'] {
+  const allTokens: GetSwappableTokensResponse['tokens'] = []
+  const seenTokens = new Set<string>()
+
+  for (const chainTokens of Object.values(swappableTokensData)) {
+    for (const tokens of Object.values(chainTokens)) {
+      for (const token of tokens) {
+        // Create unique key based on address + chainId
+        const key = `${token.address.toLowerCase()}-${token.chainId}`
+        if (!seenTokens.has(key)) {
+          seenTokens.add(key)
+          allTokens.push(token)
+        }
+      }
+    }
+  }
+
+  return allTokens
+}
