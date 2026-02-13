@@ -175,6 +175,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     claimAddress: account.address,
     userLockAmount,
     chainId: citreaChainId,
+    userId: account.address.toLocaleLowerCase(),
   }
 
   let chainSwap
@@ -346,7 +347,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
   )
 
   try {
-    const claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
+    const claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
     setCurrentStep({ step, accepted: true })
 
     popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
@@ -379,7 +380,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'wbtcBridge', function: 'handleWbtcBridge' },
-      extra: { swapId: chainSwap.id, step: 'autoClaimSwap' },
+      extra: { swapId: chainSwap.id, step: 'autoClaimSwapById' },
     })
     throw new TransactionStepFailedError({
       message: `Auto-claim failed: ${error instanceof Error ? error.message : String(error)}`,

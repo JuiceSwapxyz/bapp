@@ -8,8 +8,9 @@ import {
   keepActivitiesForChains,
   useCreateCancelTransactionRequest,
 } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
+import { useBridgeSwaps } from 'hooks/useBridgeSwaps'
 import { GasFeeResult, GasSpeed, useTransactionGasFee } from 'hooks/useTransactionGasFee'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { usePendingOrders } from 'state/signatures/hooks'
 import { SignatureType, UniswapXOrderDetails } from 'state/signatures/types'
 import { usePendingTransactions, useTransactionCanceller } from 'state/transactions/hooks'
@@ -17,11 +18,9 @@ import { usePonderActivitiesQuery } from 'uniswap/src/data/apiClients/ponderApi/
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
-import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { LdsSwapStatus, swapStatusFinal } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import { LdsSwapStatus, swapStatusPending } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { TransactionStatus } from 'uniswap/src/features/transactions/types/transactionDetails'
-import { logger } from 'utilities/src/logger/logger'
 
 /** Detects transactions from same account with the same nonce and different hash */
 function findCancelTx({
@@ -135,33 +134,15 @@ export function useAllActivities(account: string) {
     [account, activities, formatNumberOrString],
   )
 
-  const [bridgeMap, setBridgeMap] = useState<ActivityMap>({})
+  const { data: bridgeSwaps } = useBridgeSwaps()
 
-  useEffect(() => {
-    const ldsBridgeManager = getLdsBridgeManager()
-
-    const loadBridgeSwaps = async () => {
-      try {
-        const swaps = await ldsBridgeManager.getSwaps()
-        const activityMap = swapsToActivityMap(swaps)
-        setBridgeMap(keepActivitiesForChains(activityMap, chains))
-      } catch (error) {
-        logger.error(error, { tags: { file: 'Activity/hooks', function: 'loadBridgeSwaps' } })
-      }
+  const bridgeMap = useMemo(() => {
+    if (!bridgeSwaps) {
+      return {}
     }
-
-    const handleSwapChange = (swaps: Record<string, SomeSwap>) => {
-      const activityMap = swapsToActivityMap(swaps)
-      setBridgeMap(keepActivitiesForChains(activityMap, chains))
-    }
-
-    void loadBridgeSwaps()
-    ldsBridgeManager.addSwapChangeListener(handleSwapChange)
-
-    return () => {
-      ldsBridgeManager.removeSwapChangeListener(handleSwapChange)
-    }
-  }, [chains])
+    const activityMap = swapsToActivityMap(bridgeSwaps.swaps)
+    return keepActivitiesForChains(activityMap, chains)
+  }, [bridgeSwaps, chains])
 
   // Fetch Ponder activities (DEX swaps + launchpad trades) for Citrea chains
   const { data: ponderResponse } = usePonderActivitiesQuery({
@@ -220,45 +201,10 @@ export function useOpenLimitOrders(account: string) {
   }
 }
 
-const statusNonFinalSwaps = (swap: SomeSwap) => swap.status && !swapStatusFinal.includes(swap.status)
-const swapsFinalNonClaimed = (swap: SomeSwap) =>
-  !swap.claimTx && swap.status === LdsSwapStatus.TransactionServerConfirmed
-
+const pendiingSwapStatuses = Object.values(swapStatusPending).filter((status) => status !== LdsSwapStatus.SwapCreated)
 export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading: boolean } {
-  const [bridgeSwaps, setBridgeSwaps] = useState<SomeSwap[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const ldsBridgeManager = getLdsBridgeManager()
-
-    const loadInitialSwaps = async (): Promise<void> => {
-      try {
-        await ldsBridgeManager.suscribeAllPendingSwaps()
-        const swaps = await ldsBridgeManager.getSwaps()
-        const pendingSwaps = Object.values(swaps).filter(statusNonFinalSwaps).filter(swapsFinalNonClaimed)
-
-        setBridgeSwaps(pendingSwaps)
-        setLoading(false)
-      } catch (error) {
-        logger.error(error, { tags: { file: 'Activity/hooks', function: 'loadInitialSwaps' } })
-        setLoading(false)
-      }
-    }
-
-    const handleSwapChange = (swaps: Record<string, SomeSwap>): void => {
-      const pendingSwaps = Object.values(swaps).filter(statusNonFinalSwaps).filter(swapsFinalNonClaimed)
-      setBridgeSwaps(pendingSwaps)
-    }
-
-    void loadInitialSwaps()
-    ldsBridgeManager.addSwapChangeListener(handleSwapChange)
-
-    return () => {
-      ldsBridgeManager.removeSwapChangeListener(handleSwapChange)
-    }
-  }, [])
-
-  return { bridgeSwaps, loading }
+  const { data: bridgeSwaps, isLoading: loading } = useBridgeSwaps({ statuses: pendiingSwapStatuses })
+  return { bridgeSwaps: bridgeSwaps?.swaps ?? ([] as unknown as SomeSwap[]), loading }
 }
 
 export function usePendingActivity() {

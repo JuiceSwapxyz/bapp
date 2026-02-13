@@ -7,10 +7,8 @@ import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
-import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
-import { useEvmClaimableAndRefundableSwaps } from 'hooks/useEvmRefundableSwaps'
 import { useModalState } from 'hooks/useModalState'
-import { useRefundableSwaps } from 'hooks/useRefundableSwaps'
+import { useRefundsAndClaims } from 'hooks/useRefundsAndClaims'
 import { RiseIn } from 'pages/Landing/components/animations'
 import { BAppsCard } from 'pages/Landing/components/cards/BAppsCard'
 import { useResetOverrideOneClickSwapFlag } from 'pages/Swap/settings/OneClickSwap'
@@ -87,12 +85,7 @@ export default function SwapPage() {
     triggerConnect,
   } = useInitialCurrencyState()
 
-  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
-  const { data: refundableSwaps = [], isLoading: isLoadingRefundable } = useRefundableSwaps(crossChainSwapsEnabled)
-  const {
-    data: evmRefundableSwaps = { refundable: [], locked: [], claimable: [] },
-    isLoading: isLoadingEvmRefundable,
-  } = useEvmClaimableAndRefundableSwaps(crossChainSwapsEnabled)
+  const { data: refundsAndClaims, isLoading: isLoadingRefundsAndClaims } = useRefundsAndClaims()
 
   useEffect(() => {
     if (triggerConnect) {
@@ -102,12 +95,12 @@ export default function SwapPage() {
   }, [accountDrawer, triggerConnect, navigate, location.pathname])
 
   useEffect(() => {
-    const refundableCount = refundableSwaps.length + evmRefundableSwaps.refundable.length
-    const claimableCount = evmRefundableSwaps.claimable.length
-    const isLoading = isLoadingRefundable || isLoadingEvmRefundable
+    const refundableCount =
+      (refundsAndClaims?.btc.readyToRefund.length ?? 0) + (refundsAndClaims?.evm.readyToRefund.length ?? 0)
+    const claimableCount = refundsAndClaims?.evm.readyToClaim.length ?? 0
     const hasPendingActions = refundableCount > 0 || claimableCount > 0
 
-    if (hasPendingActions && !isLoading) {
+    if (hasPendingActions && !isLoadingRefundsAndClaims) {
       popupRegistry.addPopup(
         {
           type: PopupType.RefundableSwaps,
@@ -122,7 +115,7 @@ export default function SwapPage() {
     return () => {
       popupRegistry.removePopup('refundable-swaps')
     }
-  }, [refundableSwaps.length, evmRefundableSwaps.refundable.length, evmRefundableSwaps.claimable.length])
+  }, [refundsAndClaims, isLoadingRefundsAndClaims])
 
   return (
     <Trace logImpression page={InterfacePageName.SwapPage}>

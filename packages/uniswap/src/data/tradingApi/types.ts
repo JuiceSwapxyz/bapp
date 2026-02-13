@@ -281,10 +281,14 @@ export type GetBridgeSwapByIdResponse = BridgeSwapResponse;
  * Response: 200 OK
  */
 export interface GetBridgeSwapsByUserResponse {
-  swaps: BridgeSwapResponse[];
-  total: number;
-  limit: number;
-  offset: number;
+  summary: {
+    total: number;
+    totalRefundable: number;
+    totalClaimable: number;
+    totalSuccess: number;
+    totalPending: number;
+  };
+  swaps: BridgeSwapResponse[];  
 }
 
 // ============================================================================

@@ -249,24 +249,24 @@ export function RefundableSwapsSection({
   }, [])
 
   const handleRefund = useCallback(
-    async (swapId: string) => {
-      const destinationAddress = destinationAddresses[swapId]
+    async (swap: SomeSwap & { id: string }) => {
+      const destinationAddress = destinationAddresses[swap.id]
 
       if (!destinationAddress.trim()) {
         logger.warn('RefundableSwapsSection', 'handleRefund', 'Destination address is required')
         return
       }
 
-      setRefundingSwaps((prev) => new Set(prev).add(swapId))
+      setRefundingSwaps((prev) => new Set(prev).add(swap.id))
       try {
-        dispatch(refundSwap(swapId, destinationAddress))
+        dispatch(refundSwap(swap, destinationAddress))
         await onRefetch()
       } catch (error) {
         logger.error(error, { tags: { file: 'RefundableSwapsSection', function: 'handleRefund' } })
       } finally {
         setRefundingSwaps((prev) => {
           const next = new Set(prev)
-          next.delete(swapId)
+          next.delete(swap.id)
           return next
         })
       }
@@ -312,8 +312,6 @@ export function RefundableSwapsSection({
           `evm-refund-success-${txHash}`,
           DEFAULT_TXN_DISMISS_MS,
         )
-
-        await onRefetch()
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -335,6 +333,7 @@ export function RefundableSwapsSection({
           next.delete(lockup.preimageHash)
           return next
         })
+        await onRefetch()
       }
     },
     [executeRefund, onRefetch, allSwaps],
@@ -367,7 +366,7 @@ export function RefundableSwapsSection({
                 address={destinationAddresses[swap.id] || ''}
                 isRefunding={refundingSwaps.has(swap.id)}
                 onAddressChange={(address) => handleAddressChange(swap.id, address)}
-                onRefund={() => handleRefund(swap.id)}
+                onRefund={() => handleRefund(swap)}
               />
             ))}
             {evmRefundableSwaps.map((lockup) => (
