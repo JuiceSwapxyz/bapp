@@ -114,6 +114,12 @@ const getErc20ApiSymbol = (symbol: string | undefined, chainId: UniverseChainId 
   if (symbol === 'JUSD' && isCitreaChainId(chainId)) {
     return 'JUSD_CITREA'
   }
+  if (symbol === 'WBTC' && chainId === UniverseChainId.Mainnet) {
+    return 'WBTC_ETH'
+  }
+  if (symbol === 'cBTC' && isCitreaChainId(chainId)) {
+    return 'cBTC'
+  }
 
   return undefined
 }
@@ -186,13 +192,43 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
     return undefined
   }
 
-  const { limits } = pairInfo[symbolIn]?.[symbolOut] || {}
-  if (!limits) {
-    return undefined
+  if (isErc20ChainBridge(params)) {
+    const pairData = pairInfo[symbolIn]?.[symbolOut]
+    if (!pairData?.limits) return undefined
+
+    const { minimal, maximal } = pairData.limits
+
+    const balanceOutBoltz = boltzBalance
+      ? getBoltzBalanceForSide(boltzBalance, { chainId: currencyOut.chainId, symbol: currencyOut.symbol ?? '' })
+      : undefined
+    const effectiveBalanceOut =
+      balanceOutBoltz !== undefined
+        ? onChainOut !== undefined
+          ? Math.min(balanceOutBoltz, onChainOut)
+          : balanceOutBoltz
+        : undefined
+
+    if (effectiveBalanceOut === undefined) return undefined
+
+    const effectiveMax = Math.min(maximal, effectiveBalanceOut)
+    const decimalsIn = currencyIn.decimals
+    const maxInput = parseFloat((effectiveMax / 1e8).toFixed(2))
+    const minInput = parseFloat((minimal / 1e8).toFixed(2))
+    const minRaw = parseUnits(minInput.toString(), decimalsIn).toString()
+    const maxRaw = parseUnits(maxInput.toString(), decimalsIn).toString()
+
+    return {
+      [CurrencyField.INPUT]: {
+        min: CurrencyAmount.fromRawAmount(currencyIn, minRaw),
+        max: CurrencyAmount.fromRawAmount(currencyIn, maxRaw),
+      },
+      [CurrencyField.OUTPUT]: undefined,
+    }
   }
 
-  // Limits are displayed on the non-Citrea side (source for outgoing, destination for incoming)
-  // The API returns limits in the native decimals of the non-Citrea token
+  const { limits } = pairInfo[symbolIn]?.[symbolOut] || {}
+  if (!limits) return undefined
+
   const isInputSide = !isCitreaChainId(currencyIn.chainId)
   const limitsCurrency = isInputSide ? currencyIn : currencyOut
 
