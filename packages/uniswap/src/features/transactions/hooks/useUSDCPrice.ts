@@ -9,6 +9,28 @@ import { isClassic, isGatewayJusd } from 'uniswap/src/features/transactions/swap
 import { areCurrencyIdsEqual, currencyId } from 'uniswap/src/utils/currencyId'
 
 const DEFAULT_STABLECOIN_AMOUNT_OUT = 0.0001
+
+const USD_STABLECOINS = new Set(['USDT', 'USDC', 'CTUSD'])
+
+function normalizeDollarPrice(
+  price: Price<Currency, Currency>,
+  currency: Currency,
+  stablecoin: Token,
+): Price<Currency, Currency> {
+  const symbol = currency.symbol?.toUpperCase()
+  if (!symbol || !USD_STABLECOINS.has(symbol)) {
+    return price
+  }
+  try {
+    const oneUnit = CurrencyAmount.fromRawAmount(currency, 10 ** currency.decimals)
+    const priceValue = parseFloat(price.quote(oneUnit).toExact())
+    if (Math.abs(priceValue - 1) <= 0.002) {
+      return new Price(currency, stablecoin, '1', '1')
+    }
+  } catch {}
+  return price
+}
+
 function getStablecoinAmountOut(chainId: UniverseChainId): CurrencyAmount<Token> {
   const chainInfo = getChainInfo(chainId)
 
@@ -107,12 +129,13 @@ export function useUSDCPrice(
       return { price: trade.executionPrice, isLoading }
     }
 
-    if (!isClassic(trade) || !trade.routes[0]) {
+    if (!isClassic(trade) || !('routes' in trade) || !trade.routes?.[0]) {
       return { price: undefined, isLoading }
     }
 
     const { numerator, denominator } = trade.routes[0].midPrice
-    return { price: new Price(currency, stablecoin, denominator, numerator), isLoading }
+    const price = new Price(currency, stablecoin, denominator, numerator)
+    return { price: normalizeDollarPrice(price, currency, stablecoin), isLoading }
   }, [currency, stablecoin, currencyIsStablecoin, trade, isLoading])
 }
 
