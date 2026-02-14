@@ -49,6 +49,11 @@ export const useTabsContent = (): TabsSection[] => {
               { label: 'BTC → cBTC', href: '/swap?inputCurrency=BTC&outputCurrency=cBTC', internal: true },
               { label: 'lnBTC → cBTC', href: '/swap?inputCurrency=lnBTC&outputCurrency=cBTC', internal: true },
               {
+                label: 'WBTC (ETH) → cBTC',
+                href: '/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC',
+                internal: true,
+              },
+              {
                 label: 'USDT (ETH) → JUSD',
                 href: '/swap?chain=ethereum&inputCurrency=USDT&outputCurrency=JUSD&outputChain=citrea',
                 internal: true,
@@ -61,11 +66,6 @@ export const useTabsContent = (): TabsSection[] => {
               {
                 label: 'USDC (ETH) → JUSD',
                 href: '/swap?chain=ethereum&inputCurrency=USDC&outputCurrency=JUSD&outputChain=citrea',
-                internal: true,
-              },
-              {
-                label: 'WBTC (ETH) → cBTC',
-                href: '/swap?chain=ethereum&inputCurrency=WBTC&outputCurrency=cBTC',
                 internal: true,
               },
               { label: 'View Bridge Swaps', href: '/bridge-swaps', internal: true },
