@@ -187,8 +187,10 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   }
 
   if (isErc20ChainBridge(params)) {
-    const pairExists = pairInfo[symbolIn]?.[symbolOut]
-    if (!pairExists) return undefined
+    const pairData = pairInfo[symbolIn]?.[symbolOut]
+    if (!pairData?.limits) return undefined
+
+    const { minimal, maximal } = pairData.limits
 
     const balanceOutBoltz = boltzBalance
       ? getBoltzBalanceForSide(boltzBalance, { chainId: currencyOut.chainId, symbol: currencyOut.symbol ?? '' })
@@ -202,9 +204,11 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
 
     if (effectiveBalanceOut === undefined) return undefined
 
+    const effectiveMax = Math.min(maximal, effectiveBalanceOut)
     const decimalsIn = currencyIn.decimals
-    const maxInput = parseFloat((effectiveBalanceOut / 1e8).toFixed(2))
-    const minRaw = parseUnits('1', decimalsIn).toString()
+    const maxInput = parseFloat((effectiveMax / 1e8).toFixed(2))
+    const minInput = parseFloat((minimal / 1e8).toFixed(2))
+    const minRaw = parseUnits(minInput.toString(), decimalsIn).toString()
     const maxRaw = parseUnits(maxInput.toString(), decimalsIn).toString()
 
     return {
