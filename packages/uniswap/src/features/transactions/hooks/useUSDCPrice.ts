@@ -3,12 +3,47 @@ import { useMemo } from 'react'
 import { PollingInterval } from 'uniswap/src/constants/misc'
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { getPrimaryStablecoin, isUniverseChainId } from 'uniswap/src/features/chains/utils'
+import { getStablecoinsForChain, getPrimaryStablecoin, isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { useTrade } from 'uniswap/src/features/transactions/swap/hooks/useTrade'
 import { isClassic, isGatewayJusd } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { areCurrencyIdsEqual, currencyId } from 'uniswap/src/utils/currencyId'
 
 const DEFAULT_STABLECOIN_AMOUNT_OUT = 0.0001
+
+function normalizeDollarPrice(
+  price: Price<Currency, Currency>,
+  currency: Currency,
+  stablecoin: Token,
+): Price<Currency, Currency> {
+  if (!currency.isToken) {
+    return price
+  }
+  
+  const stablecoins = getStablecoinsForChain(currency.chainId)
+  const isUSDStablecoin = stablecoins.some(
+    (s) => s.address.toLowerCase() === currency.address.toLowerCase()
+  )
+  
+  if (!isUSDStablecoin) {
+    return price
+  }
+  
+  try {
+    const oneUnit = CurrencyAmount.fromRawAmount(
+      currency, 
+      (BigInt(10) ** BigInt(currency.decimals)).toString()
+    )
+    // parseFloat precision is acceptable for 0.2% threshold
+    const priceValue = parseFloat(price.quote(oneUnit).toExact())
+    if (Math.abs(priceValue - 1) <= 0.002) {
+      return new Price(currency, stablecoin, '1', '1')
+    }
+  } catch {
+    // Intentionally empty - fall through to return original price below
+  }
+  return price
+}
+
 function getStablecoinAmountOut(chainId: UniverseChainId): CurrencyAmount<Token> {
   const chainInfo = getChainInfo(chainId)
 
@@ -107,12 +142,14 @@ export function useUSDCPrice(
       return { price: trade.executionPrice, isLoading }
     }
 
-    if (!isClassic(trade) || !trade.routes[0]) {
+    // Type guard: isClassic narrows but doesn't guarantee routes in all union types
+    if (!isClassic(trade) || !('routes' in trade) || !trade.routes?.[0]) {
       return { price: undefined, isLoading }
     }
 
     const { numerator, denominator } = trade.routes[0].midPrice
-    return { price: new Price(currency, stablecoin, denominator, numerator), isLoading }
+    const price = new Price(currency, stablecoin, denominator, numerator)
+    return { price: normalizeDollarPrice(price, currency, stablecoin), isLoading }
   }, [currency, stablecoin, currencyIsStablecoin, trade, isLoading])
 }
 
