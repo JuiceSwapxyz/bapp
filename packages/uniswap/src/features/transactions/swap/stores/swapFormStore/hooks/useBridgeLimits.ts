@@ -114,6 +114,12 @@ const getErc20ApiSymbol = (symbol: string | undefined, chainId: UniverseChainId 
   if (symbol === 'JUSD' && isCitreaChainId(chainId)) {
     return 'JUSD_CITREA'
   }
+  if (symbol === 'WBTC' && chainId === UniverseChainId.Mainnet) {
+    return 'WBTC_ETH'
+  }
+  if (symbol === 'cBTC' && isCitreaChainId(chainId)) {
+    return 'cBTC'
+  }
 
   return undefined
 }
