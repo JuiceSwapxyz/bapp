@@ -135,7 +135,11 @@ export function useDerivedSwapInfo({
     }
   }, [inputCurrencyUSDValue, outputCurrencyUSDValue])
 
-  const limits = useBridgeLimits({ currencyIn, currencyOut })
+  const limits = useBridgeLimits({ 
+    currencyIn, 
+    currencyOut,
+    userBalanceIn: tokenInBalance ?? undefined,
+  })
 
   const currencyBalances = useMemo(() => {
     return {

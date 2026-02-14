@@ -29,6 +29,7 @@ export interface BridgeLimitsInfo {
 interface BridgeLimitsQueryParams {
   currencyIn: Currency | null | undefined
   currencyOut: Currency | null | undefined
+  userBalanceIn?: CurrencyAmount<Currency>
 }
 
 const useChainBridge = (params?: { enabled: boolean }): ReturnType<typeof useQuery<ChainPairsResponse>> => {
@@ -146,7 +147,7 @@ const usePairInfo = (
 
 export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsInfo | undefined {
   const pairInfo = usePairInfo(params)
-  const { currencyIn, currencyOut } = params
+  const { currencyIn, currencyOut, userBalanceIn } = params
 
   const { data: boltzBalance } = useQuery({
     queryKey: ['boltz-balance'],
@@ -204,7 +205,13 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
 
     if (effectiveBalanceOut === undefined) return undefined
 
-    const effectiveMax = Math.min(maximal, effectiveBalanceOut)
+    const userBalanceInSats = userBalanceIn
+      ? parseFloat(userBalanceIn.toExact()) * 1e8
+      : undefined
+
+    const effectiveMax = userBalanceInSats !== undefined
+      ? Math.min(maximal, effectiveBalanceOut, userBalanceInSats)
+      : Math.min(maximal, effectiveBalanceOut)
     const decimalsIn = currencyIn.decimals
     const maxInput = parseFloat((effectiveMax / 1e8).toFixed(2))
     const minInput = parseFloat((minimal / 1e8).toFixed(2))
