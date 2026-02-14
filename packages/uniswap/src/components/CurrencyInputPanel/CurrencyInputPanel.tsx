@@ -14,8 +14,10 @@ import type { CurrencyInputPanelProps, CurrencyInputPanelRef } from 'uniswap/src
 import type { Experiments } from 'uniswap/src/features/gating/experiments'
 import { Layers, SwapPresetsProperties } from 'uniswap/src/features/gating/experiments'
 import { useExperimentValueFromLayer } from 'uniswap/src/features/gating/hooks'
+import { useLocalizedFormatter } from 'uniswap/src/features/language/formatter'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import { CurrencyField } from 'uniswap/src/types/currency'
+import { NumberType } from 'utilities/src/format/types'
 import { isExtension, isInterfaceDesktop, isMobileWeb } from 'utilities/src/platform'
 
 export const CurrencyInputPanel = memo(
@@ -75,6 +77,9 @@ export const CurrencyInputPanel = memo(
       const showInsufficientBalanceWarning =
         !isOutput && !!currencyBalance && !!currencyAmount && currencyBalance.lessThan(currencyAmount)
 
+      const showExceedsMaxLimitWarning =
+        !isOutput && !!limits?.max && !!currencyAmount && currencyAmount.greaterThan(limits.max)
+
       const showMaxButton = (!isInputPresetsEnabled || showMaxButtonOnly) && !isOutput && account
       const showPercentagePresetOptions =
         isInputPresetsEnabled && !showMaxButtonOnly && currencyField === CurrencyField.INPUT
@@ -83,8 +88,15 @@ export const CurrencyInputPanel = memo(
 
       const showPercentagePresetsOnBottom = showPercentagePresetOptions && (isMobileWeb || (isDesktop && !headerLabel))
 
+      const formatter = useLocalizedFormatter()
       const minLimitValue = limits?.min?.toExact()
       const maxLimitValue = limits?.max?.toExact()
+      const formattedMinLimit = minLimitValue
+        ? formatter.formatNumberOrString({ value: minLimitValue, type: NumberType.TokenNonTx })
+        : undefined
+      const formattedMaxLimit = maxLimitValue
+        ? formatter.formatNumberOrString({ value: maxLimitValue, type: NumberType.TokenNonTx })
+        : undefined
 
       const shakeAnimation = useShakeAnimation()
       const { triggerShakeAnimation } = shakeAnimation
@@ -142,7 +154,7 @@ export const CurrencyInputPanel = memo(
               disabled={disabled}
               tokenColor={tokenColor}
               indicativeQuoteTextDisplay={display}
-              showInsufficientBalanceWarning={showInsufficientBalanceWarning}
+              showInsufficientBalanceWarning={showInsufficientBalanceWarning || showExceedsMaxLimitWarning}
               showDefaultTokenOptions={showDefaultTokenOptions}
               onPressIn={onPressIn}
               onSelectionChange={selectionChange}
@@ -185,12 +197,12 @@ export const CurrencyInputPanel = memo(
               {currencyInfo && (
                 <Flex row centered ml="auto" gap="$spacing4" justifyContent="flex-end">
                   {!limits && (
-                    <CurrencyInputPanelBalance
-                      currencyField={currencyField}
-                      currencyBalance={currencyBalance}
-                      currencyInfo={currencyInfo}
-                      showInsufficientBalanceWarning={showInsufficientBalanceWarning}
-                    />
+                  <CurrencyInputPanelBalance
+                    currencyField={currencyField}
+                    currencyBalance={currencyBalance}
+                    currencyInfo={currencyInfo}
+                    showInsufficientBalanceWarning={showInsufficientBalanceWarning || showExceedsMaxLimitWarning}
+                  />
                   )}
                   {/* Max button */}
                   {showMaxButton && onSetPresetValue && !limits && (
@@ -206,15 +218,15 @@ export const CurrencyInputPanel = memo(
                       onSetPresetValue={handleSetPresetValue}
                     />
                   )}
-                  {minLimitValue &&
-                    maxLimitValue &&
+                  {formattedMinLimit &&
+                    formattedMaxLimit &&
                     (disabled ? (
                       <Text variant="body3" color="$neutral2">
-                        {t('common.limits')}: {minLimitValue} - {maxLimitValue}
+                        {t('common.limits')}: {formattedMinLimit} - {formattedMaxLimit}
                       </Text>
                     ) : (
                       <Flex row centered gap="$spacing8">
-                        <TouchableArea onPress={() => onSetExactAmount(minLimitValue)}>
+                        <TouchableArea onPress={() => onSetExactAmount(minLimitValue!)}>
                           <Flex
                             row
                             centered
@@ -237,16 +249,16 @@ export const CurrencyInputPanel = memo(
                               hoverStyle={{
                                 scale: 1.02,
                               }}
-                              onPress={() => onSetExactAmount(minLimitValue)}
+                              onPress={() => onSetExactAmount(minLimitValue!)}
                             >
                               {t('common.min')}
                             </Button>
                             <Text variant="body4" color="$neutral2">
-                              {minLimitValue}
+                              {formattedMinLimit}
                             </Text>
                           </Flex>
                         </TouchableArea>
-                        <TouchableArea onPress={() => onSetExactAmount(maxLimitValue)}>
+                        <TouchableArea onPress={() => onSetExactAmount(maxLimitValue!)}>
                           <Flex
                             row
                             centered
@@ -269,12 +281,12 @@ export const CurrencyInputPanel = memo(
                               hoverStyle={{
                                 scale: 1.02,
                               }}
-                              onPress={() => onSetExactAmount(maxLimitValue)}
+                              onPress={() => onSetExactAmount(maxLimitValue!)}
                             >
                               {t('common.max')}
                             </Button>
                             <Text variant="body4" color="$neutral2">
-                              {maxLimitValue}
+                              {formattedMaxLimit}
                             </Text>
                           </Flex>
                         </TouchableArea>
