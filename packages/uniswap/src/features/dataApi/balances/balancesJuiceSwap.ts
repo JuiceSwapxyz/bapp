@@ -11,6 +11,7 @@ import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledCh
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { PortfolioBalance } from 'uniswap/src/features/dataApi/types'
 import { buildCurrency, buildCurrencyInfo } from 'uniswap/src/features/dataApi/utils/buildCurrency'
+import { getTokenLogoFromRegistry } from 'uniswap/src/features/tokens/tokenRegistry'
 import { CurrencyId } from 'uniswap/src/types/currency'
 import { currencyId } from 'uniswap/src/utils/currencyId'
 
@@ -76,10 +77,14 @@ async function fetchJuiceSwapPortfolio(
 
     const id = currencyId(currency)
 
+    const logoUrl =
+      balance.logoURI ||
+      (!currency.isNative ? getTokenLogoFromRegistry(balance.chainId as UniverseChainId, balance.address) : undefined)
+
     const currencyInfo = buildCurrencyInfo({
       currency,
       currencyId: id,
-      logoUrl: balance.logoURI,
+      logoUrl,
       isSpam: false,
     })
 
