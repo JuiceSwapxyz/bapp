@@ -229,10 +229,10 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   const { limits } = pairInfo[symbolIn]?.[symbolOut] || {}
   if (!limits) return undefined
 
-  const isInputSide = !isCitreaChainId(currencyIn.chainId)
-  const limitsCurrency = isInputSide ? currencyIn : currencyOut
+  const limitsCurrency = currencyIn
 
   const { minimal, maximal } = limits
+  const isInputSide = !isCitreaChainId(currencyIn.chainId)
   const feeBuffer = isInputSide ? 1 : 1.02
   const adjustedMinimal = Math.floor(minimal * feeBuffer)
 
