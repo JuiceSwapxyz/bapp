@@ -434,7 +434,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
   let claimedSwap
   try {
-    claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap.id)
+    claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
 
     // Remove claim in progress popup
     popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
@@ -449,7 +449,7 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
 
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
-      extra: { swapId: chainSwap.id, step: 'autoClaimSwap' },
+      extra: { swapId: chainSwap.id, step: 'autoClaimSwapById' },
     })
     throw new TransactionStepFailedError({
       message: `Auto-claim failed: ${error instanceof Error ? error.message : String(error)}`,

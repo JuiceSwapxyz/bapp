@@ -219,9 +219,9 @@ export default function ChartSection(props: ChartSectionProps) {
     }
   })()
 
-  // BE does not support hourly price data for pools
+  // REST endpoints don't support hourly granularity — filter HOUR for PRICE and VOLUME charts
   const filteredTimeOptions = useMemo(() => {
-    if (activeQuery.chartType === ChartType.PRICE) {
+    if (activeQuery.chartType !== ChartType.LIQUIDITY) {
       const filtered = DEFAULT_PILL_TIME_SELECTOR_OPTIONS.filter((option) => option.value !== TimePeriodDisplay.HOUR)
       if (timePeriod === TimePeriod.HOUR) {
         setTimePeriod(TimePeriod.DAY)
@@ -414,6 +414,16 @@ function LiquidityChart({
     return <LoadingChart />
   }
 
+  if (!tickData?.barData.length) {
+    return (
+      <ChartSkeleton
+        type={ChartType.VOLUME}
+        height={PDP_CHART_HEIGHT_PX}
+        errorText={<Trans i18nKey="chart.error.pools" />}
+      />
+    )
+  }
+
   return (
     <Chart
       height={PDP_CHART_HEIGHT_PX}
@@ -423,7 +433,7 @@ function LiquidityChart({
         // TODO(WEB-3628): investigate potential off-by-one or subgraph issues causing calculated TVL issues on 1 bip pools
         // Also remove Error Boundary when its determined its not needed
         <ErrorBoundary fallback={() => null}>
-          {tickData?.activeRangeData && (
+          {tickData.activeRangeData && (
             <TickTooltipContent
               baseCurrency={tokenB}
               quoteCurrency={tokenA}
@@ -437,7 +447,7 @@ function LiquidityChart({
       )}
     >
       {(crosshair) => {
-        const displayPoint = crosshair ?? tickData?.activeRangeData
+        const displayPoint = crosshair ?? tickData.activeRangeData
         const display = (
           <Flex gap="$spacing8" $md={{ gap: '$spacing4' }}>
             <Text variant="heading3" animation="125ms" enterStyle={{ opacity: 0 }}>

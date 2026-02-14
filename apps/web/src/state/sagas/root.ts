@@ -1,8 +1,6 @@
 import { liquiditySaga } from 'state/sagas/liquidity/liquiditySaga'
 import { lpIncentivesClaimSaga } from 'state/sagas/lp_incentives/lpIncentivesSaga'
-import { watchClaimableSwaps } from 'state/sagas/transactions/bridgeClaimSaga'
 import { watchRefundSwap } from 'state/sagas/transactions/bridgeRefundSaga'
-import { bridgeResumeSaga } from 'state/sagas/transactions/bridgeResumeSaga'
 import { swapSaga } from 'state/sagas/transactions/swapSaga'
 import { watchTransactionsSaga } from 'state/sagas/transactions/watcherSaga'
 import { wrapSaga } from 'state/sagas/transactions/wrapSaga'
@@ -27,10 +25,4 @@ export function* rootWebSaga() {
 
   // Watch for refund actions
   yield* spawn(watchRefundSwap)
-
-  // Watch for claimable swaps
-  yield* spawn(watchClaimableSwaps)
-
-  // Check and resume any pending bridges from previous session
-  yield* call(bridgeResumeSaga)
 }

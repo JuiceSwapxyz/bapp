@@ -17,14 +17,8 @@ import type {
   LightningBridgeSubmarineGetResponse,
   LightningBridgeSubmarineLockResponse,
   LockupCheckResponse,
-  LockupsResponse,
-  RegisterPreimageRequest,
-  RegisterPreimageResponse,
-  UserClaimsAndRefunds,
-  UserClaimsAndRefundsResponse,
 } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
-import { prefix0x } from '..'
 
 export type {
   BoltzBalanceItem,
@@ -44,9 +38,6 @@ export type {
   LightningBridgeSubmarineGetResponse,
   LightningBridgeSubmarineLockResponse,
   LockupCheckResponse,
-  RegisterPreimageRequest,
-  RegisterPreimageResponse,
-  UserClaimsAndRefunds,
 }
 
 const LdsApiClient = createApiClient({
@@ -77,12 +68,6 @@ export async function createReverseSwap(params: CreateReverseSwapRequest): Promi
 
 export async function helpMeClaim(params: HelpMeClaimRequest): Promise<HelpMeClaimResponse> {
   return await LdsApiClient.post<HelpMeClaimResponse>('/claim/help-me-claim', {
-    body: JSON.stringify(params),
-  })
-}
-
-export async function registerPreimage(params: RegisterPreimageRequest): Promise<RegisterPreimageResponse> {
-  return await LdsApiClient.post<RegisterPreimageResponse>('/claim/register-preimage', {
     body: JSON.stringify(params),
   })
 }
@@ -157,139 +142,3 @@ export async function fetchBoltzBalance(): Promise<BoltzBalanceItem[]> {
   return await LdsApiClient.get<BoltzBalanceItem[]>('/boltz/balance')
 }
 
-export async function fetchEvmRefundableAndClaimableLockups(address: string): Promise<{ refundable: EvmLockup[]; claimable: EvmLockup[] }> {
-  if (!address) {
-    return { refundable: [], claimable: [] }
-  }
-
-  const response = await LdsApiClient.post<LockupsResponse>('/claim/graphql', {
-    body: JSON.stringify({
-      query: `
-        query ClaimableAndRefundable($address: String = "${address.toLowerCase()}") {
-          refundable: lockupss(
-            where: { refundAddress: $address, refundTxHash: null, claimed: false }
-            orderBy: "timelock"
-            orderDirection: "asc"
-            limit: 1000
-          ) {
-            items {
-              preimageHash
-              chainId
-              amount
-              claimAddress
-              refundAddress
-              timelock
-              tokenAddress
-              swapType
-              claimed
-              refunded
-              claimTxHash
-              refundTxHash
-            }
-          }
-          claimable: lockupss(
-            where: { claimAddress: $address, claimTxHash: null, claimed: false, refunded: false }
-            orderBy: "timelock"
-            orderDirection: "asc"
-            limit: 1000
-          ) {
-            items {
-              preimageHash
-              chainId
-              amount
-              claimAddress
-              refundAddress
-              timelock
-              tokenAddress
-              swapType
-              claimed
-              refunded
-              claimTxHash
-              refundTxHash
-              knownPreimage {
-                preimage
-              }
-            }
-          }
-        }
-      `,
-    }),
-  })
-
-  return {
-    refundable: response.data.refundable?.items || [],
-    claimable: response.data.claimable?.items || [],
-  }
-}
-
-export async function fetchUserClaimsAndRefunds(address: string): Promise<UserClaimsAndRefunds> {
-  if (!address) {
-    return { claims: [], refunds: [] }
-  }
-
-  const response = await LdsApiClient.post<UserClaimsAndRefundsResponse>('/claim/graphql', {
-    body: JSON.stringify({
-      query: `{
-        myClaims: lockupss(
-          where: {
-            claimAddress: "${address.toLowerCase()}"
-          }
-          limit: 1000
-        ) {
-          items {
-            preimageHash
-            claimTxHash
-          }
-        }
-        myRefunds: lockupss(
-          where: {
-            refundAddress: "${address.toLowerCase()}"
-          }
-          limit: 1000
-        ) {
-          items {
-            preimageHash
-            refundTxHash
-          }
-        }
-      }`,
-    }),
-  })
-
-  return {
-    claims: response.data.myClaims.items.filter((item) => item.claimTxHash != null),
-    refunds: response.data.myRefunds.items.filter((item) => item.refundTxHash != null),
-  }
-}
-
-export async function fetchLockupsByPreimageHashes(preimageHashes: string[]): Promise<{ data: { lockupss: { items: EvmLockup[] | null } } }> {
-  return await LdsApiClient.post<{ data: { lockupss: { items: EvmLockup[] | null } } }>('/claim/graphql', {
-    body: JSON.stringify({
-      query: `{
-        lockupss(
-          where: {
-            preimageHash_in: [${preimageHashes.map((hash) => `"${prefix0x(hash)}"`).join(',')}]
-          }
-          limit: 1000
-        ) {
-          items {
-            id
-            preimageHash
-            chainId
-            amount
-            claimAddress
-            refundAddress
-            timelock
-            tokenAddress
-            swapType
-            claimed
-            refunded
-            claimTxHash
-            refundTxHash
-            lockupTxHash
-          }
-        }
-      }`,
-    }),
-  })
-}

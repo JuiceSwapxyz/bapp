@@ -4,7 +4,6 @@ import { useIsDarkMode } from 'ui/src/hooks/useIsDarkMode'
 import { useSporeColors } from 'ui/src/hooks/useSporeColors'
 import type { ThemeKeys } from 'ui/src/index'
 import { type ColorTokens } from 'ui/src/index'
-import { colorsDark, colorsLight } from 'ui/src/theme'
 import type { ColorStrategy, ExtractedColors } from 'ui/src/utils/colors/getExtractedColors'
 import { getExtractedColors } from 'ui/src/utils/colors/getExtractedColors'
 import { isSVGUri } from 'utilities/src/format/urls'
@@ -169,7 +168,6 @@ export function useExtractedTokenColor({
   backgroundColor: string
   defaultColor: string
 }): { tokenColor: Nullable<string>; tokenColorLoading: boolean } {
-  const sporeColors = useSporeColors()
   const { colors, colorsLoading } = useExtractedColors(imageUrl)
   const [tokenColor, setTokenColor] = useState(defaultColor)
   const [tokenColorLoading, setTokenColorLoading] = useState(true)
@@ -185,11 +183,13 @@ export function useExtractedTokenColor({
           backgroundHex: backgroundColor,
           isDarkMode,
         })
-
-        setTokenColor(pickedColor)
+        setTokenColor(pickedColor ?? (foreground as string))
+      } else {
+        // Extraction failed or was disabled — use name-derived color
+        setTokenColor(foreground as string)
       }
     }
-  }, [backgroundColor, colors, colorsLoading, isDarkMode])
+  }, [backgroundColor, colors, colorsLoading, isDarkMode, foreground])
 
   const specialCaseTokenColor = useMemo(() => {
     return getSpecialCaseTokenColor(imageUrl, isDarkMode)
@@ -200,9 +200,8 @@ export function useExtractedTokenColor({
   }
 
   if (isSVGUri(imageUrl)) {
-    // Fall back to a more neutral color for SVG's since they fail extraction but we can render them elsewhere
-
-    return { tokenColor: sporeColors.neutral1.val, tokenColorLoading: false }
+    // Fall back to name-derived color for SVG's since they fail extraction but we can render them elsewhere
+    return { tokenColor: foreground, tokenColorLoading: false }
   }
 
   if (!imageUrl) {
@@ -392,7 +391,7 @@ function pickContrastPassingTokenColor({
   extractedColors: ExtractedColors
   backgroundHex: string
   isDarkMode: boolean
-}): string {
+}): string | null {
   const colorsInOrder = [
     extractedColors.base,
     extractedColors.detail,
@@ -414,15 +413,15 @@ function pickContrastPassingTokenColor({
         contrastThreshold: MIN_TOKEN_COLOR_CONTRAST_THRESHOLD,
       })
     ) {
-      // If the color passes contrast but is gray, use a stronger color instead
+      // If the color passes contrast but is gray, signal no usable color found
       if (isGrayColor(c)) {
-        return isDarkMode ? colorsDark.neutral1 : colorsLight.neutral1
+        return null
       }
       return c
     }
   }
 
-  return isDarkMode ? colorsDark.accent1 : colorsLight.accent1
+  return null
 }
 
 export function getHoverCssFilter({

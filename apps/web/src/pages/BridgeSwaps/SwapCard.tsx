@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useChainTipBlockNumber } from 'hooks/useEvmRefundableSwaps'
+import { useChainTipBlockNumber } from 'hooks/useChainTipBlockNumber'
 import {
   Card,
   CardHeader,
@@ -41,14 +41,6 @@ function getStatusInfo(swap: SomeSwap): {
   status: 'pending' | 'completed' | 'failed' | 'abandoned'
   icon: JSX.Element
 } {
-  if (!swap.status) {
-    return {
-      label: 'Pending',
-      status: 'pending',
-      icon: <Clock size="$icon.16" color="$neutral1" />,
-    }
-  }
-
   if (swap.status === LdsSwapStatus.UserAbandoned) {
     return {
       label: 'No payment sent',
@@ -187,7 +179,7 @@ function getSwapTypeLabel(type: SwapType): string {
 }
 
 function formatDate(timestamp: number): string {
-  const date = new Date(timestamp)
+  const date = new Date(Number(timestamp))
   return date.toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
@@ -265,7 +257,7 @@ const useFailureReason = (swap: SomeSwap, enabled: boolean) => {
 const useSwapLockupDetails = (swap: SomeSwap, enabled: boolean) => {
   return useQuery({
     queryKey: ['swap-lockup-details', swap.id],
-    queryFn: () => getLdsBridgeManager().getLockupTransactions(swap.id),
+    queryFn: () => getLdsBridgeManager().getLockupTransactions(swap),
     enabled,
   })
 }
@@ -368,7 +360,7 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
 
           <DetailRow>
             <DetailLabel>Status:</DetailLabel>
-            <DetailValue>{swap.status || 'Unknown'}</DetailValue>
+            <DetailValue>{swap.status}</DetailValue>
           </DetailRow>
 
           <DetailRow>

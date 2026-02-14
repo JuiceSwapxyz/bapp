@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { fetchBridgeSwapByPreimageHash } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import { EvmLockup, getLdsBridgeManager, helpMeClaim, prefix0x } from 'uniswap/src/features/lds-bridge'
 import { logger } from 'utilities/src/logger/logger'
 
@@ -24,18 +25,9 @@ export function useEvmClaim() {
 
   const executeClaimLocal = useCallback(async (lockup: EvmLockup): Promise<string> => {
     try {
-      const swaps = await getLdsBridgeManager().getSwaps()
-      const localSwap = Object.entries(swaps).find(
-        ([, swap]) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash),
-      )
+      const swap = await fetchBridgeSwapByPreimageHash({ preimageHash: lockup.preimageHash })
 
-      if (!localSwap) {
-        throw new Error('Swap not found in local storage')
-      }
-
-      const [swapId] = localSwap
-
-      const claimedSwap = await getLdsBridgeManager().autoClaimSwap(swapId)
+      const claimedSwap = await getLdsBridgeManager().autoClaimSwap(swap)
 
       if (!claimedSwap.claimTx) {
         throw new Error('Claim transaction not found')
@@ -49,14 +41,17 @@ export function useEvmClaim() {
     }
   }, [])
 
-  const executeClaim = useCallback(async (lockup: EvmLockup): Promise<string> => {
-    try {
-      return await executeClaimLocal(lockup)
-    } catch (error) {
-      logger.error(error, { tags: { file: 'useEvmClaim', function: 'executeClaim' } })
-      return await executeClaimIndexed(lockup)
-    }
-  }, [])
+  const executeClaim = useCallback(
+    async (lockup: EvmLockup): Promise<string> => {
+      try {
+        return await executeClaimLocal(lockup)
+      } catch (error) {
+        logger.error(error, { tags: { file: 'useEvmClaim', function: 'executeClaim' } })
+        return await executeClaimIndexed(lockup)
+      }
+    },
+    [executeClaimIndexed, executeClaimLocal],
+  )
 
   return { executeClaim }
 }

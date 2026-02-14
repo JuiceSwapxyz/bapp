@@ -1,32 +1,29 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
-import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
+import { useJuiceswapAuth } from 'hooks/useJuiceswapAuth'
+import { useSyncBridgeSwaps } from 'hooks/useSyncBridgeSwaps'
+import { fetchBridgeSwaps } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
+import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
-type SwapWithId = SomeSwap & { id: string }
+interface UseBridgeSwapsProps {
+  enabled?: boolean
+  statuses?: LdsSwapStatus[]
+}
 
-export function useBridgeSwaps(enabled = true) {
-  const queryResponse = useQuery({
-    queryKey: ['bridge-swaps'],
-    queryFn: async (): Promise<SwapWithId[]> => {
-      const ldsBridgeManager = getLdsBridgeManager()
-      const allSwaps = await ldsBridgeManager.getSwaps()
+export function useBridgeSwaps(props: UseBridgeSwapsProps = {}) {
+  const { enabled = true, statuses = [] } = props
+  const { data: syncBridgeSwaps, isLoading: isLoadingSyncBridgeSwaps } = useSyncBridgeSwaps(enabled)
+  const { isAuthenticated, autenticationSignal } = useJuiceswapAuth()
 
-      return Object.entries(allSwaps).map(([id, swap]): SwapWithId => {
-        return Object.assign({}, swap, { id })
-      })
-    },
-    enabled,
+  return useQuery({
+    queryKey: [
+      'bridge-swaps',
+      syncBridgeSwaps?.currentAddress,
+      isAuthenticated,
+      autenticationSignal,
+      statuses.join(','),
+    ],
+    queryFn: () => fetchBridgeSwaps({ statuses }),
+    enabled: enabled && syncBridgeSwaps?.synced && Boolean(syncBridgeSwaps.currentAddress) && !isLoadingSyncBridgeSwaps,
     refetchInterval: 30000,
   })
-
-  useEffect(() => {
-    const ldsBridgeManager = getLdsBridgeManager()
-    ldsBridgeManager.addSwapChangeListener(queryResponse.refetch)
-    return () => {
-      ldsBridgeManager.removeSwapChangeListener(queryResponse.refetch)
-    }
-  }, [queryResponse.refetch])
-
-  return queryResponse
 }

@@ -176,23 +176,23 @@ createRoot(container).render(
                       <StatsigProvider>
                         <ExternalWalletProvider>
                           <WebUniswapProvider>
-                            <GraphqlProviders>
-                              <LocalizationContextProvider>
-                                <BlockNumberProvider>
-                                  <Updaters />
-                                  <ThemeProvider>
-                                    <TamaguiProvider>
-                                      <PortalProvider>
-                                        <JuiceswapAuthProvider>
+                            <JuiceswapAuthProvider>
+                              <GraphqlProviders>
+                                <LocalizationContextProvider>
+                                  <BlockNumberProvider>
+                                    <Updaters />
+                                    <ThemeProvider>
+                                      <TamaguiProvider>
+                                        <PortalProvider>
                                           <ThemedGlobalStyle />
                                           <App />
-                                        </JuiceswapAuthProvider>
-                                      </PortalProvider>
-                                    </TamaguiProvider>
-                                  </ThemeProvider>
-                                </BlockNumberProvider>
-                              </LocalizationContextProvider>
-                            </GraphqlProviders>
+                                        </PortalProvider>
+                                      </TamaguiProvider>
+                                    </ThemeProvider>
+                                  </BlockNumberProvider>
+                                </LocalizationContextProvider>
+                              </GraphqlProviders>
+                            </JuiceswapAuthProvider>
                           </WebUniswapProvider>
                         </ExternalWalletProvider>
                       </StatsigProvider>
