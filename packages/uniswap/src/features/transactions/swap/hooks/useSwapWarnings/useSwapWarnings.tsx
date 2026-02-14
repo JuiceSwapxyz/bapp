@@ -11,6 +11,7 @@ import {
   useFormattedWarnings,
 } from 'uniswap/src/features/transactions/hooks/useParsedTransactionWarnings'
 import { getBalanceWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getBalanceWarning'
+import { getExceedsLimitWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getExceedsLimitWarning'
 import { getFormIncompleteWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getFormIncompleteWarning'
 import { getPriceImpactWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getPriceImpactWarning'
 import { getSwapWarningFromError } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getSwapWarningFromError'
@@ -56,6 +57,11 @@ export function getSwapWarnings({
   })
   if (balanceWarning) {
     warnings.push(balanceWarning)
+  }
+
+  const exceedsLimitWarning = getExceedsLimitWarning(t, derivedSwapInfo)
+  if (exceedsLimitWarning) {
+    warnings.push(exceedsLimitWarning)
   }
 
   if (trade.error) {

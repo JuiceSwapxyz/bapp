@@ -52,6 +52,7 @@ export enum WarningLabel {
   NetworkError = 'network_error',
   BlockedToken = 'blocked_token',
   NoQuotesFound = 'no_quotes_found',
+  ExceedsLimit = 'exceeds_limit',
 }
 
 export interface Warning {

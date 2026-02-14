@@ -77,6 +77,9 @@ export const CurrencyInputPanel = memo(
       const showInsufficientBalanceWarning =
         !isOutput && !!currencyBalance && !!currencyAmount && currencyBalance.lessThan(currencyAmount)
 
+      const showExceedsMaxLimitWarning =
+        !isOutput && !!limits?.max && !!currencyAmount && currencyAmount.greaterThan(limits.max)
+
       const showMaxButton = (!isInputPresetsEnabled || showMaxButtonOnly) && !isOutput && account
       const showPercentagePresetOptions =
         isInputPresetsEnabled && !showMaxButtonOnly && currencyField === CurrencyField.INPUT
@@ -151,7 +154,7 @@ export const CurrencyInputPanel = memo(
               disabled={disabled}
               tokenColor={tokenColor}
               indicativeQuoteTextDisplay={display}
-              showInsufficientBalanceWarning={showInsufficientBalanceWarning}
+              showInsufficientBalanceWarning={showInsufficientBalanceWarning || showExceedsMaxLimitWarning}
               showDefaultTokenOptions={showDefaultTokenOptions}
               onPressIn={onPressIn}
               onSelectionChange={selectionChange}
@@ -194,12 +197,12 @@ export const CurrencyInputPanel = memo(
               {currencyInfo && (
                 <Flex row centered ml="auto" gap="$spacing4" justifyContent="flex-end">
                   {!limits && (
-                    <CurrencyInputPanelBalance
-                      currencyField={currencyField}
-                      currencyBalance={currencyBalance}
-                      currencyInfo={currencyInfo}
-                      showInsufficientBalanceWarning={showInsufficientBalanceWarning}
-                    />
+                  <CurrencyInputPanelBalance
+                    currencyField={currencyField}
+                    currencyBalance={currencyBalance}
+                    currencyInfo={currencyInfo}
+                    showInsufficientBalanceWarning={showInsufficientBalanceWarning || showExceedsMaxLimitWarning}
+                  />
                   )}
                   {/* Max button */}
                   {showMaxButton && onSetPresetValue && !limits && (
