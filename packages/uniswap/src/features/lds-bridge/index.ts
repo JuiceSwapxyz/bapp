@@ -5,6 +5,9 @@ export * from './lds-types/api'
 export * from './lds-types/storage'
 export * from './lds-types/websocket'
 
+// Constants
+export * from './constants'
+
 // Keys
 export * from './keys/chainSwapKeys'
 
