@@ -123,15 +123,17 @@ export default function SwapPage() {
         <SwapBackground />
         <PageWrapper>
           <RiseIn delay={0.2}>
-            <Swap
-              chainId={initialChainId}
-              initialInputCurrency={initialInputCurrency}
-              initialOutputCurrency={initialOutputCurrency}
-              initialTypedValue={initialTypedValue}
-              initialIndependentField={initialField}
-              syncTabToUrl={true}
-              usePersistedFilteredChainIds
-            />
+            <Flex width={480} maxWidth="100%">
+              <Swap
+                chainId={initialChainId}
+                initialInputCurrency={initialInputCurrency}
+                initialOutputCurrency={initialOutputCurrency}
+                initialTypedValue={initialTypedValue}
+                initialIndependentField={initialField}
+                syncTabToUrl={true}
+                usePersistedFilteredChainIds
+              />
+            </Flex>
           </RiseIn>
           <RiseIn delay={0.4}>
             <Flex flexDirection="column" alignItems="center" gap="$gap4" mt="$spacing16">
