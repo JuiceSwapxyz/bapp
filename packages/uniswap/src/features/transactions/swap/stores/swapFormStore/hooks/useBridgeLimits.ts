@@ -150,6 +150,13 @@ const usePairInfo = (
   return undefined
 }
 
+// Handles 3 Boltz fee structures: Submarine (number), Reverse ({claim,lockup}), Chain ({server,user})
+const getMinerFees = (minerFees: any): number => {
+  if (typeof minerFees === 'number') return minerFees
+  if ('user' in minerFees) return minerFees.server + minerFees.user.claim
+  return minerFees.claim + minerFees.lockup
+}
+
 export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsInfo | undefined {
   const pairInfo = usePairInfo(params)
   const { currencyIn, currencyOut } = params
@@ -226,15 +233,20 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
     }
   }
 
-  const { limits } = pairInfo[symbolIn]?.[symbolOut] || {}
-  if (!limits) return undefined
+  const pairData = pairInfo[symbolIn]?.[symbolOut]
+  if (!pairData?.limits) return undefined
 
   const limitsCurrency = currencyIn
-
+  const { limits, fees } = pairData
   const { minimal, maximal } = limits
   const isInputSide = !isCitreaChainId(currencyIn.chainId)
-  const feeBuffer = isInputSide ? 1 : 1.02
-  const adjustedMinimal = Math.floor(minimal * feeBuffer)
+
+  const percentageFee = fees.percentage / 100
+  const totalMinerFees = getMinerFees(fees.minerFees)
+  
+  const adjustedMinimal = isInputSide 
+    ? minimal
+    : Math.ceil(minimal + minimal * percentageFee + totalMinerFees)
 
   const balanceInBoltz = boltzBalance
     ? getBoltzBalanceForSide(boltzBalance, { chainId: currencyIn.chainId, symbol: currencyIn.symbol ?? '' })
