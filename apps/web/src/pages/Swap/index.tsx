@@ -7,6 +7,7 @@ import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
+import { useLaunchpadTokenLogoUrl } from 'hooks/useLaunchpadTokens'
 import { useModalState } from 'hooks/useModalState'
 import { useRefundsAndClaims } from 'hooks/useRefundsAndClaims'
 import { RiseIn } from 'pages/Landing/components/animations'
@@ -25,6 +26,7 @@ import { useInitialCurrencyState } from 'state/swap/hooks'
 import type { CurrencyState } from 'state/swap/types'
 import { Flex, Text, Tooltip, styled } from 'ui/src'
 import { zIndexes } from 'ui/src/theme'
+import { CurrencyLogoOverrideContext } from 'uniswap/src/contexts/CurrencyLogoOverrideContext'
 import { useUniswapContext } from 'uniswap/src/contexts/UniswapContext'
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
@@ -335,25 +337,27 @@ function UniversalSwapFlow({
       {/* Removed header completely - no tabs or title shown */}
       {currentTab === SwapTab.Swap && (
         <Flex gap="$spacing16">
-          <SwapDependenciesStoreContextProvider swapCallback={swapCallback} wrapCallback={wrapCallback}>
-            <SwapFlow
-              settings={swapSettings}
-              hideHeader={hideHeader}
-              hideFooter={hideFooter}
-              onClose={noop}
-              swapRedirectCallback={swapRedirectCallback}
-              onCurrencyChange={onCurrencyChange}
-              prefilledState={prefilledState}
-              tokenColor={tokenColor}
-              onSubmitSwap={handleSubmitSwap}
-            />
-          </SwapDependenciesStoreContextProvider>
-          {!hideFooter && (
-            <>
-              <CitreaCampaignProgress />
-              <BAppsCard />
-            </>
-          )}
+          <CurrencyLogoOverrideContext.Provider value={useLaunchpadTokenLogoUrl}>
+            <SwapDependenciesStoreContextProvider swapCallback={swapCallback} wrapCallback={wrapCallback}>
+              <SwapFlow
+                settings={swapSettings}
+                hideHeader={hideHeader}
+                hideFooter={hideFooter}
+                onClose={noop}
+                swapRedirectCallback={swapRedirectCallback}
+                onCurrencyChange={onCurrencyChange}
+                prefilledState={prefilledState}
+                tokenColor={tokenColor}
+                onSubmitSwap={handleSubmitSwap}
+              />
+            </SwapDependenciesStoreContextProvider>
+            {!hideFooter && (
+              <>
+                <CitreaCampaignProgress />
+                <BAppsCard />
+              </>
+            )}
+          </CurrencyLogoOverrideContext.Provider>
         </Flex>
       )}
       {/* Removed Limit, Buy, and Sell tabs as we only support Swap now */}
