@@ -33,6 +33,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { useAppFiatCurrency } from 'uniswap/src/features/fiatCurrency/hooks'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
+import { getLogoUrlBySymbol } from 'uniswap/src/features/tokens/tokenRegistry'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import { shortenAddress } from 'utilities/src/addresses'
 import { NumberType } from 'utilities/src/format/types'
@@ -134,32 +135,36 @@ const RecentTransactions = memo(function RecentTransactions() {
             </FilterHeaderRow>
           </HeaderCell>
         ),
-        cell: (transaction) => (
-          <Cell loading={showLoadingSkeleton} justifyContent="flex-start">
-            <Text variant="body2" display="flex" flexDirection="row" gap="$spacing8" alignItems="center">
-              {media.lg && (
-                <PortfolioLogo
-                  chainId={chainInfo.id}
-                  images={[
-                    transaction.getValue?.().token0.project?.logo?.url,
-                    transaction.getValue?.().token1.project?.logo?.url,
-                  ]}
-                  size={20}
-                />
-              )}
-              <TableText color="$neutral2" $lg={{ display: 'none' }}>
-                {BETypeToTransactionType[transaction.getValue?.().type]}
-              </TableText>
-              <TokenLinkCell token={transaction.getValue?.().token0} hideLogo={media.lg} />
-              <Text color="$neutral2">
-                {transaction.getValue?.().type === PoolTransactionType.Swap
-                  ? t('common.for').toLowerCase()
-                  : t('common.and').toLowerCase()}
+        cell: (transaction) => {
+          const tx = transaction.getValue?.()
+          if (!tx) {
+            return null
+          }
+          return (
+            <Cell loading={showLoadingSkeleton} justifyContent="flex-start">
+              <Text variant="body2" display="flex" flexDirection="row" gap="$spacing8" alignItems="center">
+                {media.lg && (
+                  <PortfolioLogo
+                    chainId={chainInfo.id}
+                    images={[
+                      tx.token0.project?.logo?.url ?? getLogoUrlBySymbol(tx.token0.symbol),
+                      tx.token1.project?.logo?.url ?? getLogoUrlBySymbol(tx.token1.symbol),
+                    ]}
+                    size={20}
+                  />
+                )}
+                <TableText color="$neutral2" $lg={{ display: 'none' }}>
+                  {BETypeToTransactionType[tx.type]}
+                </TableText>
+                <TokenLinkCell token={tx.token0} hideLogo={media.lg} />
+                <Text color="$neutral2">
+                  {tx.type === PoolTransactionType.Swap ? t('common.for').toLowerCase() : t('common.and').toLowerCase()}
+                </Text>
+                <TokenLinkCell token={tx.token1} hideLogo={media.lg} />
               </Text>
-              <TokenLinkCell token={transaction.getValue?.().token1} hideLogo={media.lg} />
-            </Text>
-          </Cell>
-        ),
+            </Cell>
+          )
+        },
       }),
       columnHelper.accessor((transaction) => transaction.usdValue.value, {
         id: 'fiat-value',
