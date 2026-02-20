@@ -13,6 +13,7 @@ import { Check } from 'react-feather'
 import { useNavigate } from 'react-router'
 import { Flex, Text, styled, useMedia, useSporeColors } from 'ui/src'
 import { Plus } from 'ui/src/components/icons/Plus'
+import { fonts } from 'ui/src/theme/fonts'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
@@ -181,6 +182,10 @@ const StatValue = styled(Text, {
   variant: 'heading3',
   color: '$neutral1',
   fontWeight: '600',
+  $sm: {
+    fontSize: fonts.subheading1.fontSize,
+    lineHeight: fonts.subheading1.lineHeight,
+  },
 })
 
 const StatLabel = styled(Text, {
