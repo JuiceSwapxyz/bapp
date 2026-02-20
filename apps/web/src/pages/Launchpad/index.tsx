@@ -1,3 +1,4 @@
+import { DropdownSelector, InternalMenuItem } from 'components/DropdownSelector'
 import { useAccount } from 'hooks/useAccount'
 import {
   useLaunchpadStats,
@@ -6,9 +7,11 @@ import {
   type LaunchpadSortType,
 } from 'hooks/useLaunchpadTokens'
 import { TokenCard } from 'pages/Launchpad/components/TokenCard'
+import { FILTER_OPTIONS, SORT_OPTIONS } from 'pages/Launchpad/constants'
 import { useCallback, useState } from 'react'
+import { Check } from 'react-feather'
 import { useNavigate } from 'react-router'
-import { Flex, Text, styled } from 'ui/src'
+import { Flex, Text, styled, useMedia, useSporeColors } from 'ui/src'
 import { Plus } from 'ui/src/components/icons/Plus'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import Trace from 'uniswap/src/features/telemetry/Trace'
@@ -213,6 +216,9 @@ export default function Launchpad() {
   const [filter, setFilter] = useState<LaunchpadFilterType>('all')
   const [sort, setSort] = useState<LaunchpadSortType>('volume')
   const [page, setPage] = useState(0)
+  const [openMenu, setOpenMenu] = useState<'filter' | 'sort' | null>(null)
+  const media = useMedia()
+  const colors = useSporeColors()
 
   // Use the user's connected chain, or fall back to default chain if not connected
   // This ensures we always filter by a specific chain and never show mixed testnet/mainnet tokens
@@ -291,46 +297,114 @@ export default function Launchpad() {
               flexWrap="wrap"
               gap="$spacing16"
             >
-              <FilterTabs>
-                <FilterTab active={filter === 'all'} onPress={() => handleFilterChange('all')}>
-                  <Text variant="body2" color={filter === 'all' ? '$accent1' : '$neutral2'}>
-                    All
-                  </Text>
-                </FilterTab>
-                <FilterTab active={filter === 'active'} onPress={() => handleFilterChange('active')}>
-                  <Text variant="body2" color={filter === 'active' ? '$accent1' : '$neutral2'}>
-                    Active
-                  </Text>
-                </FilterTab>
-                <FilterTab active={filter === 'graduating'} onPress={() => handleFilterChange('graduating')}>
-                  <Text variant="body2" color={filter === 'graduating' ? '$accent1' : '$neutral2'}>
-                    Graduating Soon
-                  </Text>
-                </FilterTab>
-                <FilterTab active={filter === 'graduated'} onPress={() => handleFilterChange('graduated')}>
-                  <Text variant="body2" color={filter === 'graduated' ? '$accent1' : '$neutral2'}>
-                    Graduated
-                  </Text>
-                </FilterTab>
-              </FilterTabs>
-
-              <FilterTabs>
-                <FilterTab active={sort === 'volume'} onPress={() => handleSortChange('volume')}>
-                  <Text variant="body2" color={sort === 'volume' ? '$accent1' : '$neutral2'}>
-                    Volume
-                  </Text>
-                </FilterTab>
-                <FilterTab active={sort === 'newest'} onPress={() => handleSortChange('newest')}>
-                  <Text variant="body2" color={sort === 'newest' ? '$accent1' : '$neutral2'}>
-                    Newest
-                  </Text>
-                </FilterTab>
-                <FilterTab active={sort === 'trades'} onPress={() => handleSortChange('trades')}>
-                  <Text variant="body2" color={sort === 'trades' ? '$accent1' : '$neutral2'}>
-                    Trades
-                  </Text>
-                </FilterTab>
-              </FilterTabs>
+              {media.sm ? (
+                <Flex
+                  row
+                  gap="$spacing12"
+                  alignItems="center"
+                  flexWrap="nowrap"
+                  width="100%"
+                  justifyContent="space-between"
+                >
+                  <DropdownSelector
+                    isOpen={openMenu === 'filter'}
+                    toggleOpen={(open) => setOpenMenu(open ? 'filter' : null)}
+                    menuLabel={
+                      <Text variant="buttonLabel3" width="max-content">
+                        {FILTER_OPTIONS.find((o) => o.value === filter)?.label ?? 'All'}
+                      </Text>
+                    }
+                    dropdownStyle={{ width: 200 }}
+                    buttonStyle={{ height: 40, width: 'max-content' }}
+                    containerStyle={{ width: 'auto' }}
+                    adaptToSheet
+                    allowFlip
+                    alignRight={!media.lg}
+                  >
+                    {FILTER_OPTIONS.map((opt) => (
+                      <InternalMenuItem
+                        key={opt.value}
+                        onPress={() => {
+                          handleFilterChange(opt.value)
+                          setOpenMenu(null)
+                        }}
+                      >
+                        {opt.label}
+                        {filter === opt.value && <Check size={16} color={colors.accent1.val} />}
+                      </InternalMenuItem>
+                    ))}
+                  </DropdownSelector>
+                  <DropdownSelector
+                    isOpen={openMenu === 'sort'}
+                    toggleOpen={(open) => setOpenMenu(open ? 'sort' : null)}
+                    menuLabel={
+                      <Text variant="buttonLabel3" width="max-content">
+                        {SORT_OPTIONS.find((o) => o.value === sort)?.label ?? 'Volume'}
+                      </Text>
+                    }
+                    dropdownStyle={{ width: 160 }}
+                    buttonStyle={{ height: 40, width: 'max-content' }}
+                    containerStyle={{ width: 'auto' }}
+                    allowFlip
+                    alignRight={!media.lg}
+                  >
+                    {SORT_OPTIONS.map((opt) => (
+                      <InternalMenuItem
+                        key={opt.value}
+                        onPress={() => {
+                          handleSortChange(opt.value)
+                          setOpenMenu(null)
+                        }}
+                      >
+                        {opt.label}
+                        {sort === opt.value && <Check size={16} color={colors.accent1.val} />}
+                      </InternalMenuItem>
+                    ))}
+                  </DropdownSelector>
+                </Flex>
+              ) : (
+                <>
+                  <FilterTabs>
+                    <FilterTab active={filter === 'all'} onPress={() => handleFilterChange('all')}>
+                      <Text variant="body2" color={filter === 'all' ? '$accent1' : '$neutral2'}>
+                        All
+                      </Text>
+                    </FilterTab>
+                    <FilterTab active={filter === 'active'} onPress={() => handleFilterChange('active')}>
+                      <Text variant="body2" color={filter === 'active' ? '$accent1' : '$neutral2'}>
+                        Active
+                      </Text>
+                    </FilterTab>
+                    <FilterTab active={filter === 'graduating'} onPress={() => handleFilterChange('graduating')}>
+                      <Text variant="body2" color={filter === 'graduating' ? '$accent1' : '$neutral2'}>
+                        Graduating Soon
+                      </Text>
+                    </FilterTab>
+                    <FilterTab active={filter === 'graduated'} onPress={() => handleFilterChange('graduated')}>
+                      <Text variant="body2" color={filter === 'graduated' ? '$accent1' : '$neutral2'}>
+                        Graduated
+                      </Text>
+                    </FilterTab>
+                  </FilterTabs>
+                  <FilterTabs>
+                    <FilterTab active={sort === 'volume'} onPress={() => handleSortChange('volume')}>
+                      <Text variant="body2" color={sort === 'volume' ? '$accent1' : '$neutral2'}>
+                        Volume
+                      </Text>
+                    </FilterTab>
+                    <FilterTab active={sort === 'newest'} onPress={() => handleSortChange('newest')}>
+                      <Text variant="body2" color={sort === 'newest' ? '$accent1' : '$neutral2'}>
+                        Newest
+                      </Text>
+                    </FilterTab>
+                    <FilterTab active={sort === 'trades'} onPress={() => handleSortChange('trades')}>
+                      <Text variant="body2" color={sort === 'trades' ? '$accent1' : '$neutral2'}>
+                        Trades
+                      </Text>
+                    </FilterTab>
+                  </FilterTabs>
+                </>
+              )}
             </Flex>
 
             {isLoading ? (
