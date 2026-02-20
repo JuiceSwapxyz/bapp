@@ -72,7 +72,7 @@ function useShouldHideChainSelector() {
 export default function Navbar() {
   const media = useMedia()
   const areTabsVisible = useTabsVisible()
-  const collapseSearchBar = media.xl
+  const collapseSearchBar = media.xxl
   const account = useAccount()
 
   const hideChainSelector = useShouldHideChainSelector()
