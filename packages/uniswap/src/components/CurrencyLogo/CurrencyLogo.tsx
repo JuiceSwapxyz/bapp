@@ -1,4 +1,5 @@
 import { iconSizes } from 'ui/src/theme'
+import { useEffectiveLogoUrl } from 'uniswap/src/contexts/CurrencyLogoOverrideContext'
 import { TokenLogo } from 'uniswap/src/components/CurrencyLogo/TokenLogo'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 
@@ -17,11 +18,13 @@ export function CurrencyLogo({
   hideNetworkLogo,
   networkLogoBorderWidth,
 }: CurrencyLogoProps): JSX.Element | null {
+  const effectiveLogoUrl = useEffectiveLogoUrl(currencyInfo)
+
   if (!currencyInfo) {
     return null
   }
 
-  const { currency, logoUrl } = currencyInfo
+  const { currency } = currencyInfo
   const { chainId, symbol, name } = currency
 
   return (
@@ -32,7 +35,7 @@ export function CurrencyLogo({
       networkLogoBorderWidth={networkLogoBorderWidth}
       size={size}
       symbol={symbol}
-      url={logoUrl}
+      url={effectiveLogoUrl}
     />
   )
 }
