@@ -215,7 +215,7 @@ export function Table<T extends RowData>({
   data: T[]
   loading?: boolean
   error?: ApolloError | boolean
-  loadMore?: ({ onComplete }: { onComplete?: () => void }) => void
+  loadMore?: ({ onComplete }: { onComplete?: (opts?: { didLoad?: boolean }) => void }) => void
   maxWidth?: number
   maxHeight?: number
   defaultPinnedColumns?: string[]
@@ -238,6 +238,7 @@ export function Table<T extends RowData>({
   const tableBodyRef = useRef<HTMLDivElement>(null)
   const lastLoadedLengthRef = useRef(0)
   const canLoadMore = useRef(true)
+  const loadMoreInProgressRef = useRef(false)
   const isSticky = useMemo(() => !maxHeight, [maxHeight])
 
   const { parentRef, width, height, top, left } = useSafeParentSize()
@@ -266,7 +267,15 @@ export function Table<T extends RowData>({
   }, [loadMore, maxHeight, loadingMore, tableBodyRef])
 
   useEffect(() => {
-    if (distanceToBottom < LOAD_MORE_BOTTOM_OFFSET && !loadingMore && loadMore && canLoadMore.current && !error) {
+    if (
+      distanceToBottom < LOAD_MORE_BOTTOM_OFFSET &&
+      !loadingMore &&
+      !loadMoreInProgressRef.current &&
+      loadMore &&
+      canLoadMore.current &&
+      !error
+    ) {
+      loadMoreInProgressRef.current = true
       setLoadingMore(true)
       // Manually update scroll position to prevent re-triggering
       setScrollPosition({
@@ -274,12 +283,15 @@ export function Table<T extends RowData>({
         distanceToBottom: LOAD_MORE_BOTTOM_OFFSET,
       })
       loadMore({
-        onComplete: () => {
+        onComplete: (opts) => {
+          loadMoreInProgressRef.current = false
           setLoadingMore(false)
-          if (data.length === lastLoadedLengthRef.current) {
-            canLoadMore.current = false
-          } else {
-            lastLoadedLengthRef.current = data.length
+          if (opts?.didLoad !== false) {
+            if (data.length === lastLoadedLengthRef.current) {
+              canLoadMore.current = false
+            } else {
+              lastLoadedLengthRef.current = data.length
+            }
           }
         },
       })
