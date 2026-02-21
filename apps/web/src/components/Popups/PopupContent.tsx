@@ -315,7 +315,7 @@ export function LightningBridgePopupContent({
       <TouchableArea onPress={onClick} flex={1}>
         <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
           <Flex justifyContent="center">
-            <PortfolioLogo chainId={UniverseChainId.Mainnet} images={[bitcoinLogo]} size={32} />
+            <PortfolioLogo chainId={UniverseChainId.Bitcoin} images={[bitcoinLogo]} size={32} />
           </Flex>
           <Flex justifyContent="center" gap="$gap4" fill>
             <Text variant="body2" color="$neutral1">
@@ -431,7 +431,7 @@ export function BitcoinBridgePopupContent({
       <TouchableArea onPress={handlePress} flex={1}>
         <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
           <Flex justifyContent="center">
-            <PortfolioLogo chainId={UniverseChainId.Mainnet} images={[bitcoinLogo]} size={32} />
+            <PortfolioLogo chainId={UniverseChainId.Bitcoin} images={[bitcoinLogo]} size={32} />
           </Flex>
           <Flex justifyContent="center" gap="$gap4" fill>
             <Text variant="body2" color="$neutral1">
