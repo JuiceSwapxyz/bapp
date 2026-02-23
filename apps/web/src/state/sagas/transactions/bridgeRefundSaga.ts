@@ -45,6 +45,10 @@ function* refundSwapSaga(action: RefundSwapAction) {
   try {
     const { hex, timeoutBlockHeight } = yield* call([ldsBridgeManager, ldsBridgeManager.getLockupTransactions], swap)
 
+    if (!hex || !timeoutBlockHeight) {
+      throw new Error('Missing required transaction data')
+    }
+
     if (swap.type !== SwapType.Chain) {
       throw new Error('Swap not found')
     }
