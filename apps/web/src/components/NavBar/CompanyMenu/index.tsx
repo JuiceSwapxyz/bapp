@@ -9,7 +9,7 @@ import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 export function CompanyMenu() {
   const popoverRef = useRef<Popover>(null)
   const media = useMedia()
-  const isLargeScreen = !media.xxl
+  const isLargeScreen = !media.xxxl
   const location = useLocation()
   const [isOpen, setIsOpen] = useState(false)
 

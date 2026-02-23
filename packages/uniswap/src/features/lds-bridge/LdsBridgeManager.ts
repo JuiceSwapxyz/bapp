@@ -403,7 +403,7 @@ class LdsBridgeManager {
       case SwapType.Chain: {
         const chainTransactionsResponse = await fetchChainTransactionsBySwapId(swap.id)
         const userLock = chainTransactionsResponse.userLock
-        if (!userLock?.transaction.id || !userLock.transaction.hex || !userLock.timeout.blockHeight) {
+        if (!userLock?.transaction.id || !userLock.timeout.blockHeight) {
           throw new Error('Missing required transaction data')
         }
         return {

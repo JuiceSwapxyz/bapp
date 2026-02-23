@@ -41,7 +41,7 @@ export const SearchBar = () => {
   const poolSearchEnabled = useFeatureFlag(FeatureFlags.PoolSearch)
 
   const media = useMedia()
-  const isNavSearchInputVisible = !media.xl
+  const isNavSearchInputVisible = !media.xxl
   const theme = useTheme()
   const { t } = useTranslation() // subscribe to locale changes
 

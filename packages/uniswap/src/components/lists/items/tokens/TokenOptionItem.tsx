@@ -2,6 +2,7 @@ import { memo, useCallback, useState } from 'react'
 import { Flex, Text, TouchableArea } from 'ui/src'
 import { Check } from 'ui/src/components/icons/Check'
 import { TokenLogo } from 'uniswap/src/components/CurrencyLogo/TokenLogo'
+import { useEffectiveLogoUrl } from 'uniswap/src/contexts/CurrencyLogoOverrideContext'
 import { FocusedRowControl, OptionItem, OptionItemProps } from 'uniswap/src/components/lists/items/OptionItem'
 import {
   TokenContextMenuAction,
@@ -68,6 +69,7 @@ const LegacyBaseTokenOptionItem = memo(function LegacyBaseTokenOptionItem({
 }: LegacyTokenOptionItemProps): JSX.Element {
   const { currencyInfo } = option
   const { currency } = currencyInfo
+  const logoUrl = useEffectiveLogoUrl(currencyInfo)
 
   const severity = getTokenWarningSeverity(currencyInfo)
   // in token selector, we only show the warning icon if token is >=Medium severity
@@ -91,7 +93,7 @@ const LegacyBaseTokenOptionItem = memo(function LegacyBaseTokenOptionItem({
           chainId={currency.chainId}
           name={currency.name}
           symbol={currency.symbol}
-          url={currencyInfo.logoUrl ?? undefined}
+          url={logoUrl}
         />
         <Flex shrink>
           <Flex row alignItems="center" gap="$spacing8">
@@ -250,6 +252,7 @@ const BaseTokenOptionItem = memo(function _BaseTokenOptionItem(
   } = props
   const { currencyInfo } = option
   const { currency } = currencyInfo
+  const logoUrl = useEffectiveLogoUrl(currencyInfo)
 
   // in lists like token selector & search, we only show the warning icon if token is >=Medium severity
   const severity = getTokenWarningSeverity(currencyInfo)
@@ -262,7 +265,7 @@ const BaseTokenOptionItem = memo(function _BaseTokenOptionItem(
           chainId={currency.chainId}
           name={currency.name}
           symbol={currency.symbol}
-          url={currencyInfo.logoUrl ?? undefined}
+          url={logoUrl}
         />
       }
       title={currency.name ?? currency.symbol ?? ''}

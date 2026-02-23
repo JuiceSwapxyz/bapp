@@ -123,7 +123,7 @@ export async function fetchTokenDataDirectly(
       projectName: name,
       safetyLevel: 'STRONG_WARNING',
       standard: 'ERC20',
-      logoUrl: `https://ethereum-optimism.github.io/data/${name}/logo.png`,
+      logoUrl: '',
       symbol,
       tokenId: `${chainId}_${tokenAddress}`,
       spamCode: SpamCode.NOT_SPAM,

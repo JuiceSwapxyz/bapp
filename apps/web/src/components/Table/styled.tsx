@@ -14,11 +14,14 @@ import { Link } from 'react-router'
 import { ClickableStyle, ClickableTamaguiStyle } from 'theme/components/styles'
 import { Anchor, Flex, Text, TextProps, View, styled } from 'ui/src'
 import { breakpoints, zIndexes } from 'ui/src/theme'
+import { getLocalTokenLogoUrlByAddress } from 'uniswap/src/components/CurrencyLogo/localTokenLogoMap'
 import { Token } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
+import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import { useCurrentLocale } from 'uniswap/src/features/language/hooks'
 import { isSvJusdAddress } from 'uniswap/src/features/tokens/jusdAbstraction'
+import { getLogoUrlBySymbol, getTokenLogoFromRegistry } from 'uniswap/src/features/tokens/tokenRegistry'
 
 export const SHOW_RETURN_TO_TOP_OFFSET = 500
 export const LOAD_MORE_BOTTOM_OFFSET = 50
@@ -313,6 +316,13 @@ export const TokenLinkCell = ({ token, hideLogo }: { token: Token; hideLogo?: bo
     address: NATIVE_CHAIN_ID,
     chainId,
   })
+
+  const logoUrl =
+    token.project?.logo?.url ??
+    (unwrappedToken.address && getLocalTokenLogoUrlByAddress(unwrappedToken.address.toLowerCase())) ??
+    getLogoUrlBySymbol(displaySymbol) ??
+    (unwrappedToken.address && getTokenLogoFromRegistry(chainId as UniverseChainId, unwrappedToken.address))
+
   return (
     <StyledInternalLink
       to={getTokenDetailsURL({
@@ -326,7 +336,7 @@ export const TokenLinkCell = ({ token, hideLogo }: { token: Token; hideLogo?: bo
           <PortfolioLogo
             chainId={chainId}
             size={20}
-            images={isNative ? undefined : [token.project?.logo?.url]}
+            images={isNative ? undefined : [logoUrl]}
             currencies={isNative ? [nativeCurrency] : undefined}
           />
         )}
