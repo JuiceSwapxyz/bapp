@@ -38,8 +38,6 @@ export const BETypeToTransactionType: { [key: string]: TransactionType } = {
 const ALL_TX_DEFAULT_QUERY_SIZE = 20
 const LOAD_MORE_THROTTLE_MS = 1200
 
-let lastLoadMoreStartedAt = 0
-
 export function useAllTransactions(
   chain: Chain,
   filter: TransactionType[] = [TransactionType.SWAP, TransactionType.ADD, TransactionType.REMOVE],
@@ -80,17 +78,18 @@ export function useAllTransactions(
   const loadingMoreV3 = useRef(false)
   const loadingMoreV2 = useRef(false)
   const querySizeRef = useRef(ALL_TX_DEFAULT_QUERY_SIZE)
+  const lastLoadMoreStartedAtRef = useRef(0)
   const loadMore = useCallback(
     ({ onComplete }: { onComplete?: (opts?: { didLoad?: boolean }) => void }) => {
       const now = Date.now()
-      if (now - lastLoadMoreStartedAt < LOAD_MORE_THROTTLE_MS) {
+      if (now - lastLoadMoreStartedAtRef.current < LOAD_MORE_THROTTLE_MS) {
         onComplete?.({ didLoad: false })
         return
       }
       if (loadingMoreV4.current || loadingMoreV3.current || loadingMoreV2.current) {
         return
       }
-      lastLoadMoreStartedAt = now
+      lastLoadMoreStartedAtRef.current = now
       loadingMoreV4.current = true
       loadingMoreV3.current = true
       loadingMoreV2.current = true
