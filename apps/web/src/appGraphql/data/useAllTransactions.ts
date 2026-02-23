@@ -36,7 +36,7 @@ export const BETypeToTransactionType: { [key: string]: TransactionType } = {
 }
 
 const ALL_TX_DEFAULT_QUERY_SIZE = 20
-const LOAD_MORE_THROTTLE_MS = 1200
+const LOAD_MORE_THROTTLE_MS = 3000
 
 export function useAllTransactions(
   chain: Chain,
@@ -97,6 +97,7 @@ export function useAllTransactions(
 
       const maybeComplete = () => {
         if (!loadingMoreV4.current && !loadingMoreV3.current && !loadingMoreV2.current) {
+          lastLoadMoreStartedAtRef.current = Date.now()
           onComplete?.({ didLoad: true })
         }
       }

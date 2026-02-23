@@ -238,7 +238,6 @@ export function Table<T extends RowData>({
   const tableBodyRef = useRef<HTMLDivElement>(null)
   const lastLoadedLengthRef = useRef(0)
   const canLoadMore = useRef(true)
-  const loadMoreInProgressRef = useRef(false)
   const isSticky = useMemo(() => !maxHeight, [maxHeight])
 
   const { parentRef, width, height, top, left } = useSafeParentSize()
@@ -270,21 +269,18 @@ export function Table<T extends RowData>({
     if (
       distanceToBottom < LOAD_MORE_BOTTOM_OFFSET &&
       !loadingMore &&
-      !loadMoreInProgressRef.current &&
       loadMore &&
       canLoadMore.current &&
-      !error
+      !error &&
+      !loading
     ) {
-      loadMoreInProgressRef.current = true
       setLoadingMore(true)
-      // Manually update scroll position to prevent re-triggering
       setScrollPosition({
         distanceFromTop: SHOW_RETURN_TO_TOP_OFFSET,
         distanceToBottom: LOAD_MORE_BOTTOM_OFFSET,
       })
       loadMore({
         onComplete: (opts) => {
-          loadMoreInProgressRef.current = false
           setLoadingMore(false)
           if (opts?.didLoad !== false) {
             if (data.length === lastLoadedLengthRef.current) {
