@@ -5,7 +5,6 @@ export const Card = styled(Flex, {
   borderRadius: '$rounded16',
   padding: '$spacing16',
   gap: '$spacing12',
-  cursor: 'pointer',
   pressStyle: {
     opacity: 0.9,
   },
@@ -19,6 +18,7 @@ export const CardHeader = styled(Flex, {
   justifyContent: 'space-between',
   alignItems: 'center',
   width: '100%',
+  cursor: 'pointer',
 })
 
 export const SwapInfo = styled(Flex, {

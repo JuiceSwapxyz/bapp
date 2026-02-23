@@ -18,6 +18,7 @@ import { Flex, Text } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { Clock } from 'ui/src/components/icons/Clock'
+import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/utils'
@@ -280,11 +281,19 @@ const useRefundEtaEstimate = (swap: SomeSwap) => {
       ? 1 + Number(timeoutBlockHeight) - Number(currentTip.data)
       : 0
 
+  const assetChainId = ASSET_CHAIN_ID_MAP[swap.assetSend]
+  const etaLink =
+    isEligibleForRefund && assetChainId !== UniverseChainId.Bitcoin
+      ? getExplorerLink({ chainId: assetChainId, data: timeoutBlockHeight.toString(), type: ExplorerDataType.BLOCK })
+      : undefined
+
   return {
     isEligibleForRefund: isEligibleForRefund && !isNonRefundableStatus,
     isAvailableForRefund: isEligibleForRefund && remainingBlocks === 0,
     currentBlockHeight: Number(currentTip.data),
     remainingBlocks,
+    timeoutBlockHeight,
+    etaLink,
   }
 }
 
@@ -294,11 +303,11 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
   const statusInfo = getStatusInfo(swap)
   const { data: failureData } = useFailureReason(swap, expanded && statusInfo.status === 'failed')
 
-  const { remainingBlocks, isAvailableForRefund, isEligibleForRefund } = useRefundEtaEstimate(swap)
+  const { remainingBlocks, isAvailableForRefund, isEligibleForRefund, etaLink } = useRefundEtaEstimate(swap)
 
   return (
-    <Card onPress={() => setExpanded(!expanded)}>
-      <CardHeader>
+    <Card>
+      <CardHeader onPress={() => setExpanded(!expanded)}>
         <SwapInfo>
           <Flex flexDirection="row" alignItems="center" gap="$spacing8" flexWrap="wrap">
             <Text variant="body1" color="$neutral1" fontWeight="600">
@@ -314,7 +323,25 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
             </Text>
             {isEligibleForRefund && (
               <Text variant="body3" color="$neutral2">
-                {isAvailableForRefund ? 'Available for refund' : `Available for refund in ${remainingBlocks} blocks`}
+                {isAvailableForRefund ? (
+                  'Available for refund'
+                ) : etaLink ? (
+                  <>
+                    Available for refund in{' '}
+                    <TxLink
+                      tag="a"
+                      href={etaLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                    >
+                      {remainingBlocks} blocks{' '}
+                      <ExternalLink size="$icon.12" color="currentColor" style={{ verticalAlign: 'middle' }} />
+                    </TxLink>
+                  </>
+                ) : (
+                  `Available for refund in ${remainingBlocks} blocks`
+                )}
               </Text>
             )}
           </Flex>
