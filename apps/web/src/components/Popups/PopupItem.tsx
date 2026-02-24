@@ -200,17 +200,17 @@ function BridgeToast({
   const targetChain = getChainInfo(outputChainId)
   const isMobile = useMedia().sm
   return (
-    <Flex flexDirection={isMobile ? 'column' : 'row'} gap={isMobile ? '$gap4' : '$gap8'} alignItems="center">
+    <Flex flexDirection="row" gap="$gap4" alignItems="center">
       <Flex row gap="$gap4" flexShrink={1} minWidth={0}>
         <NetworkLogo chainId={inputChainId} />
-        <Text variant="body2" lineHeight={20} flexShrink={1} numberOfLines={1}>
+        <Text variant={isMobile ? 'body3' : 'body2'} flexShrink={1} numberOfLines={1}>
           {originChain.label}
         </Text>
       </Flex>
       <Shuffle color="$neutral2" size="$icon.20" flexShrink={0} />
       <Flex row gap="$gap4" flexShrink={1} minWidth={0}>
         <NetworkLogo chainId={outputChainId} />
-        <Text variant="body2" lineHeight={20} flexShrink={1} numberOfLines={1}>
+        <Text variant={isMobile ? 'body3' : 'body2'} flexShrink={1} numberOfLines={1}>
           {targetChain.label}
         </Text>
       </Flex>
