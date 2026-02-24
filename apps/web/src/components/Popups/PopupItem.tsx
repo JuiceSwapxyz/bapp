@@ -19,7 +19,7 @@ import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { PopupContent, PopupType, SwitchNetworkAction } from 'components/Popups/types'
 import { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
-import { Flex, Text } from 'ui/src'
+import { Flex, Text, useMedia } from 'ui/src'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
 import { Shuffle } from 'ui/src/components/icons/Shuffle'
 import { NetworkLogo } from 'uniswap/src/components/CurrencyLogo/NetworkLogo'
@@ -198,8 +198,9 @@ function BridgeToast({
 }): JSX.Element {
   const originChain = getChainInfo(inputChainId)
   const targetChain = getChainInfo(outputChainId)
+  const isMobile = useMedia().sm
   return (
-    <Flex row gap="$gap8">
+    <Flex flexDirection={isMobile ? 'column' : 'row'} gap={isMobile ? '$gap4' : '$gap8'} alignItems="center">
       <Flex row gap="$gap4" flexShrink={1} minWidth={0}>
         <NetworkLogo chainId={inputChainId} />
         <Text variant="body2" lineHeight={20} flexShrink={1} numberOfLines={1}>
