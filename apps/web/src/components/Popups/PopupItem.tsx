@@ -200,16 +200,16 @@ function BridgeToast({
   const targetChain = getChainInfo(outputChainId)
   return (
     <Flex row gap="$gap8">
-      <Flex row gap="$gap4">
+      <Flex row gap="$gap4" flexShrink={1} minWidth={0}>
         <NetworkLogo chainId={inputChainId} />
-        <Text variant="body2" lineHeight={20}>
+        <Text variant="body2" lineHeight={20} flexShrink={1} numberOfLines={1}>
           {originChain.label}
         </Text>
       </Flex>
-      <Shuffle color="$neutral2" size="$icon.20" />
-      <Flex row gap="$gap4">
+      <Shuffle color="$neutral2" size="$icon.20" flexShrink={0} />
+      <Flex row gap="$gap4" flexShrink={1} minWidth={0}>
         <NetworkLogo chainId={outputChainId} />
-        <Text variant="body2" lineHeight={20}>
+        <Text variant="body2" lineHeight={20} flexShrink={1} numberOfLines={1}>
           {targetChain.label}
         </Text>
       </Flex>

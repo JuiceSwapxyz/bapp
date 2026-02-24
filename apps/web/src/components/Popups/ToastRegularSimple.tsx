@@ -1,4 +1,3 @@
-import { POPUP_MAX_WIDTH } from 'components/Popups/constants'
 import { Flex, Text, TouchableArea, useShadowPropsMedium } from 'ui/src'
 import { X } from 'ui/src/components/icons/X'
 
@@ -16,34 +15,40 @@ export function ToastRegularSimple({
   const isToastOneLine = typeof text === 'string'
 
   return (
-    <Flex
-      row
-      alignItems="center"
-      animation="300ms"
-      backgroundColor="$surface1"
-      borderColor="$surface3"
-      borderRadius="$rounded16"
-      borderWidth="$spacing1"
-      justifyContent="space-between"
-      left={0}
-      mx="auto"
-      {...shadowProps}
-      p="$spacing16"
-      position="relative"
-      width={POPUP_MAX_WIDTH}
-      opacity={1}
-      $sm={{
-        maxWidth: '100%',
-        mx: 'auto',
-      }}
-    >
-      <Flex row alignItems={isToastOneLine ? 'center' : 'flex-start'} gap={12} flex={1}>
-        <Flex>{icon}</Flex>
-        {text ? isToastOneLine ? <Text variant="body2">{text}</Text> : text : null}
+    <Flex position="relative" mx="auto" width="fit-content" $sm={{ maxWidth: '100%', mx: 'auto' }}>
+      <Flex
+        row
+        alignItems="center"
+        animation="300ms"
+        backgroundColor="$surface1"
+        borderColor="$surface3"
+        borderRadius="$rounded16"
+        borderWidth="$spacing1"
+        left={0}
+        {...shadowProps}
+        p="$spacing16"
+        opacity={1}
+      >
+        <Flex row alignItems={isToastOneLine ? 'center' : 'flex-start'} gap={12} minWidth={0}>
+          <Flex>{icon}</Flex>
+          {text ? isToastOneLine ? <Text variant="body2">{text}</Text> : text : null}
+        </Flex>
       </Flex>
       {onDismiss ? (
-        <TouchableArea onPress={onDismiss} ml="$spacing8">
-          <X color="$neutral2" size={16} />
+        <TouchableArea
+          onPress={onDismiss}
+          position="absolute"
+          top={-8}
+          right={-8}
+          backgroundColor="$surface1"
+          borderRadius="$roundedFull"
+          borderColor="$surface3"
+          borderWidth="$spacing1"
+          p="$spacing4"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <X color="$neutral2" size={12} />
         </TouchableArea>
       ) : null}
     </Flex>
