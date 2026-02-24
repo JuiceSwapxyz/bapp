@@ -5,29 +5,10 @@ import {
   PoolTransactionType,
   PoolTxFragment,
   useV2TransactionsQuery,
+  useV3TransactionsQuery,
   useV4TransactionsQuery,
 } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
-import { useExploreStatsQuery } from 'uniswap/src/data/rest/exploreStats'
-import { fromGraphQLChain } from 'uniswap/src/features/chains/utils'
 import i18n from 'uniswap/src/i18n'
-
-const useV3Transactions = (chain: Chain) => {
-  const chainId = fromGraphQLChain(chain)
-  const {
-    data,
-    isLoading: loadingV3,
-    error: errorV3,
-  } = useExploreStatsQuery<{ stats: { transactionStats: unknown[] } }>({
-    chainId: chainId ?? undefined,
-    enabled: true,
-  })
-
-  return {
-    data: data ? { v3Transactions: data.stats.transactionStats } : undefined,
-    loading: loadingV3,
-    error: errorV3,
-  }
-}
 
 export enum TransactionType {
   SWAP = 'Swap',
@@ -55,6 +36,7 @@ export const BETypeToTransactionType: { [key: string]: TransactionType } = {
 }
 
 const ALL_TX_DEFAULT_QUERY_SIZE = 20
+const LOAD_MORE_THROTTLE_MS = 3000
 
 export function useAllTransactions(
   chain: Chain,
@@ -69,10 +51,18 @@ export function useAllTransactions(
     fetchMore: fetchMoreV4,
   } = useV4TransactionsQuery({
     variables: { chain, first: ALL_TX_DEFAULT_QUERY_SIZE },
-    skip: true,
+    skip: !isWindowVisible,
   })
 
-  const { data: dataV3, loading: loadingV3, error: errorV3 } = useV3Transactions(chain)
+  const {
+    data: dataV3,
+    loading: loadingV3,
+    error: errorV3,
+    fetchMore: fetchMoreV3,
+  } = useV3TransactionsQuery({
+    variables: { chain, first: ALL_TX_DEFAULT_QUERY_SIZE },
+    skip: !isWindowVisible,
+  })
 
   const {
     data: dataV2,
@@ -81,36 +71,60 @@ export function useAllTransactions(
     fetchMore: fetchMoreV2,
   } = useV2TransactionsQuery({
     variables: { chain, first: ALL_TX_DEFAULT_QUERY_SIZE },
-    skip: true, // Disabled V2 API to prevent CORS errors
+    skip: !isWindowVisible,
   })
 
   const loadingMoreV4 = useRef(false)
   const loadingMoreV3 = useRef(false)
   const loadingMoreV2 = useRef(false)
   const querySizeRef = useRef(ALL_TX_DEFAULT_QUERY_SIZE)
+  const lastLoadMoreStartedAtRef = useRef(0)
   const loadMore = useCallback(
-    ({ onComplete }: { onComplete?: () => void }) => {
+    ({ onComplete }: { onComplete?: (opts?: { didLoad?: boolean }) => void }) => {
+      const now = Date.now()
+      if (now - lastLoadMoreStartedAtRef.current < LOAD_MORE_THROTTLE_MS) {
+        onComplete?.({ didLoad: false })
+        return
+      }
       if (loadingMoreV4.current || loadingMoreV3.current || loadingMoreV2.current) {
         return
       }
+      lastLoadMoreStartedAtRef.current = now
       loadingMoreV4.current = true
       loadingMoreV3.current = true
       loadingMoreV2.current = true
       querySizeRef.current += ALL_TX_DEFAULT_QUERY_SIZE
+
+      const maybeComplete = () => {
+        if (!loadingMoreV4.current && !loadingMoreV3.current && !loadingMoreV2.current) {
+          lastLoadMoreStartedAtRef.current = Date.now()
+          onComplete?.({ didLoad: true })
+        }
+      }
 
       fetchMoreV4({
         variables: {
           cursor: dataV4?.v4Transactions?.[dataV4.v4Transactions.length - 1]?.timestamp,
         },
         updateQuery: (prev, { fetchMoreResult }) => {
-          if (!loadingMoreV3.current && !loadingMoreV2.current) {
-            onComplete?.()
-          }
-          const mergedData = {
+          loadingMoreV4.current = false
+          maybeComplete()
+          return {
             v4Transactions: [...(prev.v4Transactions ?? []), ...(fetchMoreResult.v4Transactions ?? [])],
           }
-          loadingMoreV4.current = false
-          return mergedData
+        },
+      })
+
+      fetchMoreV3({
+        variables: {
+          cursor: dataV3?.v3Transactions?.[dataV3.v3Transactions.length - 1]?.timestamp,
+        },
+        updateQuery: (prev, { fetchMoreResult }) => {
+          loadingMoreV3.current = false
+          maybeComplete()
+          return {
+            v3Transactions: [...(prev.v3Transactions ?? []), ...(fetchMoreResult.v3Transactions ?? [])],
+          }
         },
       })
 
@@ -119,18 +133,15 @@ export function useAllTransactions(
           cursor: dataV2?.v2Transactions?.[dataV2.v2Transactions.length - 1]?.timestamp,
         },
         updateQuery: (prev, { fetchMoreResult }) => {
-          if (!loadingMoreV3.current && !loadingMoreV4.current) {
-            onComplete?.()
-          }
-          const mergedData = {
+          loadingMoreV2.current = false
+          maybeComplete()
+          return {
             v2Transactions: [...(prev.v2Transactions ?? []), ...(fetchMoreResult.v2Transactions ?? [])],
           }
-          loadingMoreV2.current = false
-          return mergedData
         },
       })
     },
-    [dataV2?.v2Transactions, dataV4?.v4Transactions, fetchMoreV2, fetchMoreV4],
+    [dataV2?.v2Transactions, dataV3?.v3Transactions, dataV4?.v4Transactions, fetchMoreV2, fetchMoreV3, fetchMoreV4],
   )
 
   const filterTransaction = useCallback(
