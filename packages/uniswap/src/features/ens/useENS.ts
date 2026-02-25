@@ -1,6 +1,5 @@
 // Copied from https://github.com/Uniswap/interface/blob/main/src/hooks/useENS.ts
 
-import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { useAddressFromEns, useENSName } from 'uniswap/src/features/ens/api'
 import { ENS_SUFFIX } from 'uniswap/src/features/ens/constants'
 import { Platform } from 'uniswap/src/features/platforms/types/Platform'
@@ -9,7 +8,6 @@ import { useDebounce } from 'utilities/src/time/timing'
 
 type UseENSParams = {
   nameOrAddress?: string | null
-  chainId?: UniverseChainId
   autocompleteDomain?: boolean
 }
 
@@ -56,6 +54,6 @@ export function getCompletedENSName(name: string | null): string | null {
     return null
   }
 
-  // Append the .eth if does not already exist
+  // Append the ENS suffix if does not already exist
   return name.endsWith(ENS_SUFFIX) ? name : name.concat(ENS_SUFFIX)
 }
