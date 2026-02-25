@@ -30,7 +30,7 @@ export function AuthenticateBridgePrompt(): JSX.Element {
     >
       <EmptyActivityIcon size={115} />
       <Text variant="subheading1" textAlign="center" marginTop="$spacing12">
-        Bridge swaps
+        Activity Swaps
       </Text>
       <Text
         variant="body2"
@@ -39,7 +39,7 @@ export function AuthenticateBridgePrompt(): JSX.Element {
         color="$neutral2"
         $platform-web={{ textWrap: 'pretty' }}
       >
-        Authenticate to view your bridge swaps history
+        Authenticate to view your Activity swaps history
       </Text>
       <Flex marginTop="$spacing20">
         <Button

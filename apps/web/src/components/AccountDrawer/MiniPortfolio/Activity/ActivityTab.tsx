@@ -37,6 +37,14 @@ export function ActivityTab({ account }: { account: string }) {
   const hideSpam = useHideSpamTokensSetting()
   const activityGroups = useMemo(() => createGroups(activities, hideSpam), [activities, hideSpam])
 
+  if (!isAuthenticated) {
+    return (
+      <Flex flex={1} height="100%" width="100%" alignItems="center" justifyContent="center">
+        <AuthenticateBridgePrompt />
+      </Flex>
+    )
+  }
+
   if (activityGroups.length === 0) {
     if (loading) {
       return (
@@ -45,46 +53,32 @@ export function ActivityTab({ account }: { account: string }) {
           <PortfolioSkeleton shrinkRight />
         </>
       )
-    } else {
-      if (!isAuthenticated) {
-        return (
-          <Flex flex={1} height="100%" width="100%" alignItems="center" justifyContent="center">
-            <AuthenticateBridgePrompt />
-          </Flex>
-        )
-      }
-      return (
-        <>
-          <OpenLimitOrdersActivityButton openLimitsMenu={() => setMenu(MenuState.LIMITS)} account={account} />
-          <EmptyWalletModule type="activity" onNavigateClick={accountDrawer.close} />
-        </>
-      )
     }
-  } else {
     return (
       <>
         <OpenLimitOrdersActivityButton openLimitsMenu={() => setMenu(MenuState.LIMITS)} account={account} />
-        {!isAuthenticated && (
-          <ActivityGroupWrapper>
-            <AuthenticateBridgePrompt />
-          </ActivityGroupWrapper>
-        )}
-        <AnimatePresence>
-          {activityGroups.map((activityGroup) => (
-            <ActivityGroupWrapper key={activityGroup.title}>
-              <ThemedText.SubHeader color="neutral2" marginLeft="16px">
-                {activityGroup.title}
-              </ThemedText.SubHeader>
-              <Flex data-testid={TestID.ActivityContent} width="100%">
-                {activityGroup.transactions.map(
-                  (activity) =>
-                    !(hideSpam && activity.isSpam) && <ActivityRow key={activity.hash} activity={activity} />,
-                )}
-              </Flex>
-            </ActivityGroupWrapper>
-          ))}
-        </AnimatePresence>
+        <EmptyWalletModule type="activity" onNavigateClick={accountDrawer.close} />
       </>
     )
   }
+
+  return (
+    <>
+      <OpenLimitOrdersActivityButton openLimitsMenu={() => setMenu(MenuState.LIMITS)} account={account} />
+      <AnimatePresence>
+        {activityGroups.map((activityGroup) => (
+          <ActivityGroupWrapper key={activityGroup.title}>
+            <ThemedText.SubHeader color="neutral2" marginLeft="16px">
+              {activityGroup.title}
+            </ThemedText.SubHeader>
+            <Flex data-testid={TestID.ActivityContent} width="100%">
+              {activityGroup.transactions.map(
+                (activity) => !(hideSpam && activity.isSpam) && <ActivityRow key={activity.hash} activity={activity} />,
+              )}
+            </Flex>
+          </ActivityGroupWrapper>
+        ))}
+      </AnimatePresence>
+    </>
+  )
 }
