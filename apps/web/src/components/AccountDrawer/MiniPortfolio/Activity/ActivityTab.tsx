@@ -66,6 +66,7 @@ export function ActivityTab({ account }: { account: string }) {
               variant="branded"
               emphasis="primary"
               size="medium"
+              alignSelf="center"
               loading={isPending}
               isDisabled={isPending}
               onPress={onAuthenticate}
@@ -90,12 +91,13 @@ export function ActivityTab({ account }: { account: string }) {
           <ActivityGroupWrapper>
             <Flex gap="$spacing16" alignItems="center" justifyContent="center" padding="$spacing24">
               <ThemedText.BodySecondary textAlign="center">
-                Authenticate to view your activity history
+                Authenticate to view your bridge swaps history
               </ThemedText.BodySecondary>
               <Button
                 variant="branded"
                 emphasis="primary"
                 size="medium"
+                alignSelf="center"
                 loading={isPending}
                 isDisabled={isPending}
                 onPress={onAuthenticate}
