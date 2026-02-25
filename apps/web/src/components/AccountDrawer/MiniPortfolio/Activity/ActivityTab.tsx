@@ -7,12 +7,14 @@ import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { MenuState, miniPortfolioMenuStateAtom } from 'components/AccountDrawer/constants'
 import { LoadingBubble } from 'components/Tokens/loading'
 import Column from 'components/deprecated/Column'
+import { useJuiceswapAuth } from 'hooks/useJuiceswapAuth'
 import { useUpdateAtom } from 'jotai/utils'
 import styled from 'lib/styled-components'
 import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletContent'
-import { useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { ThemedText } from 'theme/components'
 import { AnimatePresence, Flex } from 'ui/src'
+import { Button } from 'ui/src/components/buttons/Button/Button'
 import { useHideSpamTokensSetting } from 'uniswap/src/features/settings/hooks'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 
@@ -29,8 +31,18 @@ const OpenLimitOrdersActivityButton = styled(OpenLimitOrdersButton)`
 export function ActivityTab({ account }: { account: string }) {
   const accountDrawer = useAccountDrawer()
   const setMenu = useUpdateAtom(miniPortfolioMenuStateAtom)
+  const { isAuthenticated, handleAuthenticate } = useJuiceswapAuth()
+  const [isPending, setIsPending] = useState(false)
 
   const { activities, loading } = useAllActivities(account)
+  const onAuthenticate = useCallback(async () => {
+    setIsPending(true)
+    try {
+      await handleAuthenticate()
+    } finally {
+      setIsPending(false)
+    }
+  }, [handleAuthenticate])
 
   const hideSpam = useHideSpamTokensSetting()
   const activityGroups = useMemo(() => createGroups(activities, hideSpam), [activities, hideSpam])
@@ -44,6 +56,25 @@ export function ActivityTab({ account }: { account: string }) {
         </>
       )
     } else {
+      if (!isAuthenticated) {
+        return (
+          <Flex gap="$spacing16" alignItems="center" justifyContent="center" padding="$spacing24">
+            <ThemedText.BodySecondary textAlign="center">
+              Authenticate to view your activity history
+            </ThemedText.BodySecondary>
+            <Button
+              variant="branded"
+              emphasis="primary"
+              size="medium"
+              loading={isPending}
+              isDisabled={isPending}
+              onPress={onAuthenticate}
+            >
+              {isPending ? 'Signing message...' : 'Authenticate'}
+            </Button>
+          </Flex>
+        )
+      }
       return (
         <>
           <OpenLimitOrdersActivityButton openLimitsMenu={() => setMenu(MenuState.LIMITS)} account={account} />
@@ -54,8 +85,26 @@ export function ActivityTab({ account }: { account: string }) {
   } else {
     return (
       <>
-        {/* OpenLimitOrdersActivityButton is rendered outside of the wrapper to avoid the flash on loading */}
         <OpenLimitOrdersActivityButton openLimitsMenu={() => setMenu(MenuState.LIMITS)} account={account} />
+        {!isAuthenticated && (
+          <ActivityGroupWrapper>
+            <Flex gap="$spacing16" alignItems="center" justifyContent="center" padding="$spacing24">
+              <ThemedText.BodySecondary textAlign="center">
+                Authenticate to view your activity history
+              </ThemedText.BodySecondary>
+              <Button
+                variant="branded"
+                emphasis="primary"
+                size="medium"
+                loading={isPending}
+                isDisabled={isPending}
+                onPress={onAuthenticate}
+              >
+                {isPending ? 'Signing message...' : 'Authenticate'}
+              </Button>
+            </Flex>
+          </ActivityGroupWrapper>
+        )}
         <AnimatePresence>
           {activityGroups.map((activityGroup) => (
             <ActivityGroupWrapper key={activityGroup.title}>
