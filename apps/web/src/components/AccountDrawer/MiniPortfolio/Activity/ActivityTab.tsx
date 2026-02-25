@@ -60,7 +60,7 @@ export function ActivityTab({ account }: { account: string }) {
         return (
           <Flex gap="$spacing16" alignItems="center" justifyContent="center" padding="$spacing24">
             <ThemedText.BodySecondary textAlign="center">
-              Authenticate to view your activity history
+              Authenticate to view your bridge swaps history
             </ThemedText.BodySecondary>
             <Button
               variant="branded"
