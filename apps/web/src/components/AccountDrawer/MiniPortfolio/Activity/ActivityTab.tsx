@@ -1,4 +1,5 @@
 import { ActivityRow } from 'components/AccountDrawer/MiniPortfolio/Activity/ActivityRow'
+import { AuthenticateBridgePrompt } from 'components/AccountDrawer/MiniPortfolio/Activity/AuthenticateBridgePrompt'
 import { useAllActivities } from 'components/AccountDrawer/MiniPortfolio/Activity/hooks'
 import { createGroups } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
 import { OpenLimitOrdersButton } from 'components/AccountDrawer/MiniPortfolio/Limits/OpenLimitOrdersButton'
@@ -11,10 +12,9 @@ import { useJuiceswapAuth } from 'hooks/useJuiceswapAuth'
 import { useUpdateAtom } from 'jotai/utils'
 import styled from 'lib/styled-components'
 import { EmptyWalletModule } from 'nft/components/profile/view/EmptyWalletContent'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { ThemedText } from 'theme/components'
 import { AnimatePresence, Flex } from 'ui/src'
-import { Button } from 'ui/src/components/buttons/Button/Button'
 import { useHideSpamTokensSetting } from 'uniswap/src/features/settings/hooks'
 import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 
@@ -31,19 +31,9 @@ const OpenLimitOrdersActivityButton = styled(OpenLimitOrdersButton)`
 export function ActivityTab({ account }: { account: string }) {
   const accountDrawer = useAccountDrawer()
   const setMenu = useUpdateAtom(miniPortfolioMenuStateAtom)
-  const { isAuthenticated, handleAuthenticate } = useJuiceswapAuth()
-  const [isPending, setIsPending] = useState(false)
+  const { isAuthenticated } = useJuiceswapAuth()
 
   const { activities, loading } = useAllActivities(account)
-  const onAuthenticate = useCallback(async () => {
-    setIsPending(true)
-    try {
-      await handleAuthenticate()
-    } finally {
-      setIsPending(false)
-    }
-  }, [handleAuthenticate])
-
   const hideSpam = useHideSpamTokensSetting()
   const activityGroups = useMemo(() => createGroups(activities, hideSpam), [activities, hideSpam])
 
@@ -57,24 +47,7 @@ export function ActivityTab({ account }: { account: string }) {
       )
     } else {
       if (!isAuthenticated) {
-        return (
-          <Flex gap="$spacing16" alignItems="center" justifyContent="center" padding="$spacing24">
-            <ThemedText.BodySecondary textAlign="center">
-              Authenticate to view your bridge swaps history
-            </ThemedText.BodySecondary>
-            <Button
-              variant="branded"
-              emphasis="primary"
-              size="medium"
-              alignSelf="center"
-              loading={isPending}
-              isDisabled={isPending}
-              onPress={onAuthenticate}
-            >
-              {isPending ? 'Signing message...' : 'Authenticate'}
-            </Button>
-          </Flex>
-        )
+        return <AuthenticateBridgePrompt />
       }
       return (
         <>
@@ -89,22 +62,7 @@ export function ActivityTab({ account }: { account: string }) {
         <OpenLimitOrdersActivityButton openLimitsMenu={() => setMenu(MenuState.LIMITS)} account={account} />
         {!isAuthenticated && (
           <ActivityGroupWrapper>
-            <Flex gap="$spacing16" alignItems="center" justifyContent="center" padding="$spacing24">
-              <ThemedText.BodySecondary textAlign="center">
-                Authenticate to view your bridge swaps history
-              </ThemedText.BodySecondary>
-              <Button
-                variant="branded"
-                emphasis="primary"
-                size="medium"
-                alignSelf="center"
-                loading={isPending}
-                isDisabled={isPending}
-                onPress={onAuthenticate}
-              >
-                {isPending ? 'Signing message...' : 'Authenticate'}
-              </Button>
-            </Flex>
+            <AuthenticateBridgePrompt />
           </ActivityGroupWrapper>
         )}
         <AnimatePresence>
