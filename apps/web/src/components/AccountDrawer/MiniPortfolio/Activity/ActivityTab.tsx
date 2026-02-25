@@ -47,7 +47,11 @@ export function ActivityTab({ account }: { account: string }) {
       )
     } else {
       if (!isAuthenticated) {
-        return <AuthenticateBridgePrompt />
+        return (
+          <Flex flex={1} height="100%" width="100%" alignItems="center" justifyContent="center">
+            <AuthenticateBridgePrompt />
+          </Flex>
+        )
       }
       return (
         <>

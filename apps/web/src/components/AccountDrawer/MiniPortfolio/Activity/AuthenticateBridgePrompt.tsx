@@ -1,8 +1,9 @@
 import { useJuiceswapAuth } from 'hooks/useJuiceswapAuth'
 import { useCallback, useState } from 'react'
-import { ThemedText } from 'theme/components'
-import { Flex } from 'ui/src'
-import { Button } from 'ui/src/components/buttons/Button/Button'
+import { Button } from 'ui/src'
+import { EmptyActivityIcon } from 'ui/src/components/icons/EmptyActivityIcon'
+import { Flex } from 'ui/src/components/layout'
+import { Text } from 'ui/src/components/text'
 
 export function AuthenticateBridgePrompt(): JSX.Element {
   const { handleAuthenticate } = useJuiceswapAuth()
@@ -18,21 +19,39 @@ export function AuthenticateBridgePrompt(): JSX.Element {
   }, [handleAuthenticate])
 
   return (
-    <Flex gap="$spacing16" alignItems="center" justifyContent="center" padding="$spacing24">
-      <ThemedText.BodySecondary textAlign="center">
-        Authenticate to view your bridge swaps history
-      </ThemedText.BodySecondary>
-      <Button
-        variant="branded"
-        emphasis="primary"
-        size="medium"
-        alignSelf="center"
-        loading={isPending}
-        isDisabled={isPending}
-        onPress={onAuthenticate}
+    <Flex
+      alignItems="center"
+      justifyContent="center"
+      height="100%"
+      width="100%"
+      paddingLeft="$spacing32"
+      paddingRight="$spacing32"
+      $sm={{ paddingTop: '$spacing8' }}
+    >
+      <EmptyActivityIcon size={115} />
+      <Text variant="subheading1" textAlign="center" marginTop="$spacing12">
+        Bridge swaps
+      </Text>
+      <Text
+        variant="body2"
+        textAlign="center"
+        marginTop="$spacing8"
+        color="$neutral2"
+        $platform-web={{ textWrap: 'pretty' }}
       >
-        {isPending ? 'Signing message...' : 'Authenticate'}
-      </Button>
+        Authenticate to view your bridge swaps history
+      </Text>
+      <Flex marginTop="$spacing20">
+        <Button
+          variant="branded"
+          alignSelf="center"
+          loading={isPending}
+          isDisabled={isPending}
+          onPress={onAuthenticate}
+        >
+          {isPending ? 'Signing message...' : 'Authenticate'}
+        </Button>
+      </Flex>
     </Flex>
   )
 }
