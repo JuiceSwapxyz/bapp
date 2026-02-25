@@ -359,6 +359,9 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
           <Text variant="body3" color="$neutral2">
             {formatDate(swap.date)}
           </Text>
+          <Text variant="body4" color="$neutral3">
+            ID: {shortenHash(swap.id)}
+          </Text>
           {failureData?.failureReason && expanded && (
             <Text variant="body4" color="$statusCritical" fontWeight="600">
               Reason:{' '}
