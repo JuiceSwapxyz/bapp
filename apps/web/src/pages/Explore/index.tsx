@@ -211,7 +211,6 @@ const Explore = ({ initialTab }: { initialTab?: ExploreTab }) => {
               {Pages.map(({ title, loggingElementName, key }, index) => {
                 const url = getTokenExploreURL({
                   tab: key,
-                  chainUrlParam: getChainUrlParam(chainInfo.id),
                 })
                 return (
                   <Trace

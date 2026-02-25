@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { getChainInfo, UNIVERSE_CHAIN_INFO } from 'uniswap/src/features/chains/chainInfo'
 import { GqlChainId, UniverseChainId } from 'uniswap/src/features/chains/types'
+import { ALWAYS_ENABLED_CHAIN_IDS } from 'uniswap/src/features/chains/utils'
 import { CurrencyField } from 'uniswap/src/types/currency'
 
 // i.e. ?chain=mainnet -> ethereum
@@ -32,6 +33,8 @@ export function getChainIdFromBackendChain(backendChain: GqlChainId): UniverseCh
 export function getChainUrlParam(chainId: UniverseChainId) {
   return getChainInfo(chainId).urlParam
 }
+
+export const CITREA_CHAIN_URL_PARAMS = new Set(ALWAYS_ENABLED_CHAIN_IDS.map((id) => getChainInfo(id).urlParam))
 
 export function useChainIdFromUrlParam(): UniverseChainId | undefined {
   const chainName = useParams<{ chainName?: string }>().chainName
