@@ -11,6 +11,7 @@ import { SwapErrorScreen } from 'uniswap/src/features/transactions/swap/review/S
 import { SwapBtcBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapBtcBridgeDetails'
 import { SwapErc20ChainSwapDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapErc20ChainSwapDetails'
 import { SwapLnBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapLnBridgeDetails'
+import { SwapWbtcBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapWbtcBridgeDetails'
 import { SwapReviewFooter } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/SwapReviewFooter'
 import { SwapReviewLoadingView } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewLoadingView'
 import { SwapReviewWarningModal } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewWarningModal'
@@ -96,13 +97,14 @@ export function SwapReviewScreenProviders({ hideContent, onSubmitSwap }: SwapRev
 }
 
 function SwapReviewContent(): JSX.Element | null {
-  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, isBtcBridge, isErc20ChainSwap, newTradeRequiresAcceptance } =
+  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, isBtcBridge, isErc20ChainSwap, isWbtcBridge, newTradeRequiresAcceptance } =
     useSwapReviewTransactionStore((s) => ({
       acceptedDerivedSwapInfo: s.acceptedDerivedSwapInfo,
       isWrap: s.isWrap,
       isLnBridge: s.isLnBridge,
       isBtcBridge: s.isBtcBridge,
       isErc20ChainSwap: s.isErc20ChainSwap,
+      isWbtcBridge: s.isWbtcBridge,
       newTradeRequiresAcceptance: s.newTradeRequiresAcceptance,
     }))
 
@@ -172,6 +174,8 @@ function SwapReviewContent(): JSX.Element | null {
             <SwapBtcBridgeDetails />
           ) : isErc20ChainSwap ? (
             <SwapErc20ChainSwapDetails />
+          ) : isWbtcBridge ? (
+            <SwapWbtcBridgeDetails />
           ) : null}
         </Flex>
       </SwapReviewContentWrapper>
