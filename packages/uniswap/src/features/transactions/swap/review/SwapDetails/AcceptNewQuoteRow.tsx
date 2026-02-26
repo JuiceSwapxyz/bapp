@@ -81,8 +81,7 @@ export function AcceptNewQuoteRow({
         </Text>
         <Flex row alignItems="center">
           <Text adjustsFontSizeToFit color="$neutral1" numberOfLines={1} textAlign="center" variant="body3">
-            {formattedDerivedAmount} {derivedSymbol} <Text color="$neutral2">({percentageDifference}%)</Text>
-          </Text>
+            {formattedDerivedAmount} {derivedSymbol}          </Text>
         </Flex>
       </Flex>
       <Flex>

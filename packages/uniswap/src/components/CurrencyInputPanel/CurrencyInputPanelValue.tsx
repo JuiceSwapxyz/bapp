@@ -81,11 +81,6 @@ export const CurrencyInputPanelValue = memo(function _CurrencyInputPanelValue({
           <Text color="$neutral2" $group-item-hover={{ color: '$neutral2Hovered' }} numberOfLines={1} variant="body3">
             {inputPanelFormattedValue}
           </Text>
-          {priceUXEnabled && showPriceDifference && (
-            <Text color="$neutral3" variant="body3">
-              ({formatPercent(priceDifferencePercentage)})
-            </Text>
-          )}
         </Flex>
       )}
     </TouchableArea>
