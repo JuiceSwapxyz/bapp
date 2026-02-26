@@ -163,6 +163,31 @@ export async function claimErc20Swap(params: {
   return receipt.hash
 }
 
+export async function claimCoinSwap(params: {
+  signer: Signer
+  contractAddress: string
+  preimage: string
+  amount: bigint
+  refundAddress: string
+  timelock: number
+}): Promise<string> {
+  const { signer, contractAddress, preimage, amount, refundAddress, timelock } = params
+
+  const contract = new EthersContract(contractAddress, COIN_SWAP_ABI, signer) as Contract
+
+  // Use explicit 4-parameter claim selector to disambiguate from the 5-parameter overload
+  const tx = await contract['claim(bytes32,uint256,address,uint256)'](
+    prefix0x(preimage),
+    amount,
+    refundAddress,
+    timelock,
+  )
+
+  const receipt = await tx.wait()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return receipt.hash
+}
+
 export async function refundCoinSwap(params: {
   signer: Signer
   contractAddress: string
