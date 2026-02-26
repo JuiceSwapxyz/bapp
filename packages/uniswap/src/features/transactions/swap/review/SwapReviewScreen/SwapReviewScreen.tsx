@@ -11,6 +11,7 @@ import { SwapErrorScreen } from 'uniswap/src/features/transactions/swap/review/S
 import { SwapBtcBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapBtcBridgeDetails'
 import { SwapErc20ChainSwapDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapErc20ChainSwapDetails'
 import { SwapLnBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapLnBridgeDetails'
+import { SwapWbtcBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapWbtcBridgeDetails'
 import { SwapReviewFooter } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/SwapReviewFooter'
 import { SwapReviewLoadingView } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewLoadingView'
 import { SwapReviewWarningModal } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewWarningModal'
@@ -171,8 +172,10 @@ function SwapReviewContent(): JSX.Element | null {
             <SwapLnBridgeDetails />
           ) : isBtcBridge ? (
             <SwapBtcBridgeDetails />
-          ) : isErc20ChainSwap || isWbtcBridge ? (
+          ) : isErc20ChainSwap ? (
             <SwapErc20ChainSwapDetails />
+          ) : isWbtcBridge ? (
+            <SwapWbtcBridgeDetails />
           ) : null}
         </Flex>
       </SwapReviewContentWrapper>
