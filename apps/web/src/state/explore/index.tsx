@@ -5,8 +5,8 @@ import {
   JuiceswapProtocolStatsResponse,
   useJuiceswapProtocolStatsQuery,
 } from 'uniswap/src/data/rest/juiceswapProtocolStats'
-import { useIsSupportedChainId } from 'uniswap/src/features/chains/hooks/useSupportedChainId'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
+import { ALWAYS_ENABLED_CHAIN_IDS } from 'uniswap/src/features/chains/utils'
 
 interface QueryResult<T> {
   data?: T
@@ -50,22 +50,22 @@ export function ExploreContextProvider({
   chainId?: UniverseChainId
   children: React.ReactNode
 }) {
-  const isSupportedChain = useIsSupportedChainId(chainId)
+  const isExploreChain = chainId !== undefined && ALWAYS_ENABLED_CHAIN_IDS.includes(chainId)
 
   const {
     data: exploreStatsData,
     isLoading: exploreStatsLoading,
     error: exploreStatsError,
   } = useExploreStatsQuery<ExploreStatsResponse>({
-    chainId: isSupportedChain ? chainId : undefined,
-    enabled: isSupportedChain,
+    chainId: isExploreChain ? chainId : undefined,
+    enabled: isExploreChain,
   })
 
   const {
     data: protocolStatsData,
     isLoading: protocolStatsLoading,
     error: protocolStatsError,
-  } = useJuiceswapProtocolStatsQuery(isSupportedChain ? chainId : UniverseChainId.CitreaMainnet, isSupportedChain)
+  } = useJuiceswapProtocolStatsQuery(isExploreChain ? chainId : UniverseChainId.CitreaMainnet, isExploreChain)
 
   const exploreContext = useMemo(() => {
     return {
