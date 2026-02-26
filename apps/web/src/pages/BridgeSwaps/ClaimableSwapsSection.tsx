@@ -45,7 +45,7 @@ function EvmClaimableSwapCardItem({
   onClaim,
 }: EvmClaimableSwapCardItemProps): JSX.Element {
   const numericChainId = Number(lockup.chainId)
-  const tokenAddr = lockup.tokenAddress.toLowerCase()
+  const tokenAddr = lockup.tokenAddress ? lockup.tokenAddress.toLowerCase() : undefined
   const hasErc20Token = !!tokenAddr && tokenAddr !== ZERO_ADDRESS && isUniverseChainId(numericChainId)
   const currencyInfo = useCurrencyInfo(hasErc20Token ? buildCurrencyId(numericChainId, tokenAddr) : undefined)
   const decimals = currencyInfo?.currency.decimals ?? decimalsByAddress[(lockup.tokenAddress || '').toLowerCase()] ?? 18
