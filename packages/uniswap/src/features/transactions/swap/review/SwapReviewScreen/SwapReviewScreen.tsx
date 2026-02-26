@@ -96,13 +96,14 @@ export function SwapReviewScreenProviders({ hideContent, onSubmitSwap }: SwapRev
 }
 
 function SwapReviewContent(): JSX.Element | null {
-  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, isBtcBridge, isErc20ChainSwap, newTradeRequiresAcceptance } =
+  const { acceptedDerivedSwapInfo, isWrap, isLnBridge, isBtcBridge, isErc20ChainSwap, isWbtcBridge, newTradeRequiresAcceptance } =
     useSwapReviewTransactionStore((s) => ({
       acceptedDerivedSwapInfo: s.acceptedDerivedSwapInfo,
       isWrap: s.isWrap,
       isLnBridge: s.isLnBridge,
       isBtcBridge: s.isBtcBridge,
       isErc20ChainSwap: s.isErc20ChainSwap,
+      isWbtcBridge: s.isWbtcBridge,
       newTradeRequiresAcceptance: s.newTradeRequiresAcceptance,
     }))
 
@@ -170,7 +171,7 @@ function SwapReviewContent(): JSX.Element | null {
             <SwapLnBridgeDetails />
           ) : isBtcBridge ? (
             <SwapBtcBridgeDetails />
-          ) : isErc20ChainSwap ? (
+          ) : isErc20ChainSwap || isWbtcBridge ? (
             <SwapErc20ChainSwapDetails />
           ) : null}
         </Flex>

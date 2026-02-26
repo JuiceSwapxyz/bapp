@@ -20,6 +20,7 @@ import {
   getLdsBridgeManager,
 } from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
+import { Erc20ChainSwapSubStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
 import { WbtcBridgeStep } from 'uniswap/src/features/transactions/swap/steps/wbtcBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
@@ -193,7 +194,10 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     })
   }
 
-  setCurrentStep({ step, accepted: false })
+  const setStep = (subStep: Erc20ChainSwapSubStep): void =>
+    setCurrentStep({ step: { ...step, subStep }, accepted: false })
+
+  setStep(isWbtcToCbtc ? Erc20ChainSwapSubStep.CheckingAllowance : Erc20ChainSwapSubStep.WaitingForLock)
 
   // 3. Lock on source chain
   let sourceClient
@@ -245,6 +249,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     }
 
     if (needsApproval) {
+      setStep(Erc20ChainSwapSubStep.WaitingForApproval)
       try {
         const approveResult = yield* call(approveErc20ForLdsBridge, {
           signer: sourceSigner,
@@ -253,6 +258,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
           amount: amountBigInt,
         })
 
+        setStep(Erc20ChainSwapSubStep.ApprovingToken)
         // Wait for approval confirmation
         yield* call([approveResult.tx, approveResult.tx.wait])
       } catch (error) {
@@ -267,8 +273,10 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
         })
       }
     }
+    setStep(Erc20ChainSwapSubStep.WaitingForLock)
   }
 
+  setStep(Erc20ChainSwapSubStep.LockingTokens)
   let lockResult
   try {
     if (isWbtcToCbtc) {
@@ -310,12 +318,11 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     onTransactionHash(lockResult.hash)
   }
 
-  setCurrentStep({ step, accepted: false })
+  setStep(Erc20ChainSwapSubStep.WaitingForBridge)
 
   // 4. Wait for Boltz to lock on target chain
   try {
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionConfirmed)
-    setCurrentStep({ step, accepted: false })
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerConfirmed)
   } catch (error) {
@@ -331,7 +338,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
   }
 
   // 5. Auto-claim
-  setCurrentStep({ step, accepted: false })
+  setStep(Erc20ChainSwapSubStep.ClaimingTokens)
 
   if (onSuccess) {
     yield* call(onSuccess)
@@ -348,7 +355,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
 
   try {
     const claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
-    setCurrentStep({ step, accepted: true })
+    setCurrentStep({ step: { ...step, subStep: Erc20ChainSwapSubStep.Complete }, accepted: true })
 
     popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
 

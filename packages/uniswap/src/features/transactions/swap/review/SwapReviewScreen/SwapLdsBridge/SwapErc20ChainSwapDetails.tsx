@@ -7,6 +7,7 @@ import {
   Erc20ChainSwapStep,
   Erc20ChainSwapSubStep,
 } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
+import { WbtcBridgeStep } from 'uniswap/src/features/transactions/swap/steps/wbtcBridge'
 
 const SUB_STEP_ORDER = [
   Erc20ChainSwapSubStep.CheckingAuth,
@@ -27,8 +28,9 @@ export function SwapErc20ChainSwapDetails(): JSX.Element | null {
   const currentStep = useSwapReviewStore((s) => s.currentStep)
 
   const subStep =
-    currentStep?.step.type === TransactionStepType.Erc20ChainSwapStep
-      ? (currentStep.step as Erc20ChainSwapStep).subStep
+    currentStep?.step.type === TransactionStepType.Erc20ChainSwapStep ||
+    currentStep?.step.type === TransactionStepType.WbtcBridgeStep
+      ? (currentStep.step as Erc20ChainSwapStep | WbtcBridgeStep).subStep
       : undefined
 
   // Group substeps into logical UI steps:
