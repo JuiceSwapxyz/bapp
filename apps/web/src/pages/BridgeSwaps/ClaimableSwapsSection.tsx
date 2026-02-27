@@ -3,6 +3,7 @@ import { PopupType } from 'components/Popups/types'
 import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { useEvmClaim } from 'hooks/useEvmClaim'
 import { ClaimButton, ClaimableSection, ClaimableSwapCard } from 'pages/BridgeSwaps/styles'
+import { formatAssetSymbol } from 'pages/BridgeSwaps/utils'
 import { useCallback, useState } from 'react'
 import { Flex, Text } from 'ui/src'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
@@ -56,8 +57,8 @@ function EvmClaimableSwapCardItem({
     const localSwap = allSwaps.find((swap) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash))
 
     if (localSwap) {
-      // Use the asset from local swap history
-      return { symbol: localSwap.assetReceive, name: localSwap.assetReceive }
+      // Use the asset from local swap history (display symbol only, e.g. WBTC not WBTC_ETH)
+      return { symbol: formatAssetSymbol(localSwap.assetReceive), name: formatAssetSymbol(localSwap.assetReceive) }
     }
 
     // Fallback to token address logic if not found in local swaps
@@ -173,7 +174,7 @@ export function ClaimableSwapsSection({
         const localSwap = allSwaps.find((swap) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash))
         let tokenSymbol = 'cBTC'
         if (localSwap) {
-          tokenSymbol = localSwap.assetReceive
+          tokenSymbol = formatAssetSymbol(localSwap.assetReceive)
         } else if (lockup.tokenAddress && lockup.tokenAddress !== '0x0000000000000000000000000000000000000000') {
           const tokenAddr = lockup.tokenAddress.toLowerCase()
           const tokenMap: Record<string, string> = {
