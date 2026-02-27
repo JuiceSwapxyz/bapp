@@ -10,6 +10,9 @@ export const sharedDehydrateOptions: React.ComponentProps<
       // Do not persist queries that are not cached.
       return false
     }
+    if (query.queryKey[0] === 'bridge-swaps') {
+      return false
+    }
 
     if (
       query.queryKey.length > 0 &&
