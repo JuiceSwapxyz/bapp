@@ -1,6 +1,7 @@
 import type { Currency } from '@juiceswapxyz/sdk-core'
 import { PrefetchBalancesWrapper } from 'appGraphql/data/apollo/AdaptiveTokenBalancesProvider'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { CLAIMABLE_NOTIFY_DELAY_MS } from 'components/Popups/constants'
 import { popupRegistry } from 'components/Popups/registry'
 import { PopupType } from 'components/Popups/types'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
@@ -99,7 +100,6 @@ export default function SwapPage() {
 
   useEffect(() => {
     const now = Date.now()
-    const NOTIFY_DELAY_MS = 5 * 60 * 1000
 
     const currentHashes = new Set(refundsAndClaims?.evm.readyToClaim.map((s) => s.preimageHash) ?? [])
     claimableFirstSeen.current.forEach((_, hash) => {
@@ -116,7 +116,7 @@ export default function SwapPage() {
     const refundableCount =
       (refundsAndClaims?.btc.readyToRefund.length ?? 0) + (refundsAndClaims?.evm.readyToRefund.length ?? 0)
     const matureClaimableCount = [...claimableFirstSeen.current.entries()].filter(
-      ([, t]) => now - t > NOTIFY_DELAY_MS,
+      ([, t]) => now - t > CLAIMABLE_NOTIFY_DELAY_MS,
     ).length
     const hasPendingActions = refundableCount > 0 || matureClaimableCount > 0
 
