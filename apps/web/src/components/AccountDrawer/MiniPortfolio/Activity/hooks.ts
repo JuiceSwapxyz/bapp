@@ -140,7 +140,8 @@ export function useAllActivities(account: string) {
     if (!bridgeSwaps) {
       return {}
     }
-    const activityMap = swapsToActivityMap(bridgeSwaps.swaps)
+    const swapsWithoutCreated = bridgeSwaps.swaps.filter((s) => s.status !== LdsSwapStatus.SwapCreated)
+    const activityMap = swapsToActivityMap(swapsWithoutCreated)
     return keepActivitiesForChains(activityMap, chains)
   }, [bridgeSwaps, chains])
 
