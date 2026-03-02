@@ -14,6 +14,7 @@ import {
   isGatewayJusd,
   isLightningBridge,
   isUniswapX,
+  isWbtcBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { isWrapAction } from 'uniswap/src/features/transactions/swap/utils/wrap'
 import { CurrencyField } from 'uniswap/src/types/currency'
@@ -47,6 +48,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
   const isLnBridge = Boolean(trade && isLightningBridge(trade))
   const isBtcBridge = Boolean(trade && isBitcoinBridge(trade))
   const isErc20ChainSwapTrade = Boolean(trade && isErc20ChainSwap(trade))
+  const isWbtcBridgeTrade = Boolean(trade && isWbtcBridge(trade))
   const acceptedTrade = acceptedDerivedSwapInfo?.trade.trade
   const feeOnTransferProps = useFeeOnTransferAmounts(acceptedDerivedSwapInfo)
   const tokenWarningProps = getRelevantTokenWarningSeverity(acceptedDerivedSwapInfo)
@@ -72,6 +74,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
       isLnBridge,
       isBtcBridge,
       isErc20ChainSwap: isErc20ChainSwapTrade,
+      isWbtcBridge: isWbtcBridgeTrade,
       blockingWarning,
       reviewScreenWarning,
       txSimulationErrors,
@@ -94,6 +97,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
       isLnBridge,
       isBtcBridge,
       isErc20ChainSwapTrade,
+      isWbtcBridgeTrade,
       blockingWarning,
       reviewScreenWarning,
       txSimulationErrors,

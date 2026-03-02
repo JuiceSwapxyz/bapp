@@ -4,6 +4,7 @@ import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
+import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { call } from 'typed-redux-saga'
 import { getFetchErrorMessage } from 'uniswap/src/data/apiClients/FetchError'
 import {
@@ -20,7 +21,7 @@ import {
   getLdsBridgeManager,
 } from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
-import { WbtcBridgeStep } from 'uniswap/src/features/transactions/swap/steps/wbtcBridge'
+import { WbtcBridgeStep, WbtcBridgeSubStep } from 'uniswap/src/features/transactions/swap/steps/wbtcBridge'
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
@@ -104,10 +105,11 @@ interface HandleWbtcBridgeParams {
   selectChain: (chainId: UniverseChainId) => Promise<boolean>
   onTransactionHash?: (hash: string) => void
   onSuccess?: () => void
+  auth: JuiceswapAuthFunctions
 }
 
 export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
-  const { step, setCurrentStep, trade, account, selectChain, onTransactionHash, onSuccess } = params
+  const { step, setCurrentStep, trade, account, selectChain, onTransactionHash, onSuccess, auth } = params
   const isWbtcToCbtc = step.direction === WbtcBridgeDirection.EthereumToCitrea
   const isCbtcToWbtc = step.direction === WbtcBridgeDirection.CitreaToEthereum
 
@@ -136,7 +138,26 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     citrea: 'Citrea',
   }
 
-  // 1. Switch to source chain before creating swap
+  // 1. Auth check — prompt user to sign if not logged in
+  setCurrentStep({ step: { ...step, subStep: WbtcBridgeSubStep.CheckingAuth }, accepted: false })
+
+  const isAuthenticated = auth.getIsAuthenticated(account.address)
+
+  if (!isAuthenticated) {
+    setCurrentStep({ step: { ...step, subStep: WbtcBridgeSubStep.WaitingForAuth }, accepted: false })
+    setCurrentStep({ step: { ...step, subStep: WbtcBridgeSubStep.Authenticating }, accepted: false })
+
+    const authResult = yield* call(auth.handleAuthenticate)
+    if (!authResult) {
+      throw new TransactionStepFailedError({
+        message: 'Authentication failed. Please sign the message to continue.',
+        step,
+        originalError: new Error('Authentication rejected'),
+      })
+    }
+  }
+
+  // 2. Switch to source chain before creating swap
   const currentAccount = getAccount(wagmiConfig)
   const chainName = CHAIN_DISPLAY_NAMES[sourceChain]
 
@@ -165,7 +186,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     }
   }
 
-  // 2. Create swap on server
+  // 3. Create swap on server
   const inputAmount = trade.inputAmount.quotient.toString()
   const userLockAmount = tokenToBoltzDecimals(BigInt(inputAmount), sourceDecimals)
 
@@ -193,9 +214,11 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     })
   }
 
-  setCurrentStep({ step, accepted: false })
+  const setStep = (subStep: WbtcBridgeSubStep): void => setCurrentStep({ step: { ...step, subStep }, accepted: false })
 
-  // 3. Lock on source chain
+  setStep(isWbtcToCbtc ? WbtcBridgeSubStep.CheckingAllowance : WbtcBridgeSubStep.WaitingForLock)
+
+  // 4. Lock on source chain
   let sourceClient
   try {
     sourceClient = yield* call(getConnectorClientForChain, sourceChainId)
@@ -245,6 +268,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     }
 
     if (needsApproval) {
+      setStep(WbtcBridgeSubStep.WaitingForApproval)
       try {
         const approveResult = yield* call(approveErc20ForLdsBridge, {
           signer: sourceSigner,
@@ -253,6 +277,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
           amount: amountBigInt,
         })
 
+        setStep(WbtcBridgeSubStep.ApprovingToken)
         // Wait for approval confirmation
         yield* call([approveResult.tx, approveResult.tx.wait])
       } catch (error) {
@@ -267,8 +292,10 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
         })
       }
     }
+    setStep(WbtcBridgeSubStep.WaitingForLock)
   }
 
+  setStep(WbtcBridgeSubStep.LockingTokens)
   let lockResult
   try {
     if (isWbtcToCbtc) {
@@ -310,12 +337,11 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     onTransactionHash(lockResult.hash)
   }
 
-  setCurrentStep({ step, accepted: false })
+  setStep(WbtcBridgeSubStep.WaitingForBridge)
 
-  // 4. Wait for Boltz to lock on target chain
+  // 5. Wait for Boltz to lock on target chain
   try {
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionConfirmed)
-    setCurrentStep({ step, accepted: false })
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerMempool)
     yield* call([ldsBridge, ldsBridge.waitForSwapUntilState], chainSwap.id, LdsSwapStatus.TransactionServerConfirmed)
   } catch (error) {
@@ -330,8 +356,8 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     })
   }
 
-  // 5. Auto-claim
-  setCurrentStep({ step, accepted: false })
+  // 6. Auto-claim
+  setStep(WbtcBridgeSubStep.ClaimingTokens)
 
   if (onSuccess) {
     yield* call(onSuccess)
@@ -348,7 +374,7 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
 
   try {
     const claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
-    setCurrentStep({ step, accepted: true })
+    setCurrentStep({ step: { ...step, subStep: WbtcBridgeSubStep.Complete }, accepted: true })
 
     popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
 

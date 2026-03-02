@@ -31,6 +31,7 @@ export type SwapReviewTransactionState = {
   isLnBridge: boolean
   isBtcBridge: boolean
   isErc20ChainSwap: boolean
+  isWbtcBridge: boolean
   blockingWarning: Warning | undefined
   reviewScreenWarning: WarningWithStyle | undefined
   txSimulationErrors: TransactionFailureReason[] | undefined
