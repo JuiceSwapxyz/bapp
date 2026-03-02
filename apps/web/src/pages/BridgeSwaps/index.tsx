@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useBridgeSwaps } from 'hooks/useBridgeSwaps'
 import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { useJuiceswapAuth } from 'hooks/useJuiceswapAuth'
@@ -21,10 +22,12 @@ import {
 import { useCallback, useMemo } from 'react'
 import { Navigate } from 'react-router'
 import { AnimatePresence, Flex, SpinningLoader } from 'ui/src'
+import { LdsSwapStatus, getSwapStatusCategory } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 
 export default function BridgeSwaps(): JSX.Element {
+  const queryClient = useQueryClient()
   const { isAuthenticated } = useJuiceswapAuth()
   const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
   const {
@@ -43,8 +46,20 @@ export default function BridgeSwaps(): JSX.Element {
   const evmClaimableSwaps = useMemo(() => (data ? data.evm.readyToClaim : []), [data])
 
   const handleRefetch = useCallback(async () => {
+    queryClient.invalidateQueries({ queryKey: ['bridge-swaps'] })
     await Promise.all([refetch(), refetchRefundable()])
-  }, [refetch, refetchRefundable])
+  }, [queryClient, refetch, refetchRefundable])
+
+  const pendingCount = useMemo(
+    () =>
+      swaps.swaps.filter(
+        (swap) =>
+          !swap.claimTx &&
+          getSwapStatusCategory(swap.status as LdsSwapStatus) === 'pending' &&
+          swap.status !== LdsSwapStatus.SwapCreated,
+      ).length,
+    [swaps.swaps],
+  )
 
   if (!crossChainSwapsEnabled) {
     return <Navigate to="/swap" replace />
@@ -79,7 +94,7 @@ export default function BridgeSwaps(): JSX.Element {
     total: swaps.summary.total,
     refundable: swaps.summary.totalRefundable,
     claimable: swaps.summary.totalClaimable,
-    pending: swaps.summary.totalPending,
+    pending: pendingCount,
     success: swaps.summary.totalSuccess,
   }
 
