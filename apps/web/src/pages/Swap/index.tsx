@@ -89,7 +89,6 @@ export default function SwapPage() {
   } = useInitialCurrencyState()
 
   const { data: refundsAndClaims, isLoading: isLoadingRefundsAndClaims } = useRefundsAndClaims()
-  const claimableFirstSeen = useRef<Map<string, number>>(new Map())
 
   useEffect(() => {
     if (triggerConnect) {
@@ -101,23 +100,14 @@ export default function SwapPage() {
   useEffect(() => {
     const now = Date.now()
 
-    const currentHashes = new Set(refundsAndClaims?.evm.readyToClaim.map((s) => s.preimageHash) ?? [])
-    claimableFirstSeen.current.forEach((_, hash) => {
-      if (!currentHashes.has(hash)) {
-        claimableFirstSeen.current.delete(hash)
-      }
-    })
-    currentHashes.forEach((hash) => {
-      if (!claimableFirstSeen.current.has(hash)) {
-        claimableFirstSeen.current.set(hash, now)
-      }
-    })
-
     const refundableCount =
       (refundsAndClaims?.btc.readyToRefund.length ?? 0) + (refundsAndClaims?.evm.readyToRefund.length ?? 0)
-    const matureClaimableCount = [...claimableFirstSeen.current.entries()].filter(
-      ([, t]) => now - t > CLAIMABLE_NOTIFY_DELAY_MS,
-    ).length
+    const matureClaimableCount = (refundsAndClaims?.evm.readyToClaim ?? []).filter((lockup) => {
+      if (!lockup.createdAt) {
+        return false
+      }
+      return now - new Date(lockup.createdAt).getTime() > CLAIMABLE_NOTIFY_DELAY_MS
+    }).length
     const hasPendingActions = refundableCount > 0 || matureClaimableCount > 0
 
     if (hasPendingActions && !isLoadingRefundsAndClaims) {
