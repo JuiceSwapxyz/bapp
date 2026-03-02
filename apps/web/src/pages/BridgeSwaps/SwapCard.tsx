@@ -12,7 +12,7 @@ import {
   SwapInfo,
   TxLink,
 } from 'pages/BridgeSwaps/SwapCard.styles'
-import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
+import { formatAssetSymbol, formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
 import { useState } from 'react'
 import { Flex, Text } from 'ui/src'
 import { AlertTriangleFilled } from 'ui/src/components/icons/AlertTriangleFilled'
@@ -347,13 +347,13 @@ export function SwapCard({ swap }: SwapCardProps): JSX.Element {
           </Flex>
           <SwapAmounts>
             <Text variant="body2" color="$neutral1">
-              {formatSatoshiAmount(swap.sendAmount)} {swap.assetSend}
+              {formatSatoshiAmount(swap.sendAmount)} {formatAssetSymbol(swap.assetSend)}
             </Text>
             <Text variant="body2" color="$neutral2">
               →
             </Text>
             <Text variant="body2" color="$neutral1">
-              {formatSatoshiAmount(swap.receiveAmount)} {swap.assetReceive}
+              {formatSatoshiAmount(swap.receiveAmount)} {formatAssetSymbol(swap.assetReceive)}
             </Text>
           </SwapAmounts>
           <Text variant="body3" color="$neutral2">

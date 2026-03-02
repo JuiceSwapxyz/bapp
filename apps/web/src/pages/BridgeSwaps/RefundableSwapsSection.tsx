@@ -3,7 +3,7 @@ import { PopupType } from 'components/Popups/types'
 import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { useEvmRefund } from 'hooks/useEvmRefund'
 import { AddressInput, RefundButton, RefundableSection, RefundableSwapCard } from 'pages/BridgeSwaps/styles'
-import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
+import { formatAssetSymbol, formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
 import { useCallback, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { refundSwap } from 'state/sagas/transactions/bridgeRefundSaga'
@@ -63,8 +63,8 @@ function RefundableSwapCardItem({
     <RefundableSwapCard>
       <Flex gap="$spacing4">
         <Text variant="body2" color="$neutral1" fontWeight="600">
-          {formatSatoshiAmount(swap.sendAmount)} {swap.assetSend} → {formatSatoshiAmount(swap.receiveAmount)}{' '}
-          {swap.assetReceive}
+          {formatSatoshiAmount(swap.sendAmount)} {formatAssetSymbol(swap.assetSend)} →{' '}
+          {formatSatoshiAmount(swap.receiveAmount)} {formatAssetSymbol(swap.assetReceive)}
         </Text>
         <Text variant="body4" color="$neutral2">
           {new Date(swap.date).toLocaleString()}
@@ -146,8 +146,8 @@ function EvmRefundableSwapCardItem({
     const localSwap = allSwaps.find((swap) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash))
 
     if (localSwap) {
-      // Use the asset from local swap history
-      return { symbol: localSwap.assetSend, name: localSwap.assetSend }
+      // Use the asset from local swap history (display symbol only, e.g. WBTC not WBTC_ETH)
+      return { symbol: formatAssetSymbol(localSwap.assetSend), name: formatAssetSymbol(localSwap.assetSend) }
     }
 
     // Fallback to token address logic if not found in local swaps
@@ -297,7 +297,7 @@ export function RefundableSwapsSection({
         const localSwap = allSwaps.find((swap) => prefix0x(swap.preimageHash) === prefix0x(lockup.preimageHash))
         let tokenSymbol = 'cBTC'
         if (localSwap) {
-          tokenSymbol = localSwap.assetSend
+          tokenSymbol = formatAssetSymbol(localSwap.assetSend)
         } else if (lockup.tokenAddress && lockup.tokenAddress !== '0x0000000000000000000000000000000000000000') {
           const tokenAddr = lockup.tokenAddress.toLowerCase()
           const tokenMap: Record<string, string> = {
