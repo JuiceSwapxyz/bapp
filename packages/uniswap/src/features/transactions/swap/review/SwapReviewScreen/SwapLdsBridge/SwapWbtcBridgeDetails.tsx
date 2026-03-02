@@ -8,6 +8,9 @@ import { useSwapReviewTransactionStore } from 'uniswap/src/features/transactions
 import { WbtcBridgeStep, WbtcBridgeSubStep } from 'uniswap/src/features/transactions/swap/steps/wbtcBridge'
 
 const SUB_STEP_ORDER = [
+  WbtcBridgeSubStep.CheckingAuth,
+  WbtcBridgeSubStep.WaitingForAuth,
+  WbtcBridgeSubStep.Authenticating,
   WbtcBridgeSubStep.CheckingAllowance,
   WbtcBridgeSubStep.WaitingForApproval,
   WbtcBridgeSubStep.ApprovingToken,
@@ -29,6 +32,11 @@ export function SwapWbtcBridgeDetails(): JSX.Element | null {
   const direction = (trade?.quote?.quote as { direction?: WbtcBridgeDirection })?.direction
   const showApprove = direction === WbtcBridgeDirection.EthereumToCitrea
 
+  const authSubSteps = [
+    WbtcBridgeSubStep.CheckingAuth,
+    WbtcBridgeSubStep.WaitingForAuth,
+    WbtcBridgeSubStep.Authenticating,
+  ]
   const approveSubSteps = [
     WbtcBridgeSubStep.CheckingAllowance,
     WbtcBridgeSubStep.WaitingForApproval,
@@ -43,6 +51,7 @@ export function SwapWbtcBridgeDetails(): JSX.Element | null {
   return (
     <Flex gap="$spacing12" px="$spacing12" py="$spacing8">
       <Flex gap="$spacing8" pl="$spacing4">
+        <StepItem label={t('swap.crossChain.step.authorize')} status={status(authSubSteps)} />
         {showApprove && (
           <StepItem label={t('swap.crossChain.step.approve')} status={status(approveSubSteps)} />
         )}

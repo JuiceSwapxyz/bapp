@@ -5,6 +5,9 @@ import { TransactionStepType } from 'uniswap/src/features/transactions/steps/typ
  * Sub-steps for WBTC bridge (cBTC ↔ WBTC_ETH) to provide granular UI feedback.
  */
 export enum WbtcBridgeSubStep {
+  CheckingAuth = 'checking_auth',
+  WaitingForAuth = 'waiting_for_auth',
+  Authenticating = 'authenticating',
   CheckingAllowance = 'checking_allowance',
   WaitingForApproval = 'waiting_for_approval',
   ApprovingToken = 'approving_token',
