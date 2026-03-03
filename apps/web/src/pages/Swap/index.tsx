@@ -106,7 +106,7 @@ export default function SwapPage() {
       if (!lockup.createdAt) {
         return false
       }
-      return now - new Date(lockup.createdAt).getTime() > CLAIMABLE_NOTIFY_DELAY_MS
+      return now - Number(lockup.createdAt) * 1000 > CLAIMABLE_NOTIFY_DELAY_MS
     }).length
     const hasPendingActions = refundableCount > 0 || matureClaimableCount > 0
 
