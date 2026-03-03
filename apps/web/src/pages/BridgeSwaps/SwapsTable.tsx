@@ -5,7 +5,10 @@ import { useCallback, useMemo, useState } from 'react'
 import { Flex, Text } from 'ui/src'
 import { RotatableChevron } from 'ui/src/components/icons/RotatableChevron'
 import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
-import { getSwapStatusCategory as getLdsStatusCategory } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
+import {
+  LdsSwapStatus,
+  getSwapStatusCategory as getLdsStatusCategory,
+} from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
 interface SwapsTableProps {
   swaps: (SomeSwap & { id: string })[]
@@ -27,6 +30,9 @@ function getSwapStatusCategory(swap: SomeSwap): SwapStatusCategory {
   if (category === 'failed') {
     return SwapStatusCategory.Failed
   }
+  if (swap.status === LdsSwapStatus.SwapCreated) {
+    return SwapStatusCategory.Failed
+  }
   return SwapStatusCategory.Pending
 }
 
@@ -40,7 +46,10 @@ export function SwapsTable({ swaps, refundableSwaps, isLoading }: SwapsTableProp
     if (filter === SwapFilterType.Refundable) {
       filtered = swaps.filter((swap) => refundableSwaps.some((rs) => rs.id === swap.id))
     } else if (filter === SwapFilterType.Pending) {
-      filtered = swaps.filter((swap) => getSwapStatusCategory(swap) === SwapStatusCategory.Pending)
+      filtered = swaps.filter(
+        (swap) =>
+          getSwapStatusCategory(swap) === SwapStatusCategory.Pending && swap.status !== LdsSwapStatus.SwapCreated,
+      )
     } else if (filter === SwapFilterType.Completed) {
       filtered = swaps.filter((swap) => getSwapStatusCategory(swap) === SwapStatusCategory.Completed)
     } else if (filter === SwapFilterType.Failed) {
@@ -59,7 +68,9 @@ export function SwapsTable({ swaps, refundableSwaps, isLoading }: SwapsTableProp
   }, [swaps, filter, sortOrder, refundableSwaps])
 
   const stats = useMemo(() => {
-    const pending = swaps.filter((swap) => getSwapStatusCategory(swap) === SwapStatusCategory.Pending).length
+    const pending = swaps.filter(
+      (swap) => getSwapStatusCategory(swap) === SwapStatusCategory.Pending && swap.status !== LdsSwapStatus.SwapCreated,
+    ).length
     const completed = swaps.filter((swap) => getSwapStatusCategory(swap) === SwapStatusCategory.Completed).length
     const failed = swaps.filter((swap) => getSwapStatusCategory(swap) === SwapStatusCategory.Failed).length
     const refundable = refundableSwaps.length

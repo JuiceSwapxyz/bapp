@@ -1,6 +1,7 @@
 import type { Currency } from '@juiceswapxyz/sdk-core'
 import { PrefetchBalancesWrapper } from 'appGraphql/data/apollo/AdaptiveTokenBalancesProvider'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { CLAIMABLE_NOTIFY_DELAY_MS } from 'components/Popups/constants'
 import { popupRegistry } from 'components/Popups/registry'
 import { PopupType } from 'components/Popups/types'
 import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
@@ -97,17 +98,24 @@ export default function SwapPage() {
   }, [accountDrawer, triggerConnect, navigate, location.pathname])
 
   useEffect(() => {
+    const now = Date.now()
+
     const refundableCount =
       (refundsAndClaims?.btc.readyToRefund.length ?? 0) + (refundsAndClaims?.evm.readyToRefund.length ?? 0)
-    const claimableCount = refundsAndClaims?.evm.readyToClaim.length ?? 0
-    const hasPendingActions = refundableCount > 0 || claimableCount > 0
+    const matureClaimableCount = (refundsAndClaims?.evm.readyToClaim ?? []).filter((lockup) => {
+      if (!lockup.createdAt) {
+        return false
+      }
+      return now - Number(lockup.createdAt) * 1000 > CLAIMABLE_NOTIFY_DELAY_MS
+    }).length
+    const hasPendingActions = refundableCount > 0 || matureClaimableCount > 0
 
     if (hasPendingActions && !isLoadingRefundsAndClaims) {
       popupRegistry.addPopup(
         {
           type: PopupType.RefundableSwaps,
           refundableCount,
-          claimableCount,
+          claimableCount: matureClaimableCount,
         },
         'refundable-swaps',
         Infinity,

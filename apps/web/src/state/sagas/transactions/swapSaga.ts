@@ -429,6 +429,7 @@ function* swap(params: SwapParams) {
             selectChain: params.selectChain,
             onTransactionHash: params.onTransactionHash,
             onSuccess: params.onSuccess,
+            auth: params.auth,
           })
           break
         }

@@ -1,5 +1,10 @@
 const SATOSHI_DIVISOR = 100_000_000
 
+/** LDS assets are like 'WBTC_ETH', 'JUSD_CITREA'. Return token-only symbol for UI. */
+export function formatAssetSymbol(asset: string): string {
+  return asset.split('_')[0]
+}
+
 export function formatSatoshiAmount(satoshis: number): string {
   const btcAmount = satoshis / SATOSHI_DIVISOR
   // Remove trailing zeros but keep at least reasonable precision
