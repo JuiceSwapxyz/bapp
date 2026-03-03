@@ -1,1 +1,1 @@
-export const ENS_SUFFIX = '.eth'
+export const ENS_SUFFIX = '.citrea'
