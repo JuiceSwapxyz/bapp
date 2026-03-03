@@ -238,6 +238,8 @@ export interface EvmLockup {
   refunded: boolean
   claimTxHash: string | null
   refundTxHash: string | null
+  createdAt: string | null
+  senderAddress: string | null
   knownPreimage: {
     preimage: string | null
   } | null
