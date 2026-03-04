@@ -11,6 +11,7 @@ export enum BtcToCitreaSubStep {
   ShowingInvoice = 'showing_invoice',
   WaitingForMempool = 'waiting_for_mempool',
   Claiming = 'claiming',
+  ClaimPending = 'claim_pending',
   Complete = 'complete',
 }
 
@@ -38,6 +39,7 @@ export interface BitcoinBridgeBitcoinToCitreaStep {
   bip21?: string
   backendAccepted?: boolean
   subStep?: BtcToCitreaSubStep
+  txHash?: string
 }
 
 export type BitcoinBridgeTransactionStep = BitcoinBridgeCitreaToBitcoinStep | BitcoinBridgeBitcoinToCitreaStep

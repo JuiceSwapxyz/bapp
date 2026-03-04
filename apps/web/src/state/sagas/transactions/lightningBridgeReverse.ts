@@ -99,26 +99,33 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
     reverseSwap.id,
   )
 
-  const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], reverseSwap)
-
-  setCurrentStep({
-    step: { ...step, subStep: LnReverseSubStep.Complete },
-    accepted: true,
-  })
+  const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], reverseSwap)
 
   popupRegistry.removePopup(reverseSwap.id)
 
-  popupRegistry.addPopup(
-    {
-      type: PopupType.LightningBridge,
-      id: txHash!,
-      direction: LightningBridgeDirection.Reverse,
-      status: LdsBridgeStatus.Confirmed,
-    },
-    txHash!,
-  )
+  if (claimResponse.pending) {
+    setCurrentStep({
+      step: { ...step, subStep: LnReverseSubStep.ClaimPending, txHash: claimResponse.txHash },
+      accepted: false,
+    })
+  } else if (claimResponse.txHash && claimResponse.success) {
+    setCurrentStep({
+      step: { ...step, subStep: LnReverseSubStep.Complete },
+      accepted: true,
+    })
 
-  if (onSuccess) {
-    yield* call(onSuccess)
+    popupRegistry.addPopup(
+      {
+        type: PopupType.LightningBridge,
+        id: claimResponse.txHash,
+        direction: LightningBridgeDirection.Reverse,
+        status: LdsBridgeStatus.Confirmed,
+      },
+      claimResponse.txHash,
+    )
+
+    if (onSuccess) {
+      yield* call(onSuccess)
+    }
   }
 }

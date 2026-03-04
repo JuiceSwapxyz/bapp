@@ -15,6 +15,7 @@ export enum Erc20ChainSwapSubStep {
   LockingTokens = 'locking_tokens',
   WaitingForBridge = 'waiting_for_bridge',
   ClaimingTokens = 'claiming_tokens',
+  ClaimPending = 'claim_pending',
   Complete = 'complete',
 }
 

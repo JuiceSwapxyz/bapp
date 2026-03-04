@@ -15,6 +15,7 @@ export enum WbtcBridgeSubStep {
   LockingTokens = 'locking_tokens',
   WaitingForBridge = 'waiting_for_bridge',
   ClaimingTokens = 'claiming_tokens',
+  ClaimPending = 'claim_pending',
   Complete = 'complete',
 }
 
@@ -22,6 +23,7 @@ export interface WbtcBridgeStep {
   type: TransactionStepType.WbtcBridgeStep
   direction: WbtcBridgeDirection
   subStep?: WbtcBridgeSubStep
+  txHash?: string
 }
 
 export const createWbtcBridgeStep = (direction: WbtcBridgeDirection): WbtcBridgeStep => {

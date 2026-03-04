@@ -10,6 +10,7 @@ export enum LnReverseSubStep {
   Authenticating = 'authenticating',
   ShowingInvoice = 'showing_invoice',
   Claiming = 'claiming',
+  ClaimPending = 'claim_pending',
   Complete = 'complete',
 }
 
@@ -36,6 +37,7 @@ export interface LightningBridgeReverseStep {
   invoice?: string
   backendAccepted?: boolean
   subStep?: LnReverseSubStep
+  txHash?: string
 }
 
 export type LightningBridgeTransactionStep = LightningBridgeSubmarineStep | LightningBridgeReverseStep
