@@ -5,8 +5,10 @@ import { useEvmClaim } from 'hooks/useEvmClaim'
 import { ClaimButton, ClaimableSection, ClaimableSwapCard } from 'pages/BridgeSwaps/styles'
 import { formatAssetSymbol } from 'pages/BridgeSwaps/utils'
 import { useCallback, useState } from 'react'
-import { Flex, Text } from 'ui/src'
+import { Flex, Text, TouchableArea } from 'ui/src'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
+import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
+import { TimePast } from 'ui/src/components/icons/TimePast'
 import { ZERO_ADDRESS } from 'uniswap/src/constants/misc'
 import { getChainLabel, isUniverseChainId } from 'uniswap/src/features/chains/utils'
 import { EvmLockup } from 'uniswap/src/features/lds-bridge'
@@ -14,6 +16,7 @@ import { SomeSwap } from 'uniswap/src/features/lds-bridge/lds-types/storage'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
 import { useCurrencyInfo } from 'uniswap/src/features/tokens/useCurrencyInfo'
 import { buildCurrencyId } from 'uniswap/src/utils/currencyId'
+import { ExplorerDataType, getExplorerLink, openUri } from 'uniswap/src/utils/linking'
 import { logger } from 'utilities/src/logger/logger'
 import { formatUnits } from 'viem'
 
@@ -28,6 +31,7 @@ interface EvmClaimableSwapCardItemProps {
   lockup: EvmLockup
   allSwaps: (SomeSwap & { id: string })[]
   isClaiming: boolean
+  pendingTxHash?: string
   onClaim: () => void
 }
 
@@ -43,6 +47,7 @@ function EvmClaimableSwapCardItem({
   lockup,
   allSwaps,
   isClaiming,
+  pendingTxHash,
   onClaim,
 }: EvmClaimableSwapCardItemProps): JSX.Element {
   const numericChainId = Number(lockup.chainId)
@@ -86,6 +91,10 @@ function EvmClaimableSwapCardItem({
   const timelockBlock = lockup.timelock
   const chainName = isUniverseChainId(numericChainId) ? getChainLabel(numericChainId) : `Chain ${lockup.chainId}`
 
+  const explorerUrl = pendingTxHash
+    ? getExplorerLink({ chainId: numericChainId, data: pendingTxHash, type: ExplorerDataType.TRANSACTION })
+    : undefined
+
   return (
     <ClaimableSwapCard highlighted>
       <Flex gap="$spacing8">
@@ -93,16 +102,33 @@ function EvmClaimableSwapCardItem({
           <Text variant="body3" color="$neutral1" fontWeight="600">
             {amount} {tokenInfo.symbol}
           </Text>
-          <Flex
-            backgroundColor="$statusSuccess"
-            paddingHorizontal="$spacing6"
-            paddingVertical="$spacing2"
-            borderRadius="$rounded8"
-          >
-            <Text variant="body4" color="$white" fontWeight="600" fontSize={11}>
-              Claimable
-            </Text>
-          </Flex>
+          {pendingTxHash ? (
+            <Flex
+              backgroundColor="$statusWarning"
+              paddingHorizontal="$spacing6"
+              paddingVertical="$spacing2"
+              borderRadius="$rounded8"
+              flexDirection="row"
+              alignItems="center"
+              gap="$spacing4"
+            >
+              <TimePast size="$icon.12" color="$white" />
+              <Text variant="body4" color="$white" fontWeight="600" fontSize={11}>
+                Mempool
+              </Text>
+            </Flex>
+          ) : (
+            <Flex
+              backgroundColor="$statusSuccess"
+              paddingHorizontal="$spacing6"
+              paddingVertical="$spacing2"
+              borderRadius="$rounded8"
+            >
+              <Text variant="body4" color="$white" fontWeight="600" fontSize={11}>
+                Claimable
+              </Text>
+            </Flex>
+          )}
         </Flex>
 
         <Flex gap="$spacing2">
@@ -139,13 +165,35 @@ function EvmClaimableSwapCardItem({
             </Text>
           </Flex>
         </Flex>
+
+        {pendingTxHash && explorerUrl && (
+          <TouchableArea onPress={() => openUri({ uri: explorerUrl })}>
+            <Flex
+              flexDirection="row"
+              alignItems="center"
+              gap="$spacing4"
+              backgroundColor="$surface3"
+              borderRadius="$rounded8"
+              paddingHorizontal="$spacing8"
+              paddingVertical="$spacing6"
+            >
+              <TimePast size="$icon.16" color="$neutral2" />
+              <Text variant="body4" color="$neutral2" fontSize={12} flex={1}>
+                Claim transaction submitted, waiting for confirmation
+              </Text>
+              <ExternalLink size="$icon.16" color="$accent1" />
+            </Flex>
+          </TouchableArea>
+        )}
       </Flex>
 
-      <ClaimButton onPress={onClaim} disabled={isClaiming}>
-        <Text variant="buttonLabel4" color="$neutral1" fontSize={13}>
-          {isClaiming ? 'Claiming...' : 'Claim'}
-        </Text>
-      </ClaimButton>
+      {!pendingTxHash && (
+        <ClaimButton onPress={onClaim} disabled={isClaiming}>
+          <Text variant="buttonLabel4" color="$neutral1" fontSize={13}>
+            {isClaiming ? 'Claiming...' : 'Claim'}
+          </Text>
+        </ClaimButton>
+      )}
     </ClaimableSwapCard>
   )
 }
@@ -158,13 +206,23 @@ export function ClaimableSwapsSection({
 }: ClaimableSwapsSectionProps): JSX.Element | null {
   const { executeClaim } = useEvmClaim()
   const [claimingEvmSwaps, setClaimingEvmSwaps] = useState<Set<string>>(new Set())
+  const [pendingTxHashes, setPendingTxHashes] = useState<Record<string, string>>({})
 
   const handleEvmClaim = useCallback(
     async (lockup: EvmLockup) => {
       setClaimingEvmSwaps((prev) => new Set(prev).add(lockup.preimageHash))
       try {
-        const txHash = await executeClaim(lockup)
-        logger.info('ClaimableSwapsSection', 'handleEvmClaim', `Claim successful: ${txHash}`)
+        const { txHash, pending, success } = await executeClaim(lockup)
+        logger.info(
+          'ClaimableSwapsSection',
+          'handleEvmClaim',
+          `Claim response: txHash=${txHash} pending=${pending} success=${success}`,
+        )
+
+        if (pending && txHash) {
+          setPendingTxHashes((prev) => ({ ...prev, [lockup.preimageHash]: txHash }))
+          return
+        }
 
         // Show success popup with explorer link
         const decimals = decimalsByAddress[(lockup.tokenAddress || '').toLowerCase()] ?? 18
@@ -202,7 +260,6 @@ export function ClaimableSwapsSection({
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
 
-        // Check for specific error messages
         if (errorMessage.includes('user rejected')) {
           logger.warn('ClaimableSwapsSection', 'handleEvmClaim', 'Transaction rejected by user')
         } else {
@@ -243,6 +300,7 @@ export function ClaimableSwapsSection({
                 lockup={lockup}
                 allSwaps={allSwaps}
                 isClaiming={claimingEvmSwaps.has(lockup.preimageHash)}
+                pendingTxHash={pendingTxHashes[lockup.preimageHash]}
                 onClaim={() => handleEvmClaim(lockup)}
               />
             ))}
