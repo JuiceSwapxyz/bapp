@@ -7,6 +7,7 @@ import { useTransactionModalContext } from 'uniswap/src/features/transactions/co
 import { FLASHBLOCKS_UI_SKIP_ROUTES } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/constants'
 import { useClearFlashblocksSwapNotifications } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/hooks/useClearFlashblocksSwapNotifications'
 import { useIsUnichainFlashblocksEnabled } from 'uniswap/src/features/transactions/swap/hooks/useIsUnichainFlashblocksEnabled'
+import { SwapClaimPendingScreen } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapClaimPendingScreen'
 import { SwapErrorScreen } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapErrorScreen'
 import { SwapBtcBridgeDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapBtcBridgeDetails'
 import { SwapErc20ChainSwapDetails } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapLdsBridge/SwapErc20ChainSwapDetails'
@@ -37,6 +38,7 @@ import { SwapReviewWarningStoreContextProvider } from 'uniswap/src/features/tran
 import { useSwapDependenciesStore } from 'uniswap/src/features/transactions/swap/stores/swapDependenciesStore/useSwapDependenciesStore'
 import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
+import { getClaimPendingStep } from 'uniswap/src/features/transactions/swap/steps/claimPendingUtils'
 import { logger } from 'utilities/src/logger/logger'
 import { isWeb } from 'utilities/src/platform'
 
@@ -149,6 +151,12 @@ function SwapReviewContent(): JSX.Element | null {
         onClose={onPrev}
       />
     )
+  }
+
+  const isClaimPending = !!getClaimPendingStep(currentStep)
+
+  if (isClaimPending) {
+    return <SwapClaimPendingScreen onClose={onPrev} />
   }
 
   return (

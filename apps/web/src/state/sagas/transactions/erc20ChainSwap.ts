@@ -432,21 +432,45 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     DEFAULT_TXN_DISMISS_MS,
   )
 
-  let claimedSwap
   try {
-    claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
+    const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
 
-    // Remove claim in progress popup
-    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
+    if (claimResponse.pending) {
+      setCurrentStep({
+        step: { ...step, subStep: Erc20ChainSwapSubStep.ClaimPending, txHash: claimResponse.txHash },
+        accepted: false,
+      })
+    }
 
-    setCurrentStep({
-      step: { ...step, subStep: Erc20ChainSwapSubStep.Complete },
-      accepted: true,
-    })
+    if (claimResponse.txHash && claimResponse.success) {
+      const fromChainId = TOKEN_CONFIGS[from].chainId
+      const toChainId = TOKEN_CONFIGS[to].chainId
+
+      const explorerUrl = getExplorerLink({
+        chainId: toChainId,
+        data: claimResponse.txHash,
+        type: ExplorerDataType.TRANSACTION,
+      })
+
+      popupRegistry.addPopup(
+        {
+          type: PopupType.Erc20ChainSwap,
+          id: claimResponse.txHash,
+          fromChainId,
+          toChainId,
+          fromAsset: from,
+          toAsset: to,
+          status: LdsBridgeStatus.Confirmed,
+          url: explorerUrl,
+        },
+        claimResponse.txHash,
+      )
+
+      if (onSuccess) {
+        yield* call(onSuccess)
+      }
+    }
   } catch (error) {
-    // Remove claim in progress popup on error
-    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
-
     logger.error(error instanceof Error ? error : new Error(String(error)), {
       tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
       extra: { swapId: chainSwap.id, step: 'autoClaimSwapById' },
@@ -456,35 +480,8 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
       step,
       originalError: error instanceof Error ? error : new Error(String(error)),
     })
-  }
-
-  // Show success popup with explorer link
-  if (claimedSwap.claimTx) {
-    const fromChainId = TOKEN_CONFIGS[from].chainId
-    const toChainId = TOKEN_CONFIGS[to].chainId
-
-    const explorerUrl = getExplorerLink({
-      chainId: toChainId,
-      data: claimedSwap.claimTx,
-      type: ExplorerDataType.TRANSACTION,
-    })
-
-    popupRegistry.addPopup(
-      {
-        type: PopupType.Erc20ChainSwap,
-        id: claimedSwap.claimTx,
-        fromChainId,
-        toChainId,
-        fromAsset: from,
-        toAsset: to,
-        status: LdsBridgeStatus.Confirmed,
-        url: explorerUrl,
-      },
-      claimedSwap.claimTx,
-    )
-  }
-
-  if (onSuccess) {
-    yield* call(onSuccess)
+  } finally {
+    // Remove claim in progress popup on error
+    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
   }
 }

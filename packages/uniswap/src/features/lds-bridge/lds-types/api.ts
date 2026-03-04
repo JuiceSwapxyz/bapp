@@ -83,6 +83,8 @@ export interface HelpMeClaimRequest {
 
 export interface HelpMeClaimResponse {
   txHash: string
+  success: boolean
+  pending: boolean
 }
 
 export interface CreateSubmarineSwapRequest {
