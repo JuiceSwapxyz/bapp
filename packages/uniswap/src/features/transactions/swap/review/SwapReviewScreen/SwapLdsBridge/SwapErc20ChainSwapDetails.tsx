@@ -19,6 +19,7 @@ const SUB_STEP_ORDER = [
   Erc20ChainSwapSubStep.LockingTokens,
   Erc20ChainSwapSubStep.WaitingForBridge,
   Erc20ChainSwapSubStep.ClaimingTokens,
+  Erc20ChainSwapSubStep.ClaimPending,
   Erc20ChainSwapSubStep.Complete,
 ]
 
@@ -50,7 +51,7 @@ export function SwapErc20ChainSwapDetails(): JSX.Element | null {
   ]
   const lockSubSteps = [Erc20ChainSwapSubStep.WaitingForLock, Erc20ChainSwapSubStep.LockingTokens]
   const bridgeSubSteps = [Erc20ChainSwapSubStep.WaitingForBridge]
-  const claimSubSteps = [Erc20ChainSwapSubStep.ClaimingTokens, Erc20ChainSwapSubStep.Complete]
+  const claimSubSteps = [Erc20ChainSwapSubStep.ClaimingTokens, Erc20ChainSwapSubStep.ClaimPending, Erc20ChainSwapSubStep.Complete]
 
   const status = (steps: Erc20ChainSwapSubStep[]) => getStepStatus(SUB_STEP_ORDER, steps, subStep)
 

@@ -19,6 +19,7 @@ import { createLdsSocketClient } from 'uniswap/src/features/lds-bridge/api/socke
 import { ChainSwapKeys, generateChainSwapKeys } from 'uniswap/src/features/lds-bridge/keys/chainSwapKeys'
 import type {
   ChainPairsResponse,
+  HelpMeClaimResponse,
   LightningBridgeReverseGetResponse,
   LightningBridgeSubmarineGetResponse,
 } from 'uniswap/src/features/lds-bridge/lds-types/api'
@@ -247,7 +248,7 @@ class LdsBridgeManager {
     return chainSwap
   }
 
-  autoClaimSwap = async (swap: SomeSwap): Promise<SomeSwap> => {
+  autoClaimSwap = async (swap: SomeSwap): Promise<HelpMeClaimResponse> => {
     const chainId = ASSET_CHAIN_ID_MAP[swap.assetReceive]
     if (!chainId) {
       throw new Error('Chain ID not found')
@@ -261,16 +262,19 @@ class LdsBridgeManager {
       throw new Error('Swap preimage not found')
     }
 
-    const { txHash } = await helpMeClaim({
+    const claimResponse = await helpMeClaim({
       preimage: swap.preimage,
       preimageHash: prefix0x(swap.preimageHash),
       chainId
     })
 
-    swap.claimTx = txHash
-    swap.status = LdsSwapStatus.TransactionClaimed
-    await this.storageManager.setSwap(swap.id, swap)
-    return swap
+    if (claimResponse.success) {
+      swap.claimTx = claimResponse.txHash
+      swap.status = LdsSwapStatus.TransactionClaimed
+      await this.storageManager.setSwap(swap.id, swap)
+    }
+
+    return claimResponse
   }
 
   updateSwapRefundTx = async (swapId: string, refundTxId: string): Promise<void> => {

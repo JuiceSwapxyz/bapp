@@ -108,25 +108,31 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
     accepted: true,
   })
 
-  const { claimTx: txHash } = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
+  const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
 
-  setCurrentStep({
-    step: { ...step, subStep: BtcToCitreaSubStep.Complete },
-    accepted: true,
-  })
+  if (claimResponse.pending) {
+    setCurrentStep({
+      step: { ...step, subStep: BtcToCitreaSubStep.ClaimPending, txHash: claimResponse.txHash },
+      accepted: false,
+    })
+  } else if (claimResponse.txHash && claimResponse.success) {
+    setCurrentStep({
+      step: { ...step, subStep: BtcToCitreaSubStep.Complete },
+      accepted: true,
+    })
 
-  popupRegistry.addPopup(
-    {
-      type: PopupType.BitcoinBridge,
-      id: txHash!,
-      status: LdsBridgeStatus.Confirmed,
-      direction: BitcoinBridgeDirection.BitcoinToCitrea,
-      url: '/bridge-swaps',
-    },
-    txHash!,
-  )
-
-  if (onSuccess) {
-    yield* call(onSuccess)
+    popupRegistry.addPopup(
+      {
+        type: PopupType.BitcoinBridge,
+        id: claimResponse.txHash,
+        status: LdsBridgeStatus.Confirmed,
+        direction: BitcoinBridgeDirection.BitcoinToCitrea,
+        url: '/bridge-swaps',
+      },
+      claimResponse.txHash,
+    )
+    if (onSuccess) {
+      yield* call(onSuccess)
+    }
   }
 }

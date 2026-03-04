@@ -359,10 +359,6 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
   // 6. Auto-claim
   setStep(WbtcBridgeSubStep.ClaimingTokens)
 
-  if (onSuccess) {
-    yield* call(onSuccess)
-  }
-
   popupRegistry.addPopup(
     {
       type: PopupType.ClaimInProgress,
@@ -373,25 +369,31 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
   )
 
   try {
-    const claimedSwap = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
-    setCurrentStep({ step: { ...step, subStep: WbtcBridgeSubStep.Complete }, accepted: true })
+    const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
 
     popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
 
-    const fromChainId = sourceChainId
-    const toChainId = isWbtcToCbtc ? citreaChainId : UniverseChainId.Mainnet
+    if (claimResponse.pending) {
+      setCurrentStep({
+        step: { ...step, subStep: WbtcBridgeSubStep.ClaimPending, txHash: claimResponse.txHash },
+        accepted: false,
+      })
+    } else if (claimResponse.txHash && claimResponse.success) {
+      setCurrentStep({ step: { ...step, subStep: WbtcBridgeSubStep.Complete }, accepted: true })
 
-    if (claimedSwap.claimTx) {
+      const fromChainId = sourceChainId
+      const toChainId = isWbtcToCbtc ? citreaChainId : UniverseChainId.Mainnet
+
       const explorerUrl = getExplorerLink({
         chainId: toChainId,
-        data: claimedSwap.claimTx,
+        data: claimResponse.txHash,
         type: ExplorerDataType.TRANSACTION,
       })
 
       popupRegistry.addPopup(
         {
           type: PopupType.Erc20ChainSwap,
-          id: claimedSwap.claimTx,
+          id: claimResponse.txHash,
           fromChainId,
           toChainId,
           fromAsset: from,
@@ -399,8 +401,12 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
           status: LdsBridgeStatus.Confirmed,
           url: explorerUrl,
         },
-        claimedSwap.claimTx,
+        claimResponse.txHash,
       )
+
+      if (onSuccess) {
+        yield* call(onSuccess)
+      }
     }
   } catch (error) {
     popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
