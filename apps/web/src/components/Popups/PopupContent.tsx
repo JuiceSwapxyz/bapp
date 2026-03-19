@@ -13,10 +13,10 @@ import { LoaderV3 } from 'components/Icons/LoadingSpinner'
 import { ToastRegularSimple } from 'components/Popups/ToastRegularSimple'
 import { POPUP_MAX_WIDTH } from 'components/Popups/constants'
 import { BitcoinBridgeDirection, LdsBridgeStatus } from 'components/Popups/types'
+import { useBridgeSwapsPopupNavigation } from 'components/Popups/useBridgeSwapsPopupNavigation'
 import { useIsRecentFlashblocksNotification } from 'hooks/useIsRecentFlashblocksNotification'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
 import { useOrder } from 'state/signatures/hooks'
 import { useTransaction } from 'state/transactions/hooks'
 import { isPendingTx } from 'state/transactions/utils'
@@ -219,6 +219,7 @@ export function FORTransactionPopupContent({
 }
 
 export function BridgingPopupContent({ hash, onClose }: { hash: string; onClose: () => void }) {
+  const handleClick = useBridgeSwapsPopupNavigation(onClose)
   const transaction = useTransaction(hash)
 
   const { formatNumberOrString } = useLocalizationContext()
@@ -233,12 +234,7 @@ export function BridgingPopupContent({ hash, onClose }: { hash: string; onClose:
     return null
   }
 
-  const onClick = () => {
-    window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
-    onClose()
-  }
-
-  return <ActivityPopupContent activity={activity} onClick={onClick} onClose={onClose} />
+  return <ActivityPopupContent activity={activity} onClick={handleClick} onClose={onClose} />
 }
 
 export function LightningBridgePopupContent({
@@ -252,6 +248,7 @@ export function LightningBridgePopupContent({
 }) {
   const { t } = useTranslation()
   const colors = useSporeColors()
+  const handleClick = useBridgeSwapsPopupNavigation(onClose)
 
   const title = useMemo(() => {
     switch (status) {
@@ -290,11 +287,6 @@ export function LightningBridgePopupContent({
 
   const isPending = status === LdsBridgeStatus.Pending
 
-  const onClick = () => {
-    window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
-    onClose()
-  }
-
   return (
     <Flex
       row
@@ -312,7 +304,7 @@ export function LightningBridgePopupContent({
         width: '100%',
       }}
     >
-      <TouchableArea onPress={onClick} flex={1}>
+      <TouchableArea onPress={handleClick} flex={1}>
         <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
           <Flex justifyContent="center">
             <PortfolioLogo chainId={UniverseChainId.Bitcoin} images={[bitcoinLogo]} size={32} />
@@ -363,6 +355,7 @@ export function BitcoinBridgePopupContent({
 }) {
   const { t } = useTranslation()
   const colors = useSporeColors()
+  const goToBridgeSwaps = useBridgeSwapsPopupNavigation(onClose)
 
   const title = useMemo(() => {
     switch (status) {
@@ -401,13 +394,13 @@ export function BitcoinBridgePopupContent({
 
   const isPending = status === LdsBridgeStatus.Pending
 
-  const handlePress = () => {
-    if (url) {
+  const handleClick = (): void => {
+    if (url?.startsWith('http')) {
       window.open(url, '_blank', 'noopener,noreferrer')
+      onClose()
     } else {
-      window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
+      goToBridgeSwaps()
     }
-    onClose()
   }
 
   return (
@@ -428,7 +421,7 @@ export function BitcoinBridgePopupContent({
         width: '100%',
       }}
     >
-      <TouchableArea onPress={handlePress} flex={1}>
+      <TouchableArea onPress={handleClick} flex={1}>
         <Flex row gap="$gap12" height={68} py="$spacing12" px="$spacing16">
           <Flex justifyContent="center">
             <PortfolioLogo chainId={UniverseChainId.Bitcoin} images={[bitcoinLogo]} size={32} />
@@ -678,13 +671,8 @@ export function RefundableSwapsPopupContent({
   claimableCount: number
   onClose: () => void
 }): JSX.Element {
-  const navigate = useNavigate()
+  const handleClick = useBridgeSwapsPopupNavigation(onClose)
   const shadowProps = useShadowPropsMedium()
-
-  const handleClick = (): void => {
-    navigate('/bridge-swaps')
-    onClose()
-  }
 
   const totalCount = refundableCount + claimableCount
   const hasRefundable = refundableCount > 0
@@ -744,14 +732,9 @@ export function RefundableSwapsPopupContent({
 }
 
 export function RefundsInProgressPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
-  const navigate = useNavigate()
+  const handleClick = useBridgeSwapsPopupNavigation(onClose)
   const colors = useSporeColors()
   const shadowProps = useShadowPropsMedium()
-
-  const handleClick = (): void => {
-    navigate('/bridge-swaps')
-    onClose()
-  }
 
   return (
     <Flex
@@ -798,13 +781,8 @@ export function RefundsInProgressPopupContent({ count, onClose }: { count: numbe
 }
 
 export function RefundsCompletedPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
-  const navigate = useNavigate()
+  const handleClick = useBridgeSwapsPopupNavigation(onClose)
   const shadowProps = useShadowPropsMedium()
-
-  const handleClick = (): void => {
-    navigate('/bridge-swaps')
-    onClose()
-  }
 
   return (
     <Flex
@@ -848,14 +826,9 @@ export function RefundsCompletedPopupContent({ count, onClose }: { count: number
 }
 
 export function ClaimInProgressPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
-  const navigate = useNavigate()
+  const handleClick = useBridgeSwapsPopupNavigation(onClose)
   const colors = useSporeColors()
   const shadowProps = useShadowPropsMedium()
-
-  const handleClick = (): void => {
-    navigate('/bridge-swaps')
-    onClose()
-  }
 
   return (
     <Flex
@@ -899,13 +872,8 @@ export function ClaimInProgressPopupContent({ count, onClose }: { count: number;
 }
 
 export function ClaimCompletedPopupContent({ count, onClose }: { count: number; onClose: () => void }): JSX.Element {
-  const navigate = useNavigate()
+  const handleClick = useBridgeSwapsPopupNavigation(onClose)
   const shadowProps = useShadowPropsMedium()
-
-  const handleClick = (): void => {
-    navigate('/bridge-swaps')
-    onClose()
-  }
 
   return (
     <Flex
