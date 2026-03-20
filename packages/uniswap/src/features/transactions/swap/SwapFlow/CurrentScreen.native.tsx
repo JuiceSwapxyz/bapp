@@ -20,10 +20,12 @@ import { useTimeout } from 'utilities/src/time/timing'
 export function CurrentScreen({
   settings,
   onSubmitSwap,
+  hideBridgingSection,
 }: {
   settings: TransactionSettingConfig[]
   onSubmitSwap?: (txHash?: string) => Promise<void> | void
   tokenColor?: string
+  hideBridgingSection?: boolean
 }): JSX.Element {
   const { screen } = useTransactionModalContext()
 
@@ -31,7 +33,7 @@ export function CurrentScreen({
     case TransactionScreen.Form:
       return (
         <Trace logImpression section={SectionName.SwapForm}>
-          <SwapFormScreenDelayedRender settings={settings} />
+          <SwapFormScreenDelayedRender settings={settings} hideBridgingSection={hideBridgingSection} />
           <TransactionModalFooterContainer>
             <SwapFormWarningStoreContextProvider>
               <SwapFormButton />
@@ -58,10 +60,23 @@ const SWAP_FORM_SCREEN_TRANSITION_DELAY = 75
 const SWAP_REVIEW_SCREEN_TRANSITION_DELAY = 450
 
 // We add a short hardcoded delay to allow the sheet to animate quickly both on first render and when going back from Review -> Form.
-function SwapFormScreenDelayedRender({ settings }: { settings: TransactionSettingConfig[] }): JSX.Element {
+function SwapFormScreenDelayedRender({
+  settings,
+  hideBridgingSection,
+}: {
+  settings: TransactionSettingConfig[]
+  hideBridgingSection?: boolean
+}): JSX.Element {
   const { isContentHidden } = useDelayedRender(SWAP_FORM_SCREEN_TRANSITION_DELAY)
 
-  return <SwapFormScreen settings={settings} hideContent={isContentHidden} focusHook={useFocusEffect} />
+  return (
+    <SwapFormScreen
+      settings={settings}
+      hideContent={isContentHidden}
+      focusHook={useFocusEffect}
+      hideBridgingSection={hideBridgingSection}
+    />
+  )
 }
 
 // We add a short hardcoded delay to allow the sheet to animate quickly when going from Form -> Review.

@@ -196,6 +196,7 @@ function TDPSwapComponent() {
         initialOutputCurrency={initialOutputCurrency}
         onCurrencyChange={handleCurrencyChange}
         tokenColor={tokenColor}
+        hideBridgingSection
       />
       <TokenWarningCard currencyInfo={currencyInfo} onPress={() => setShowWarningModal(true)} />
       {currencyInfo && (

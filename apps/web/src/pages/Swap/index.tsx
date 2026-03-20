@@ -179,6 +179,7 @@ export function Swap({
   swapRedirectCallback,
   tokenColor,
   usePersistedFilteredChainIds = false,
+  hideBridgingSection = false,
 }: {
   chainId?: UniverseChainId
   onCurrencyChange?: (selected: CurrencyState) => void
@@ -193,6 +194,7 @@ export function Swap({
   tokenColor?: string
   usePersistedFilteredChainIds?: boolean
   passkeyAuthStatus?: PasskeyAuthStatus
+  hideBridgingSection?: boolean
 }) {
   const input = currencyToAsset(initialInputCurrency)
   const output = currencyToAsset(initialOutputCurrency)
@@ -233,6 +235,7 @@ export function Swap({
                   onCurrencyChange={onCurrencyChange}
                   prefilledState={prefilledState}
                   tokenColor={tokenColor}
+                  hideBridgingSection={hideBridgingSection}
                 />
               </Flex>
             </SwapFormStoreContextProvider>
@@ -258,6 +261,7 @@ function UniversalSwapFlow({
   onCurrencyChange,
   swapRedirectCallback,
   tokenColor,
+  hideBridgingSection = false,
 }: {
   hideHeader?: boolean
   hideFooter?: boolean
@@ -267,6 +271,7 @@ function UniversalSwapFlow({
   onCurrencyChange?: (selected: CurrencyState, isBridgePair?: boolean) => void
   swapRedirectCallback?: SwapRedirectFn
   tokenColor?: string
+  hideBridgingSection?: boolean
 }) {
   const [currentTab, setCurrentTab] = useState(SwapTab.Swap)
   const { pathname } = useLocation()
@@ -359,6 +364,7 @@ function UniversalSwapFlow({
                 prefilledState={prefilledState}
                 tokenColor={tokenColor}
                 onSubmitSwap={handleSubmitSwap}
+                hideBridgingSection={hideBridgingSection}
               />
             </SwapDependenciesStoreContextProvider>
             {!hideFooter && (
