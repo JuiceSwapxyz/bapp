@@ -16,7 +16,10 @@ function useTokenSectionsForSwap({
   activeAccountAddress,
   chainFilter,
   oppositeSelectedToken,
-}: TokenSectionsHookProps): GqlResult<OnchainItemSection<TokenSelectorOption>[]> {
+  hideBridgingSection = false,
+}: TokenSectionsHookProps & { hideBridgingSection?: boolean }): GqlResult<
+  OnchainItemSection<TokenSelectorOption>[]
+> {
   const { defaultChainId } = useEnabledChains()
 
   // Compute effective chain filter once, use for all hooks to ensure consistent filtering
@@ -48,7 +51,10 @@ function useTokenSectionsForSwap({
 
   const { data: bridgePairOptions } = useCommonBridgeTokensOptions()
 
-  const loading = !commonTokenOptions && commonTokenOptionsLoading && bridgingTokenOptionsLoading
+  const loading =
+    !commonTokenOptions &&
+    commonTokenOptionsLoading &&
+    (hideBridgingSection || bridgingTokenOptionsLoading)
 
   const refetchAllRef = useRef<() => void>(() => {})
 
@@ -73,8 +79,8 @@ function useTokenSectionsForSwap({
   })
 
   const bridgingSectionTokenOptions: TokenSelectorOption[] = useMemo(
-    () => bridgePairOptions ?? [],
-    [bridgePairOptions],
+    () => (hideBridgingSection ? [] : (bridgePairOptions ?? [])),
+    [bridgePairOptions, hideBridgingSection],
   )
 
   const bridgingSection = useOnchainItemListSection({
@@ -87,8 +93,19 @@ function useTokenSectionsForSwap({
       return undefined
     }
 
+    if (hideBridgingSection) {
+      return [...(suggestedSection ?? []), ...(yourTokensSection ?? [])]
+    }
+
     return [...(suggestedSection ?? []), ...(bridgingSection ?? []), ...(yourTokensSection ?? [])]
-  }, [commonTokenOptionsLoading, portfolioTokenOptionsLoading, suggestedSection, yourTokensSection, bridgingSection])
+  }, [
+    commonTokenOptionsLoading,
+    portfolioTokenOptionsLoading,
+    suggestedSection,
+    yourTokensSection,
+    bridgingSection,
+    hideBridgingSection,
+  ])
 
   return useMemo(
     () => ({
@@ -106,9 +123,11 @@ function _TokenSelectorSwapList({
   activeAccountAddress,
   chainFilter,
   oppositeSelectedToken,
+  hideBridgingSection = false,
 }: TokenSectionsHookProps & {
   onSelectCurrency: OnSelectCurrency
   chainFilter: UniverseChainId | null
+  hideBridgingSection?: boolean
 }): JSX.Element {
   const {
     data: sections,
@@ -119,6 +138,7 @@ function _TokenSelectorSwapList({
     activeAccountAddress,
     chainFilter,
     oppositeSelectedToken,
+    hideBridgingSection,
   })
 
   return (
