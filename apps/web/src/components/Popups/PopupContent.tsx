@@ -244,10 +244,12 @@ export function BridgingPopupContent({ hash, onClose }: { hash: string; onClose:
 export function LightningBridgePopupContent({
   direction,
   status,
+  url,
   onClose,
 }: {
   direction: LightningBridgeDirection
   status: LdsBridgeStatus
+  url?: string
   onClose: () => void
 }) {
   const { t } = useTranslation()
@@ -291,7 +293,7 @@ export function LightningBridgePopupContent({
   const isPending = status === LdsBridgeStatus.Pending
 
   const onClick = () => {
-    window.open('/bridge-swaps', '_blank', 'noopener,noreferrer')
+    window.open(url, '_blank', 'noopener,noreferrer')
     onClose()
   }
 
