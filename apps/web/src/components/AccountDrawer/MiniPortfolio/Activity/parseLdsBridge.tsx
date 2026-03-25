@@ -231,6 +231,7 @@ export function swapToActivity(swap: SomeSwap & { id: string }): Activity {
     logos: [getAssetLogo(swap.assetSend), getAssetLogo(swap.assetReceive)],
     from: swap.claimAddress,
     type: TransactionType.Bridging,
+    txHash: swap.claimTx ?? undefined,
   }
 }
 
