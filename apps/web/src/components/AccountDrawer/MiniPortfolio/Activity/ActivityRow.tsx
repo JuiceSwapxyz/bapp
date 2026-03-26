@@ -73,6 +73,7 @@ function StatusIndicator({
 export function ActivityRow({ activity }: { activity: Activity }) {
   const {
     chainId,
+    outputChainId,
     title,
     descriptor,
     otherAccount,
@@ -94,8 +95,21 @@ export function ActivityRow({ activity }: { activity: Activity }) {
 
   const explorerUrl = getExplorerLink({ chainId, data: txHash ?? hash, type: ExplorerDataType.TRANSACTION })
 
+  const ldsClaimExplorerUrl =
+    hash.startsWith(LDS_ACTIVITY_PREFIX) && txHash && isHash(txHash)
+      ? getExplorerLink({
+          chainId: outputChainId ?? chainId,
+          data: txHash,
+          type: ExplorerDataType.TRANSACTION,
+        })
+      : undefined
+
   const onClick = useCallback(() => {
     if (hash.startsWith(LDS_ACTIVITY_PREFIX)) {
+      if (activity.status === TransactionStatus.Success && ldsClaimExplorerUrl) {
+        window.open(ldsClaimExplorerUrl, '_blank')
+        return
+      }
       navigate('/bridge-swaps')
       return
     }
@@ -113,13 +127,26 @@ export function ActivityRow({ activity }: { activity: Activity }) {
     }
 
     window.open(explorerUrl, '_blank')
-  }, [activity.logos, activity.status, explorerUrl, hash, navigate, offchainOrderDetails, openOffchainActivityModal])
+  }, [
+    activity.logos,
+    activity.status,
+    explorerUrl,
+    hash,
+    navigate,
+    offchainOrderDetails,
+    openOffchainActivityModal,
+    ldsClaimExplorerUrl,
+  ])
 
   return (
     <Trace
       logPress
       element={ElementName.MiniPortfolioActivityRow}
-      properties={{ hash, chain_id: chainId, explorer_url: explorerUrl }}
+      properties={{
+        hash,
+        chain_id: chainId,
+        explorer_url: ldsClaimExplorerUrl ?? explorerUrl,
+      }}
     >
       <PortfolioRow
         left={
