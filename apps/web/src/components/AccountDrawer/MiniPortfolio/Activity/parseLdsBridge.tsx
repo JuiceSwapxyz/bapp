@@ -1,4 +1,3 @@
-import bitcoinLogo from 'assets/images/coins/bitcoin.png'
 import { Activity, ActivityMap } from 'components/AccountDrawer/MiniPortfolio/Activity/types'
 import { inferChainIdFromSwap } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
 import { formatSatoshiAmount } from 'pages/BridgeSwaps/utils'
@@ -41,7 +40,7 @@ const LDS_ASSET_METADATA: Partial<Record<string, LdsAssetMetadata>> = {
   },
   BTC: {
     chainId: UniverseChainId.LightningNetwork,
-    logoUrl: bitcoinLogo,
+    logoUrl: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
     symbol: 'BTC',
   },
   // Citrea tokens
@@ -135,7 +134,8 @@ const StyledBridgeAmountText = styled(Text, {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  variant: 'body2',
+  variant: 'body3',
+  color: '$neutral2',
 })
 
 /**
