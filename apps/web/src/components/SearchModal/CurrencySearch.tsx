@@ -24,6 +24,7 @@ interface CurrencySearchProps {
   onCurrencySelect: (currency: Currency) => void
   onDismiss: () => void
   chainIds?: UniverseChainId[]
+  hideBridgingSection?: boolean
 }
 
 export function CurrencySearch({
@@ -32,6 +33,7 @@ export function CurrencySearch({
   onCurrencySelect,
   onDismiss,
   chainIds,
+  hideBridgingSection,
 }: CurrencySearchProps) {
   const account = useAccount()
   const { chainId, setSelectedChainId, isUserSelectedToken, setIsUserSelectedToken, isMultichainContext } =
@@ -83,6 +85,7 @@ export function CurrencySearch({
           }
           onClose={onDismiss}
           onSelectCurrency={handleCurrencySelectTokenSelectorCallback}
+          hideBridgingSection={hideBridgingSection}
         />
       </Flex>
     </Trace>

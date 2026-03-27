@@ -12,9 +12,11 @@ import { CurrencyField } from 'uniswap/src/types/currency'
 export function SwapTokenSelector({
   isModalOpen,
   focusHook,
+  hideBridgingSection,
 }: {
   isModalOpen: boolean
   focusHook?: ComponentProps<typeof BottomSheetView>['focusHook']
+  hideBridgingSection?: boolean
 }): JSX.Element | null {
   const { selectingCurrencyField, input, output } = useSwapFormStore((s) => ({
     selectingCurrencyField: s.selectingCurrencyField,
@@ -55,6 +57,7 @@ export function SwapTokenSelector({
       focusHook={focusHook}
       onClose={handleHideTokenSelector}
       onSelectCurrency={onSelectCurrency}
+      hideBridgingSection={hideBridgingSection}
     />
   )
 }

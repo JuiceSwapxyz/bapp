@@ -678,6 +678,7 @@ export function SelectTokensStep({
           switchNetworkAction={SwitchNetworkAction.LP}
           onCurrencySelect={handleCurrencySelect}
           chainIds={supportedChains}
+          hideBridgingSection
         />
       </PrefetchBalancesWrapper>
     </>

@@ -67,6 +67,7 @@ export interface TokenSelectorProps {
   output?: TradeableAsset
   isSurfaceReady?: boolean
   isLimits?: boolean
+  hideBridgingSection?: boolean
   onClose: () => void
   focusHook?: ComponentProps<typeof BottomSheetView>['focusHook']
   onSelectChain?: (chainId: UniverseChainId | null) => void
@@ -94,6 +95,7 @@ export function TokenSelectorContent({
   chainIds,
   isSurfaceReady = true,
   isLimits,
+  hideBridgingSection = false,
   onClose,
   onSelectChain,
   onSelectCurrency,
@@ -261,6 +263,7 @@ export function TokenSelectorContent({
             oppositeSelectedToken={output}
             activeAccountAddress={activeAccountAddress}
             chainFilter={chainFilter}
+            hideBridgingSection={hideBridgingSection}
             onSelectCurrency={onSelectCurrencyCallback}
           />
         )
@@ -270,6 +273,7 @@ export function TokenSelectorContent({
             oppositeSelectedToken={input}
             activeAccountAddress={activeAccountAddress}
             chainFilter={chainFilter}
+            hideBridgingSection={hideBridgingSection}
             onSelectCurrency={onSelectCurrencyCallback}
           />
         )
@@ -290,6 +294,7 @@ export function TokenSelectorContent({
     input,
     onSendEmptyActionPress,
     output,
+    hideBridgingSection,
   ])
 
   return (

@@ -5,6 +5,7 @@ export function CurrentScreen(_props: {
   settings: TransactionSettingConfig[]
   onSubmitSwap?: (txHash?: string) => Promise<void> | void
   tokenColor?: string
+  hideBridgingSection?: boolean
 }): JSX.Element {
   throw new PlatformSplitStubError('CurrentScreen')
 }

@@ -85,7 +85,14 @@ export function PopupItem({ content, onClose }: { content: PopupContent; popKey:
       )
     }
     case PopupType.LightningBridge: {
-      return <LightningBridgePopupContent direction={content.direction} status={content.status} onClose={onClose} />
+      return (
+        <LightningBridgePopupContent
+          direction={content.direction}
+          status={content.status}
+          url={content.url}
+          onClose={onClose}
+        />
+      )
     }
     case PopupType.BitcoinBridge: {
       return (
