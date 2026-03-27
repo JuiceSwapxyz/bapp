@@ -21,9 +21,16 @@ export interface SwapFlowProps extends Omit<TransactionModalProps, 'fullscreen' 
   hideFooter?: boolean
   onSubmitSwap?: (txHash?: string) => Promise<void> | void
   tokenColor?: string
+  hideBridgingSection?: boolean
 }
 
-export function SwapFlow({ settings, onSubmitSwap, tokenColor, ...transactionModalProps }: SwapFlowProps): JSX.Element {
+export function SwapFlow({
+  settings,
+  onSubmitSwap,
+  tokenColor,
+  hideBridgingSection,
+  ...transactionModalProps
+}: SwapFlowProps): JSX.Element {
   const transactionSettingsContext = useGetTransactionSettingsContextValue()
   const swapDependenciesStore = useSwapDependenciesStoreBase()
   const swapFormStore = useSwapFormStoreBase()
@@ -37,7 +44,12 @@ export function SwapFlow({ settings, onSubmitSwap, tokenColor, ...transactionMod
           {/* Re-create the SwapTxStoreContextProvider, since rendering within a Portal causes its children to be in a separate component tree. */}
           <SwapTxStoreContextProvider>
             <SwapDependenciesStoreContext.Provider value={swapDependenciesStore}>
-              <CurrentScreen settings={settings} tokenColor={tokenColor} onSubmitSwap={onSubmitSwap} />
+              <CurrentScreen
+                settings={settings}
+                tokenColor={tokenColor}
+                onSubmitSwap={onSubmitSwap}
+                hideBridgingSection={hideBridgingSection}
+              />
             </SwapDependenciesStoreContext.Provider>
           </SwapTxStoreContextProvider>
         </SwapFormStoreContext.Provider>

@@ -90,6 +90,7 @@ export type PopupContent =
       id: string
       direction: LightningBridgeDirection
       status: LdsBridgeStatus
+      url?: string
     }
   | {
       type: PopupType.BitcoinBridge

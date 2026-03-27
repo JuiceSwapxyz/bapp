@@ -18,6 +18,7 @@ interface CurrencySearchModalProps {
   showCurrencyAmount?: boolean
   currencyField?: CurrencyField
   chainIds?: UniverseChainId[]
+  hideBridgingSection?: boolean
 }
 
 export default memo(function CurrencySearchModal({
@@ -27,6 +28,7 @@ export default memo(function CurrencySearchModal({
   currencyField = CurrencyField.INPUT,
   switchNetworkAction,
   chainIds,
+  hideBridgingSection,
 }: CurrencySearchModalProps) {
   return (
     <Modal
@@ -45,6 +47,7 @@ export default memo(function CurrencySearchModal({
         switchNetworkAction={switchNetworkAction}
         onDismiss={onDismiss}
         chainIds={chainIds}
+        hideBridgingSection={hideBridgingSection}
       />
     </Modal>
   )

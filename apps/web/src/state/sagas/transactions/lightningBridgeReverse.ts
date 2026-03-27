@@ -14,6 +14,7 @@ import {
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
+import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 
 interface HandleLightningBridgeReverseParams {
   step: LightningBridgeReverseStep
@@ -89,19 +90,7 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
     accepted: true,
   })
 
-  popupRegistry.addPopup(
-    {
-      type: PopupType.LightningBridge,
-      id: reverseSwap.id,
-      direction: LightningBridgeDirection.Reverse,
-      status: LdsBridgeStatus.Pending,
-    },
-    reverseSwap.id,
-  )
-
   const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], reverseSwap)
-
-  popupRegistry.removePopup(reverseSwap.id)
 
   if (claimResponse.pending) {
     setCurrentStep({
@@ -114,15 +103,24 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
       accepted: true,
     })
 
-    popupRegistry.addPopup(
-      {
-        type: PopupType.LightningBridge,
-        id: claimResponse.txHash,
-        direction: LightningBridgeDirection.Reverse,
-        status: LdsBridgeStatus.Confirmed,
-      },
-      claimResponse.txHash,
-    )
+    const explorerUrl = getExplorerLink({
+      chainId: citreaChainId,
+      data: claimResponse.txHash,
+      type: ExplorerDataType.TRANSACTION,
+    })
+
+    if (explorerUrl) {
+      popupRegistry.addPopup(
+        {
+          type: PopupType.LightningBridge,
+          id: claimResponse.txHash,
+          direction: LightningBridgeDirection.Reverse,
+          status: LdsBridgeStatus.Confirmed,
+          url: explorerUrl,
+        },
+        claimResponse.txHash,
+      )
+    }
 
     if (onSuccess) {
       yield* call(onSuccess)

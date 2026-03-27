@@ -32,6 +32,7 @@ interface SwapFormScreenProps {
   settings: TransactionSettingConfig[]
   tokenColor?: string
   focusHook?: ComponentProps<typeof BottomSheetView>['focusHook']
+  hideBridgingSection?: boolean
 }
 
 const EXIT_STYLE: FlexProps['exitStyle'] = { opacity: 0 }
@@ -45,6 +46,7 @@ export function SwapFormScreen({
   settings = [Slippage, TradeRoutingPreference],
   tokenColor,
   focusHook,
+  hideBridgingSection,
 }: SwapFormScreenProps): JSX.Element {
   const { bottomSheetViewStyles } = useTransactionModalContext()
   const { selectingCurrencyField, hideSettings } = useSwapFormStore((s) => ({
@@ -68,7 +70,11 @@ export function SwapFormScreen({
         </SwapFormScreenStoreContextProvider>
       )}
 
-      <SwapTokenSelector isModalOpen={showTokenSelector} focusHook={focusHook} />
+      <SwapTokenSelector
+        isModalOpen={showTokenSelector}
+        focusHook={focusHook}
+        hideBridgingSection={hideBridgingSection}
+      />
     </TransactionModalInnerContainer>
   )
 }
