@@ -219,10 +219,10 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
 
     const effectiveMax = Math.min(maximal, effectiveBalanceOut)
     const decimalsIn = currencyIn.decimals
-    const maxInput = parseFloat((effectiveMax / 1e8).toFixed(2))
+    const maxInput = Math.floor((effectiveMax / 1e8) * 100) / 100
     const minInput = parseFloat((minimal / 1e8).toFixed(2))
-    const minRaw = parseUnits(minInput.toString(), decimalsIn).toString()
-    const maxRaw = parseUnits(maxInput.toString(), decimalsIn).toString()
+    const minRaw = parseUnits(minInput.toFixed(2), decimalsIn).toString()
+    const maxRaw = parseUnits(maxInput.toFixed(2), decimalsIn).toString()
 
     return {
       [CurrencyField.INPUT]: {
