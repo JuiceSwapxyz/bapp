@@ -42,10 +42,10 @@ const citreaMainnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.citreascan.com'],
+      http: ['https://rpc.juiceswap.com'],
     },
     public: {
-      http: ['https://rpc.citreascan.com'],
+      http: ['https://rpc.juiceswap.com'],
     },
   },
   blockExplorers: {
@@ -94,16 +94,16 @@ export const CITREA_MAINNET_CHAIN_INFO = {
   pendingTransactionsRetryOptions: undefined,
   rpcUrls: {
     [RPCType.Public]: {
-      http: ['https://rpc.citreascan.com'],
+      http: ['https://rpc.juiceswap.com'],
     },
     [RPCType.Default]: {
-      http: ['https://rpc.citreascan.com'],
+      http: ['https://rpc.juiceswap.com'],
     },
     [RPCType.Fallback]: {
-      http: ['https://rpc.citreascan.com'],
+      http: ['https://rpc.juiceswap.com'],
     },
     [RPCType.Interface]: {
-      http: ['https://rpc.citreascan.com'],
+      http: ['https://rpc.juiceswap.com'],
     },
   },
   // 100 JUSD for USD price quotes (JUSD has 18 decimals, so 100 * 10^18)
