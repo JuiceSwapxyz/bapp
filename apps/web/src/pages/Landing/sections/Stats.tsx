@@ -171,7 +171,7 @@ function Cards({ inView }: { inView: boolean }) {
   // Currently hardcoded, BE task [DAT-1435] to make this data available
   const allTimeVolume = 5.2 * 10 ** 6
   const allTimeUsers = 82886
-  const totalSwaps = 13218
+  const totalPools = 44
   const displayTVL = totalTVL > 0 ? totalTVL : 575000
 
   // Show bApps campaign card for Citrea Testnet
@@ -212,9 +212,9 @@ function Cards({ inView }: { inView: boolean }) {
       </LeftBottom>
       <RightBottom>
         <StatCard
-          title={t('stats.totalSwaps')}
+          title={t('stats.totalPools')}
           value={formatNumberOrString({
-            value: totalSwaps,
+            value: totalPools,
             type: NumberType.TokenQuantityStats,
           })}
           delay={0.6}
