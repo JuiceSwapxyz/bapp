@@ -172,7 +172,6 @@ function Cards({ inView }: { inView: boolean }) {
   const allTimeVolume = 5.2 * 10 ** 6
   const allTimeUsers = 82886
   const totalSwaps = 13218
-  // Fallback TVL when API data is not available (e.g. landing page outside ExploreContext)
   const displayTVL = totalTVL > 0 ? totalTVL : 575000
 
   // Show bApps campaign card for Citrea Testnet
