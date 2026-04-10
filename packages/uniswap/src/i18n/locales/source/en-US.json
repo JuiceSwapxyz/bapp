@@ -1806,6 +1806,8 @@
   "stats.24swapVolume": "24H swap volume",
   "stats.24volume": "24H volume",
   "stats.allTimeSwappers": "All time swappers",
+  "stats.allTimeUsers": "All time users",
+  "stats.totalSwaps": "Total swaps",
   "stats.allTimeVolume": "All time volume",
   "stats.fdv": "FDV",
   "stats.fdv.description": "Fully diluted valuation (FDV) calculates the total market value assuming all tokens are in circulation.",

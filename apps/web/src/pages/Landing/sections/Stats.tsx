@@ -1,7 +1,7 @@
 import { LiveIcon, StatCard } from 'pages/Landing/components/StatCard'
 import { useInView } from 'pages/Landing/sections/useInView'
 import { useTranslation } from 'react-i18next'
-import { use24hProtocolVolume, useDailyTVLWithChange } from 'state/explore/protocolStats'
+import { useDailyTVLWithChange } from 'state/explore/protocolStats'
 import { ExternalLink } from 'theme/components/Links'
 import { Flex, Text, styled } from 'ui/src'
 import { RightArrow } from 'ui/src/components/icons/RightArrow'
@@ -166,12 +166,14 @@ const RightBottom = styled(Flex, {
 function Cards({ inView }: { inView: boolean }) {
   const { t } = useTranslation()
   const { convertFiatAmountFormatted, formatNumberOrString } = useLocalizationContext()
-  const { totalVolume } = use24hProtocolVolume()
   const { totalTVL } = useDailyTVLWithChange()
   const { defaultChainId } = useEnabledChains()
   // Currently hardcoded, BE task [DAT-1435] to make this data available
-  const allTimeVolume = 3.3 * 10 ** 12
-  const allTimeSwappers = 119 * 10 ** 6
+  const allTimeVolume = 5.2 * 10 ** 6
+  const allTimeUsers = 82886
+  const totalSwaps = 13218
+  // Fallback TVL when API data is not available (e.g. landing page outside ExploreContext)
+  const displayTVL = totalTVL > 0 ? totalTVL : 575000
 
   // Show bApps campaign card for Citrea Testnet
   const showBAppsCard = defaultChainId === UniverseChainId.CitreaTestnet
@@ -193,16 +195,16 @@ function Cards({ inView }: { inView: boolean }) {
       <RightTop>
         <StatCard
           title={t('stats.tvl')}
-          value={convertFiatAmountFormatted(totalTVL, NumberType.FiatTokenStats)}
+          value={convertFiatAmountFormatted(displayTVL, NumberType.FiatTokenStats)}
           delay={0.2}
           inView={inView}
         />
       </RightTop>
       <LeftBottom>
         <StatCard
-          title={t('stats.allTimeSwappers')}
+          title={t('stats.allTimeUsers')}
           value={formatNumberOrString({
-            value: allTimeSwappers,
+            value: allTimeUsers,
             type: NumberType.TokenQuantityStats,
           })}
           delay={0.4}
@@ -211,14 +213,13 @@ function Cards({ inView }: { inView: boolean }) {
       </LeftBottom>
       <RightBottom>
         <StatCard
-          title={t('stats.24swapVolume')}
-          value={convertFiatAmountFormatted(totalVolume, NumberType.FiatTokenStats)}
-          live
+          title={t('stats.totalSwaps')}
+          value={formatNumberOrString({
+            value: totalSwaps,
+            type: NumberType.TokenQuantityStats,
+          })}
           delay={0.6}
           inView={inView}
-          titleColor="#FF9800"
-          valueColor="#FF9800"
-          gradient="swap"
         />
       </RightBottom>
     </GridArea>
