@@ -6,16 +6,16 @@ jobs:
   deploy-to-prod:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@v6
 
       - name: 🧷️ Get version
-        uses: juliangruber/read-file-action@02bbba9876a8f870efd4ad64e3b9088d3fb94d4b
+        uses: juliangruber/read-file-action@v1
         id: version
         with:
           path: VERSION
 
       - name: 🧾️ Get release notes
-        uses: juliangruber/read-file-action@02bbba9876a8f870efd4ad64e3b9088d3fb94d4b
+        uses: juliangruber/read-file-action@v1
         id: release-notes
         with:
           path: RELEASE
@@ -29,10 +29,8 @@ jobs:
           tag_prefix: ""
 
       - name: 🪽 Release
-        uses: actions/create-release@c9ba6969f07ed90fae07e2e66100dd03f9b1a50e
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.github-tag-action.outputs.new_tag }}
-          release_name: Release ${{ steps.github-tag-action.outputs.new_tag }}
+          name: Release ${{ steps.github-tag-action.outputs.new_tag }}
           body: ${{ steps.release-notes.outputs.content }}
