@@ -13,7 +13,7 @@ const tradingApiVersionPrefix = config.tradingApiWebTestEnv === 'true' ? '' : '/
 export const CHROME_EXTENSION_UNINSTALL_URL_PATH = '/extension/uninstall'
 
 export const uniswapUrls = {
-  tradingApiDocsUrl: 'https://api.juiceswap.com/',
+  tradingApiDocsUrl: 'https://api.juiceswap.com/swagger',
   unichainUrl: 'https://www.unichain.org/',
   uniswapXUrl: 'https://x.juiceswap.com/',
   helpCenterUrl: 'https://help.juiceswap.com/',
