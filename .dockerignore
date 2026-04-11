@@ -1,0 +1,14 @@
+node_modules
+.git
+.github
+.yarn/cache
+.yarn/install-state.gz
+apps/mobile
+apps/extension
+**/cypress
+**/test-results
+**/playwright-metamask-report
+**/build
+**/dist
+**/*.test.ts
+**/*.test.tsx
