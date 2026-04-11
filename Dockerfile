@@ -1,5 +1,8 @@
 FROM node:22.13.1-alpine AS builder
 
+# Native build tools for ARM64 compilation (sharp, esbuild, swc, etc.)
+RUN apk add --no-cache python3 make g++ linux-headers
+
 WORKDIR /app
 
 # Copy yarn config and lockfile
