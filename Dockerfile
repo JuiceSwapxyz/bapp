@@ -6,8 +6,10 @@ WORKDIR /app
 COPY .yarnrc.yml yarn.lock package.json ./
 COPY .yarn/ .yarn/
 
-# Copy workspace package.json files
+# Copy all workspace package.json files (yarn needs them for resolution)
 COPY apps/web/package.json apps/web/
+COPY apps/mobile/package.json apps/mobile/
+COPY apps/extension/package.json apps/extension/
 COPY packages/ packages/
 COPY config/ config/
 
