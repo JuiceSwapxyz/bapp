@@ -28,6 +28,8 @@ RUN yarn web build:${BUILD_MODE}
 # --- Serve with nginx ---
 FROM nginx:alpine
 
+RUN apk add --no-cache curl
+
 # SPA fallback: serve index.html for all routes
 RUN printf 'server {\n\
     listen 3000;\n\
@@ -49,4 +51,4 @@ COPY --from=builder /app/apps/web/build/ /usr/share/nginx/html/
 EXPOSE 3000
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=3 --start-period=5s \
-  CMD wget -qO- http://127.0.0.1:3000/ || exit 1
+  CMD curl -sf http://127.0.0.1:3000/ || exit 1
