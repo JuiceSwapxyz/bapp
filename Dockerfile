@@ -18,7 +18,7 @@ RUN yarn install --immutable
 
 # Copy source
 COPY apps/web/ apps/web/
-COPY tsconfig.json turbo.json ./
+COPY turbo.json ./
 
 # Build (production or development mode)
 ARG BUILD_MODE=production
