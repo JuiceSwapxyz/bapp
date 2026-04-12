@@ -1,7 +1,7 @@
 FROM node:22.13.1-alpine AS builder
 
 # Native build tools for ARM64 compilation (sharp, esbuild, swc, etc.)
-RUN apk add --no-cache python3 make g++ linux-headers
+RUN apk add --no-cache python3 make g++ linux-headers git
 
 WORKDIR /app
 
@@ -16,8 +16,8 @@ COPY apps/extension/package.json apps/extension/
 COPY packages/ packages/
 COPY config/ config/
 
-# Install dependencies
-RUN yarn install --immutable
+# Skip postinstall scripts (husky needs .git, turbo prepare not needed for web build)
+RUN YARN_ENABLE_SCRIPTS=false yarn install --immutable
 
 # Copy source
 COPY apps/web/ apps/web/
