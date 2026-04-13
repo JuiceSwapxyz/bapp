@@ -24,7 +24,7 @@ COPY apps/web/ apps/web/
 COPY turbo.json ./
 
 # Vite config uses git rev-parse HEAD for commit hash
-RUN git init && git commit --allow-empty -m "docker"
+RUN git init && git config user.email "build@docker" && git config user.name "build" && git commit --allow-empty -m "docker"
 
 # Build (production or development mode)
 ARG BUILD_MODE=production
