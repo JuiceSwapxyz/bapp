@@ -16,8 +16,8 @@ COPY apps/extension/package.json apps/extension/
 COPY packages/ packages/
 COPY config/ config/
 
-# Skip all build/postinstall scripts (husky needs .git, turbo prepare not needed for web build)
-RUN yarn install --immutable --mode=skip-build
+# Install dependencies with codegen (HUSKY=0 skips husky install which needs .git)
+RUN HUSKY=0 yarn install --immutable
 
 # Copy source
 COPY apps/web/ apps/web/
