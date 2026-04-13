@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_TAGS: dfxswiss/juiceswap-dapp:latest
+  DOCKER_TAGS: juiceswap/dapp:latest
 
 permissions:
   contents: read
