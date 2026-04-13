@@ -43,6 +43,7 @@ jobs:
           platforms: linux/arm64
           build-args: |
             BUILD_MODE=production
+            COMMIT_HASH=${{ github.sha }}
 
       - name: Install cloudflared
         run: |

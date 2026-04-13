@@ -32,8 +32,15 @@ const reactPlugin = () =>
       })
     : reactOxc()
 
-// Get git commit hash
-const commitHash = execSync('git rev-parse HEAD').toString().trim()
+// Get git commit hash (falls back to COMMIT_HASH env var for Docker builds)
+let commitHash = process.env.COMMIT_HASH || ''
+if (!commitHash) {
+  try {
+    commitHash = execSync('git rev-parse HEAD').toString().trim()
+  } catch {
+    commitHash = 'unknown'
+  }
+}
 
 export default defineConfig(({ mode }) => {
   // Load ALL env variables (including those without VITE_ prefix)

@@ -1,7 +1,7 @@
 FROM node:22.13.1-alpine AS builder
 
 # Native build tools for ARM64 compilation (sharp, esbuild, swc, etc.)
-RUN apk add --no-cache python3 make g++ linux-headers git
+RUN apk add --no-cache python3 make g++ linux-headers
 
 WORKDIR /app
 
@@ -23,12 +23,11 @@ RUN yarn install --immutable --mode=skip-build
 COPY apps/web/ apps/web/
 COPY turbo.json ./
 
-# Vite config uses git rev-parse HEAD for commit hash
-RUN git init && git commit --allow-empty -m "docker"
-
 # Build (production or development mode)
 ARG BUILD_MODE=production
+ARG COMMIT_HASH=unknown
 ENV NODE_ENV=production
+ENV COMMIT_HASH=${COMMIT_HASH}
 RUN yarn web build:${BUILD_MODE}
 
 # --- Serve with nginx ---
