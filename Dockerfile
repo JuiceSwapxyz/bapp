@@ -22,9 +22,11 @@ RUN sed -i 's/"postinstall": "husky install && yarn g:prepare"/"postinstall": "t
 # Install dependencies + native modules
 RUN yarn install
 
-# Copy turbo config (needed for codegen) and source
+# Copy turbo config, source, and mobile/extension .graphql files (needed for codegen)
 COPY turbo.json ./
 COPY apps/web/ apps/web/
+COPY apps/mobile/src/ apps/mobile/src/
+COPY apps/extension/src/ apps/extension/src/
 
 # Run codegen after native modules are built
 RUN yarn g:prepare
