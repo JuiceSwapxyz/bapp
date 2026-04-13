@@ -3,11 +3,9 @@ node_modules
 .github
 .yarn/cache
 .yarn/install-state.gz
-apps/mobile/src
 apps/mobile/android
 apps/mobile/ios
 apps/mobile/e2e
-apps/extension/src
 apps/extension/e2e
 **/cypress
 **/test-results
