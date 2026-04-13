@@ -130,8 +130,11 @@ export function useLaunchpadToken(address: string | undefined, chainId?: number)
     queryKey: ['launchpad-token', address, chainId],
     queryFn: async (): Promise<{ token: LaunchpadToken } | null> => {
       const response = await fetch(`${API_URL}/v1/launchpad/token/${address}`)
+      if (response.status === 404) {
+        return null // Not a launchpad token
+      }
       if (!response.ok) {
-        throw new Error('Token not found')
+        throw new Error('Failed to fetch launchpad token')
       }
       const data: { token: LaunchpadToken } = await response.json()
       // Verify token is on the expected chain (prevents showing testnet token on mainnet)
@@ -142,7 +145,8 @@ export function useLaunchpadToken(address: string | undefined, chainId?: number)
     },
     enabled: !!address,
     staleTime: 10_000,
-    refetchInterval: 30_000,
+    retry: false,
+    refetchInterval: (query) => (query.state.data ? 30_000 : false),
   })
 }
 
