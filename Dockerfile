@@ -16,12 +16,18 @@ COPY apps/extension/package.json apps/extension/
 COPY packages/ packages/
 COPY config/ config/
 
-# Install dependencies with codegen (HUSKY=0 skips husky install which needs .git)
-RUN HUSKY=0 yarn install --immutable
+# Disable postinstall (runs codegen before native modules are ready on ARM64)
+RUN sed -i 's/"postinstall": "husky install && yarn g:prepare"/"postinstall": "true"/' package.json
 
-# Copy source
-COPY apps/web/ apps/web/
+# Install dependencies + native modules
+RUN yarn install
+
+# Copy turbo config (needed for codegen) and source
 COPY turbo.json ./
+COPY apps/web/ apps/web/
+
+# Run codegen after native modules are built
+RUN yarn g:prepare
 
 # Build (production or development mode)
 ARG BUILD_MODE=production
