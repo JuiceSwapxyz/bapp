@@ -23,6 +23,9 @@ RUN yarn install --immutable --mode=skip-build
 COPY apps/web/ apps/web/
 COPY turbo.json ./
 
+# Vite config uses git rev-parse HEAD for commit hash
+RUN git init && git commit --allow-empty -m "docker"
+
 # Build (production or development mode)
 ARG BUILD_MODE=production
 ENV NODE_ENV=production
