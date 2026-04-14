@@ -574,7 +574,7 @@ export function useInitialCurrencyState(): {
     defaultChainId,
   ])
 
-  const outputChainIsSupported = useSupportedChainId(parsedCurrencyState.outputChainId)
+  const isCrossChainSwap = parsedCurrencyState.outputChainId && parsedCurrencyState.outputChainId !== supportedChainId
 
   const initialOutputCurrencyAddress = useMemo(() => {
     // If there are parsed output currency params, use them
@@ -588,8 +588,8 @@ export function useInitialCurrencyState(): {
             parsedCurrencyState.outputCurrencyAddress
           : parsedCurrencyState.outputCurrencyAddress
 
-      // clear output if identical unless there's a supported outputChainId which means we're bridging
-      if (initialInputCurrencyAddress === resolvedAddress && !outputChainIsSupported) {
+      // clear output if identical unless there's a different outputChainId which means we're bridging
+      if (initialInputCurrencyAddress === resolvedAddress && !isCrossChainSwap) {
         return undefined
       }
       return resolvedAddress
@@ -608,7 +608,7 @@ export function useInitialCurrencyState(): {
     initialInputCurrencyAddress,
     parsedCurrencyState.outputCurrencyAddress,
     parsedCurrencyState.outputChainId,
-    outputChainIsSupported,
+    isCrossChainSwap,
     hasCurrencyQueryParams,
     initialChainId,
     supportedChainId,
