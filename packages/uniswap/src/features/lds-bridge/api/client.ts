@@ -17,6 +17,8 @@ import type {
   LightningBridgeSubmarineGetResponse,
   LightningBridgeSubmarineLockResponse,
   LockupCheckResponse,
+  SponsorClaimWalletBalanceResponse,
+  SponsorClaimWalletEntry,
 } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
@@ -38,6 +40,8 @@ export type {
   LightningBridgeSubmarineGetResponse,
   LightningBridgeSubmarineLockResponse,
   LockupCheckResponse,
+  SponsorClaimWalletBalanceResponse,
+  SponsorClaimWalletEntry,
 }
 
 const LdsApiClient = createApiClient({
@@ -142,3 +146,6 @@ export async function fetchBoltzBalance(): Promise<BoltzBalanceItem[]> {
   return await LdsApiClient.get<BoltzBalanceItem[]>('/boltz/balance')
 }
 
+export async function sponsorClaimWalletBalance(): Promise<SponsorClaimWalletBalanceResponse> {
+  return await LdsApiClient.get<SponsorClaimWalletBalanceResponse>('/claim/wallet/all')
+}
