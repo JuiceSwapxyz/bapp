@@ -18,7 +18,10 @@ import {
   buildErc20LockupTx,
   buildEvmLockupTx,
   checkErc20Allowance,
+  claimCoinSwap,
+  claimErc20Swap,
   getLdsBridgeManager,
+  satoshiToWei,
 } from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
 import { WbtcBridgeStep, WbtcBridgeSubStep } from 'uniswap/src/features/transactions/swap/steps/wbtcBridge'
@@ -368,56 +371,102 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
     DEFAULT_TXN_DISMISS_MS,
   )
 
+  const destChainId = isWbtcToCbtc ? citreaChainId : UniverseChainId.Mainnet
+  const isSponsoredAvailable = yield* call([ldsBridge, ldsBridge.isSponsoredClaimWalletEligible], destChainId)
+
+  let claimTxHash: string | undefined
+
   try {
-    const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
+    if (isSponsoredAvailable) {
+      const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
 
-    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
+      if (claimResponse.pending) {
+        setCurrentStep({
+          step: { ...step, subStep: WbtcBridgeSubStep.ClaimPending, txHash: claimResponse.txHash },
+          accepted: false,
+        })
+      }
+      if (claimResponse.txHash && claimResponse.success) {
+        claimTxHash = claimResponse.txHash
+      }
+    } else {
+      try {
+        yield* call(selectChain, destChainId)
+        yield* call(waitForNetwork, destChainId)
+      } catch (_error) {
+        yield* call(waitForNetwork, destChainId)
+      }
 
-    if (claimResponse.pending) {
-      setCurrentStep({
-        step: { ...step, subStep: WbtcBridgeSubStep.ClaimPending, txHash: claimResponse.txHash },
-        accepted: false,
-      })
-    } else if (claimResponse.txHash && claimResponse.success) {
-      setCurrentStep({ step: { ...step, subStep: WbtcBridgeSubStep.Complete }, accepted: true })
+      let destClient
+      try {
+        destClient = yield* call(getConnectorClientForChain, destChainId)
+      } catch (error) {
+        throw new TransactionStepFailedError({
+          message: `Failed to get connector client for destination chain: ${error instanceof Error ? error.message : String(error)}`,
+          step,
+          originalError: error instanceof Error ? error : new Error(String(error)),
+        })
+      }
 
-      const fromChainId = sourceChainId
-      const toChainId = isWbtcToCbtc ? citreaChainId : UniverseChainId.Mainnet
+      const destProvider = clientToProvider(destClient, destChainId)
+      if (!destProvider) {
+        throw new TransactionStepFailedError({ message: 'Failed to get provider for claim', step })
+      }
+      const destSigner = destProvider.getSigner(account.address)
 
-      const explorerUrl = getExplorerLink({
-        chainId: toChainId,
-        data: claimResponse.txHash,
-        type: ExplorerDataType.TRANSACTION,
-      })
-
-      popupRegistry.addPopup(
-        {
-          type: PopupType.Erc20ChainSwap,
-          id: claimResponse.txHash,
-          fromChainId,
-          toChainId,
-          fromAsset: from,
-          toAsset: to,
-          status: LdsBridgeStatus.Confirmed,
-          url: explorerUrl,
-        },
-        claimResponse.txHash,
-      )
-
-      if (onSuccess) {
-        yield* call(onSuccess)
+      if (isWbtcToCbtc) {
+        claimTxHash = yield* call(claimCoinSwap, {
+          signer: destSigner,
+          contractAddress: chainSwap.claimDetails.lockupAddress,
+          preimage: chainSwap.preimage,
+          amount: satoshiToWei(chainSwap.claimDetails.amount),
+          refundAddress: chainSwap.claimDetails.refundAddress!,
+          timelock: chainSwap.claimDetails.timeoutBlockHeight,
+        })
+      } else {
+        claimTxHash = yield* call(claimErc20Swap, {
+          signer: destSigner,
+          contractAddress: SWAP_CONTRACTS.ethereum,
+          tokenAddress: TOKEN_CONFIGS[to].address,
+          preimage: chainSwap.preimage,
+          amount: BigInt(chainSwap.claimDetails.amount),
+          refundAddress: chainSwap.claimDetails.refundAddress!,
+          timelock: chainSwap.claimDetails.timeoutBlockHeight,
+        })
       }
     }
-  } catch (error) {
+  } finally {
     popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
-    logger.error(error instanceof Error ? error : new Error(String(error)), {
-      tags: { file: 'wbtcBridge', function: 'handleWbtcBridge' },
-      extra: { swapId: chainSwap.id, step: 'autoClaimSwapById' },
+  }
+
+  if (claimTxHash) {
+    setCurrentStep({ step: { ...step, subStep: WbtcBridgeSubStep.Complete }, accepted: true })
+
+    const fromChainId = sourceChainId
+    const toChainId = isWbtcToCbtc ? citreaChainId : UniverseChainId.Mainnet
+
+    const explorerUrl = getExplorerLink({
+      chainId: toChainId,
+      data: claimTxHash,
+      type: ExplorerDataType.TRANSACTION,
     })
-    throw new TransactionStepFailedError({
-      message: `Auto-claim failed: ${error instanceof Error ? error.message : String(error)}`,
-      step,
-      originalError: error instanceof Error ? error : new Error(String(error)),
-    })
+
+    popupRegistry.addPopup(
+      {
+        type: PopupType.Erc20ChainSwap,
+        id: claimTxHash,
+        fromChainId,
+        toChainId,
+        fromAsset: from,
+        toAsset: to,
+        status: LdsBridgeStatus.Confirmed,
+        url: explorerUrl,
+      },
+      claimTxHash,
+    )
+
+    if (onSuccess) {
+      yield* call(onSuccess)
+    }
   }
 }

@@ -13,8 +13,8 @@ import {
   fetchSubmarineTransactionsBySwapId,
   fetchSwapCurrentStatus,
   helpMeClaim,
+  sponsorClaimWalletBalance,
 } from 'uniswap/src/features/lds-bridge/api/client'
-import { fetchBlockTipHeight } from 'uniswap/src/features/lds-bridge/api/mempool'
 import { createLdsSocketClient } from 'uniswap/src/features/lds-bridge/api/socket'
 import { ChainSwapKeys, generateChainSwapKeys } from 'uniswap/src/features/lds-bridge/keys/chainSwapKeys'
 import type {
@@ -35,7 +35,6 @@ import {
   LdsSwapStatus,
   hasReachedStatus,
   swapStatusFinal,
-  swapStatusPending,
 } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 import { StorageManager } from 'uniswap/src/features/lds-bridge/storage/StorageManager'
 import { prefix0x } from 'uniswap/src/features/lds-bridge/utils/hex'
@@ -51,6 +50,13 @@ export const ASSET_CHAIN_ID_MAP: Record<string, UniverseChainId> = {
   'JUSD_CITREA': UniverseChainId.CitreaMainnet,
   'BTC': UniverseChainId.Bitcoin,
   'WBTC_ETH': UniverseChainId.Mainnet,
+}
+
+export const minimumBalanceForSponsoredClaim: Partial<Record<UniverseChainId, number>> = {
+  [UniverseChainId.CitreaMainnet]: 0.0000001,
+  [UniverseChainId.CitreaTestnet]: 0.0000001,
+  [UniverseChainId.Mainnet]: 0.0001,
+  [UniverseChainId.Polygon]: 0.0001,
 }
 
 /* eslint-disable max-params, @typescript-eslint/no-non-null-assertion, consistent-return, @typescript-eslint/explicit-function-return-type, max-lines */
@@ -246,6 +252,21 @@ class LdsBridgeManager {
     this._subscribeToSwapUpdates(chainSwapResponse.id)
     await this.waitForSwapUntilState(chainSwapResponse.id, LdsSwapStatus.SwapCreated)
     return chainSwap
+  }
+
+  isSponsoredClaimWalletEligible = async (chainId: UniverseChainId): Promise<boolean> => {
+    try {
+      const minimum = minimumBalanceForSponsoredClaim[chainId]
+      if (minimum === undefined) {
+        return false
+      }
+      const balance = await sponsorClaimWalletBalance()
+      const walletBalance = parseFloat(balance.wallets[String(chainId)]?.balance ?? '0')
+      return walletBalance >= minimum
+    } catch (error) {
+      console.error('[LdsBridgeManager] Error checking sponsored claim wallet eligibility:', error)
+      return false
+    }
   }
 
   autoClaimSwap = async (swap: SomeSwap): Promise<HelpMeClaimResponse> => {

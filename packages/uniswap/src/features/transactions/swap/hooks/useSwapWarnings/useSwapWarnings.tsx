@@ -16,6 +16,7 @@ import { getFormIncompleteWarning } from 'uniswap/src/features/transactions/swap
 import { getPriceImpactWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getPriceImpactWarning'
 import { getSwapWarningFromError } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getSwapWarningFromError'
 import { getTokenBlockedWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getTokenBlockedWarning'
+import { useSponsoredClaimWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/useSponsoredClaimWarning'
 import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
@@ -105,10 +106,12 @@ export function useParsedSwapWarnings(): ParsedWarnings {
   const swapWarnings = useSwapWarnings(derivedSwapInfo)
 
   const gasWarning = useTransactionGasWarning({ account, derivedInfo: derivedSwapInfo, gasFee: gasFee.value })
+  const sponsoredClaimWarning = useSponsoredClaimWarning({ account, derivedSwapInfo })
 
   const allWarnings = useMemo(() => {
-    return !gasWarning ? swapWarnings : [...swapWarnings, gasWarning]
-  }, [gasWarning, swapWarnings])
+    const extras = [gasWarning, sponsoredClaimWarning].filter((w): w is Warning => w !== undefined)
+    return extras.length > 0 ? [...swapWarnings, ...extras] : swapWarnings
+  }, [gasWarning, sponsoredClaimWarning, swapWarnings])
 
   return useFormattedWarnings(allWarnings)
 }

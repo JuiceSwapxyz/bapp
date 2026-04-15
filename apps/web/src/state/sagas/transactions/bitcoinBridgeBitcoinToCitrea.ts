@@ -1,10 +1,18 @@
 import BigNumber from 'bignumber.js'
 import { popupRegistry } from 'components/Popups/registry'
 import { BitcoinBridgeDirection, LdsBridgeStatus, PopupType } from 'components/Popups/types'
+import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
+import { clientToProvider } from 'hooks/useEthersProvider'
 import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { call } from 'typed-redux-saga'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { LdsSwapStatus, btcToSat, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import {
+  LdsSwapStatus,
+  btcToSat,
+  claimCoinSwap,
+  getLdsBridgeManager,
+  satoshiToWei,
+} from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
 import {
   BitcoinBridgeBitcoinToCitreaStep,
@@ -13,6 +21,8 @@ import {
 import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/swapCallback'
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
+import type { Chain, Client, Transport } from 'viem'
+import { getConnectorClient } from 'wagmi/actions'
 
 interface HandleBitcoinBridgeBitcoinToCitreaParams {
   step: BitcoinBridgeBitcoinToCitreaStep
@@ -108,14 +118,43 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
     accepted: true,
   })
 
-  const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
+  const isSponsoredAvailable = yield* call([ldsBridge, ldsBridge.isSponsoredClaimWalletEligible], citreaChainId)
 
-  if (claimResponse.pending) {
-    setCurrentStep({
-      step: { ...step, subStep: BtcToCitreaSubStep.ClaimPending, txHash: claimResponse.txHash },
-      accepted: false,
+  let claimTxHash: string | undefined
+
+  if (isSponsoredAvailable) {
+    const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
+
+    if (claimResponse.pending) {
+      setCurrentStep({
+        step: { ...step, subStep: BtcToCitreaSubStep.ClaimPending, txHash: claimResponse.txHash },
+        accepted: false,
+      })
+    }
+    if (claimResponse.txHash && claimResponse.success) {
+      claimTxHash = claimResponse.txHash
+    }
+  } else {
+    const client = (yield* call(async () => getConnectorClient(wagmiConfig, { chainId: citreaChainId as any }))) as
+      | Client<Transport, Chain>
+      | undefined
+    const provider = clientToProvider(client, citreaChainId)
+    if (!provider) {
+      throw new TransactionStepFailedError({ message: 'Failed to get provider for claim', step })
+    }
+    const signer = provider.getSigner(account.address)
+
+    claimTxHash = yield* call(claimCoinSwap, {
+      signer,
+      contractAddress: chainSwap.claimDetails.lockupAddress,
+      preimage: chainSwap.preimage,
+      amount: satoshiToWei(chainSwap.claimDetails.amount),
+      refundAddress: chainSwap.claimDetails.refundAddress!,
+      timelock: chainSwap.claimDetails.timeoutBlockHeight,
     })
-  } else if (claimResponse.txHash && claimResponse.success) {
+  }
+
+  if (claimTxHash) {
     setCurrentStep({
       step: { ...step, subStep: BtcToCitreaSubStep.Complete },
       accepted: true,
@@ -124,12 +163,12 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
     popupRegistry.addPopup(
       {
         type: PopupType.BitcoinBridge,
-        id: claimResponse.txHash,
+        id: claimTxHash,
         status: LdsBridgeStatus.Confirmed,
         direction: BitcoinBridgeDirection.BitcoinToCitrea,
         url: '/bridge-swaps',
       },
-      claimResponse.txHash,
+      claimTxHash,
     )
     if (onSuccess) {
       yield* call(onSuccess)

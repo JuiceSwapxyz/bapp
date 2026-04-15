@@ -49,6 +49,7 @@ export function SwapErrorScreen({
       submissionError.step.type === TransactionStepType.BitcoinBridgeCitreaToBitcoinStep ||
       submissionError.step.type === TransactionStepType.LightningBridgeSubmarineStep ||
       submissionError.step.type === TransactionStepType.LightningBridgeReverseStep ||
+      submissionError.step.type === TransactionStepType.Erc20ChainSwapStep ||
       submissionError.step.type === TransactionStepType.WbtcBridgeStep)
 
   const isBridgeBackendAccepted = isBridgeError && (submissionError.step as BitcoinBridgeBitcoinToCitreaStep | BitcoinBridgeCitreaToBitcoinStep).backendAccepted
