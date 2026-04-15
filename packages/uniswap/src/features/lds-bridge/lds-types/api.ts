@@ -7,6 +7,16 @@ export interface BoltzBalanceItem {
   direction?: 'incoming' | 'outgoing'
 }
 
+export interface SponsorClaimWalletEntry {
+  address: string
+  balance: string
+  error?: string
+}
+
+export interface SponsorClaimWalletBalanceResponse {
+  wallets: Record<string, SponsorClaimWalletEntry>
+}
+
 interface LightningBridgePairInfo {
   hash: string
   rate: number

@@ -25,4 +25,4 @@ export * from './api/mempool'
 export * from './api/socket'
 
 // Manager
-export { getLdsBridgeManager } from './LdsBridgeManager'
+export { getLdsBridgeManager, minimumBalanceForSponsoredClaim } from './LdsBridgeManager'

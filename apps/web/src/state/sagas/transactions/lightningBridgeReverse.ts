@@ -1,11 +1,19 @@
 import { BigNumber } from 'bignumber.js'
 import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
+import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
+import { clientToProvider } from 'hooks/useEthersProvider'
 import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { call } from 'typed-redux-saga'
 import { LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
-import { LdsSwapStatus, btcToSat, getLdsBridgeManager } from 'uniswap/src/features/lds-bridge'
+import {
+  LdsSwapStatus,
+  btcToSat,
+  claimCoinSwap,
+  getLdsBridgeManager,
+  satoshiToWei,
+} from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
 import {
   LightningBridgeReverseStep,
@@ -15,6 +23,8 @@ import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/s
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
+import type { Chain, Client, Transport } from 'viem'
+import { getConnectorClient } from 'wagmi/actions'
 
 interface HandleLightningBridgeReverseParams {
   step: LightningBridgeReverseStep
@@ -90,14 +100,43 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
     accepted: true,
   })
 
-  const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], reverseSwap)
+  const isSponsoredAvailable = yield* call([ldsBridge, ldsBridge.isSponsoredClaimWalletEligible], citreaChainId)
 
-  if (claimResponse.pending) {
-    setCurrentStep({
-      step: { ...step, subStep: LnReverseSubStep.ClaimPending, txHash: claimResponse.txHash },
-      accepted: false,
+  let claimTxHash: string | undefined
+
+  if (isSponsoredAvailable) {
+    const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], reverseSwap)
+
+    if (claimResponse.pending) {
+      setCurrentStep({
+        step: { ...step, subStep: LnReverseSubStep.ClaimPending, txHash: claimResponse.txHash },
+        accepted: false,
+      })
+    }
+    if (claimResponse.txHash && claimResponse.success) {
+      claimTxHash = claimResponse.txHash
+    }
+  } else {
+    const client = (yield* call(async () => getConnectorClient(wagmiConfig, { chainId: citreaChainId as any }))) as
+      | Client<Transport, Chain>
+      | undefined
+    const provider = clientToProvider(client, citreaChainId)
+    if (!provider) {
+      throw new TransactionStepFailedError({ message: 'Failed to get provider for claim', step })
+    }
+    const signer = provider.getSigner(account.address)
+
+    claimTxHash = yield* call(claimCoinSwap, {
+      signer,
+      contractAddress: reverseSwap.lockupAddress,
+      preimage: reverseSwap.preimage,
+      amount: satoshiToWei(reverseSwap.onchainAmount),
+      refundAddress: reverseSwap.refundAddress,
+      timelock: reverseSwap.timeoutBlockHeight,
     })
-  } else if (claimResponse.txHash && claimResponse.success) {
+  }
+
+  if (claimTxHash) {
     setCurrentStep({
       step: { ...step, subStep: LnReverseSubStep.Complete },
       accepted: true,
@@ -105,7 +144,7 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
 
     const explorerUrl = getExplorerLink({
       chainId: citreaChainId,
-      data: claimResponse.txHash,
+      data: claimTxHash,
       type: ExplorerDataType.TRANSACTION,
     })
 
@@ -113,12 +152,12 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
       popupRegistry.addPopup(
         {
           type: PopupType.LightningBridge,
-          id: claimResponse.txHash,
+          id: claimTxHash,
           direction: LightningBridgeDirection.Reverse,
           status: LdsBridgeStatus.Confirmed,
           url: explorerUrl,
         },
-        claimResponse.txHash,
+        claimTxHash,
       )
     }
 

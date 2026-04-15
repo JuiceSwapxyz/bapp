@@ -2,7 +2,6 @@ import { ADDRESS } from '@juicedollar/jusd'
 import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
-import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { call } from 'typed-redux-saga'
@@ -13,6 +12,7 @@ import {
   approveErc20ForLdsBridge,
   buildErc20LockupTx,
   checkErc20Allowance,
+  claimErc20Swap,
   getLdsBridgeManager,
 } from 'uniswap/src/features/lds-bridge'
 import { TransactionStepFailedError } from 'uniswap/src/features/transactions/errors'
@@ -422,17 +422,12 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     accepted: false,
   })
 
-  // Show claim in progress popup
-  popupRegistry.addPopup(
-    {
-      type: PopupType.ClaimInProgress,
-      count: 1,
-    },
-    `claim-in-progress-${chainSwap.id}`,
-    DEFAULT_TXN_DISMISS_MS,
-  )
+  const destChainId = TOKEN_CONFIGS[to].chainId
+  const isSponsoredAvailable = yield* call([ldsBridge, ldsBridge.isSponsoredClaimWalletEligible], destChainId)
 
-  try {
+  let claimTxHash: string | undefined
+
+  if (isSponsoredAvailable) {
     const claimResponse = yield* call([ldsBridge, ldsBridge.autoClaimSwap], chainSwap)
 
     if (claimResponse.pending) {
@@ -441,47 +436,84 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
         accepted: false,
       })
     }
-
     if (claimResponse.txHash && claimResponse.success) {
-      const fromChainId = TOKEN_CONFIGS[from].chainId
-      const toChainId = TOKEN_CONFIGS[to].chainId
-
-      const explorerUrl = getExplorerLink({
-        chainId: toChainId,
-        data: claimResponse.txHash,
-        type: ExplorerDataType.TRANSACTION,
-      })
-
-      popupRegistry.addPopup(
-        {
-          type: PopupType.Erc20ChainSwap,
-          id: claimResponse.txHash,
-          fromChainId,
-          toChainId,
-          fromAsset: from,
-          toAsset: to,
-          status: LdsBridgeStatus.Confirmed,
-          url: explorerUrl,
-        },
-        claimResponse.txHash,
-      )
-
-      if (onSuccess) {
-        yield* call(onSuccess)
-      }
+      claimTxHash = claimResponse.txHash
     }
-  } catch (error) {
-    logger.error(error instanceof Error ? error : new Error(String(error)), {
-      tags: { file: 'erc20ChainSwap', function: 'handleErc20ChainSwap' },
-      extra: { swapId: chainSwap.id, step: 'autoClaimSwapById' },
+  } else {
+    const destTokenAddress = TOKEN_CONFIGS[to].address
+
+    try {
+      yield* call(selectChain, destChainId)
+      yield* call(waitForNetwork, destChainId)
+    } catch (_error) {
+      yield* call(waitForNetwork, destChainId)
+    }
+
+    let destClient
+    try {
+      destClient = yield* call(getConnectorClientForChain, destChainId)
+    } catch (error) {
+      throw new TransactionStepFailedError({
+        message: `Failed to get connector client for destination chain: ${error instanceof Error ? error.message : String(error)}`,
+        step,
+        originalError: error instanceof Error ? error : new Error(String(error)),
+      })
+    }
+
+    const destProvider = clientToProvider(destClient, destChainId)
+    if (!destProvider) {
+      throw new TransactionStepFailedError({ message: 'Failed to get provider for claim', step })
+    }
+    const destSigner = destProvider.getSigner(account.address)
+
+    const destSwapContract =
+      destChainId === UniverseChainId.Mainnet
+        ? SWAP_CONTRACTS.ethereum
+        : destChainId === UniverseChainId.Polygon
+          ? SWAP_CONTRACTS.polygon
+          : getCitreaSwapContract(citreaChainId)
+
+    const claimAmount =
+      (BigInt(chainSwap.claimDetails.amount) * 10n ** BigInt(TOKEN_CONFIGS[to].decimals)) /
+      10n ** BigInt(BOLTZ_DECIMALS)
+
+    claimTxHash = yield* call(claimErc20Swap, {
+      signer: destSigner,
+      contractAddress: destSwapContract,
+      tokenAddress: destTokenAddress,
+      preimage: chainSwap.preimage,
+      amount: claimAmount,
+      refundAddress: chainSwap.claimDetails.refundAddress!,
+      timelock: chainSwap.claimDetails.timeoutBlockHeight,
     })
-    throw new TransactionStepFailedError({
-      message: `Auto-claim failed: ${error instanceof Error ? error.message : String(error)}`,
-      step,
-      originalError: error instanceof Error ? error : new Error(String(error)),
+  }
+
+  if (claimTxHash) {
+    const fromChainId = TOKEN_CONFIGS[from].chainId
+    const toChainId = TOKEN_CONFIGS[to].chainId
+
+    const explorerUrl = getExplorerLink({
+      chainId: toChainId,
+      data: claimTxHash,
+      type: ExplorerDataType.TRANSACTION,
     })
-  } finally {
-    // Remove claim in progress popup on error
-    popupRegistry.removePopup(`claim-in-progress-${chainSwap.id}`)
+
+    popupRegistry.addPopup(
+      {
+        type: PopupType.Erc20ChainSwap,
+        id: claimTxHash,
+        fromChainId,
+        toChainId,
+        fromAsset: from,
+        toAsset: to,
+        status: LdsBridgeStatus.Confirmed,
+        url: explorerUrl,
+      },
+      claimTxHash,
+    )
+
+    if (onSuccess) {
+      yield* call(onSuccess)
+    }
   }
 }
