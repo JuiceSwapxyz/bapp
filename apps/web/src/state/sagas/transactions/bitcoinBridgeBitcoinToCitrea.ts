@@ -22,7 +22,7 @@ import { SetCurrentStepFn } from 'uniswap/src/features/transactions/swap/types/s
 import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 import type { Chain, Client, Transport } from 'viem'
-import { getConnectorClient } from 'wagmi/actions'
+import { getConnectorClient, switchChain } from 'wagmi/actions'
 
 interface HandleBitcoinBridgeBitcoinToCitreaParams {
   step: BitcoinBridgeBitcoinToCitreaStep
@@ -135,6 +135,8 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
       claimTxHash = claimResponse.txHash
     }
   } else {
+    yield* call(async () => switchChain(wagmiConfig, { chainId: citreaChainId as any }).catch(() => {}))
+
     const client = (yield* call(async () => getConnectorClient(wagmiConfig, { chainId: citreaChainId as any }))) as
       | Client<Transport, Chain>
       | undefined

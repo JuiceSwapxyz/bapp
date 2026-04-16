@@ -24,7 +24,7 @@ import { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 import { ExplorerDataType, getExplorerLink } from 'uniswap/src/utils/linking'
 import type { Chain, Client, Transport } from 'viem'
-import { getConnectorClient } from 'wagmi/actions'
+import { getConnectorClient, switchChain } from 'wagmi/actions'
 
 interface HandleLightningBridgeReverseParams {
   step: LightningBridgeReverseStep
@@ -117,6 +117,8 @@ export function* handleLightningBridgeReverse(params: HandleLightningBridgeRever
       claimTxHash = claimResponse.txHash
     }
   } else {
+    yield* call(async () => switchChain(wagmiConfig, { chainId: citreaChainId as any }).catch(() => {}))
+
     const client = (yield* call(async () => getConnectorClient(wagmiConfig, { chainId: citreaChainId as any }))) as
       | Client<Transport, Chain>
       | undefined
