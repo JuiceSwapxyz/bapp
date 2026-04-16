@@ -159,7 +159,7 @@ export async function claimErc20Swap(params: {
   const tx = await swapContract.claim(prefix0x(preimage), amount, tokenAddress, refundAddress, timelock)
 
   const receipt = await tx.wait()
-  
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return receipt.transactionHash
 }
@@ -185,7 +185,7 @@ export async function claimCoinSwap(params: {
 
   const receipt = await tx.wait()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return receipt.hash
+  return receipt.transactionHash
 }
 
 export async function refundCoinSwap(params: {
@@ -210,7 +210,7 @@ export async function refundCoinSwap(params: {
 
   const receipt = await tx.wait()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return receipt.hash
+  return receipt.transactionHash
 }
 
 export async function refundErc20Swap(params: {
@@ -239,5 +239,5 @@ export async function refundErc20Swap(params: {
 
   const receipt = await tx.wait()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return receipt.hash
+  return receipt.transactionHash
 }
