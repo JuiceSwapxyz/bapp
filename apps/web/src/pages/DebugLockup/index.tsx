@@ -1,16 +1,21 @@
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
-import { clientToProvider } from 'hooks/useEthersProvider'
+import { LDS_BRIDGE_LOCKUP_CONTRACTS_BY_CHAIN_ID } from 'constants/ldsBridgeContracts'
 import { useAccount } from 'hooks/useAccount'
-import { useCallback, useState, useMemo } from 'react'
-import { Button, Flex, Input, Text } from 'ui/src'
+import { clientToProvider } from 'hooks/useEthersProvider'
+import { useCallback, useMemo, useState } from 'react'
+import { Button, Flex, Input, Text, styled } from 'ui/src'
 import { AlertTriangle } from 'ui/src/components/icons/AlertTriangle'
 import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
-import { styled } from 'ui/src'
-import { buildErc20LockupTx, buildEvmLockupTx, checkErc20Allowance, approveErc20ForLdsBridge } from 'uniswap/src/features/lds-bridge/transactions/evm'
-import { logger } from 'utilities/src/logger/logger'
-import { getConnectorClient, switchChain } from 'wagmi/actions'
-import { parseUnits } from 'viem'
 import { getLdsBridgeManager } from 'uniswap/src/features/lds-bridge/LdsBridgeManager'
+import {
+  approveErc20ForLdsBridge,
+  buildErc20LockupTx,
+  buildEvmLockupTx,
+  checkErc20Allowance,
+} from 'uniswap/src/features/lds-bridge/transactions/evm'
+import { logger } from 'utilities/src/logger/logger'
+import { parseUnits } from 'viem'
+import { getConnectorClient, switchChain } from 'wagmi/actions'
 window.ldsBridgeManager = getLdsBridgeManager
 const PageWrapper = styled(Flex, {
   width: '100%',
@@ -83,23 +88,6 @@ const SuccessBanner = styled(Flex, {
   alignItems: 'center',
   opacity: 0.15,
 })
-
-// Contract addresses for lockups (lowercase to avoid checksum issues)
-const CONTRACT_ADDRESSES: Record<number, { coinSwap?: string; erc20Swap: string }> = {
-  4114: {
-    // Citrea Mainnet
-    coinSwap: '0xfd92f846fe6e7d08d28d6a88676bb875e5d906ab',
-    erc20Swap: '0x7397f25f230f7d5a83c18e1b68b32511bf35f860',
-  },
-  137: {
-    // Polygon Mainnet
-    erc20Swap: '0x2e21f58da58c391f110467c7484edfa849c1cb9b',
-  },
-  1: {
-    // Ethereum Mainnet
-    erc20Swap: '0x2e21f58da58c391f110467c7484edfa849c1cb9b',
-  },
-}
 
 interface TokenInfo {
   symbol: string
@@ -191,16 +179,18 @@ export default function DebugLockup(): JSX.Element {
   const handleInputChange = (field: keyof LockupFormData, value: string | number) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value }
-      
+
       // When chain changes, reset token selection to first available token
       if (field === 'chainId') {
         const chainTokens = SUPPORTED_TOKENS.filter((t) => t.chainId === value)
         if (chainTokens.length > 0) {
           const firstToken = chainTokens[0]
-          updated.selectedToken = firstToken.address ? `${firstToken.chainId}-${firstToken.address}` : `${firstToken.chainId}-native`
+          updated.selectedToken = firstToken.address
+            ? `${firstToken.chainId}-${firstToken.address}`
+            : `${firstToken.chainId}-native`
         }
       }
-      
+
       return updated
     })
     setError('')
@@ -250,7 +240,7 @@ export default function DebugLockup(): JSX.Element {
 
     try {
       const chainId = formData.chainId
-      const contractAddresses = CONTRACT_ADDRESSES[chainId] as { coinSwap?: string; erc20Swap: string } | undefined
+      const contractAddresses = LDS_BRIDGE_LOCKUP_CONTRACTS_BY_CHAIN_ID[chainId]
 
       if (!contractAddresses) {
         throw new Error(`Chain ID ${chainId} is not supported`)
@@ -288,9 +278,7 @@ export default function DebugLockup(): JSX.Element {
       const signer = provider.getSigner()
 
       // Ensure preimageHash has 0x prefix
-      const preimageHash = formData.preimageHash.startsWith('0x')
-        ? formData.preimageHash
-        : `0x${formData.preimageHash}`
+      const preimageHash = formData.preimageHash.startsWith('0x') ? formData.preimageHash : `0x${formData.preimageHash}`
 
       if (isNativeToken) {
         // Native token (cBTC) lockup
@@ -301,7 +289,7 @@ export default function DebugLockup(): JSX.Element {
         // For cBTC, convert to satoshis (8 decimals)
         // BigInt to Number conversion - safe for amounts up to ~9 billion BTC
         const amountSatoshis = Number(amountWei)
-        
+
         if (!Number.isFinite(amountSatoshis) || amountSatoshis <= 0) {
           throw new Error(`Invalid amount for native token: ${amountSatoshis}`)
         }
@@ -335,7 +323,7 @@ export default function DebugLockup(): JSX.Element {
             tokenAddress: selectedTokenInfo.address,
             amount: amountWei,
           })
-          
+
           logger.info('DebugLockup', 'handleSubmit', `Approval tx: ${approvalResult.hash}`)
           // Wait for approval to be mined
           await approvalResult.tx.wait()
@@ -513,11 +501,7 @@ export default function DebugLockup(): JSX.Element {
             value={formData.amount}
             onChangeText={(value: string) => handleInputChange('amount', value)}
             placeholder={
-              selectedTokenInfo?.decimals === 8
-                ? '0.001'
-                : selectedTokenInfo?.decimals === 6
-                  ? '10.0'
-                  : '1.0'
+              selectedTokenInfo?.decimals === 8 ? '0.001' : selectedTokenInfo?.decimals === 6 ? '10.0' : '1.0'
             }
             inputMode="decimal"
           />

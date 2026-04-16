@@ -1,4 +1,5 @@
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
+import { LDS_BRIDGE_LOCKUP_CONTRACTS_BY_CHAIN_ID } from 'constants/ldsBridgeContracts'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { useCallback } from 'react'
 import { fetchBridgeSwapByPreimageHash } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
@@ -16,26 +17,6 @@ import {
 } from 'uniswap/src/features/lds-bridge'
 import { logger } from 'utilities/src/logger/logger'
 import { getConnectorClient, switchChain } from 'wagmi/actions'
-
-const CONTRACT_ADDRESSES: Partial<Record<number, { coinSwap?: string; erc20Swap: string }>> = {
-  4114: {
-    coinSwap: '0xFD92F846fe6E7d08d28D6A88676BB875E5D906ab',
-    erc20Swap: '0x7397F25F230f7d5A83c18e1B68b32511bf35F860',
-  },
-  5115: {
-    coinSwap: '0xd02731fD8c5FDD53B613A699234FAd5EE8851B65',
-    erc20Swap: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
-  },
-  137: {
-    erc20Swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
-  },
-  80002: {
-    erc20Swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
-  },
-  1: {
-    erc20Swap: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
-  },
-}
 
 function isNativeToken(tokenAddress: string | undefined): boolean {
   return !tokenAddress || tokenAddress === '0x0000000000000000000000000000000000000000'
@@ -88,7 +69,7 @@ export function useEvmClaim() {
       throw new Error('Preimage not found')
     }
 
-    const chainContracts = CONTRACT_ADDRESSES[chainId]
+    const chainContracts = LDS_BRIDGE_LOCKUP_CONTRACTS_BY_CHAIN_ID[chainId]
     if (!chainContracts) {
       throw new Error(`Unsupported chain ID: ${chainId}`)
     }
