@@ -33,7 +33,7 @@ function useValidatedSearchedAddress(
   searchTerm: string
   loading: boolean
 } {
-  // Check ENS (.eth and any direct subdomain) and Unitag
+  // Check ENS (.citrea and any direct subdomain) and Unitag
   const {
     loading: dotEthLoading,
     address: dotEthAddress,
