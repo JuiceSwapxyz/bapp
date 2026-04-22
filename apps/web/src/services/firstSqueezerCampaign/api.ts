@@ -49,14 +49,15 @@ class FirstSqueezerCampaignAPI {
 
   /**
    * Get campaign progress for a wallet address
-   * Fetches all verification statuses from API endpoints only
+   * Fetches status from API endpoints.
    */
   async getProgress(walletAddress: string, chainId: UniverseChainId): Promise<FirstSqueezerProgress> {
     // Fetch all statuses in parallel from API
-    const [twitterStatus, discordStatus, bAppsStatus] = await Promise.allSettled([
+    const [twitterStatus, discordStatus, bAppsStatus, eligibilityStatus] = await Promise.allSettled([
       this.getTwitterStatus(walletAddress),
       this.getDiscordStatus(walletAddress),
       this.getBAppsStatus(walletAddress),
+      this.getEligibility(walletAddress),
     ])
 
     // Extract Twitter status
@@ -71,23 +72,27 @@ class FirstSqueezerCampaignAPI {
     const discordUsername = discordData?.username || null
     const discordVerifiedAt = discordData?.verifiedAt || undefined
 
-    // Extract bApps status
+    // Extract NFT claim state (from Ponder-indexed NFTClaimed events)
     const bAppsData = bAppsStatus.status === 'fulfilled' ? bAppsStatus.value : null
-    const bAppsCompleted = bAppsData?.completedTasks === 3
     const nftClaimed = bAppsData?.nftClaimed || false
     const nftTxHash = bAppsData?.claimTxHash || undefined
 
-    // Build conditions
+    const eligibilityKnown = eligibilityStatus.status === 'fulfilled'
+    const testnetNftClaimVerified = eligibilityKnown && eligibilityStatus.value.eligible === true
+    const testnetNftClaimDescription = testnetNftClaimVerified
+      ? 'Testnet claim verified'
+      : eligibilityKnown
+        ? 'This wallet did not claim the First Squeezer NFT on Citrea Testnet during the Oct 2025 campaign'
+        : 'Could not verify the testnet claim right now. Please retry.'
+
     const conditions = [
       {
         id: 1,
-        type: ConditionType.BAPPS_COMPLETED,
-        name: 'Complete ₿apps Campaign',
-        description: 'Complete all 3 swap tasks in the Citrea ₿apps Campaign',
-        status: bAppsCompleted ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
-        completedAt: bAppsCompleted && bAppsData.tasks[2]?.completedAt ? bAppsData.tasks[2].completedAt : undefined,
-        ctaText: 'View Campaign',
-        ctaUrl: '/bapps',
+        type: ConditionType.TESTNET_NFT_CLAIMED,
+        name: 'Claimed Testnet First Squeezer NFT',
+        description: testnetNftClaimDescription,
+        status: testnetNftClaimVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
+        icon: '🧪',
       },
       {
         id: 2,
@@ -225,6 +230,22 @@ class FirstSqueezerCampaignAPI {
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to get Discord status')
     }
+  }
+
+  /**
+   * Check whether the wallet is eligible for the mainnet First Squeezer NFT.
+   * Eligibility = the wallet originally ran claim() on the testnet NFT during
+   * the Oct 2025 campaign. Throws on network/server errors so callers can
+   * differentiate "ineligible" from "could not verify".
+   */
+  async getEligibility(walletAddress: string): Promise<{ eligible: boolean }> {
+    const response = await fetch(
+      `${this.baseUrl}/v1/campaigns/first-squeezer/eligibility?walletAddress=${encodeURIComponent(walletAddress)}`,
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to get eligibility: ${response.statusText}`)
+    }
+    return response.json()
   }
 
   /**

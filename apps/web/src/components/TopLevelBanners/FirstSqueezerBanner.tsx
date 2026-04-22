@@ -154,7 +154,7 @@ export function FirstSqueezerBanner() {
               {media.md ? 'Get First Squeezer NFT! 🎁' : 'Earn Your First Squeezer NFT! 🎁'}
             </Text>
             <Text variant="body3" color="rgba(255, 255, 255, 0.9)" $md={{ display: 'none' }}>
-              Complete 3 simple tasks to claim your exclusive NFT
+              Exclusive to testnet claimers who verify X and Discord
             </Text>
           </Flex>
         </Flex>

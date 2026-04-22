@@ -112,7 +112,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
             <Flex gap="$spacing12" centered>
               <SectionTitle textAlign="center">Campaign Ended</SectionTitle>
               <Text variant="body1" color="$neutral2" textAlign="center">
-                The First Squeezer NFT Campaign ended on October 26, 2025 at 23:59:59 UTC.
+                The First Squeezer NFT Campaign has ended.
               </Text>
               <Text variant="body2" color="$neutral2" textAlign="center">
                 Minting new First Squeezer NFTs is no longer possible.
@@ -125,14 +125,11 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
         <Section>
           <SectionTitle>Campaign Details</SectionTitle>
           <Flex gap="$spacing12">
-            <Text variant="body2" color="$neutral2">
-              The campaign ran from October 22, 2025 to October 26, 2025.
-            </Text>
-            <Text variant="body2" color="$neutral2" fontWeight="$semibold" mt="$spacing8">
+            <Text variant="body2" color="$neutral2" fontWeight="$semibold">
               Requirements:
             </Text>
             <Text variant="body2" color="$neutral2">
-              1. Complete all 3 swap tasks in the Citrea ₿Apps Campaign
+              1. Have claimed the First Squeezer NFT on Citrea Testnet (Oct 2025 campaign)
             </Text>
             <Text variant="body2" color="$neutral2">
               2. Follow @JuiceSwap_com on X (Twitter)
@@ -203,7 +200,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
 
   const progressPercentage = progress?.progress || 0
   const completedConditions = progress?.completedConditions || 0
-  const totalConditions = progress?.totalConditions || 3
+  const totalConditions = progress?.totalConditions ?? 3
 
   const handleConditionAction = (conditionType: ConditionType) => {
     if (conditionType === ConditionType.TWITTER_FOLLOW) {
@@ -249,11 +246,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
               <ConditionCard
                 key={condition.id}
                 condition={condition}
-                onAction={
-                  condition.type !== ConditionType.BAPPS_COMPLETED
-                    ? () => handleConditionAction(condition.type)
-                    : undefined
-                }
+                onAction={() => handleConditionAction(condition.type)}
                 isLoading={isTwitter ? isTwitterAuthenticating : isDiscord ? isDiscordAuthenticating : false}
                 error={isTwitter ? twitterError : isDiscord ? discordError : null}
               />
@@ -277,7 +270,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
         <SectionTitle>How it Works</SectionTitle>
         <Flex gap="$spacing12">
           <Text variant="body2" color="$neutral2">
-            1. Complete all 3 swap tasks in the Citrea ₿apps Campaign
+            1. Have claimed the First Squeezer NFT on Citrea Testnet (Oct 2025 campaign)
           </Text>
           <Text variant="body2" color="$neutral2">
             2. Follow @JuiceSwap_com on X (Twitter)

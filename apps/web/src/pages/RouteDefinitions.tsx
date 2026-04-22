@@ -374,7 +374,8 @@ export const routes: RouteDefinition[] = [
     path: '/first-squeezer',
     getElement: () => <FirstSqueezer />,
     getTitle: () => 'First Squeezer NFT - JuiceSwap',
-    getDescription: () => 'Complete 3 simple tasks to earn your exclusive First Squeezer NFT on Citrea Testnet.',
+    getDescription: () =>
+      'Exclusive to testnet claimers who verify X and Discord to claim the First Squeezer NFT on Citrea Mainnet.',
   }),
   // OAuth Callback Page - Handles Twitter OAuth redirect
   createRouteDefinition({
