@@ -97,8 +97,8 @@ export function NFTClaimSection({ isEligible, walletAddress, nftMinted, nftTxHas
 
   const handleViewTransaction = () => {
     if (displayTxHash) {
-      // Open Citrea testnet explorer
-      window.open(`https://testnet.citreascan.com/tx/${displayTxHash}`, '_blank', 'noopener,noreferrer')
+      // Open Citrea mainnet explorer
+      window.open(`https://citreascan.com/tx/${displayTxHash}`, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -154,7 +154,7 @@ export function NFTClaimSection({ isEligible, walletAddress, nftMinted, nftTxHas
         <ClaimDescription>
           {isEligible
             ? "You've completed all conditions! Click the button below to mint your exclusive First Squeezer NFT."
-            : 'Complete all 3 conditions above to unlock the claim button.'}
+            : 'Complete both conditions above to unlock the claim button.'}
         </ClaimDescription>
       </Flex>
 

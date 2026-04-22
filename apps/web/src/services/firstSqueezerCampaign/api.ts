@@ -49,14 +49,15 @@ class FirstSqueezerCampaignAPI {
 
   /**
    * Get campaign progress for a wallet address
-   * Fetches all verification statuses from API endpoints only
+   * Fetches status from API endpoints.
    */
   async getProgress(walletAddress: string, chainId: UniverseChainId): Promise<FirstSqueezerProgress> {
     // Fetch all statuses in parallel from API
-    const [twitterStatus, discordStatus, bAppsStatus] = await Promise.allSettled([
+    const [twitterStatus, discordStatus, bAppsStatus, eligibilityStatus] = await Promise.allSettled([
       this.getTwitterStatus(walletAddress),
       this.getDiscordStatus(walletAddress),
       this.getBAppsStatus(walletAddress),
+      this.getEligibility(walletAddress),
     ])
 
     // Extract Twitter status
@@ -71,26 +72,18 @@ class FirstSqueezerCampaignAPI {
     const discordUsername = discordData?.username || null
     const discordVerifiedAt = discordData?.verifiedAt || undefined
 
-    // Extract bApps status
+    // Extract NFT claim state (from Ponder-indexed NFTClaimed events)
     const bAppsData = bAppsStatus.status === 'fulfilled' ? bAppsStatus.value : null
-    const bAppsCompleted = bAppsData?.completedTasks === 3
     const nftClaimed = bAppsData?.nftClaimed || false
     const nftTxHash = bAppsData?.claimTxHash || undefined
 
-    // Build conditions
+    // Eligibility gate (testnet-claimer check). null = backend couldn't verify.
+    const eligibleForMainnet = eligibilityStatus.status === 'fulfilled' ? eligibilityStatus.value.eligible : null
+
+    // Build conditions (socials-only)
     const conditions = [
       {
         id: 1,
-        type: ConditionType.BAPPS_COMPLETED,
-        name: 'Complete ₿apps Campaign',
-        description: 'Complete all 3 swap tasks in the Citrea ₿apps Campaign',
-        status: bAppsCompleted ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
-        completedAt: bAppsCompleted && bAppsData.tasks[2]?.completedAt ? bAppsData.tasks[2].completedAt : undefined,
-        ctaText: 'View Campaign',
-        ctaUrl: '/bapps',
-      },
-      {
-        id: 2,
         type: ConditionType.TWITTER_FOLLOW,
         name: 'Follow @JuiceSwap_com on X',
         description:
@@ -103,7 +96,7 @@ class FirstSqueezerCampaignAPI {
         icon: '🐦',
       },
       {
-        id: 3,
+        id: 2,
         type: ConditionType.DISCORD_JOIN,
         name: 'Verify Discord Account',
         description:
@@ -119,7 +112,9 @@ class FirstSqueezerCampaignAPI {
 
     const completedConditions = conditions.filter((c) => c.status === ConditionStatus.COMPLETED).length
     const progress = (completedConditions / conditions.length) * 100
-    const isEligibleForNFT = completedConditions === conditions.length && !nftClaimed
+    // Eligibility for the mint button requires BOTH socials completion AND testnet-claimer gate.
+    // When gate state is unknown (null), defer to backend: frontend stays unblocked, backend 403s.
+    const isEligibleForNFT = completedConditions === conditions.length && !nftClaimed && eligibleForMainnet !== false
 
     return {
       walletAddress,
@@ -132,6 +127,7 @@ class FirstSqueezerCampaignAPI {
       nftMinted: nftClaimed,
       nftTokenId: undefined, // Token ID will be extracted from event after claiming
       nftTxHash,
+      eligibleForMainnet,
     }
   }
 
@@ -225,6 +221,22 @@ class FirstSqueezerCampaignAPI {
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Failed to get Discord status')
     }
+  }
+
+  /**
+   * Check whether the wallet is eligible for the mainnet First Squeezer NFT.
+   * Eligibility = the wallet originally ran claim() on the testnet NFT during
+   * the Oct 2025 campaign. Throws on network/server errors so callers can
+   * differentiate "ineligible" from "could not verify".
+   */
+  async getEligibility(walletAddress: string): Promise<{ eligible: boolean }> {
+    const response = await fetch(
+      `${this.baseUrl}/v1/campaigns/first-squeezer/eligibility?walletAddress=${encodeURIComponent(walletAddress)}`,
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to get eligibility: ${response.statusText}`)
+    }
+    return response.json()
   }
 
   /**

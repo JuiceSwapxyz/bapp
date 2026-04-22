@@ -22,7 +22,7 @@ export function useFirstSqueezerProgress() {
 
   // Fetch campaign progress
   const fetchProgress = useCallback(async () => {
-    if (!account.address || defaultChainId !== UniverseChainId.CitreaTestnet) {
+    if (!account.address || defaultChainId !== UniverseChainId.CitreaMainnet) {
       setProgress(null)
       return
     }
@@ -125,6 +125,10 @@ function useUrlFirstSqueezerOverride(): boolean {
   return overrideActive
 }
 
+// Must match the deployed contract window.
+const CAMPAIGN_START_ISO = '2026-04-24T00:00:00.000Z'
+const CAMPAIGN_END_ISO = '2026-05-08T23:59:59.000Z'
+
 /**
  * Hook to check if campaign is currently active (time-based only)
  * @internal
@@ -132,9 +136,6 @@ function useUrlFirstSqueezerOverride(): boolean {
 function useIsFirstSqueezerTimeActive(): boolean {
   const hasUrlOverride = useUrlFirstSqueezerOverride()
 
-  // Campaign times match smart contract:
-  // Start: October 22, 2025 13:30:00 UTC (timestamp: 1761139800)
-  // End: October 26, 2025 23:59:59 UTC (timestamp: 1761523199)
   return useMemo(() => {
     // URL Override has priority - if active, campaign is always on
     if (hasUrlOverride) {
@@ -142,8 +143,8 @@ function useIsFirstSqueezerTimeActive(): boolean {
     }
 
     // Normal time-based logic
-    const campaignStartTime = new Date('2025-10-22T13:30:00.000Z').getTime()
-    const campaignEndTime = new Date('2025-10-26T23:59:59.000Z').getTime()
+    const campaignStartTime = new Date(CAMPAIGN_START_ISO).getTime()
+    const campaignEndTime = new Date(CAMPAIGN_END_ISO).getTime()
     const now = Date.now()
     return now >= campaignStartTime && now <= campaignEndTime
   }, [hasUrlOverride])
@@ -155,7 +156,7 @@ function useIsFirstSqueezerTimeActive(): boolean {
  */
 export function useIsFirstSqueezerCampaignEnded(): boolean {
   return useMemo(() => {
-    const campaignEndTime = new Date('2025-10-26T23:59:59.000Z').getTime()
+    const campaignEndTime = new Date(CAMPAIGN_END_ISO).getTime()
     const now = Date.now()
     return now > campaignEndTime
   }, [])
@@ -168,7 +169,7 @@ export function useIsFirstSqueezerCampaignVisible(): boolean {
   const { defaultChainId } = useEnabledChains()
   const isCampaignTimeActive = useIsFirstSqueezerTimeActive()
 
-  const isCorrectChain = defaultChainId === UniverseChainId.CitreaTestnet
+  const isCorrectChain = defaultChainId === UniverseChainId.CitreaMainnet
 
   return isCampaignTimeActive && isCorrectChain
 }
@@ -396,11 +397,11 @@ export function useClaimNFT() {
     setPendingTxHash(undefined)
     setContractAddress(null)
 
-    // Switch to Citrea Testnet if needed
-    if (account.chainId !== UniverseChainId.CitreaTestnet) {
-      const correctChain = await selectChain(UniverseChainId.CitreaTestnet)
+    // Switch to Citrea Mainnet if needed
+    if (account.chainId !== UniverseChainId.CitreaMainnet) {
+      const correctChain = await selectChain(UniverseChainId.CitreaMainnet)
       if (!correctChain) {
-        setError('Please switch to Citrea Testnet to claim your NFT')
+        setError('Please switch to Citrea Mainnet to claim your NFT')
         setIsClaiming(false)
         return false
       }
@@ -432,7 +433,7 @@ export function useClaimNFT() {
           abi: FIRST_SQUEEZER_NFT_ABI,
           functionName: 'claim',
           args: [signature],
-          chainId: UniverseChainId.CitreaTestnet,
+          chainId: UniverseChainId.CitreaMainnet,
         })
         return tx
       })

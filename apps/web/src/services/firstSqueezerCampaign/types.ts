@@ -40,6 +40,10 @@ export interface FirstSqueezerProgress {
   nftTokenId?: string
   nftTxHash?: string
   nftMintedAt?: string
+  // Gate for mainnet claim: only wallets that ran claim() on the testnet
+  // First Squeezer NFT are eligible. `null` = couldn't verify (backend 503);
+  // UI treats null as "unknown — show no banner, let backend 403 on claim".
+  eligibleForMainnet: boolean | null
 }
 
 // NFT Claim request
