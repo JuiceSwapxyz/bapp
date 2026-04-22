@@ -98,13 +98,14 @@ class FirstSqueezerCampaignAPI {
         id: 2,
         type: ConditionType.TWITTER_FOLLOW,
         name: 'Follow @JuiceSwap_com on X',
-        description:
-          twitterVerified && twitterUsername
+        description: twitterVerified
+          ? twitterUsername
             ? `Verified as @${twitterUsername}`
-            : 'Sign in with Twitter and follow @JuiceSwap_com',
+            : 'Followed @JuiceSwap_com'
+          : 'Opens X in a new tab to follow @JuiceSwap_com',
         status: twitterVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
         completedAt: twitterVerifiedAt,
-        ctaText: twitterVerified ? 'Verified' : 'Verify with Twitter',
+        ctaText: twitterVerified ? 'Verified' : 'Follow on X',
         icon: '🐦',
       },
       {
@@ -141,24 +142,19 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
-   * Start Twitter OAuth flow
-   * Returns authorization URL to open in popup
+   * Mark the wallet as having followed @JuiceSwap_com on X.
+   * Honor system — the backend does not verify the follow. The caller is
+   * responsible for opening the X follow intent (handled by the hook).
    */
-  async startTwitterOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
-    try {
-      const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`,
-      )
-
-      if (!response.ok) {
-        throw new Error(`Failed to start Twitter OAuth: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      return data
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : 'Failed to start Twitter OAuth')
+  async markTwitterFollowed(walletAddress: string): Promise<{ success: boolean; verifiedAt: string }> {
+    const response = await fetch(
+      `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/mark-followed?walletAddress=${encodeURIComponent(walletAddress)}`,
+      { method: 'POST' },
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to mark Twitter follow: ${response.statusText}`)
     }
+    return response.json()
   }
 
   /**

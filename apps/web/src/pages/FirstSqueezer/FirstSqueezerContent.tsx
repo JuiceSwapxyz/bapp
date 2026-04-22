@@ -1,13 +1,11 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import { ConditionCard } from 'pages/FirstSqueezer/ConditionCard'
 import { NFTClaimSection } from 'pages/FirstSqueezer/NFTClaimSection'
-import { TwitterFollowModal } from 'pages/FirstSqueezer/TwitterFollowModal'
-import { useState } from 'react'
 import {
   useDiscordOAuth,
   useFirstSqueezerProgress,
   useIsFirstSqueezerCampaignEnded,
-  useTwitterOAuth,
+  useTwitterFollow,
 } from 'services/firstSqueezerCampaign/hooks'
 import { ConditionType } from 'services/firstSqueezerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
@@ -75,27 +73,17 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
   const accountDrawer = useAccountDrawer()
   const { progress, loading, error } = useFirstSqueezerProgress()
   const isCampaignEnded = useIsFirstSqueezerCampaignEnded()
-  const {
-    startOAuth: startTwitterOAuth,
-    isLoading: isTwitterAuthenticating,
-    error: twitterOauthError,
-  } = useTwitterOAuth()
+  const { startFollow: startTwitterFollow, isLoading: isTwitterFollowing, error: twitterError } = useTwitterFollow()
   const {
     startOAuth: startDiscordOAuth,
     isLoading: isDiscordAuthenticating,
     error: discordOauthError,
   } = useDiscordOAuth()
 
-  // Twitter follow modal state
-  const [isTwitterModalOpen, setIsTwitterModalOpen] = useState(false)
-
-  // Get OAuth callback errors from URL (if redirected from OAuth callback with error)
+  // Discord OAuth can still redirect back with a `?discord_error=...` param.
+  // Twitter no longer uses OAuth — errors come from the honor-system POST only.
   const params = new URLSearchParams(window.location.search)
-  const twitterCallbackError = params.get('twitter_error')
   const discordCallbackError = params.get('discord_error')
-
-  // Merge errors: callback error takes precedence over start error
-  const twitterError = twitterCallbackError || twitterOauthError
   const discordError = discordCallbackError || discordOauthError
 
   const handleConnectWallet = () => {
@@ -204,7 +192,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
 
   const handleConditionAction = (conditionType: ConditionType) => {
     if (conditionType === ConditionType.TWITTER_FOLLOW) {
-      setIsTwitterModalOpen(true)
+      startTwitterFollow()
     } else if (conditionType === ConditionType.DISCORD_JOIN) {
       startDiscordOAuth()
     }
@@ -212,13 +200,6 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
 
   return (
     <ContentContainer>
-      {/* Twitter Follow Modal */}
-      <TwitterFollowModal
-        isOpen={isTwitterModalOpen}
-        onDismiss={() => setIsTwitterModalOpen(false)}
-        onConfirm={startTwitterOAuth}
-      />
-
       {/* Progress Overview */}
       <Section>
         <SectionTitle>Your Progress</SectionTitle>
@@ -247,7 +228,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
                 key={condition.id}
                 condition={condition}
                 onAction={() => handleConditionAction(condition.type)}
-                isLoading={isTwitter ? isTwitterAuthenticating : isDiscord ? isDiscordAuthenticating : false}
+                isLoading={isTwitter ? isTwitterFollowing : isDiscord ? isDiscordAuthenticating : false}
                 error={isTwitter ? twitterError : isDiscord ? discordError : null}
               />
             )
