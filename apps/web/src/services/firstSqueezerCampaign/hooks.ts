@@ -185,16 +185,23 @@ export function useIsFirstSqueezerCampaignAvailable(): boolean {
   return isCampaignVisible && account.isConnected
 }
 
+const TWITTER_FOLLOW_INTENT_URL = 'https://x.com/intent/follow?screen_name=JuiceSwap_com'
+
 /**
- * Hook to handle Twitter OAuth verification
- * Uses same-tab redirect (no popup)
+ * Hook to handle the Twitter follow condition.
+ * Honor-system flow: opens the X follow intent in a new tab, then asks the
+ * backend to mark the wallet as verified. No OAuth, no API follow-check.
+ *
+ * IMPORTANT: window.open must run synchronously in the click handler (before
+ * any await) so the browser keeps the user-gesture context and doesn't block
+ * the popup.
  */
-export function useTwitterOAuth() {
+export function useTwitterFollow() {
   const account = useAccount()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const startOAuth = useCallback(async () => {
+  const startFollow = useCallback(async () => {
     if (!account.address) {
       setError('Please connect your wallet first')
       return
@@ -203,28 +210,23 @@ export function useTwitterOAuth() {
     setError(null)
     setIsLoading(true)
 
-    // Clear any existing twitter_error param from URL
-    const currentUrl = new URL(window.location.href)
-    if (currentUrl.searchParams.has('twitter_error')) {
-      currentUrl.searchParams.delete('twitter_error')
-      window.history.replaceState({}, '', currentUrl.toString())
-    }
+    // Open the follow intent *synchronously* — still inside the click handler's
+    // user-gesture context, so the popup isn't blocked.
+    window.open(TWITTER_FOLLOW_INTENT_URL, '_blank', 'noopener,noreferrer')
 
     try {
-      // Get OAuth URL from backend
-      const { authUrl } = await firstSqueezerCampaignAPI.startTwitterOAuth(account.address)
-
-      // Navigate to Twitter OAuth in same tab (page will unload, no need to set isLoading false)
-      window.location.href = authUrl
+      await firstSqueezerCampaignAPI.markTwitterFollowed(account.address)
+      // Refresh campaign progress so the condition flips to completed.
+      window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to start Twitter verification'
-      setError(errorMsg)
+      setError(err instanceof Error ? err.message : 'Failed to record Twitter follow')
+    } finally {
       setIsLoading(false)
     }
   }, [account.address])
 
   return {
-    startOAuth,
+    startFollow,
     isLoading,
     error,
   }
