@@ -3,6 +3,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 // Campaign condition types
 export enum ConditionType {
   BAPPS_COMPLETED = 'bapps_completed',
+  TESTNET_NFT_CLAIMED = 'testnet_nft_claimed',
   TWITTER_FOLLOW = 'twitter_follow',
   DISCORD_JOIN = 'discord_join',
 }
@@ -40,10 +41,6 @@ export interface FirstSqueezerProgress {
   nftTokenId?: string
   nftTxHash?: string
   nftMintedAt?: string
-  // Gate for mainnet claim: only wallets that ran claim() on the testnet
-  // First Squeezer NFT are eligible. `null` = couldn't verify (backend 503);
-  // UI treats null as "unknown — show no banner, let backend 403 on claim".
-  eligibleForMainnet: boolean | null
 }
 
 // NFT Claim request

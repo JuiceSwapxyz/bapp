@@ -77,13 +77,25 @@ class FirstSqueezerCampaignAPI {
     const nftClaimed = bAppsData?.nftClaimed || false
     const nftTxHash = bAppsData?.claimTxHash || undefined
 
-    // Eligibility gate (testnet-claimer check). null = backend couldn't verify.
-    const eligibleForMainnet = eligibilityStatus.status === 'fulfilled' ? eligibilityStatus.value.eligible : null
+    const eligibilityKnown = eligibilityStatus.status === 'fulfilled'
+    const testnetNftClaimVerified = eligibilityKnown && eligibilityStatus.value.eligible === true
+    const testnetNftClaimDescription = testnetNftClaimVerified
+      ? 'Testnet claim verified'
+      : eligibilityKnown
+        ? 'This wallet did not claim the First Squeezer NFT on Citrea Testnet during the Oct 2025 campaign'
+        : 'Could not verify the testnet claim right now. Please retry.'
 
-    // Build conditions (socials-only)
     const conditions = [
       {
         id: 1,
+        type: ConditionType.TESTNET_NFT_CLAIMED,
+        name: 'Claimed Testnet First Squeezer NFT',
+        description: testnetNftClaimDescription,
+        status: testnetNftClaimVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
+        icon: '🧪',
+      },
+      {
+        id: 2,
         type: ConditionType.TWITTER_FOLLOW,
         name: 'Follow @JuiceSwap_com on X',
         description:
@@ -96,7 +108,7 @@ class FirstSqueezerCampaignAPI {
         icon: '🐦',
       },
       {
-        id: 2,
+        id: 3,
         type: ConditionType.DISCORD_JOIN,
         name: 'Verify Discord Account',
         description:
@@ -112,9 +124,7 @@ class FirstSqueezerCampaignAPI {
 
     const completedConditions = conditions.filter((c) => c.status === ConditionStatus.COMPLETED).length
     const progress = (completedConditions / conditions.length) * 100
-    // Eligibility for the mint button requires BOTH socials completion AND testnet-claimer gate.
-    // When gate state is unknown (null), defer to backend: frontend stays unblocked, backend 403s.
-    const isEligibleForNFT = completedConditions === conditions.length && !nftClaimed && eligibleForMainnet !== false
+    const isEligibleForNFT = completedConditions === conditions.length && !nftClaimed
 
     return {
       walletAddress,
@@ -127,7 +137,6 @@ class FirstSqueezerCampaignAPI {
       nftMinted: nftClaimed,
       nftTokenId: undefined, // Token ID will be extracted from event after claiming
       nftTxHash,
-      eligibleForMainnet,
     }
   }
 

@@ -129,13 +129,16 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
               Requirements:
             </Text>
             <Text variant="body2" color="$neutral2">
-              1. Follow @JuiceSwap_com on X (Twitter)
+              1. Have claimed the First Squeezer NFT on Citrea Testnet (Oct 2025 campaign)
             </Text>
             <Text variant="body2" color="$neutral2">
-              2. Join the JuiceSwap Discord community
+              2. Follow @JuiceSwap_com on X (Twitter)
             </Text>
             <Text variant="body2" color="$neutral2">
-              3. Claim your exclusive First Squeezer NFT (limited supply!)
+              3. Join the JuiceSwap Discord community
+            </Text>
+            <Text variant="body2" color="$neutral2">
+              4. Claim your exclusive First Squeezer NFT (limited supply!)
             </Text>
           </Flex>
         </Section>
@@ -195,52 +198,9 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
     )
   }
 
-  // Gate: the mainnet NFT is exclusive to wallets that claimed the testnet First
-  // Squeezer NFT during the Oct 2025 campaign. `null` = backend couldn't verify;
-  // in that case we don't block the UI (backend will still 403 on claim).
-  if (progress?.eligibleForMainnet === false) {
-    return (
-      <ContentContainer>
-        <EndedBanner>
-          <Flex centered gap="$spacing24" width="100%">
-            <EndedIcon>🔒</EndedIcon>
-            <Flex gap="$spacing12" centered>
-              <SectionTitle textAlign="center">Not Eligible</SectionTitle>
-              <Text variant="body1" color="$neutral2" textAlign="center">
-                The First Squeezer NFT on Citrea Mainnet is exclusive to wallets that claimed the First Squeezer NFT on
-                Citrea Testnet during the Oct 2025 campaign.
-              </Text>
-              <Text variant="body2" color="$neutral2" textAlign="center">
-                The connected wallet ({account.address?.slice(0, 6)}…{account.address?.slice(-4)}) is not eligible.
-              </Text>
-            </Flex>
-          </Flex>
-        </EndedBanner>
-
-        <Section>
-          <SectionTitle>How it Works</SectionTitle>
-          <Flex gap="$spacing12">
-            <Text variant="body2" color="$neutral2">
-              1. Claim the First Squeezer NFT on Citrea Testnet (Oct 2025 campaign — now closed).
-            </Text>
-            <Text variant="body2" color="$neutral2">
-              2. Follow @JuiceSwap_com on X (Twitter).
-            </Text>
-            <Text variant="body2" color="$neutral2">
-              3. Join the JuiceSwap Discord community.
-            </Text>
-            <Text variant="body2" color="$neutral2">
-              4. Claim your exclusive First Squeezer NFT on Citrea Mainnet (limited supply!).
-            </Text>
-          </Flex>
-        </Section>
-      </ContentContainer>
-    )
-  }
-
   const progressPercentage = progress?.progress || 0
   const completedConditions = progress?.completedConditions || 0
-  const totalConditions = progress?.totalConditions || 2
+  const totalConditions = progress?.totalConditions ?? 3
 
   const handleConditionAction = (conditionType: ConditionType) => {
     if (conditionType === ConditionType.TWITTER_FOLLOW) {
@@ -274,7 +234,7 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
       <Section>
         <SectionTitle>Campaign Conditions</SectionTitle>
         <Text variant="body2" color="$neutral2">
-          Complete both conditions to claim your First Squeezer NFT.
+          Complete all three conditions to claim your First Squeezer NFT.
         </Text>
 
         <Flex gap="$spacing16" width="100%">
@@ -310,13 +270,16 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
         <SectionTitle>How it Works</SectionTitle>
         <Flex gap="$spacing12">
           <Text variant="body2" color="$neutral2">
-            1. Follow @JuiceSwap_com on X (Twitter)
+            1. Have claimed the First Squeezer NFT on Citrea Testnet (Oct 2025 campaign)
           </Text>
           <Text variant="body2" color="$neutral2">
-            2. Join the JuiceSwap Discord community
+            2. Follow @JuiceSwap_com on X (Twitter)
           </Text>
           <Text variant="body2" color="$neutral2">
-            3. Claim your exclusive First Squeezer NFT (limited supply!)
+            3. Join the JuiceSwap Discord community
+          </Text>
+          <Text variant="body2" color="$neutral2">
+            4. Claim your exclusive First Squeezer NFT (limited supply!)
           </Text>
         </Flex>
       </Section>

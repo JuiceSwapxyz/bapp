@@ -154,7 +154,7 @@ export function NFTClaimSection({ isEligible, walletAddress, nftMinted, nftTxHas
         <ClaimDescription>
           {isEligible
             ? "You've completed all conditions! Click the button below to mint your exclusive First Squeezer NFT."
-            : 'Complete both conditions above to unlock the claim button.'}
+            : 'Complete all three conditions above to unlock the claim button.'}
         </ClaimDescription>
       </Flex>
 
