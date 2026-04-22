@@ -1,11 +1,11 @@
 import { isBetaEnv, isProdEnv } from 'utilities/src/environment/env'
 
 function isAppUniswapOrg({ hostname }: { hostname: string }): boolean {
-  return hostname === 'bapp.juiceswap.com'
+  return hostname === 'bapp.juiceswap.com' || hostname === 'juiceswap.com'
 }
 
 function isAppUniswapStagingOrg({ hostname }: { hostname: string }): boolean {
-  return hostname === 'dev.bapp.juiceswap.com'
+  return hostname === 'dev.bapp.juiceswap.com' || hostname === 'dev.juiceswap.com'
 }
 
 export function isBrowserRouterEnabled(): boolean {
