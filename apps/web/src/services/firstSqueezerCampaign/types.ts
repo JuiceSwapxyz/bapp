@@ -50,13 +50,5 @@ export interface NFTClaimRequest {
   signature?: string
 }
 
-// NFT Claim response
-export interface NFTClaimResponse {
-  success: boolean
-  txHash?: string
-  tokenId?: string
-  error?: string
-}
-
 // Note: SocialVerificationRequest and SocialVerificationResponse types removed
 // as they were unused. Twitter uses OAuth redirect flow, Discord uses manual verification.

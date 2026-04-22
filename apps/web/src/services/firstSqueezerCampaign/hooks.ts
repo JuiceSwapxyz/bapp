@@ -8,6 +8,36 @@ import { FirstSqueezerProgress, NFTClaimRequest } from 'services/firstSqueezerCa
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { isValidHexString } from 'uniswap/src/utils/hex'
+import { didUserReject } from 'utils/swapErrorToUserReadableMessage'
+
+/**
+ * Normalizes a wallet/RPC error into a short, user-readable string.
+ * Prevents viem's multi-line dump (Request Arguments, Contract Call, Docs, Version)
+ * from reaching the UI.
+ */
+function formatClaimError(err: unknown, fallback: string): string {
+  if (didUserReject(err)) {
+    return 'You rejected the request in your wallet. Please try again.'
+  }
+  // viem's BaseError attaches `shortMessage` — a one-liner free of the Request
+  // Arguments / Contract Call / Docs / Version metadata that `.message` concatenates.
+  if (
+    err !== null &&
+    typeof err === 'object' &&
+    'shortMessage' in err &&
+    typeof err.shortMessage === 'string' &&
+    err.shortMessage.length > 0
+  ) {
+    return err.shortMessage
+  }
+  if (err instanceof Error && err.message) {
+    const firstLine = err.message.split('\n')[0].trim()
+    if (firstLine) {
+      return firstLine
+    }
+  }
+  return fallback
+}
 
 /**
  * Hook to fetch and manage First Squeezer campaign progress
@@ -363,8 +393,7 @@ export function useClaimNFT() {
   // Handle transaction errors (reverted, rejected, etc.)
   useEffect(() => {
     if (isTransactionError && pendingTxHash) {
-      const errorMsg = transactionError.message || 'Transaction failed'
-      setError(`NFT claim transaction failed: ${errorMsg}`)
+      setError(formatClaimError(transactionError, 'NFT claim transaction failed'))
       setPendingTxHash(undefined)
       setIsClaiming(false)
     }
@@ -416,7 +445,7 @@ export function useClaimNFT() {
       }
 
       // Call API with wagmi contract interaction callback
-      const result = await firstSqueezerCampaignAPI.claimNFT(request, async (signature, contractAddr) => {
+      const txHash = await firstSqueezerCampaignAPI.claimNFT(request, async (signature, contractAddr) => {
         // Validate address format (must be exactly 20 bytes = 40 hex chars + 0x prefix)
         if (!isValidHexString(contractAddr) || contractAddr.length !== 42) {
           throw new Error('Invalid contract address received from API')
@@ -440,22 +469,15 @@ export function useClaimNFT() {
         return tx
       })
 
-      if (result.success && result.txHash) {
-        // Set pending tx hash to trigger confirmation waiting
-        if (!isValidHexString(result.txHash)) {
-          throw new Error('Invalid transaction hash received')
-        }
-        setPendingTxHash(result.txHash)
-        // Note: isClaiming stays true until confirmation completes
-        return true
-      } else {
-        setError(result.error || 'NFT claim failed')
-        setIsClaiming(false)
-        return false
+      // Set pending tx hash to trigger confirmation waiting
+      if (!isValidHexString(txHash)) {
+        throw new Error('Invalid transaction hash received')
       }
+      setPendingTxHash(txHash)
+      // Note: isClaiming stays true until confirmation completes
+      return true
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'NFT claim transaction failed'
-      setError(errorMsg)
+      setError(formatClaimError(err, 'NFT claim transaction failed'))
       setIsClaiming(false)
       setPendingTxHash(undefined)
       return false

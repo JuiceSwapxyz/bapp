@@ -3,7 +3,6 @@ import {
   ConditionType,
   FirstSqueezerProgress,
   NFTClaimRequest,
-  NFTClaimResponse,
 } from 'services/firstSqueezerCampaign/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
@@ -314,28 +313,12 @@ class FirstSqueezerCampaignAPI {
   async claimNFT(
     request: NFTClaimRequest,
     contractInteraction: (signature: string, contractAddress: string) => Promise<string>,
-  ): Promise<NFTClaimResponse> {
-    const { walletAddress } = request
-
-    try {
-      // Step 1: Get signature from backend API
-      const { signature, contractAddress } = await this.getNFTSignature(walletAddress)
-
-      // Step 2: Call smart contract via wagmi (passed from hook)
-      const txHash = await contractInteraction(signature, contractAddress)
-
-      // Step 3: Return success (Ponder will index the NFTClaimed event)
-      return {
-        success: true,
-        txHash,
-        tokenId: undefined, // Will be available after indexing
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'NFT claim failed',
-      }
-    }
+  ): Promise<string> {
+    // Errors propagate so the caller can normalize them (e.g. distinguish
+    // user-rejections from real failures). Do NOT catch-and-stringify here —
+    // that flattens viem errors into multi-line dumps that leak to the UI.
+    const { signature, contractAddress } = await this.getNFTSignature(request.walletAddress)
+    return contractInteraction(signature, contractAddress)
   }
 }
 
