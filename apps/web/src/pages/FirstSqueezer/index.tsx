@@ -22,7 +22,6 @@ const ContentWrapper = styled(Flex, {
 
 const HeaderSection = styled(Flex, {
   gap: '$spacing16',
-  alignItems: 'center',
   paddingBottom: '$spacing24',
   borderBottomWidth: 1,
   borderBottomColor: '$surface3',
@@ -32,7 +31,6 @@ const TitleSection = styled(Flex, {
   gap: '$spacing12',
   flex: 1,
   minWidth: 0,
-  alignItems: 'center',
 })
 
 const NFTIcon = styled(Text, {
