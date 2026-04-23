@@ -3,6 +3,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 // Campaign condition types
 export enum ConditionType {
   BAPPS_COMPLETED = 'bapps_completed',
+  TESTNET_NFT_CLAIMED = 'testnet_nft_claimed',
   TWITTER_FOLLOW = 'twitter_follow',
   DISCORD_JOIN = 'discord_join',
 }
@@ -47,14 +48,6 @@ export interface NFTClaimRequest {
   walletAddress: string
   chainId: UniverseChainId
   signature?: string
-}
-
-// NFT Claim response
-export interface NFTClaimResponse {
-  success: boolean
-  txHash?: string
-  tokenId?: string
-  error?: string
 }
 
 // Note: SocialVerificationRequest and SocialVerificationResponse types removed

@@ -2,6 +2,7 @@ import { ADDRESS } from '@juicedollar/jusd'
 import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
+import { SWAP_CONTRACTS } from 'constants/ldsBridgeContracts'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { call } from 'typed-redux-saga'
@@ -74,14 +75,6 @@ const USDT_ETHEREUM_ADDRESS = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 const USDT_POLYGON_ADDRESS = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
 const JUSD_CITREA_MAINNET = ADDRESS[4114]!.juiceDollar
 const JUSD_CITREA_TESTNET = ADDRESS[5115]!.juiceDollar
-
-// Swap contract addresses (same contract handles multiple tokens on each chain)
-export const SWAP_CONTRACTS = {
-  ethereum: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
-  polygon: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
-  citreaMainnet: '0x7397f25f230f7d5a83c18e1b68b32511bf35f860',
-  citreaTestnet: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
-}
 
 // Token configurations by API symbol - mainnet
 const TOKEN_CONFIGS_MAINNET: Record<string, { address: string; decimals: number; chainId: UniverseChainId }> = {

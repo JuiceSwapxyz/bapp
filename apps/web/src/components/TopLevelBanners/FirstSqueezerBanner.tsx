@@ -3,9 +3,11 @@ import { atomWithStorage } from 'jotai/utils'
 import { X } from 'react-feather'
 import { useNavigate } from 'react-router'
 import {
+  useFirstSqueezerProgress,
   useIsFirstSqueezerCampaignEnded,
   useIsFirstSqueezerCampaignVisible,
 } from 'services/firstSqueezerCampaign/hooks'
+import { ConditionStatus, ConditionType } from 'services/firstSqueezerCampaign/types'
 import { Anchor, Flex, Text, styled, useMedia } from 'ui/src'
 
 const hideFirstSqueezerBannerAtom = atomWithStorage<boolean>('hideFirstSqueezerBanner', false)
@@ -109,9 +111,15 @@ export function useFirstSqueezerBannerEligible(): boolean {
   const [hideBanner] = useAtom(hideFirstSqueezerBannerAtom)
   const isCampaignVisible = useIsFirstSqueezerCampaignVisible()
   const isCampaignEnded = useIsFirstSqueezerCampaignEnded()
+  const { progress } = useFirstSqueezerProgress()
 
-  // Banner should never show after campaign ends, even with URL override
-  return isCampaignVisible && !hideBanner && !isCampaignEnded
+  // Testnet claim is the authoritative eligibility gate (API's /eligibility).
+  // Non-claimers are excluded from the mainnet cohort, so the banner would be noise.
+  const isTestnetEligible =
+    progress?.conditions.find((c) => c.type === ConditionType.TESTNET_NFT_CLAIMED)?.status === ConditionStatus.COMPLETED
+  const alreadyMinted = progress?.nftMinted ?? false
+
+  return isCampaignVisible && !isCampaignEnded && !hideBanner && isTestnetEligible && !alreadyMinted
 }
 
 export function FirstSqueezerBanner() {
@@ -151,10 +159,10 @@ export function FirstSqueezerBanner() {
           </NFTIcon>
           <Flex shrink gap="$spacing4">
             <Text variant="body2" color="white" fontWeight="$semibold" $md={{ variant: 'body3' }}>
-              {media.md ? 'Get First Squeezer NFT! 🎁' : 'Earn Your First Squeezer NFT! 🎁'}
+              {media.md ? "You're eligible — Claim your NFT 🍋" : "You're eligible for the First Squeezer NFT 🍋"}
             </Text>
             <Text variant="body3" color="rgba(255, 255, 255, 0.9)" $md={{ display: 'none' }}>
-              Complete 3 simple tasks to claim your exclusive NFT
+              Claim your exclusive mainnet NFT before the campaign ends
             </Text>
           </Flex>
         </Flex>

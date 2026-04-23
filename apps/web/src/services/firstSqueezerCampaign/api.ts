@@ -3,7 +3,6 @@ import {
   ConditionType,
   FirstSqueezerProgress,
   NFTClaimRequest,
-  NFTClaimResponse,
 } from 'services/firstSqueezerCampaign/types'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
@@ -49,14 +48,15 @@ class FirstSqueezerCampaignAPI {
 
   /**
    * Get campaign progress for a wallet address
-   * Fetches all verification statuses from API endpoints only
+   * Fetches status from API endpoints.
    */
   async getProgress(walletAddress: string, chainId: UniverseChainId): Promise<FirstSqueezerProgress> {
     // Fetch all statuses in parallel from API
-    const [twitterStatus, discordStatus, bAppsStatus] = await Promise.allSettled([
+    const [twitterStatus, discordStatus, bAppsStatus, eligibilityStatus] = await Promise.allSettled([
       this.getTwitterStatus(walletAddress),
       this.getDiscordStatus(walletAddress),
       this.getBAppsStatus(walletAddress),
+      this.getEligibility(walletAddress),
     ])
 
     // Extract Twitter status
@@ -71,35 +71,40 @@ class FirstSqueezerCampaignAPI {
     const discordUsername = discordData?.username || null
     const discordVerifiedAt = discordData?.verifiedAt || undefined
 
-    // Extract bApps status
+    // Extract NFT claim state (from Ponder-indexed NFTClaimed events)
     const bAppsData = bAppsStatus.status === 'fulfilled' ? bAppsStatus.value : null
-    const bAppsCompleted = bAppsData?.completedTasks === 3
     const nftClaimed = bAppsData?.nftClaimed || false
     const nftTxHash = bAppsData?.claimTxHash || undefined
 
-    // Build conditions
+    const eligibilityKnown = eligibilityStatus.status === 'fulfilled'
+    const testnetNftClaimVerified = eligibilityKnown && eligibilityStatus.value.eligible === true
+    const testnetNftClaimDescription = testnetNftClaimVerified
+      ? 'Testnet claim verified'
+      : eligibilityKnown
+        ? 'This wallet did not claim the First Squeezer NFT on Citrea Testnet during the Oct 2025 campaign'
+        : 'Could not verify the testnet claim right now. Please retry.'
+
     const conditions = [
       {
         id: 1,
-        type: ConditionType.BAPPS_COMPLETED,
-        name: 'Complete ₿apps Campaign',
-        description: 'Complete all 3 swap tasks in the Citrea ₿apps Campaign',
-        status: bAppsCompleted ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
-        completedAt: bAppsCompleted && bAppsData.tasks[2]?.completedAt ? bAppsData.tasks[2].completedAt : undefined,
-        ctaText: 'View Campaign',
-        ctaUrl: '/bapps',
+        type: ConditionType.TESTNET_NFT_CLAIMED,
+        name: 'Claimed Testnet First Squeezer NFT',
+        description: testnetNftClaimDescription,
+        status: testnetNftClaimVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
+        icon: '🧪',
       },
       {
         id: 2,
         type: ConditionType.TWITTER_FOLLOW,
         name: 'Follow @JuiceSwap_com on X',
-        description:
-          twitterVerified && twitterUsername
+        description: twitterVerified
+          ? twitterUsername
             ? `Verified as @${twitterUsername}`
-            : 'Sign in with Twitter and follow @JuiceSwap_com',
+            : 'Followed @JuiceSwap_com'
+          : 'Opens X in a new tab to follow @JuiceSwap_com',
         status: twitterVerified ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
         completedAt: twitterVerifiedAt,
-        ctaText: twitterVerified ? 'Verified' : 'Verify with Twitter',
+        ctaText: twitterVerified ? 'Verified' : 'Follow on X',
         icon: '🐦',
       },
       {
@@ -136,24 +141,19 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
-   * Start Twitter OAuth flow
-   * Returns authorization URL to open in popup
+   * Mark the wallet as having followed @JuiceSwap_com on X.
+   * Honor system — the backend does not verify the follow. The caller is
+   * responsible for opening the X follow intent (handled by the hook).
    */
-  async startTwitterOAuth(walletAddress: string): Promise<{ authUrl: string; state: string }> {
-    try {
-      const response = await fetch(
-        `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/start?walletAddress=${encodeURIComponent(walletAddress)}`,
-      )
-
-      if (!response.ok) {
-        throw new Error(`Failed to start Twitter OAuth: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      return data
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : 'Failed to start Twitter OAuth')
+  async markTwitterFollowed(walletAddress: string): Promise<{ success: boolean; verifiedAt: string }> {
+    const response = await fetch(
+      `${this.baseUrl}/v1/campaigns/first-squeezer/twitter/mark-followed?walletAddress=${encodeURIComponent(walletAddress)}`,
+      { method: 'POST' },
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to mark Twitter follow: ${response.statusText}`)
     }
+    return response.json()
   }
 
   /**
@@ -228,6 +228,22 @@ class FirstSqueezerCampaignAPI {
   }
 
   /**
+   * Check whether the wallet is eligible for the mainnet First Squeezer NFT.
+   * Eligibility = the wallet originally ran claim() on the testnet NFT during
+   * the Oct 2025 campaign. Throws on network/server errors so callers can
+   * differentiate "ineligible" from "could not verify".
+   */
+  async getEligibility(walletAddress: string): Promise<{ eligible: boolean }> {
+    const response = await fetch(
+      `${this.baseUrl}/v1/campaigns/first-squeezer/eligibility?walletAddress=${encodeURIComponent(walletAddress)}`,
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to get eligibility: ${response.statusText}`)
+    }
+    return response.json()
+  }
+
+  /**
    * Get bApps campaign completion status
    * Returns swap progress and NFT claim status from Ponder (via API proxy)
    */
@@ -297,28 +313,12 @@ class FirstSqueezerCampaignAPI {
   async claimNFT(
     request: NFTClaimRequest,
     contractInteraction: (signature: string, contractAddress: string) => Promise<string>,
-  ): Promise<NFTClaimResponse> {
-    const { walletAddress } = request
-
-    try {
-      // Step 1: Get signature from backend API
-      const { signature, contractAddress } = await this.getNFTSignature(walletAddress)
-
-      // Step 2: Call smart contract via wagmi (passed from hook)
-      const txHash = await contractInteraction(signature, contractAddress)
-
-      // Step 3: Return success (Ponder will index the NFTClaimed event)
-      return {
-        success: true,
-        txHash,
-        tokenId: undefined, // Will be available after indexing
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'NFT claim failed',
-      }
-    }
+  ): Promise<string> {
+    // Errors propagate so the caller can normalize them (e.g. distinguish
+    // user-rejections from real failures). Do NOT catch-and-stringify here —
+    // that flattens viem errors into multi-line dumps that leak to the UI.
+    const { signature, contractAddress } = await this.getNFTSignature(request.walletAddress)
+    return contractInteraction(signature, contractAddress)
   }
 }
 

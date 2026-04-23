@@ -1,6 +1,7 @@
 import { popupRegistry } from 'components/Popups/registry'
 import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
+import { SWAP_CONTRACTS } from 'constants/ldsBridgeContracts'
 import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
@@ -51,13 +52,6 @@ async function getConnectorClientForChain(chainId: UniverseChainId): Promise<Cli
     })
     throw error
   }
-}
-
-// Swap contract addresses
-export const SWAP_CONTRACTS = {
-  ethereum: '0x2E21F58Da58c391F110467c7484EdfA849C1CB9B',
-  citreaMainnet: '0x7397f25f230f7d5a83c18e1b68b32511bf35f860',
-  citreaTestnet: '0xf2e019a371e5Fd32dB2fC564Ad9eAE9E433133cc',
 }
 
 // Token configurations by API symbol - mainnet

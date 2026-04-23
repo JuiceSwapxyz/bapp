@@ -8,6 +8,36 @@ import { FirstSqueezerProgress, NFTClaimRequest } from 'services/firstSqueezerCa
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { isValidHexString } from 'uniswap/src/utils/hex'
+import { didUserReject } from 'utils/swapErrorToUserReadableMessage'
+
+/**
+ * Normalizes a wallet/RPC error into a short, user-readable string.
+ * Prevents viem's multi-line dump (Request Arguments, Contract Call, Docs, Version)
+ * from reaching the UI.
+ */
+function formatClaimError(err: unknown, fallback: string): string {
+  if (didUserReject(err)) {
+    return 'You rejected the request in your wallet. Please try again.'
+  }
+  // viem's BaseError attaches `shortMessage` — a one-liner free of the Request
+  // Arguments / Contract Call / Docs / Version metadata that `.message` concatenates.
+  if (
+    err !== null &&
+    typeof err === 'object' &&
+    'shortMessage' in err &&
+    typeof err.shortMessage === 'string' &&
+    err.shortMessage.length > 0
+  ) {
+    return err.shortMessage
+  }
+  if (err instanceof Error && err.message) {
+    const firstLine = err.message.split('\n')[0].trim()
+    if (firstLine) {
+      return firstLine
+    }
+  }
+  return fallback
+}
 
 /**
  * Hook to fetch and manage First Squeezer campaign progress
@@ -22,7 +52,7 @@ export function useFirstSqueezerProgress() {
 
   // Fetch campaign progress
   const fetchProgress = useCallback(async () => {
-    if (!account.address || defaultChainId !== UniverseChainId.CitreaTestnet) {
+    if (!account.address || defaultChainId !== UniverseChainId.CitreaMainnet) {
       setProgress(null)
       return
     }
@@ -125,6 +155,10 @@ function useUrlFirstSqueezerOverride(): boolean {
   return overrideActive
 }
 
+// Must match the deployed contract window.
+const CAMPAIGN_START_ISO = '2026-04-24T00:00:00.000Z'
+const CAMPAIGN_END_ISO = '2026-05-08T23:59:59.000Z'
+
 /**
  * Hook to check if campaign is currently active (time-based only)
  * @internal
@@ -132,9 +166,6 @@ function useUrlFirstSqueezerOverride(): boolean {
 function useIsFirstSqueezerTimeActive(): boolean {
   const hasUrlOverride = useUrlFirstSqueezerOverride()
 
-  // Campaign times match smart contract:
-  // Start: October 22, 2025 13:30:00 UTC (timestamp: 1761139800)
-  // End: October 26, 2025 23:59:59 UTC (timestamp: 1761523199)
   return useMemo(() => {
     // URL Override has priority - if active, campaign is always on
     if (hasUrlOverride) {
@@ -142,8 +173,8 @@ function useIsFirstSqueezerTimeActive(): boolean {
     }
 
     // Normal time-based logic
-    const campaignStartTime = new Date('2025-10-22T13:30:00.000Z').getTime()
-    const campaignEndTime = new Date('2025-10-26T23:59:59.000Z').getTime()
+    const campaignStartTime = new Date(CAMPAIGN_START_ISO).getTime()
+    const campaignEndTime = new Date(CAMPAIGN_END_ISO).getTime()
     const now = Date.now()
     return now >= campaignStartTime && now <= campaignEndTime
   }, [hasUrlOverride])
@@ -155,7 +186,7 @@ function useIsFirstSqueezerTimeActive(): boolean {
  */
 export function useIsFirstSqueezerCampaignEnded(): boolean {
   return useMemo(() => {
-    const campaignEndTime = new Date('2025-10-26T23:59:59.000Z').getTime()
+    const campaignEndTime = new Date(CAMPAIGN_END_ISO).getTime()
     const now = Date.now()
     return now > campaignEndTime
   }, [])
@@ -168,7 +199,7 @@ export function useIsFirstSqueezerCampaignVisible(): boolean {
   const { defaultChainId } = useEnabledChains()
   const isCampaignTimeActive = useIsFirstSqueezerTimeActive()
 
-  const isCorrectChain = defaultChainId === UniverseChainId.CitreaTestnet
+  const isCorrectChain = defaultChainId === UniverseChainId.CitreaMainnet
 
   return isCampaignTimeActive && isCorrectChain
 }
@@ -184,16 +215,23 @@ export function useIsFirstSqueezerCampaignAvailable(): boolean {
   return isCampaignVisible && account.isConnected
 }
 
+const TWITTER_FOLLOW_INTENT_URL = 'https://x.com/intent/follow?screen_name=JuiceSwap_com'
+
 /**
- * Hook to handle Twitter OAuth verification
- * Uses same-tab redirect (no popup)
+ * Hook to handle the Twitter follow condition.
+ * Honor-system flow: opens the X follow intent in a new tab, then asks the
+ * backend to mark the wallet as verified. No OAuth, no API follow-check.
+ *
+ * IMPORTANT: window.open must run synchronously in the click handler (before
+ * any await) so the browser keeps the user-gesture context and doesn't block
+ * the popup.
  */
-export function useTwitterOAuth() {
+export function useTwitterFollow() {
   const account = useAccount()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const startOAuth = useCallback(async () => {
+  const startFollow = useCallback(async () => {
     if (!account.address) {
       setError('Please connect your wallet first')
       return
@@ -202,28 +240,23 @@ export function useTwitterOAuth() {
     setError(null)
     setIsLoading(true)
 
-    // Clear any existing twitter_error param from URL
-    const currentUrl = new URL(window.location.href)
-    if (currentUrl.searchParams.has('twitter_error')) {
-      currentUrl.searchParams.delete('twitter_error')
-      window.history.replaceState({}, '', currentUrl.toString())
-    }
+    // Open the follow intent *synchronously* — still inside the click handler's
+    // user-gesture context, so the popup isn't blocked.
+    window.open(TWITTER_FOLLOW_INTENT_URL, '_blank', 'noopener,noreferrer')
 
     try {
-      // Get OAuth URL from backend
-      const { authUrl } = await firstSqueezerCampaignAPI.startTwitterOAuth(account.address)
-
-      // Navigate to Twitter OAuth in same tab (page will unload, no need to set isLoading false)
-      window.location.href = authUrl
+      await firstSqueezerCampaignAPI.markTwitterFollowed(account.address)
+      // Refresh campaign progress so the condition flips to completed.
+      window.dispatchEvent(new CustomEvent('first-squeezer-campaign-updated'))
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to start Twitter verification'
-      setError(errorMsg)
+      setError(err instanceof Error ? err.message : 'Failed to record Twitter follow')
+    } finally {
       setIsLoading(false)
     }
   }, [account.address])
 
   return {
-    startOAuth,
+    startFollow,
     isLoading,
     error,
   }
@@ -360,8 +393,7 @@ export function useClaimNFT() {
   // Handle transaction errors (reverted, rejected, etc.)
   useEffect(() => {
     if (isTransactionError && pendingTxHash) {
-      const errorMsg = transactionError.message || 'Transaction failed'
-      setError(`NFT claim transaction failed: ${errorMsg}`)
+      setError(formatClaimError(transactionError, 'NFT claim transaction failed'))
       setPendingTxHash(undefined)
       setIsClaiming(false)
     }
@@ -396,11 +428,11 @@ export function useClaimNFT() {
     setPendingTxHash(undefined)
     setContractAddress(null)
 
-    // Switch to Citrea Testnet if needed
-    if (account.chainId !== UniverseChainId.CitreaTestnet) {
-      const correctChain = await selectChain(UniverseChainId.CitreaTestnet)
+    // Switch to Citrea Mainnet if needed
+    if (account.chainId !== UniverseChainId.CitreaMainnet) {
+      const correctChain = await selectChain(UniverseChainId.CitreaMainnet)
       if (!correctChain) {
-        setError('Please switch to Citrea Testnet to claim your NFT')
+        setError('Please switch to Citrea Mainnet to claim your NFT')
         setIsClaiming(false)
         return false
       }
@@ -413,7 +445,7 @@ export function useClaimNFT() {
       }
 
       // Call API with wagmi contract interaction callback
-      const result = await firstSqueezerCampaignAPI.claimNFT(request, async (signature, contractAddr) => {
+      const txHash = await firstSqueezerCampaignAPI.claimNFT(request, async (signature, contractAddr) => {
         // Validate address format (must be exactly 20 bytes = 40 hex chars + 0x prefix)
         if (!isValidHexString(contractAddr) || contractAddr.length !== 42) {
           throw new Error('Invalid contract address received from API')
@@ -432,27 +464,20 @@ export function useClaimNFT() {
           abi: FIRST_SQUEEZER_NFT_ABI,
           functionName: 'claim',
           args: [signature],
-          chainId: UniverseChainId.CitreaTestnet,
+          chainId: UniverseChainId.CitreaMainnet,
         })
         return tx
       })
 
-      if (result.success && result.txHash) {
-        // Set pending tx hash to trigger confirmation waiting
-        if (!isValidHexString(result.txHash)) {
-          throw new Error('Invalid transaction hash received')
-        }
-        setPendingTxHash(result.txHash)
-        // Note: isClaiming stays true until confirmation completes
-        return true
-      } else {
-        setError(result.error || 'NFT claim failed')
-        setIsClaiming(false)
-        return false
+      // Set pending tx hash to trigger confirmation waiting
+      if (!isValidHexString(txHash)) {
+        throw new Error('Invalid transaction hash received')
       }
+      setPendingTxHash(txHash)
+      // Note: isClaiming stays true until confirmation completes
+      return true
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'NFT claim transaction failed'
-      setError(errorMsg)
+      setError(formatClaimError(err, 'NFT claim transaction failed'))
       setIsClaiming(false)
       setPendingTxHash(undefined)
       return false

@@ -22,7 +22,6 @@ const ContentWrapper = styled(Flex, {
 
 const HeaderSection = styled(Flex, {
   gap: '$spacing16',
-  alignItems: 'center',
   paddingBottom: '$spacing24',
   borderBottomWidth: 1,
   borderBottomColor: '$surface3',
@@ -32,7 +31,6 @@ const TitleSection = styled(Flex, {
   gap: '$spacing12',
   flex: 1,
   minWidth: 0,
-  alignItems: 'center',
 })
 
 const NFTIcon = styled(Text, {
@@ -67,9 +65,7 @@ export default function FirstSqueezer() {
                 <NFTIcon>🍋</NFTIcon>
                 <Flex gap="$spacing8" flex={1} minWidth={0}>
                   <MainTitle>First Squeezer NFT</MainTitle>
-                  <Subtitle>
-                    Complete 3 simple tasks to earn your exclusive First Squeezer NFT on Citrea Testnet
-                  </Subtitle>
+                  <Subtitle>Exclusive to testnet claimers who verify X and Discord on Citrea Mainnet</Subtitle>
                 </Flex>
               </Flex>
             </TitleSection>
