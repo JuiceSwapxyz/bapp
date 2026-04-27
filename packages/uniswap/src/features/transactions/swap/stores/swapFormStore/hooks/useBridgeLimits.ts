@@ -219,10 +219,9 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
 
     const effectiveMax = Math.min(maximal, effectiveBalanceOut)
     const decimalsIn = currencyIn.decimals
-    const maxInput = Math.floor((effectiveMax / 1e8) * 100) / 100
-    const minInput = parseFloat((minimal / 1e8).toFixed(2))
-    const minRaw = parseUnits(minInput.toFixed(2), decimalsIn).toString()
-    const maxRaw = parseUnits(maxInput.toFixed(2), decimalsIn).toString()
+    // Use full token precision (not 2 d.p.) to avoid rounding sub-0.01 BTC balances to zero
+    const minRaw = BigInt(Math.round(minimal * 10 ** decimalsIn / 1e8)).toString()
+    const maxRaw = BigInt(Math.floor(effectiveMax * 10 ** decimalsIn / 1e8)).toString()
 
     return {
       [CurrencyField.INPUT]: {
