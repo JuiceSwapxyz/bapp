@@ -3,6 +3,7 @@ import { popupRegistry } from 'components/Popups/registry'
 import { BitcoinBridgeDirection, LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { clientToProvider } from 'hooks/useEthersProvider'
+import { waitForServerLockupTx } from 'state/sagas/transactions/ldsClaimUtils'
 import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { call } from 'typed-redux-saga'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -145,6 +146,12 @@ export function* handleBitcoinBridgeBitcoinToCitrea(params: HandleBitcoinBridgeB
       throw new TransactionStepFailedError({ message: 'Failed to get provider for claim', step })
     }
     const signer = provider.getSigner(account.address)
+
+    yield* call(waitForServerLockupTx, {
+      provider,
+      swapId: chainSwap.id,
+      source: 'bitcoinBridgeBitcoinToCitrea',
+    })
 
     claimTxHash = yield* call(claimCoinSwap, {
       signer,
