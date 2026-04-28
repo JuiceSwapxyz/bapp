@@ -36,6 +36,7 @@ const useChainBridge = (params?: { enabled: boolean }): ReturnType<typeof useQue
     queryKey: ['chain-bridge'],
     queryFn: () => ldsBridge.getChainPairs(),
     enabled: params?.enabled,
+    refetchInterval: 600000,
   })
 }
 
@@ -47,6 +48,7 @@ const useReverseBridge = (params?: {
     queryKey: ['reverse-bridge'],
     queryFn: () => ldsBridge.getReversePairs(),
     enabled: params?.enabled,
+    refetchInterval: 600000,
   })
 }
 
@@ -58,7 +60,15 @@ const useSubmarineBridge = (params?: {
     queryKey: ['submarine-bridge'],
     queryFn: () => ldsBridge.getSubmarinePairs(),
     enabled: params?.enabled,
+    refetchInterval: 600000,
   })
+}
+
+/** Prefetches Boltz/LDS pair config into the React Query cache so bridge limits resolve faster on first open. */
+export function useWarmBridgePairInfo(): void {
+  useChainBridge({ enabled: true })
+  useReverseBridge({ enabled: true })
+  useSubmarineBridge({ enabled: true })
 }
 
 const isChainBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): boolean => {
