@@ -15,6 +15,7 @@ import DarkModeQueryParamReader from 'theme/components/DarkModeQueryParamReader'
 import { useSporeColors } from 'ui/src'
 import { initializeScrollWatcher } from 'uniswap/src/components/modals/ScrollLock'
 import Trace from 'uniswap/src/features/telemetry/Trace'
+import { useWarmBridgePairInfo } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/hooks/useBridgeLimits'
 import { isPathBlocked } from 'utils/blockedPaths'
 import { MICROSITE_LINK } from 'utils/openDownloadApp'
 import { getCurrentPageFromLocation } from 'utils/urlRoutes'
@@ -31,6 +32,7 @@ export default function App() {
   useFeatureFlagUrlOverrides()
   useCrossChainSwapsEnabled() // Handle ?cross-chain-swaps=true/false URL parameter
   useSyncBridgeSwaps() // Sync bridge swaps with GraphQL data on app init
+  useWarmBridgePairInfo()
 
   useEffect(() => {
     initializeScrollWatcher()
