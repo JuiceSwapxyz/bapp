@@ -174,19 +174,19 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
   const pairInfo = usePairInfo(params)
   const { currencyIn, currencyOut } = params
 
-  const { data: boltzBalance, isLoading: isBoltzBalanceLoading } = useQuery({
+  const { data: boltzBalance } = useQuery({
     queryKey: ['boltz-balance'],
     queryFn: fetchBoltzBalance,
     enabled: !!currencyIn && !!currencyOut && !!pairInfo,
   })
 
-  const { data: onChainOut, isLoading: isOnChainOutLoading } = useQuery({
+  const { data: onChainOut } = useQuery({
     queryKey: ['lds-onchain-balance', currencyOut?.chainId, currencyOut?.symbol],
     queryFn: () => fetchLdsOnChainBalance(currencyOut!.chainId, currencyOut!.symbol ?? ''),
     enabled: !!currencyOut?.chainId && !!currencyOut?.symbol && !!pairInfo,
   })
 
-  if (!currencyIn || !currencyOut || !pairInfo || isBoltzBalanceLoading || isOnChainOutLoading) {
+  if (!currencyIn || !currencyOut || !pairInfo) {
     return undefined
   }
 
