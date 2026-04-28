@@ -5,6 +5,7 @@ import { SWAP_CONTRACTS } from 'constants/ldsBridgeContracts'
 import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
+import { waitForServerLockupTx } from 'state/sagas/transactions/ldsClaimUtils'
 import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { call } from 'typed-redux-saga'
 import { getFetchErrorMessage } from 'uniswap/src/data/apiClients/FetchError'
@@ -407,6 +408,12 @@ export function* handleWbtcBridge(params: HandleWbtcBridgeParams) {
         throw new TransactionStepFailedError({ message: 'Failed to get provider for claim', step })
       }
       const destSigner = destProvider.getSigner(account.address)
+
+      yield* call(waitForServerLockupTx, {
+        provider: destProvider,
+        swapId: chainSwap.id,
+        source: 'wbtcBridge',
+      })
 
       if (isWbtcToCbtc) {
         claimTxHash = yield* call(claimCoinSwap, {

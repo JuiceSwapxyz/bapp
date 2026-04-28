@@ -9,7 +9,6 @@ import {
   getBoltzBalanceForSide,
   getLdsBridgeManager,
 } from 'uniswap/src/features/lds-bridge'
-import { calculateEffectiveBridgeMax } from 'uniswap/src/features/lds-bridge/utils/limits'
 import type {
   LightningBridgeReverseGetResponse,
   LightningBridgeSubmarineGetResponse,
@@ -37,6 +36,7 @@ const useChainBridge = (params?: { enabled: boolean }): ReturnType<typeof useQue
     queryKey: ['chain-bridge'],
     queryFn: () => ldsBridge.getChainPairs(),
     enabled: params?.enabled,
+    refetchInterval: 600000,
   })
 }
 
@@ -48,6 +48,7 @@ const useReverseBridge = (params?: {
     queryKey: ['reverse-bridge'],
     queryFn: () => ldsBridge.getReversePairs(),
     enabled: params?.enabled,
+    refetchInterval: 600000,
   })
 }
 
@@ -59,7 +60,15 @@ const useSubmarineBridge = (params?: {
     queryKey: ['submarine-bridge'],
     queryFn: () => ldsBridge.getSubmarinePairs(),
     enabled: params?.enabled,
+    refetchInterval: 600000,
   })
+}
+
+/** Prefetches Boltz/LDS pair config into the React Query cache so bridge limits resolve faster on first open. */
+export function useWarmBridgePairInfo(): void {
+  useChainBridge({ enabled: true })
+  useReverseBridge({ enabled: true })
+  useSubmarineBridge({ enabled: true })
 }
 
 const isChainBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): boolean => {
@@ -127,9 +136,13 @@ const getErc20ApiSymbol = (symbol: string | undefined, chainId: UniverseChainId 
 const usePairInfo = (
   params: BridgeLimitsQueryParams,
 ): ChainPairsResponse | LightningBridgeReverseGetResponse | LightningBridgeSubmarineGetResponse | undefined => {
-  const { data: chainPairs } = useChainBridge()
-  const { data: reversePairs } = useReverseBridge()
-  const { data: submarinePairs } = useSubmarineBridge()
+  const { data: chainPairs, isLoading: isChainPairsLoading } = useChainBridge()
+  const { data: reversePairs, isLoading: isReversePairsLoading } = useReverseBridge()
+  const { data: submarinePairs, isLoading: isSubmarinePairsLoading } = useSubmarineBridge()
+
+  if (isChainPairsLoading || isReversePairsLoading || isSubmarinePairsLoading) {
+    return undefined
+  }
 
   if (isReverseBridge(params)) {
     return reversePairs
@@ -165,12 +178,6 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
     queryKey: ['boltz-balance'],
     queryFn: fetchBoltzBalance,
     enabled: !!currencyIn && !!currencyOut && !!pairInfo,
-  })
-
-  const { data: onChainIn } = useQuery({
-    queryKey: ['lds-onchain-balance', currencyIn?.chainId, currencyIn?.symbol],
-    queryFn: () => fetchLdsOnChainBalance(currencyIn!.chainId, currencyIn!.symbol ?? ''),
-    enabled: !!currencyIn?.chainId && !!currencyIn?.symbol && !!pairInfo,
   })
 
   const { data: onChainOut } = useQuery({
@@ -247,19 +254,10 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
     ? minimal
     : Math.ceil(minimal + minimal * percentageFee + totalMinerFees)
 
-  const balanceInBoltz = boltzBalance
-    ? getBoltzBalanceForSide(boltzBalance, { chainId: currencyIn.chainId, symbol: currencyIn.symbol ?? '' })
-    : undefined
   const balanceOutBoltz = boltzBalance
     ? getBoltzBalanceForSide(boltzBalance, { chainId: currencyOut.chainId, symbol: currencyOut.symbol ?? '' })
     : undefined
 
-  const effectiveBalanceIn =
-    balanceInBoltz !== undefined
-      ? onChainIn !== undefined
-        ? Math.min(balanceInBoltz, onChainIn)
-        : balanceInBoltz
-      : undefined
   const effectiveBalanceOut =
     balanceOutBoltz !== undefined
       ? onChainOut !== undefined
@@ -267,9 +265,9 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
         : balanceOutBoltz
       : undefined
 
-  const rawIn = effectiveBalanceIn !== undefined ? Math.floor(effectiveBalanceIn) : undefined
-  const rawOut = effectiveBalanceOut !== undefined ? Math.floor(effectiveBalanceOut) : undefined
-  const effectiveMax = calculateEffectiveBridgeMax(maximal, rawIn, rawOut)
+  if (effectiveBalanceOut === undefined) return undefined
+
+  const effectiveMax = Math.min(maximal, Math.floor(effectiveBalanceOut))
 
   const decimals = limitsCurrency.decimals
   const minRaw = parseUnits((adjustedMinimal / 1e8).toFixed(decimals), decimals).toString()

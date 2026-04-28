@@ -4,6 +4,7 @@ import { LdsBridgeStatus, PopupType } from 'components/Popups/types'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import { SWAP_CONTRACTS } from 'constants/ldsBridgeContracts'
 import { clientToProvider } from 'hooks/useEthersProvider'
+import { waitForServerLockupTx } from 'state/sagas/transactions/ldsClaimUtils'
 import { JuiceswapAuthFunctions } from 'state/sagas/transactions/swapSaga'
 import { call } from 'typed-redux-saga'
 import { Erc20ChainSwapDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
@@ -469,6 +470,12 @@ export function* handleErc20ChainSwap(params: HandleErc20ChainSwapParams) {
     const claimAmount =
       (BigInt(chainSwap.claimDetails.amount) * 10n ** BigInt(TOKEN_CONFIGS[to].decimals)) /
       10n ** BigInt(BOLTZ_DECIMALS)
+
+    yield* call(waitForServerLockupTx, {
+      provider: destProvider,
+      swapId: chainSwap.id,
+      source: 'erc20ChainSwap',
+    })
 
     claimTxHash = yield* call(claimErc20Swap, {
       signer: destSigner,

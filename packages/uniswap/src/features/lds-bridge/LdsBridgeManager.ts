@@ -363,10 +363,15 @@ class LdsBridgeManager {
     const abortController = new AbortController()
     const { signal } = abortController
 
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Timed out waiting for swap ${swapId} to reach state ${state}`)), timeoutMs)
+    )
+
     try {
       await Promise.race([
         this.waitViaWebSocket(swapId, state, signal),
         this.pollUntilState(swapId, state, signal),
+        timeout,
       ])
     } finally {
       abortController.abort()
@@ -405,9 +410,15 @@ class LdsBridgeManager {
           return
         }
         if (swapStatusFinal.includes(status.status)) {
+          // Terminal failure — re-throw so the race rejects instead of swallowing silently
           throw new Error(`Swap reached final state ${status.status} before ${state}`)
         }
       } catch (error) {
+        if ((error as Error).message?.includes('final state')) {
+          // Re-throw terminal state errors — do not swallow them
+          throw error
+        }
+        // Only swallow transient network errors
         // eslint-disable-next-line no-console
         console.error('[LdsBridgeManager] Error polling status:', error)
       }
