@@ -1,4 +1,5 @@
 import { POINTS_BRAND_COLOR, POINTS_TICKER } from 'components/AccountDrawer/Points/constants'
+import { bubbleTextStyle } from 'components/AccountDrawer/Points/styles'
 import {
   LEADERBOARD_PAGE_SIZE,
   LeaderboardEntry,
@@ -10,6 +11,25 @@ import { ChevronLeft, ChevronRight } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
 import { Flex, Loader, Text, Unicon, styled } from 'ui/src'
 import { shortenAddress } from 'utilities/src/addresses'
+
+const PODIUM_POINTS_STYLE: React.CSSProperties = {
+  ...bubbleTextStyle(26),
+  fontVariantNumeric: 'tabular-nums',
+  fontFeatureSettings: '"tnum"',
+}
+
+const STATS_POINTS_STYLE: React.CSSProperties = {
+  ...bubbleTextStyle(24),
+  fontVariantNumeric: 'tabular-nums',
+  fontFeatureSettings: '"tnum"',
+}
+
+const ROW_POINTS_STYLE: React.CSSProperties = {
+  ...bubbleTextStyle(16),
+  fontVariantNumeric: 'tabular-nums',
+  fontFeatureSettings: '"tnum"',
+  fontWeight: 700,
+}
 
 const TABULAR: React.CSSProperties = {
   fontVariantNumeric: 'tabular-nums',
@@ -261,13 +281,13 @@ function PodiumEntry({ entry, isUser }: { entry: LeaderboardEntry; isUser: boole
       <AvatarRing medal={medal} width={ringSize} height={ringSize}>
         <Unicon address={entry.address} size={avatarSize} />
       </AvatarRing>
-      <Flex alignItems="center" gap="$spacing4">
+      <Flex alignItems="center" gap="$spacing6">
         <Text variant="body2" color={isUser ? POINTS_BRAND_COLOR : '$neutral1'}>
           {shortenAddress(entry.address)}
         </Text>
-        <Text variant="heading3" color={POINTS_BRAND_COLOR} style={TABULAR}>
+        <span style={PODIUM_POINTS_STYLE}>
           {entry.points.toLocaleString()} {POINTS_TICKER}
-        </Text>
+        </span>
       </Flex>
     </PodiumCard>
   )
@@ -291,9 +311,9 @@ function Row({ entry, isUser }: { entry: LeaderboardEntry; isUser: boolean }) {
           {shortenAddress(entry.address)}
         </Text>
       </Flex>
-      <Text variant="body1" color={POINTS_BRAND_COLOR} style={TABULAR}>
+      <span style={ROW_POINTS_STYLE}>
         {entry.points.toLocaleString()} {POINTS_TICKER}
-      </Text>
+      </span>
     </ListRow>
   )
 }
@@ -377,9 +397,9 @@ export default function Leaderboard() {
             <Text variant="body4" color="$neutral2" style={{ letterSpacing: 1, textTransform: 'uppercase' }}>
               <Trans i18nKey="leaderboard.stats.totalPoints" />
             </Text>
-            <Text variant="heading3" color={POINTS_BRAND_COLOR} style={TABULAR}>
+            <span style={STATS_POINTS_STYLE}>
               {totalPoints.toLocaleString()} {POINTS_TICKER}
-            </Text>
+            </span>
           </StatBlock>
           <StatDivider />
           <StatBlock>
@@ -391,9 +411,9 @@ export default function Leaderboard() {
                 <Text variant="heading3" color="$neutral1" style={TABULAR}>
                   #{userEntry.rank}
                 </Text>
-                <Text variant="body2" color={POINTS_BRAND_COLOR} style={TABULAR}>
+                <span style={ROW_POINTS_STYLE}>
                   {userEntry.points.toLocaleString()} {POINTS_TICKER}
-                </Text>
+                </span>
               </Flex>
             ) : (
               <Text variant="heading3" color="$neutral3">
