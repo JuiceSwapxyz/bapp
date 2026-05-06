@@ -6,6 +6,7 @@ import { EmptyWallet } from 'components/AccountDrawer/MiniPortfolio/EmptyWallet'
 import { ExtensionDeeplinks } from 'components/AccountDrawer/MiniPortfolio/ExtensionDeeplinks'
 import MiniPortfolio from 'components/AccountDrawer/MiniPortfolio/MiniPortfolio'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { PointsCard } from 'components/AccountDrawer/Points/PointsCard'
 import { LimitedSupportBanner } from 'components/Banner/LimitedSupportBanner'
 import { Power } from 'components/Icons/Power'
 import { Settings } from 'components/Icons/Settings'
@@ -127,7 +128,7 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
       <Flex flex={1} px="$padding16" py={isUniExtensionConnected ? '$spacing16' : '$spacing20'}>
         <TestnetModeBanner mt={isUniExtensionConnected ? -16 : -20} mx={-24} mb="$spacing16" />
         <Flex row justifyContent="space-between" alignItems="flex-start" mb="$spacing8">
-          <StatusIcon size={48} />
+          <StatusIcon size={72} />
           <Flex row gap="$spacing8">
             <IconButton
               hideHorizontal={showDisconnectConfirm}
@@ -206,6 +207,9 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
             <ExtensionDeeplinks account={account} />
           ) : (
             <>
+              <Flex mb="$spacing12">
+                <PointsCard account={account} />
+              </Flex>
               {isPortfolioZero ? (
                 <EmptyWallet handleBuyCryptoClick={handleBuyCryptoClick} />
               ) : (

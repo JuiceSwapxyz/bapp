@@ -46,6 +46,7 @@ const JuicePage = lazy(() => import('pages/Juice'))
 const JusdPage = lazy(() => import('pages/Jusd'))
 const DebugLockup = lazy(() => import('pages/DebugLockup'))
 const Compensation = lazy(() => import('pages/Compensation'))
+const Leaderboard = lazy(() => import('pages/Leaderboard/Leaderboard'))
 
 interface RouterConfig {
   browserRouterEnabled?: boolean
@@ -194,6 +195,15 @@ export const routes: RouteDefinition[] = [
     path: '/buy',
     getElement: () => <Swap />,
     getTitle: () => StaticTitlesAndDescriptions.SwapTitle,
+  }),
+  createRouteDefinition({
+    path: '/leaderboard',
+    getTitle: () => i18n.t('leaderboard.title'),
+    getElement: () => (
+      <Suspense fallback={null}>
+        <Leaderboard />
+      </Suspense>
+    ),
   }),
   createRouteDefinition({
     path: '/sell',

@@ -9,6 +9,7 @@ export enum MenuState {
   POOLS = 'pools',
   PASSKEYS = 'passkeys',
   OTHER_WALLETS = 'other_wallets',
+  POINTS = 'points',
 }
 
 export const miniPortfolioMenuStateAtom = atom(MenuState.DEFAULT)
