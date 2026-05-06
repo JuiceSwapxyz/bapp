@@ -61,3 +61,73 @@ export function bubbleTextStyle(fontSize: number): CSSProperties {
 export function LiquidBubbleStyleTag() {
   return <style dangerouslySetInnerHTML={{ __html: LIQUID_BUBBLE_KEYFRAMES }} />
 }
+
+const FILTER_ID_HERO = 'juice-goo-hero'
+const FILTER_ID_COMPACT = 'juice-goo-compact'
+const ORB_ID_HERO = 'juice-orb-hero'
+const ORB_ID_COMPACT = 'juice-orb-compact'
+
+interface LiquidBgProps {
+  variant?: 'hero' | 'compact'
+}
+
+/**
+ * Animated orange goo blobs filling the bottom of a dark surface.
+ * `hero` is for the big hero card in PointsMenu; `compact` is a denser
+ * lower-strip version sized for the small PointsCard in the drawer.
+ */
+export function LiquidBg({ variant = 'hero' }: LiquidBgProps) {
+  const isHero = variant === 'hero'
+  const filterId = isHero ? FILTER_ID_HERO : FILTER_ID_COMPACT
+  const orbId = isHero ? ORB_ID_HERO : ORB_ID_COMPACT
+  const stdDev = isHero ? 22 : 14
+
+  return (
+    <svg
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+      }}
+      viewBox="0 0 600 300"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+    >
+      <defs>
+        <filter id={filterId} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation={stdDev} result="blur" />
+          <feColorMatrix
+            in="blur"
+            mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8"
+            result="goo"
+          />
+          <feBlend in="SourceGraphic" in2="goo" />
+        </filter>
+        <radialGradient id={orbId} cx="50%" cy="40%">
+          <stop offset="0%" stopColor="#FFD699" />
+          <stop offset="60%" stopColor="#F7911A" />
+          <stop offset="100%" stopColor="#9B5300" />
+        </radialGradient>
+      </defs>
+      {isHero ? (
+        <g filter={`url(#${filterId})`} opacity="0.85">
+          <circle cx="80" cy="230" r="70" fill={`url(#${orbId})`} />
+          <circle cx="180" cy="280" r="55" fill={`url(#${orbId})`} />
+          <circle cx="340" cy="260" r="80" fill={`url(#${orbId})`} />
+          <circle cx="470" cy="290" r="65" fill={`url(#${orbId})`} />
+          <circle cx="540" cy="220" r="40" fill={`url(#${orbId})`} />
+        </g>
+      ) : (
+        <g filter={`url(#${filterId})`} opacity="0.7">
+          <circle cx="60" cy="260" r="50" fill={`url(#${orbId})`} />
+          <circle cx="200" cy="280" r="60" fill={`url(#${orbId})`} />
+          <circle cx="360" cy="270" r="55" fill={`url(#${orbId})`} />
+          <circle cx="520" cy="280" r="45" fill={`url(#${orbId})`} />
+        </g>
+      )}
+    </svg>
+  )
+}

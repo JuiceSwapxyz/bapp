@@ -9,6 +9,7 @@ import {
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import {
   LIQUID_BUBBLE_CLASS,
+  LiquidBg,
   LiquidBubbleStyleTag,
   bubbleTextStyle,
 } from 'components/AccountDrawer/Points/styles'
@@ -35,48 +36,6 @@ const HeroCard = styled(Flex, {
   borderStyle: 'solid',
   borderColor: '#3a2814',
 })
-
-function LiquidBg() {
-  return (
-    <svg
-      style={{
-        position: 'absolute',
-        inset: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-      }}
-      viewBox="0 0 600 300"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden
-    >
-      <defs>
-        <filter id="juice-goo" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="22" result="blur" />
-          <feColorMatrix
-            in="blur"
-            mode="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8"
-            result="goo"
-          />
-          <feBlend in="SourceGraphic" in2="goo" />
-        </filter>
-        <radialGradient id="juice-orb" cx="50%" cy="40%">
-          <stop offset="0%" stopColor="#FFD699" />
-          <stop offset="60%" stopColor="#F7911A" />
-          <stop offset="100%" stopColor="#9B5300" />
-        </radialGradient>
-      </defs>
-      <g filter="url(#juice-goo)" opacity="0.85">
-        <circle cx="80" cy="230" r="70" fill="url(#juice-orb)" />
-        <circle cx="180" cy="280" r="55" fill="url(#juice-orb)" />
-        <circle cx="340" cy="260" r="80" fill="url(#juice-orb)" />
-        <circle cx="470" cy="290" r="65" fill="url(#juice-orb)" />
-        <circle cx="540" cy="220" r="40" fill="url(#juice-orb)" />
-      </g>
-    </svg>
-  )
-}
 
 const HERO_BUBBLE_STYLE = bubbleTextStyle(68)
 
