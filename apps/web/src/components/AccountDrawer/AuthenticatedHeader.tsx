@@ -175,33 +175,31 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
           </ExternalLink>
         </Flex>
         <Flex flex={1} mt="$spacing16">
-          {!isTestnetModeEnabled && (
-            <Flex gap="$spacing4" mb="$spacing16" data-testid="portfolio-total-balance">
-              <AnimatedNumber
-                balance={balanceUSD}
-                isRightToLeft={isRightToLeft}
-                colorIndicationDuration={BALANCE_CHANGE_INDICATION_DURATION}
-                loading={isLoading}
-                loadingPlaceholderText="000000.00"
-                shouldFadeDecimals={shouldFadePortfolioDecimals}
-                value={totalFormattedValue}
-                warmLoading={isWarmLoading}
-              />
-              {!isPortfolioZero && (
-                <Shine disabled={!isWarmLoading}>
-                  <RelativeChange
-                    absoluteChange={absoluteChangeUSD}
-                    arrowSize="$icon.16"
-                    change={percentChange}
-                    loading={isLoading}
-                    negativeChangeColor={isWarmLoading ? '$neutral2' : '$statusCritical'}
-                    positiveChangeColor={isWarmLoading ? '$neutral2' : '$statusSuccess'}
-                    variant="body3"
-                  />
-                </Shine>
-              )}
-            </Flex>
-          )}
+          <Flex gap="$spacing4" mb="$spacing16" data-testid="portfolio-total-balance">
+            <AnimatedNumber
+              balance={balanceUSD}
+              isRightToLeft={isRightToLeft}
+              colorIndicationDuration={BALANCE_CHANGE_INDICATION_DURATION}
+              loading={isLoading}
+              loadingPlaceholderText="000000.00"
+              shouldFadeDecimals={shouldFadePortfolioDecimals}
+              value={totalFormattedValue}
+              warmLoading={isWarmLoading}
+            />
+            {!isPortfolioZero && (
+              <Shine disabled={!isWarmLoading}>
+                <RelativeChange
+                  absoluteChange={absoluteChangeUSD}
+                  arrowSize="$icon.16"
+                  change={percentChange}
+                  loading={isLoading}
+                  negativeChangeColor={isWarmLoading ? '$neutral2' : '$statusCritical'}
+                  positiveChangeColor={isWarmLoading ? '$neutral2' : '$statusSuccess'}
+                  variant="body3"
+                />
+              </Shine>
+            )}
+          </Flex>
           {shouldShowDelegationMismatch && (
             <LimitedSupportBanner onPress={() => setDisplayDelegationMismatchModal(true)} />
           )}
