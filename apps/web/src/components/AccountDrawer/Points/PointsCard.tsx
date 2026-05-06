@@ -10,9 +10,13 @@ import { MenuState, miniPortfolioMenuStateAtom } from 'components/AccountDrawer/
 import { useUpdateAtom } from 'jotai/utils'
 import { ChevronRight } from 'react-feather'
 import { Trans } from 'react-i18next'
-import { Flex, Text, styled } from 'ui/src'
+import { Flex, styled } from 'ui/src'
 
-const CARD_BUBBLE_STYLE = bubbleTextStyle(32)
+const CARD_BUBBLE_STYLE: React.CSSProperties = {
+  ...bubbleTextStyle(28),
+  paddingTop: 4,
+  paddingBottom: 4,
+}
 
 const CARD_LABEL_STYLE: React.CSSProperties = {
   letterSpacing: 1.5,
@@ -28,11 +32,12 @@ const Card = styled(Flex, {
   row: true,
   alignItems: 'center',
   justifyContent: 'space-between',
+  gap: '$spacing12',
   position: 'relative',
   overflow: 'hidden',
   borderRadius: '$rounded16',
-  px: '$padding16',
-  py: '$padding14',
+  px: '$padding20',
+  py: '$padding20',
   cursor: 'pointer',
   borderWidth: 1,
   borderStyle: 'solid',
