@@ -73,14 +73,18 @@ interface LiquidBgProps {
 
 /**
  * Animated orange goo blobs filling the bottom of a dark surface.
- * `hero` is for the big hero card in PointsMenu; `compact` is a denser
- * lower-strip version sized for the small PointsCard in the drawer.
+ * `hero` is for the big hero card in PointsMenu; `compact` is a wider
+ * shallow version sized for the small PointsCard in the drawer.
+ *
+ * Each variant has its own viewBox/preserveAspectRatio so the blobs
+ * sit in the visible region of their respective container aspect ratio
+ * (the hero card is roughly 2:1 tall, the drawer card is ~4:1 wide).
  */
 export function LiquidBg({ variant = 'hero' }: LiquidBgProps) {
   const isHero = variant === 'hero'
   const filterId = isHero ? FILTER_ID_HERO : FILTER_ID_COMPACT
   const orbId = isHero ? ORB_ID_HERO : ORB_ID_COMPACT
-  const stdDev = isHero ? 22 : 14
+  const stdDev = isHero ? 22 : 12
 
   return (
     <svg
@@ -91,8 +95,8 @@ export function LiquidBg({ variant = 'hero' }: LiquidBgProps) {
         height: '100%',
         pointerEvents: 'none',
       }}
-      viewBox="0 0 600 300"
-      preserveAspectRatio="xMidYMid slice"
+      viewBox={isHero ? '0 0 600 300' : '0 0 600 160'}
+      preserveAspectRatio={isHero ? 'xMidYMid slice' : 'xMidYMax slice'}
       aria-hidden
     >
       <defs>
@@ -121,11 +125,12 @@ export function LiquidBg({ variant = 'hero' }: LiquidBgProps) {
           <circle cx="540" cy="220" r="40" fill={`url(#${orbId})`} />
         </g>
       ) : (
-        <g filter={`url(#${filterId})`} opacity="0.7">
-          <circle cx="60" cy="260" r="50" fill={`url(#${orbId})`} />
-          <circle cx="200" cy="280" r="60" fill={`url(#${orbId})`} />
-          <circle cx="360" cy="270" r="55" fill={`url(#${orbId})`} />
-          <circle cx="520" cy="280" r="45" fill={`url(#${orbId})`} />
+        <g filter={`url(#${filterId})`} opacity="0.95">
+          <circle cx="50" cy="160" r="55" fill={`url(#${orbId})`} />
+          <circle cx="170" cy="170" r="65" fill={`url(#${orbId})`} />
+          <circle cx="300" cy="155" r="60" fill={`url(#${orbId})`} />
+          <circle cx="430" cy="170" r="58" fill={`url(#${orbId})`} />
+          <circle cx="555" cy="160" r="50" fill={`url(#${orbId})`} />
         </g>
       )}
     </svg>
