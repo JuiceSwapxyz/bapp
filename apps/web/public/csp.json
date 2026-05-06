@@ -2,6 +2,13 @@
   "defaultSrc": [
     "'self'"
   ],
+  "baseUri": [
+    "'self'"
+  ],
+  "objectSrc": [
+    "'none'"
+  ],
+  "upgradeInsecureRequests": [],
   "scriptSrc": [
     "'self'",
     "'wasm-unsafe-eval'"
