@@ -98,17 +98,29 @@ const PodiumCard = styled(Flex, {
   px: '$padding20',
   py: 36,
   position: 'relative',
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: '$surface3',
   variants: {
     rank: {
       1: {
+        borderColor: 'rgba(255,215,0,0.45)',
         background:
-          'radial-gradient(ellipse at top, rgba(255,215,0,0.18) 0%, rgba(255,215,0,0) 70%), linear-gradient(180deg, rgba(255,215,0,0.06), rgba(255,215,0,0.02))',
+          'radial-gradient(ellipse at top, rgba(255,215,0,0.30) 0%, rgba(255,215,0,0) 65%), linear-gradient(180deg, rgba(255,215,0,0.16), rgba(255,215,0,0.04))',
+        shadowColor: 'rgba(255,215,0,0.35)',
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.55,
+        shadowRadius: 32,
       },
       2: {
-        background: 'linear-gradient(180deg, rgba(192,192,192,0.10), rgba(192,192,192,0.02))',
+        borderColor: 'rgba(192,192,192,0.4)',
+        background:
+          'radial-gradient(ellipse at top, rgba(192,192,192,0.20) 0%, rgba(192,192,192,0) 65%), linear-gradient(180deg, rgba(192,192,192,0.10), rgba(192,192,192,0.02))',
       },
       3: {
-        background: 'linear-gradient(180deg, rgba(205,127,50,0.10), rgba(205,127,50,0.02))',
+        borderColor: 'rgba(205,127,50,0.45)',
+        background:
+          'radial-gradient(ellipse at top, rgba(205,127,50,0.24) 0%, rgba(205,127,50,0) 65%), linear-gradient(180deg, rgba(205,127,50,0.12), rgba(205,127,50,0.02))',
       },
     },
   },
@@ -170,7 +182,7 @@ const RowDivider = styled(Flex, {
   height: 1,
   mx: '$padding20',
   backgroundColor: '$surface3',
-  opacity: 0.35,
+  opacity: 0.7,
 })
 
 const UserRowAccent = styled(Flex, {
