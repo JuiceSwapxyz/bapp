@@ -1,0 +1,69 @@
+# JuiceSwap
+
+> JuiceSwap is the decentralized exchange (DEX) on Citrea — a Bitcoin ZK rollup that brings native BTC into a fully EVM-compatible execution layer. JuiceSwap forks Uniswap V2 and V3 to enable token swaps, liquidity provision, and limit orders against cBTC, cUSD, NUSD, JUSD and the wider Citrea ecosystem.
+
+## What this app lets users do
+
+- **Swap** any token in the Citrea ecosystem with V2 (constant-product) or V3 (concentrated liquidity) routing
+- **Provide liquidity** to V2 pairs or V3 positions and earn fees
+- **Limit orders** for delayed execution at a target price
+- **Send** tokens to another address
+- **Buy / Sell** crypto via on-ramps (Moonpay)
+- **Bridge** assets between Citrea and supported networks
+- **Earn Juice Points** for swaps (100 JP per finalized swap, daily cap to deter bots) and view the public Top 100 leaderboard
+- **Set an NFT as Profile Picture** from the wallet's holdings, persisted per address
+- **Launch a token** through the integrated launchpad
+- **Track positions** and on-chain activity in the wallet drawer
+
+## Networks
+
+- Citrea Mainnet (chainId 4114)
+- Citrea Testnet (chainId 5115)
+
+## Key URLs
+
+- App: [https://bapp.juiceswap.com](https://bapp.juiceswap.com)
+- Swap: [https://bapp.juiceswap.com/swap](https://bapp.juiceswap.com/swap)
+- Positions: [https://bapp.juiceswap.com/positions](https://bapp.juiceswap.com/positions)
+- Explore: [https://bapp.juiceswap.com/explore](https://bapp.juiceswap.com/explore)
+- Leaderboard: [https://bapp.juiceswap.com/leaderboard](https://bapp.juiceswap.com/leaderboard)
+- Launchpad: [https://bapp.juiceswap.com/launchpad](https://bapp.juiceswap.com/launchpad)
+
+## Public APIs (read-only, no auth required)
+
+- Indexer / GraphQL: `https://ponder.juiceswap.com`
+- App API: `https://api.juiceswap.com`
+
+### Selected REST endpoints
+
+- `GET https://ponder.juiceswap.com/api/info` — chain + contract info
+- `GET https://ponder.juiceswap.com/api/sync-status` — indexer sync status
+- `GET https://ponder.juiceswap.com/positions` — V3 positions
+- `GET https://ponder.juiceswap.com/tokens` — token catalogue
+- `GET https://ponder.juiceswap.com/v2-pool-stats` — V2 pool stats
+- `GET https://ponder.juiceswap.com/activity/swaps?address={addr}` — swap history per address
+- `GET https://ponder.juiceswap.com/points/{address}` — Juice Points breakdown
+- `GET https://ponder.juiceswap.com/points/leaderboard` — top 100 wallets
+
+## Open source
+
+JuiceSwap is open source. All components live under [https://github.com/JuiceSwapxyz](https://github.com/JuiceSwapxyz):
+
+- [bapp](https://github.com/JuiceSwapxyz/bapp) — this web interface
+- [smart-contracts](https://github.com/JuiceSwapxyz/smart-contracts) — Solidity
+- [v2-core](https://github.com/JuiceSwapxyz/v2-core), [v2-periphery](https://github.com/JuiceSwapxyz/v2-periphery)
+- [v3-core](https://github.com/JuiceSwapxyz/v3-core), [v3-periphery](https://github.com/JuiceSwapxyz/v3-periphery)
+- [ponder](https://github.com/JuiceSwapxyz/ponder) — indexer + REST API
+- [sdk](https://github.com/JuiceSwapxyz/sdk) — TypeScript SDK
+- [launchpad](https://github.com/JuiceSwapxyz/launchpad) — token launchpad
+
+## Documentation
+
+- [https://docs.juiceswap.com](https://docs.juiceswap.com)
+- [Citrea docs](https://docs.citrea.xyz/)
+
+## Contact
+
+- Twitter / X: [https://x.com/JuiceSwapxyz](https://x.com/JuiceSwapxyz)
+- Telegram: announced via the website footer
+- Discord: announced via the website footer
