@@ -33,7 +33,62 @@
     <meta name="twitter:image:alt" content="JuiceSwap Interface" />
 
     <!-- Standard Meta -->
-    <meta name="description" content="JuiceSwap.com - The easiest way to Swap in, out and on Citrea" />
+    <meta name="description" content="JuiceSwap is the decentralized exchange on Citrea, the Bitcoin ZK rollup. Swap tokens, provide liquidity, and earn Juice Points." />
+    <meta name="keywords" content="JuiceSwap, Citrea, Bitcoin DEX, BTC DEX, cBTC, ZK rollup, decentralized exchange, swap, liquidity, Uniswap fork, Juice Points" />
+    <meta name="application-name" content="JuiceSwap" />
+    <meta name="apple-mobile-web-app-title" content="JuiceSwap" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://bapp.juiceswap.com/" />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM-friendly site description" />
+
+    <!-- JSON-LD: Organization -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "JuiceSwap",
+        "url": "https://bapp.juiceswap.com/",
+        "logo": "https://bapp.juiceswap.com/images/512x512_App_Icon.png",
+        "sameAs": [
+          "https://x.com/JuiceSwapxyz",
+          "https://github.com/JuiceSwapxyz",
+          "https://docs.juiceswap.com"
+        ]
+      }
+    </script>
+
+    <!-- JSON-LD: WebSite + SearchAction -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "JuiceSwap",
+        "url": "https://bapp.juiceswap.com/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://bapp.juiceswap.com/explore?search={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+
+    <!-- JSON-LD: WebApplication -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "JuiceSwap Interface",
+        "url": "https://bapp.juiceswap.com/",
+        "description": "JuiceSwap is the decentralized exchange on Citrea, the Bitcoin ZK rollup. Swap tokens, provide liquidity, and earn Juice Points.",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
 
     <!-- CSP will be injected here -->
 

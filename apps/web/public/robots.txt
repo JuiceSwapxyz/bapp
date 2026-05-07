@@ -1,9 +1,56 @@
-# *
-User-agent: *
+# JuiceSwap - DEX on Citrea (Bitcoin ZK rollup)
+# https://bapp.juiceswap.com
 
-# Analytics
+User-agent: *
+Allow: /
+
+# Internal analytics endpoints - not useful for indexing
 Disallow: /v1/statsig-proxy
 Disallow: /c1/statsig-proxy
 
-# Sitemaps
-Sitemap: https://app.uniswap.org/sitemap.xml
+# Common AI / agent crawlers - explicitly allowed.
+# Listed here so operators can adjust per-bot policy if needed.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: DiffbotBot
+Allow: /
+
+# Sitemap
+Sitemap: https://bapp.juiceswap.com/sitemap.xml

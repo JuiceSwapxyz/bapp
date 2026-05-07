@@ -1,5 +1,6 @@
 import sockImg from 'assets/svg/socks.svg'
 import Identicon from 'components/Identicon'
+import { usePfp } from 'components/Identicon/usePfp'
 import { useHasSocks } from 'hooks/useSocksBalance'
 import styled from 'lib/styled-components'
 import { flexColumnNoWrap } from 'theme/styles'
@@ -48,6 +49,13 @@ const MiniImg = styled.img`
   height: 16px;
 `
 
+const PfpImg = styled.img<{ size: number }>`
+  width: ${({ size }) => size}px;
+  height: ${({ size }) => size}px;
+  border-radius: 50%;
+  object-fit: cover;
+`
+
 function Socks() {
   return (
     <MiniIconContainer side="left">
@@ -66,10 +74,16 @@ export default function StatusIcon({
   address?: string
 }) {
   const account = useWallet().evmAccount
+  const effectiveAddress = address ?? account?.address
+  const pfp = usePfp(effectiveAddress)
   const hasSocks = useHasSocks()
   return (
     <IconWrapper size={size} data-testid="StatusIconRoot">
-      <Identicon account={address ?? account?.address} size={size} />
+      {pfp ? (
+        <PfpImg src={pfp.imageUrl} size={size} alt="" />
+      ) : (
+        <Identicon account={effectiveAddress} size={size} />
+      )}
       {/* Disabled to prevent missing wallet icon errors */}
       {/* {showMiniIcons && <MiniWalletIcon />} */}
       {hasSocks && showMiniIcons && <Socks />}
