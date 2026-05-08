@@ -1,9 +1,19 @@
 import { useState } from 'react'
 import Confetti from 'react-confetti'
 import { useWindowSize } from 'react-use'
-import { useClaimNFT } from 'services/juicerCampaign/hooks'
+import { useSpendAndClaimJuicerNFT } from 'services/juicerCampaign/hooks'
+import { JUICER_JP_COST } from 'services/juicerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
+
+interface NFTClaimSectionProps {
+  /** Wallet's currently available JP (= total earned - already spent). */
+  availableJp: number
+  /** True once the API has confirmed the wallet already minted. */
+  alreadyMinted: boolean
+  /** JuicerNFT contract address on Citrea Mainnet. Undefined until product wires it. */
+  contractAddress?: string
+}
 
 const ClaimContainer = styled(Flex, {
   gap: '$spacing16',
@@ -16,175 +26,134 @@ const ClaimContainer = styled(Flex, {
   overflow: 'hidden',
 })
 
-const ClaimTitle = styled(Text, {
-  variant: 'heading3',
-  color: '$neutral1',
-  fontWeight: '600',
+const SuccessContainer = styled(Flex, {
+  gap: '$spacing12',
+  padding: '$spacing16',
+  backgroundColor: 'rgba(76, 175, 80, 0.10)',
+  borderRadius: '$rounded12',
+  borderWidth: 1,
+  borderColor: '$statusSuccess',
 })
 
-const ClaimDescription = styled(Text, {
-  variant: 'body2',
-  color: '$neutral2',
-})
-
-const ClaimButton = styled(Button, {
+const PrimaryButton = styled(Button, {
   gap: '$spacing8',
   paddingHorizontal: '$spacing24',
   paddingVertical: '$spacing16',
   backgroundColor: '$accent1',
   borderRadius: '$rounded12',
   minHeight: 56,
-  hoverStyle: {
-    backgroundColor: '$accent2',
-    transform: 'scale(1.02)',
-  },
-  pressStyle: {
-    transform: 'scale(0.98)',
-  },
-  transition: 'all 0.2s ease',
 })
 
-const SuccessContainer = styled(Flex, {
-  gap: '$spacing12',
-  padding: '$spacing16',
-  backgroundColor: 'rgba(76, 175, 80, 0.1)',
-  borderRadius: '$rounded12',
-  borderWidth: 1,
-  borderColor: '$statusSuccess',
-})
-
-const ErrorContainer = styled(Flex, {
-  gap: '$spacing12',
-  padding: '$spacing16',
-  backgroundColor: 'rgba(255, 59, 48, 0.1)',
-  borderRadius: '$rounded12',
-  borderWidth: 1,
-  borderColor: '$statusCritical',
-})
-
-const TransactionLink = styled(Flex, {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: '$spacing4',
-  cursor: 'pointer',
-  hoverStyle: {
-    opacity: 0.7,
-  },
-})
-
-interface NFTClaimSectionProps {
-  isEligible: boolean
-  walletAddress?: string
-  nftMinted?: boolean
-  nftTxHash?: string
-}
-
-export function NFTClaimSection({ isEligible, walletAddress, nftMinted, nftTxHash }: NFTClaimSectionProps) {
-  const { claim, isClaiming, error, claimResult, isRabbyWallet } = useClaimNFT()
-  const [showConfetti, setShowConfetti] = useState(false)
+export function NFTClaimSection({
+  availableJp,
+  alreadyMinted,
+  contractAddress,
+}: NFTClaimSectionProps) {
   const { width, height } = useWindowSize()
+  const [showConfetti, setShowConfetti] = useState(false)
+  const { spendAndClaim, isWorking, error, result } = useSpendAndClaimJuicerNFT(contractAddress)
 
-  const handleClaim = async () => {
-    const success = await claim()
-    if (success) {
+  const eligible = availableJp >= JUICER_JP_COST
+  const claimed = alreadyMinted || !!result?.txHash
+
+  const onClaim = async () => {
+    const ok = await spendAndClaim()
+    if (ok) {
       setShowConfetti(true)
-      setTimeout(() => setShowConfetti(false), 8000)
+      setTimeout(() => setShowConfetti(false), 5_000)
     }
   }
 
-  // Determine which transaction hash to display (prefer recent claim over API)
-  const displayTxHash = claimResult?.txHash || nftTxHash
-
-  const handleViewTransaction = () => {
-    if (displayTxHash) {
-      // Open Citrea mainnet explorer
-      window.open(`https://citreascan.com/tx/${displayTxHash}`, '_blank', 'noopener,noreferrer')
-    }
-  }
-
-  // Show success message if NFT was claimed (either in current session or previously)
-  if (claimResult || nftMinted) {
+  if (claimed) {
+    const txHash = result?.txHash
+    const tokenId = result?.tokenId
     return (
-      <>
-        {showConfetti && (
-          <Confetti
-            width={width}
-            height={height}
-            numberOfPieces={300}
-            recycle={false}
-            colors={['#FF6B35', '#4CAF50', '#2ABDFF', '#FC72FF', '#FFD700']}
-            gravity={0.15}
-            style={{ position: 'fixed', top: 0, left: 0, zIndex: 1000 }}
-          />
-        )}
-        <ClaimContainer>
-          <SuccessContainer>
-            <Flex gap="$spacing8">
-              <Text variant="heading3" color="$statusSuccess">
-                🎉 NFT Claimed Successfully!
+      <SuccessContainer data-testid="juicer-claimed">
+        <Text variant="heading3" color="$statusSuccess">
+          Juicer NFT claimed
+        </Text>
+        <Text variant="body2" color="$neutral2">
+          {tokenId
+            ? `Token #${tokenId} is in your wallet on Citrea Mainnet.`
+            : 'It is in your wallet on Citrea Mainnet.'}
+        </Text>
+        {txHash && (
+          <a
+            href={`https://citreascan.com/tx/${txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'inherit', textDecoration: 'none' }}
+          >
+            <Flex row alignItems="center" gap="$spacing4">
+              <Text variant="body3" color="$accent1">
+                View transaction
               </Text>
-              <Text variant="body2" color="$neutral2">
-                Congratulations! Your First Squeezer NFT has been minted and sent to your wallet.
-              </Text>
-              {claimResult?.tokenId && (
-                <Text variant="body3" color="$neutral2">
-                  Token ID: #{claimResult.tokenId}
-                </Text>
-              )}
+              <ExternalLink size={14} color="$accent1" />
             </Flex>
-
-            {displayTxHash && (
-              <TransactionLink onPress={handleViewTransaction}>
-                <Text variant="buttonLabel4" color="$accent1">
-                  View Transaction
-                </Text>
-                <ExternalLink size="$icon.16" color="$accent1" />
-              </TransactionLink>
-            )}
-          </SuccessContainer>
-        </ClaimContainer>
-      </>
+          </a>
+        )}
+      </SuccessContainer>
     )
   }
 
   return (
     <ClaimContainer>
-      <Flex gap="$spacing8">
-        <ClaimTitle>🍋 Claim Your First Squeezer NFT</ClaimTitle>
-        <ClaimDescription>
-          {isEligible
-            ? "You've completed all conditions! Click the button below to mint your exclusive First Squeezer NFT."
-            : 'Complete all three conditions above to unlock the claim button.'}
-        </ClaimDescription>
+      {showConfetti && (
+        <Confetti width={width} height={height} numberOfPieces={250} recycle={false} />
+      )}
+      <Flex gap="$spacing4">
+        <Text variant="heading3" color="$neutral1" fontWeight="600">
+          Trade {JUICER_JP_COST.toLocaleString()} JP for the Juicer NFT
+        </Text>
+        <Text variant="body2" color="$neutral2">
+          {JUICER_JP_COST.toLocaleString()} Juice Points are deducted from your balance the moment
+          the trade is confirmed by the backend. After that you mint the NFT to your wallet.
+        </Text>
       </Flex>
 
-      {error && (
-        <ErrorContainer>
-          <Text variant="body3" color="$statusCritical">
-            {error}
+      <Flex row alignItems="center" gap="$spacing12">
+        <Flex flex={1} gap="$spacing2">
+          <Text variant="body4" color="$neutral2">
+            Your available JP
           </Text>
-        </ErrorContainer>
-      )}
-
-      <ClaimButton onPress={handleClaim} disabled={!isEligible || isClaiming}>
-        {isClaiming ? (
-          <Flex row gap="$spacing8" alignItems="center">
-            <SpinningLoader size={20} />
-            <Text variant="buttonLabel3" color="$white">
-              Minting NFT...
+          <Text variant="heading3" color={eligible ? '$accent1' : '$neutral2'}>
+            {availableJp.toLocaleString()} JP
+          </Text>
+        </Flex>
+        <PrimaryButton
+          isDisabled={!eligible || isWorking || !contractAddress}
+          onPress={onClaim}
+          opacity={!eligible || !contractAddress ? 0.5 : 1}
+        >
+          {isWorking ? (
+            <Flex row alignItems="center" gap="$spacing8">
+              <SpinningLoader size={20} color="$white" />
+              <Text variant="buttonLabel2" color="$white">
+                Working…
+              </Text>
+            </Flex>
+          ) : (
+            <Text variant="buttonLabel2" color="$white">
+              Trade {JUICER_JP_COST.toLocaleString()} JP
             </Text>
-          </Flex>
-        ) : (
-          <Text variant="buttonLabel3" color="$white">
-            {isEligible ? 'Claim NFT' : 'Complete All Conditions First'}
-          </Text>
-        )}
-      </ClaimButton>
+          )}
+        </PrimaryButton>
+      </Flex>
 
-      {walletAddress && (
-        <Text variant="body4" color="$neutral3" textAlign="center">
-          NFT will be minted to: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-          {isRabbyWallet && ' (use MetaMask for auto-import)'}
+      {!eligible && (
+        <Text variant="body3" color="$neutral2">
+          You need {(JUICER_JP_COST - availableJp).toLocaleString()} more JP. Earn more by swapping
+          on JuiceSwap.
+        </Text>
+      )}
+      {!contractAddress && (
+        <Text variant="body3" color="$statusWarning">
+          The Juicer NFT contract has not been deployed yet — claim is disabled until it is wired in.
+        </Text>
+      )}
+      {error && (
+        <Text variant="body3" color="$statusCritical">
+          {error}
         </Text>
       )}
     </ClaimContainer>

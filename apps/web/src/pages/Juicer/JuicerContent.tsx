@@ -1,17 +1,16 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
-import { ConditionCard } from 'pages/Juicer/ConditionCard'
 import { NFTClaimSection } from 'pages/Juicer/NFTClaimSection'
-import {
-  useDiscordOAuth,
-  useJuicerProgress,
-  useIsJuicerCampaignEnded,
-  useTwitterFollow,
-} from 'services/juicerCampaign/hooks'
-import { ConditionType } from 'services/juicerCampaign/types'
+import { useIsJuicerCampaignEnded, useJuicerProgress } from 'services/juicerCampaign/hooks'
+import { JUICER_JP_COST } from 'services/juicerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 
+/**
+ * Juicer NFT claim page — single-condition flow.
+ * Eligibility: trade JUICER_JP_COST Juice Points for mint rights.
+ */
+
 const ContentContainer = styled(Flex, {
-  gap: '$spacing32',
+  gap: '$spacing24',
   width: '100%',
 })
 
@@ -20,250 +19,125 @@ const Section = styled(Flex, {
   padding: '$spacing24',
   backgroundColor: '$surface2',
   borderRadius: '$rounded16',
-  borderWidth: 1,
-  borderColor: '$surface3',
 })
 
 const SectionTitle = styled(Text, {
-  variant: 'heading3',
+  variant: 'subheading1',
   color: '$neutral1',
-  fontWeight: '600',
 })
 
-const ProgressBar = styled(Flex, {
-  height: 8,
+const StatRow = styled(Flex, {
+  row: true,
+  gap: '$spacing16',
+  $sm: { flexDirection: 'column' },
+})
+
+const Stat = styled(Flex, {
   flex: 1,
+  gap: '$spacing4',
+  padding: '$spacing16',
   backgroundColor: '$surface3',
-  borderRadius: '$rounded4',
-  overflow: 'hidden',
+  borderRadius: '$rounded12',
 })
 
-const ProgressFill = styled(Flex, {
-  height: '100%',
-  background: 'linear-gradient(90deg, #FF6B35 0%, #4CAF50 100%)',
-  borderRadius: '$rounded4',
-})
-
-const ProgressText = styled(Text, {
-  variant: 'body3',
-  color: '$neutral2',
-  fontWeight: '500',
-})
-
-const EndedBanner = styled(Flex, {
-  padding: '$spacing24',
+const ConnectPrompt = styled(Flex, {
+  alignItems: 'center',
+  gap: '$spacing16',
+  padding: '$spacing32',
   backgroundColor: '$surface2',
   borderRadius: '$rounded16',
-  borderWidth: 2,
-  borderColor: '$neutral3',
-  gap: '$spacing16',
-  alignItems: 'center',
-})
-
-const EndedIcon = styled(Text, {
-  fontSize: 64,
-  lineHeight: 64,
 })
 
 interface JuicerContentProps {
-  account: { address?: string; isConnected: boolean }
+  /** JuicerNFT contract address on Citrea Mainnet — undefined until wired by product. */
+  contractAddress?: string
 }
 
-export default function JuicerContent({ account }: JuicerContentProps) {
+export default function JuicerContent({ contractAddress }: JuicerContentProps) {
   const accountDrawer = useAccountDrawer()
   const { progress, loading, error } = useJuicerProgress()
-  const isCampaignEnded = useIsJuicerCampaignEnded()
-  const { startFollow: startTwitterFollow, isLoading: isTwitterFollowing, error: twitterError } = useTwitterFollow()
-  const {
-    startOAuth: startDiscordOAuth,
-    isLoading: isDiscordAuthenticating,
-    error: discordOauthError,
-  } = useDiscordOAuth()
+  const isEnded = useIsJuicerCampaignEnded()
 
-  // Discord OAuth can still redirect back with a `?discord_error=...` param.
-  // Twitter no longer uses OAuth — errors come from the honor-system POST only.
-  const params = new URLSearchParams(window.location.search)
-  const discordCallbackError = params.get('discord_error')
-  const discordError = discordCallbackError || discordOauthError
-
-  const handleConnectWallet = () => {
-    accountDrawer.open()
-  }
-
-  // Show campaign ended message
-  if (isCampaignEnded) {
+  if (!progress && loading) {
     return (
-      <ContentContainer>
-        <EndedBanner>
-          <Flex centered gap="$spacing24" width="100%">
-            <EndedIcon>⏰</EndedIcon>
-            <Flex gap="$spacing12" centered>
-              <SectionTitle textAlign="center">Campaign Ended</SectionTitle>
-              <Text variant="body1" color="$neutral2" textAlign="center">
-                The First Squeezer NFT Campaign has ended.
-              </Text>
-              <Text variant="body2" color="$neutral2" textAlign="center">
-                Minting new First Squeezer NFTs is no longer possible.
-              </Text>
-            </Flex>
-          </Flex>
-        </EndedBanner>
-
-        {/* Show How it Works section for reference */}
-        <Section>
-          <SectionTitle>Campaign Details</SectionTitle>
-          <Flex gap="$spacing12">
-            <Text variant="body2" color="$neutral2" fontWeight="$semibold">
-              Requirements:
-            </Text>
-            <Text variant="body2" color="$neutral2">
-              1. Have claimed the First Squeezer NFT on Citrea Testnet (Oct 2025 campaign)
-            </Text>
-            <Text variant="body2" color="$neutral2">
-              2. Follow @JuiceSwap_com on X (Twitter)
-            </Text>
-            <Text variant="body2" color="$neutral2">
-              3. Join the JuiceSwap Discord community
-            </Text>
-            <Text variant="body2" color="$neutral2">
-              4. Claim your exclusive First Squeezer NFT (limited supply!)
-            </Text>
-          </Flex>
-        </Section>
-      </ContentContainer>
+      <Flex alignItems="center" padding="$spacing40">
+        <SpinningLoader size={32} />
+      </Flex>
     )
   }
 
-  if (!account.isConnected) {
+  if (!progress) {
     return (
-      <ContentContainer>
-        <Section>
-          <SectionTitle>Connect Your Wallet</SectionTitle>
-          <Text variant="body2" color="$neutral2">
-            Connect your wallet to view your campaign progress and claim your First Squeezer NFT.
-          </Text>
-          <Button
-            onPress={handleConnectWallet}
-            backgroundColor="$accent1"
-            paddingHorizontal="$spacing16"
-            paddingVertical="$spacing16"
-            borderRadius="$rounded12"
-          >
-            <Text variant="buttonLabel3" color="$white">
-              Connect Wallet
-            </Text>
-          </Button>
-        </Section>
-      </ContentContainer>
-    )
-  }
-
-  if (loading && !progress) {
-    return (
-      <ContentContainer>
-        <Section>
-          <Flex row gap="$spacing12" alignItems="center" justifyContent="center">
-            <SpinningLoader size={24} />
-            <Text variant="body2" color="$neutral2">
-              Loading campaign progress...
-            </Text>
-          </Flex>
-        </Section>
-      </ContentContainer>
-    )
-  }
-
-  if (error) {
-    return (
-      <ContentContainer>
-        <Section>
-          <SectionTitle>Error</SectionTitle>
-          <Text variant="body2" color="$statusCritical">
+      <ConnectPrompt>
+        <Text variant="heading3" color="$neutral1">
+          Connect your wallet to start
+        </Text>
+        <Text variant="body2" color="$neutral2" textAlign="center">
+          The Juicer NFT is claimed against your Juice Points balance on Citrea Mainnet.
+        </Text>
+        <Button onPress={() => accountDrawer.open()}>
+          <Text variant="buttonLabel2">Connect wallet</Text>
+        </Button>
+        {error && (
+          <Text variant="body3" color="$statusCritical">
             {error}
           </Text>
-        </Section>
-      </ContentContainer>
+        )}
+      </ConnectPrompt>
     )
-  }
-
-  const progressPercentage = progress?.progress || 0
-  const completedConditions = progress?.completedConditions || 0
-  const totalConditions = progress?.totalConditions ?? 3
-
-  const handleConditionAction = (conditionType: ConditionType) => {
-    if (conditionType === ConditionType.TWITTER_FOLLOW) {
-      startTwitterFollow()
-    } else if (conditionType === ConditionType.DISCORD_JOIN) {
-      startDiscordOAuth()
-    }
   }
 
   return (
     <ContentContainer>
-      {/* Progress Overview */}
       <Section>
-        <SectionTitle>Your Progress</SectionTitle>
-        <ProgressBar>
-          <ProgressFill style={{ width: `${progressPercentage}%` }} />
-        </ProgressBar>
-        <ProgressText>
-          {completedConditions} of {totalConditions} conditions completed ({progressPercentage.toFixed(0)}%)
-        </ProgressText>
-      </Section>
-
-      {/* Conditions */}
-      <Section>
-        <SectionTitle>Campaign Conditions</SectionTitle>
-        <Text variant="body2" color="$neutral2">
-          Complete all three conditions to claim your First Squeezer NFT.
+        <SectionTitle>Your Juice Points</SectionTitle>
+        <StatRow>
+          <Stat>
+            <Text variant="body4" color="$neutral2">
+              Available
+            </Text>
+            <Text variant="heading2" color="$accent1">
+              {progress.availableJp.toLocaleString()} JP
+            </Text>
+          </Stat>
+          <Stat>
+            <Text variant="body4" color="$neutral2">
+              Total earned
+            </Text>
+            <Text variant="heading3" color="$neutral1">
+              {progress.totalEarnedJp.toLocaleString()} JP
+            </Text>
+          </Stat>
+          <Stat>
+            <Text variant="body4" color="$neutral2">
+              Already spent
+            </Text>
+            <Text variant="heading3" color="$neutral2">
+              {progress.spentJp.toLocaleString()} JP
+            </Text>
+          </Stat>
+        </StatRow>
+        <Text variant="body3" color="$neutral2">
+          {`Cost to mint: ${progress.cost.toLocaleString()} JP (defaults to ${JUICER_JP_COST.toLocaleString()}).`}
         </Text>
-
-        <Flex gap="$spacing16" width="100%">
-          {progress?.conditions.map((condition) => {
-            const isTwitter = condition.type === ConditionType.TWITTER_FOLLOW
-            const isDiscord = condition.type === ConditionType.DISCORD_JOIN
-
-            return (
-              <ConditionCard
-                key={condition.id}
-                condition={condition}
-                onAction={() => handleConditionAction(condition.type)}
-                isLoading={isTwitter ? isTwitterFollowing : isDiscord ? isDiscordAuthenticating : false}
-                error={isTwitter ? twitterError : isDiscord ? discordError : null}
-              />
-            )
-          })}
-        </Flex>
       </Section>
 
-      {/* NFT Claim Section */}
-      {(progress?.isEligibleForNFT || progress?.nftMinted) && (
+      {isEnded ? (
+        <Section>
+          <Text variant="heading3" color="$neutral1">
+            Campaign ended
+          </Text>
+          <Text variant="body2" color="$neutral2">
+            New Juicer NFTs can no longer be minted. Wallets that already minted keep their NFT.
+          </Text>
+        </Section>
+      ) : (
         <NFTClaimSection
-          isEligible={progress.isEligibleForNFT}
-          walletAddress={account.address}
-          nftMinted={progress.nftMinted}
-          nftTxHash={progress.nftTxHash}
+          availableJp={progress.availableJp}
+          alreadyMinted={progress.nftMinted}
+          contractAddress={contractAddress}
         />
       )}
-
-      {/* How it Works */}
-      <Section>
-        <SectionTitle>How it Works</SectionTitle>
-        <Flex gap="$spacing12">
-          <Text variant="body2" color="$neutral2">
-            1. Have claimed the First Squeezer NFT on Citrea Testnet (Oct 2025 campaign)
-          </Text>
-          <Text variant="body2" color="$neutral2">
-            2. Follow @JuiceSwap_com on X (Twitter)
-          </Text>
-          <Text variant="body2" color="$neutral2">
-            3. Join the JuiceSwap Discord community
-          </Text>
-          <Text variant="body2" color="$neutral2">
-            4. Claim your exclusive First Squeezer NFT (limited supply!)
-          </Text>
-        </Flex>
-      </Section>
     </ContentContainer>
   )
 }

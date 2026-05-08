@@ -1,23 +1,36 @@
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
-// Campaign condition types
-//
-// Juicer NFT eligibility requires:
-//   1) MIN_SWAPS:    at least 10 swaps on JuiceSwap
-//   2) JUSD_SAVINGS: > $5 deposited in JUSD savings
-//   3) JUSD_LENDING: > $5 active lending position in JUSD
-//
-// All three checks happen server-side against the ponder indexer + the
-// JUSD savings/lending contracts; the frontend only renders status.
-export enum ConditionType {
-  MIN_SWAPS = 'min_swaps',
-  JUSD_SAVINGS = 'jusd_savings',
-  JUSD_LENDING = 'jusd_lending',
-}
+/**
+ * Juicer NFT eligibility model
+ * ----------------------------
+ *
+ * The user trades **JUICER_JP_COST** Juice Points for the right to mint
+ * the Juicer NFT. There is exactly one condition (JP balance), so the
+ * UI surfaces a single "Trade 5000 JP" interaction rather than a list
+ * of unrelated tasks.
+ *
+ * Flow:
+ *  1) Frontend reads `available_jp` from the API
+ *     (= total earned JP − previously spent JP, tracked server-side).
+ *  2) If `available_jp >= JUICER_JP_COST`, the "Trade" button is enabled.
+ *  3) On press, the API atomically records a 5000-JP spend for this
+ *     wallet and returns a backend signature. Until that succeeds, no
+ *     JP is deducted.
+ *  4) Frontend submits the signature to `JuicerNFT.claim(...)`.
+ *  5) After confirmation, the API's recorded spend persists, so the
+ *     wallet's JP balance shown in the drawer / leaderboard reflects
+ *     the deduction going forward.
+ *
+ * Hard dependency: the JP system itself ships in
+ *   - JuiceSwapxyz/ponder#138  (fixes /points 500 errors)
+ *   - JuiceSwapxyz/bapp#740    (frontend always hits the real API)
+ * This Juicer flow cannot ship before both of those land.
+ */
+export const JUICER_JP_COST = 5000
 
-export const JUICER_MIN_SWAPS = 10
-export const JUICER_JUSD_SAVINGS_MIN_USD = 5
-export const JUICER_JUSD_LENDING_MIN_USD = 5
+export enum ConditionType {
+  JP_BALANCE = 'jp_balance',
+}
 
 export enum ConditionStatus {
   PENDING = 'pending',
@@ -26,7 +39,8 @@ export enum ConditionStatus {
   FAILED = 'failed',
 }
 
-// Single condition
+// Single condition (kept as an array for forward-compat with the
+// FirstSqueezer-shaped UI; today there is exactly one entry).
 export interface CampaignCondition {
   id: number
   type: ConditionType
@@ -39,14 +53,22 @@ export interface CampaignCondition {
   icon?: string
 }
 
-// Overall campaign progress
 export interface JuicerProgress {
   walletAddress: string
   chainId: UniverseChainId
+
+  // JP economics
+  availableJp: number
+  totalEarnedJp: number
+  spentJp: number
+  cost: number // = JUICER_JP_COST, surfaced here so the API can override per-campaign
+
+  // Eligibility / claim state
   conditions: CampaignCondition[]
   totalConditions: number
   completedConditions: number
   progress: number // 0-100
+
   isEligibleForNFT: boolean
   nftMinted: boolean
   nftTokenId?: string
@@ -54,12 +76,8 @@ export interface JuicerProgress {
   nftMintedAt?: string
 }
 
-// NFT Claim request
 export interface NFTClaimRequest {
   walletAddress: string
   chainId: UniverseChainId
   signature?: string
 }
-
-// Note: SocialVerificationRequest and SocialVerificationResponse types removed
-// as they were unused. Twitter uses OAuth redirect flow, Discord uses manual verification.

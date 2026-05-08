@@ -1,4 +1,3 @@
-import { useAccount } from 'hooks/useAccount'
 import JuicerContent from 'pages/Juicer/JuicerContent'
 import { Flex, Text, styled } from 'ui/src'
 import Trace from 'uniswap/src/features/telemetry/Trace'
@@ -53,8 +52,6 @@ const Subtitle = styled(Text, {
 })
 
 export default function Juicer() {
-  const account = useAccount()
-
   return (
     <Trace logImpression page={InterfacePageName.LandingPage}>
       <PageContainer>
@@ -62,16 +59,16 @@ export default function Juicer() {
           <HeaderSection>
             <TitleSection>
               <Flex row gap="$spacing16" alignItems="center">
-                <NFTIcon>🍋</NFTIcon>
+                <NFTIcon>🍊</NFTIcon>
                 <Flex gap="$spacing8" flex={1} minWidth={0}>
-                  <MainTitle>First Squeezer NFT</MainTitle>
-                  <Subtitle>Exclusive to testnet claimers who verify X and Discord on Citrea Mainnet</Subtitle>
+                  <MainTitle>Juicer NFT</MainTitle>
+                  <Subtitle>Trade Juice Points for the Juicer NFT on Citrea Mainnet.</Subtitle>
                 </Flex>
               </Flex>
             </TitleSection>
           </HeaderSection>
 
-          <JuicerContent account={account} />
+          <JuicerContent />
         </ContentWrapper>
       </PageContainer>
     </Trace>
