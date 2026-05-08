@@ -1,18 +1,17 @@
 import { useState } from 'react'
 import Confetti from 'react-confetti'
 import { useWindowSize } from 'react-use'
-import { useSpendAndClaimJuicerNFT } from 'services/juicerCampaign/hooks'
-import { JUICER_JP_COST } from 'services/juicerCampaign/types'
+import { useClaimJuicerNFT } from 'services/juicerCampaign/hooks'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 
 interface NFTClaimSectionProps {
-  /** Wallet's currently available JP (= total earned - already spent). */
-  availableJp: number
+  /** True once all 3 conditions (JP spend + Twitter + Discord) are satisfied. */
+  isEligible: boolean
   /** True once the API has confirmed the wallet already minted. */
   alreadyMinted: boolean
-  /** JuicerNFT contract address on Citrea Mainnet. Undefined until product wires it. */
-  contractAddress?: string
+  /** Conditions still pending. Used to nudge the user toward the next step. */
+  remainingSteps: number
 }
 
 const ClaimContainer = styled(Flex, {
@@ -44,20 +43,15 @@ const PrimaryButton = styled(Button, {
   minHeight: 56,
 })
 
-export function NFTClaimSection({
-  availableJp,
-  alreadyMinted,
-  contractAddress,
-}: NFTClaimSectionProps) {
+export function NFTClaimSection({ isEligible, alreadyMinted, remainingSteps }: NFTClaimSectionProps) {
   const { width, height } = useWindowSize()
   const [showConfetti, setShowConfetti] = useState(false)
-  const { spendAndClaim, isWorking, error, result } = useSpendAndClaimJuicerNFT(contractAddress)
+  const { claim, isClaiming, error, result } = useClaimJuicerNFT()
 
-  const eligible = availableJp >= JUICER_JP_COST
   const claimed = alreadyMinted || !!result?.txHash
 
   const onClaim = async () => {
-    const ok = await spendAndClaim()
+    const ok = await claim()
     if (ok) {
       setShowConfetti(true)
       setTimeout(() => setShowConfetti(false), 5_000)
@@ -98,59 +92,33 @@ export function NFTClaimSection({
 
   return (
     <ClaimContainer>
-      {showConfetti && (
-        <Confetti width={width} height={height} numberOfPieces={250} recycle={false} />
-      )}
+      {showConfetti && <Confetti width={width} height={height} numberOfPieces={250} recycle={false} />}
       <Flex gap="$spacing4">
         <Text variant="heading3" color="$neutral1" fontWeight="600">
-          Trade {JUICER_JP_COST.toLocaleString()} JP for the Juicer NFT
+          Mint your Juicer NFT
         </Text>
         <Text variant="body2" color="$neutral2">
-          {JUICER_JP_COST.toLocaleString()} Juice Points are deducted from your balance the moment
-          the trade is confirmed by the backend. After that you mint the NFT to your wallet.
+          {isEligible
+            ? 'All conditions met. Submit the on-chain mint to add the Juicer NFT to your wallet.'
+            : `Finish ${remainingSteps} more step${remainingSteps === 1 ? '' : 's'} above to unlock the mint.`}
         </Text>
       </Flex>
 
-      <Flex row alignItems="center" gap="$spacing12">
-        <Flex flex={1} gap="$spacing2">
-          <Text variant="body4" color="$neutral2">
-            Your available JP
-          </Text>
-          <Text variant="heading3" color={eligible ? '$accent1' : '$neutral2'}>
-            {availableJp.toLocaleString()} JP
-          </Text>
-        </Flex>
-        <PrimaryButton
-          isDisabled={!eligible || isWorking || !contractAddress}
-          onPress={onClaim}
-          opacity={!eligible || !contractAddress ? 0.5 : 1}
-        >
-          {isWorking ? (
-            <Flex row alignItems="center" gap="$spacing8">
-              <SpinningLoader size={20} color="$white" />
-              <Text variant="buttonLabel2" color="$white">
-                Working…
-              </Text>
-            </Flex>
-          ) : (
+      <PrimaryButton isDisabled={!isEligible || isClaiming} onPress={onClaim} opacity={!isEligible ? 0.5 : 1}>
+        {isClaiming ? (
+          <Flex row alignItems="center" gap="$spacing8">
+            <SpinningLoader size={20} color="$white" />
             <Text variant="buttonLabel2" color="$white">
-              Trade {JUICER_JP_COST.toLocaleString()} JP
+              Minting…
             </Text>
-          )}
-        </PrimaryButton>
-      </Flex>
+          </Flex>
+        ) : (
+          <Text variant="buttonLabel2" color="$white">
+            Mint Juicer NFT
+          </Text>
+        )}
+      </PrimaryButton>
 
-      {!eligible && (
-        <Text variant="body3" color="$neutral2">
-          You need {(JUICER_JP_COST - availableJp).toLocaleString()} more JP. Earn more by swapping
-          on JuiceSwap.
-        </Text>
-      )}
-      {!contractAddress && (
-        <Text variant="body3" color="$statusWarning">
-          The Juicer NFT contract has not been deployed yet — claim is disabled until it is wired in.
-        </Text>
-      )}
       {error && (
         <Text variant="body3" color="$statusCritical">
           {error}

@@ -1,7 +1,12 @@
 import { useAccount } from 'hooks/useAccount'
 import useSelectChain from 'hooks/useSelectChain'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { JUICER_NFT_ABI, juicerCampaignAPI } from 'services/juicerCampaign/api'
+import {
+  JUICER_NFT_ABI,
+  JuicerCampaignNotReadyError,
+  buildEmptyJuicerProgress,
+  juicerCampaignAPI,
+} from 'services/juicerCampaign/api'
 import { JuicerProgress } from 'services/juicerCampaign/types'
 import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
@@ -11,9 +16,15 @@ import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
 const JUICER_CAMPAIGN_UPDATED_EVENT = 'juicer-campaign-updated'
 
+const TWITTER_FOLLOW_INTENT_URL = 'https://x.com/intent/follow?screen_name=JuiceSwap_com'
+
 // Must match the deployed contract window.
 const CAMPAIGN_START_ISO = '2026-04-24T00:00:00.000Z'
 const CAMPAIGN_END_ISO = '2026-05-08T23:59:59.000Z'
+
+function dispatchUpdate(): void {
+  window.dispatchEvent(new CustomEvent(JUICER_CAMPAIGN_UPDATED_EVENT))
+}
 
 function formatClaimError(err: unknown, fallback: string): string {
   if (didUserReject(err)) {
@@ -37,7 +48,7 @@ function formatClaimError(err: unknown, fallback: string): string {
   return fallback
 }
 
-/** Read the wallet's Juicer progress (JP balance, eligibility, mint state). */
+/** Read the wallet's Juicer progress (JP economics + social verification). */
 export function useJuicerProgress() {
   const account = useAccount()
   const { defaultChainId } = useEnabledChains()
@@ -47,7 +58,7 @@ export function useJuicerProgress() {
 
   const fetchProgress = useCallback(async () => {
     if (!account.address || defaultChainId !== UniverseChainId.CitreaMainnet) {
-      setProgress(null)
+      setProgress(buildEmptyJuicerProgress(account.address ?? '', defaultChainId))
       return
     }
     setLoading(true)
@@ -56,7 +67,13 @@ export function useJuicerProgress() {
       const data = await juicerCampaignAPI.getProgress(account.address, defaultChainId)
       setProgress(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch Juicer progress')
+      // Backend has not enabled the campaign yet — show the empty preview
+      // instead of a scary error. The user can still see what's required.
+      if (err instanceof JuicerCampaignNotReadyError) {
+        setProgress(buildEmptyJuicerProgress(account.address, defaultChainId))
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to fetch Juicer progress')
+      }
     } finally {
       setLoading(false)
     }
@@ -76,9 +93,7 @@ export function useJuicerProgress() {
 }
 
 function useUrlJuicerOverride(): boolean {
-  const [overrideActive, setOverrideActive] = useState(
-    () => localStorage.getItem('juicerOverride') === 'true',
-  )
+  const [overrideActive, setOverrideActive] = useState(() => localStorage.getItem('juicerOverride') === 'true')
 
   useEffect(() => {
     const checkUrlParams = () => {
@@ -140,38 +155,124 @@ export function useIsJuicerCampaignAvailable(): boolean {
   return isVisible && account.isConnected
 }
 
-interface UseSpendAndClaimResult {
-  /** Trades JP for mint rights and submits the on-chain claim. */
-  spendAndClaim: () => Promise<boolean>
+/**
+ * Step 1 — atomic JP spend.
+ * The deduction is recorded server-side BEFORE this resolves. A retried
+ * call returns the same record without double-spending.
+ */
+export function useSpendJp() {
+  const account = useAccount()
+  const { defaultChainId } = useEnabledChains()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const spend = useCallback(async (): Promise<boolean> => {
+    if (!account.address) {
+      setError('Please connect your wallet first')
+      return false
+    }
+    if (defaultChainId !== UniverseChainId.CitreaMainnet) {
+      setError('Switch to Citrea Mainnet to trade Juice Points')
+      return false
+    }
+    setError(null)
+    setIsLoading(true)
+    try {
+      await juicerCampaignAPI.spendJp(account.address, defaultChainId)
+      dispatchUpdate()
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to trade Juice Points')
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }, [account.address, defaultChainId])
+
+  return { spend, isLoading, error }
+}
+
+/**
+ * Step 2 — Twitter follow (honor-system).
+ * Opens the X follow intent in a new tab, then asks the backend to mark
+ * the wallet as verified. window.open must run synchronously inside the
+ * click handler so the popup isn't blocked.
+ */
+export function useTwitterFollow() {
+  const account = useAccount()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const startFollow = useCallback(async () => {
+    if (!account.address) {
+      setError('Please connect your wallet first')
+      return
+    }
+    setError(null)
+    setIsLoading(true)
+    window.open(TWITTER_FOLLOW_INTENT_URL, '_blank', 'noopener,noreferrer')
+    try {
+      await juicerCampaignAPI.markTwitterFollowed(account.address)
+      dispatchUpdate()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to record Twitter follow')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [account.address])
+
+  return { startFollow, isLoading, error }
+}
+
+/** Step 3 — Discord OAuth (same-tab redirect). */
+export function useDiscordOAuth() {
+  const account = useAccount()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const startOAuth = useCallback(async () => {
+    if (!account.address) {
+      setError('Please connect your wallet first')
+      return
+    }
+    setError(null)
+    setIsLoading(true)
+    try {
+      const { authUrl } = await juicerCampaignAPI.startDiscordOAuth(account.address)
+      window.location.href = authUrl
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start Discord verification')
+      setIsLoading(false)
+    }
+  }, [account.address])
+
+  return { startOAuth, isLoading, error }
+}
+
+interface UseClaimResult {
+  claim: () => Promise<boolean>
   reset: () => void
-  isWorking: boolean
+  isClaiming: boolean
   error: string | null
   result: { txHash?: string; tokenId?: string } | null
 }
 
 /**
- * Combined "trade JP -> claim NFT" flow:
- *   1) POST /v1/campaigns/juicer/spend  (deduct JUICER_JP_COST, get signature)
- *   2) JuicerNFT.claim(signature)        (on-chain mint via wagmi)
- *
- * The API records the spend BEFORE returning the signature. If the wallet
- * later rejects the on-chain claim, the JP is still spent — the backend
- * issues each wallet at most one valid signature.
+ * Final step — fetch backend signature (only issued when all 3 conditions
+ * are met) and submit JuicerNFT.claim(signature) on Citrea Mainnet.
  */
-export function useSpendAndClaimJuicerNFT(contractAddress?: string): UseSpendAndClaimResult {
+export function useClaimJuicerNFT(): UseClaimResult {
   const account = useAccount()
-  const { defaultChainId } = useEnabledChains()
   const { writeContractAsync } = useWriteContract()
   const selectChain = useSelectChain()
 
-  const [isWorking, setIsWorking] = useState(false)
+  const [isClaiming, setIsClaiming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>(undefined)
   const [result, setResult] = useState<{ txHash?: string; tokenId?: string } | null>(null)
 
   const {
     isLoading: isConfirming,
-    isSuccess: isConfirmed,
     isError: isTxError,
     error: txError,
     data: receipt,
@@ -183,40 +284,34 @@ export function useSpendAndClaimJuicerNFT(contractAddress?: string): UseSpendAnd
     }
     let tokenId: string | undefined
     try {
-      const transferTopic =
-        '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+      const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
       const log = receipt.logs.find((l) => l.topics[0] === transferTopic)
       if (log && log.topics[3]) {
         tokenId = BigInt(log.topics[3]).toString()
       }
     } catch {
-      // ignore - tokenId stays undefined
+      // ignore
     }
     setResult({ txHash: pendingTxHash, tokenId })
     setPendingTxHash(undefined)
-    setIsWorking(false)
-    window.dispatchEvent(new CustomEvent(JUICER_CAMPAIGN_UPDATED_EVENT))
+    setIsClaiming(false)
+    dispatchUpdate()
   }, [receipt, pendingTxHash])
 
   useEffect(() => {
     if (isTxError && pendingTxHash) {
       setError(formatClaimError(txError, 'Juicer NFT claim transaction failed'))
       setPendingTxHash(undefined)
-      setIsWorking(false)
+      setIsClaiming(false)
     }
   }, [isTxError, txError, pendingTxHash])
 
-  const spendAndClaim = useCallback(async (): Promise<boolean> => {
+  const claim = useCallback(async (): Promise<boolean> => {
     if (!account.address) {
       setError('Please connect your wallet first')
       return false
     }
-    if (!contractAddress || !isValidHexString(contractAddress) || contractAddress.length !== 42) {
-      setError('Juicer NFT contract address is not configured yet')
-      return false
-    }
-
-    setIsWorking(true)
+    setIsClaiming(true)
     setError(null)
     setResult(null)
     setPendingTxHash(undefined)
@@ -225,39 +320,38 @@ export function useSpendAndClaimJuicerNFT(contractAddress?: string): UseSpendAnd
       const ok = await selectChain(UniverseChainId.CitreaMainnet)
       if (!ok) {
         setError('Please switch to Citrea Mainnet to claim your Juicer NFT')
-        setIsWorking(false)
+        setIsClaiming(false)
         return false
       }
     }
 
     try {
-      const { signature } = await juicerCampaignAPI.spendJpForMint(
-        account.address,
-        defaultChainId,
-      )
+      const { signature, contractAddress } = await juicerCampaignAPI.getNftSignature(account.address)
+      if (!isValidHexString(contractAddress) || contractAddress.length !== 42) {
+        throw new Error('Invalid contract address from API')
+      }
       if (!isValidHexString(signature) || signature.length !== 132) {
         throw new Error('Invalid signature from API')
       }
       const tx = await writeContractAsync({
-        address: contractAddress as `0x${string}`,
+        address: contractAddress,
         abi: JUICER_NFT_ABI,
         functionName: 'claim',
-        args: [signature as `0x${string}`],
+        args: [signature],
         chainId: UniverseChainId.CitreaMainnet,
       })
       if (!isValidHexString(tx)) {
         throw new Error('Invalid transaction hash')
       }
       setPendingTxHash(tx)
-      window.dispatchEvent(new CustomEvent(JUICER_CAMPAIGN_UPDATED_EVENT))
+      dispatchUpdate()
       return true
     } catch (err) {
       setError(formatClaimError(err, 'Juicer NFT claim failed'))
-      setIsWorking(false)
-      setPendingTxHash(undefined)
+      setIsClaiming(false)
       return false
     }
-  }, [account.address, account.chainId, contractAddress, defaultChainId, selectChain, writeContractAsync])
+  }, [account.address, account.chainId, selectChain, writeContractAsync])
 
   const reset = useCallback(() => {
     setError(null)
@@ -266,10 +360,10 @@ export function useSpendAndClaimJuicerNFT(contractAddress?: string): UseSpendAnd
   }, [])
 
   return {
-    spendAndClaim,
+    claim,
     reset,
-    isWorking: isWorking || isConfirming,
+    isClaiming: isClaiming || isConfirming,
     error,
-    result: isConfirmed ? result : result,
+    result,
   }
 }

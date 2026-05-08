@@ -1,35 +1,26 @@
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 
 /**
- * Juicer NFT eligibility model
- * ----------------------------
+ * Juicer NFT eligibility — 3 sequential conditions (in display order):
  *
- * The user trades **JUICER_JP_COST** Juice Points for the right to mint
- * the Juicer NFT. There is exactly one condition (JP balance), so the
- * UI surfaces a single "Trade 5000 JP" interaction rather than a list
- * of unrelated tasks.
+ *   1. JP_BALANCE     — trade `JUICER_JP_COST` Juice Points (must be done first)
+ *   2. TWITTER_FOLLOW — follow @JuiceSwap_com on X (verified via backend)
+ *   3. DISCORD_JOIN   — join the JuiceSwap Discord and pick up the Juicer role
  *
- * Flow:
- *  1) Frontend reads `available_jp` from the API
- *     (= total earned JP − previously spent JP, tracked server-side).
- *  2) If `available_jp >= JUICER_JP_COST`, the "Trade" button is enabled.
- *  3) On press, the API atomically records a 5000-JP spend for this
- *     wallet and returns a backend signature. Until that succeeds, no
- *     JP is deducted.
- *  4) Frontend submits the signature to `JuicerNFT.claim(...)`.
- *  5) After confirmation, the API's recorded spend persists, so the
- *     wallet's JP balance shown in the drawer / leaderboard reflects
- *     the deduction going forward.
+ * After all three are completed the user can claim the on-chain NFT
+ * via `JuicerNFT.claim(signature)` using a backend-issued signature.
  *
  * Hard dependency: the JP system itself ships in
- *   - JuiceSwapxyz/ponder#138  (fixes /points 500 errors)
- *   - JuiceSwapxyz/bapp#740    (frontend always hits the real API)
+ *   - JuiceSwapxyz/ponder#138 (fixes /points 500 errors)
+ *   - JuiceSwapxyz/bapp#740   (frontend always hits the real API)
  * This Juicer flow cannot ship before both of those land.
  */
 export const JUICER_JP_COST = 5000
 
 export enum ConditionType {
   JP_BALANCE = 'jp_balance',
+  TWITTER_FOLLOW = 'twitter_follow',
+  DISCORD_JOIN = 'discord_join',
 }
 
 export enum ConditionStatus {
@@ -39,8 +30,6 @@ export enum ConditionStatus {
   FAILED = 'failed',
 }
 
-// Single condition (kept as an array for forward-compat with the
-// FirstSqueezer-shaped UI; today there is exactly one entry).
 export interface CampaignCondition {
   id: number
   type: ConditionType
@@ -57,13 +46,13 @@ export interface JuicerProgress {
   walletAddress: string
   chainId: UniverseChainId
 
-  // JP economics
+  // JP economics (from API; available = totalEarnedJp - spentJp)
   availableJp: number
   totalEarnedJp: number
   spentJp: number
-  cost: number // = JUICER_JP_COST, surfaced here so the API can override per-campaign
+  cost: number
 
-  // Eligibility / claim state
+  // Conditions in display order: JP first, then social
   conditions: CampaignCondition[]
   totalConditions: number
   completedConditions: number

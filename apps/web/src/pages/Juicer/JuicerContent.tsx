@@ -1,13 +1,16 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { useAccount } from 'hooks/useAccount'
+import { ConditionCard } from 'pages/Juicer/ConditionCard'
 import { NFTClaimSection } from 'pages/Juicer/NFTClaimSection'
-import { useIsJuicerCampaignEnded, useJuicerProgress } from 'services/juicerCampaign/hooks'
-import { JUICER_JP_COST } from 'services/juicerCampaign/types'
+import {
+  useDiscordOAuth,
+  useIsJuicerCampaignEnded,
+  useJuicerProgress,
+  useSpendJp,
+  useTwitterFollow,
+} from 'services/juicerCampaign/hooks'
+import { ConditionType, JUICER_JP_COST } from 'services/juicerCampaign/types'
 import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
-
-/**
- * Juicer NFT claim page — single-condition flow.
- * Eligibility: trade JUICER_JP_COST Juice Points for mint rights.
- */
 
 const ContentContainer = styled(Flex, {
   gap: '$spacing24',
@@ -40,25 +43,33 @@ const Stat = styled(Flex, {
   borderRadius: '$rounded12',
 })
 
-const ConnectPrompt = styled(Flex, {
-  alignItems: 'center',
-  gap: '$spacing16',
-  padding: '$spacing32',
-  backgroundColor: '$surface2',
-  borderRadius: '$rounded16',
+const ConditionList = styled(Flex, {
+  gap: '$spacing12',
 })
 
-interface JuicerContentProps {
-  /** JuicerNFT contract address on Citrea Mainnet — undefined until wired by product. */
-  contractAddress?: string
-}
+const ConnectBanner = styled(Flex, {
+  row: true,
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '$spacing16',
+  padding: '$spacing20',
+  backgroundColor: '$surface2',
+  borderRadius: '$rounded16',
+  borderWidth: 1,
+  borderColor: '$accent1',
+  $sm: { flexDirection: 'column', alignItems: 'flex-start' },
+})
 
-export default function JuicerContent({ contractAddress }: JuicerContentProps) {
+export default function JuicerContent() {
   const accountDrawer = useAccountDrawer()
+  const account = useAccount()
   const { progress, loading, error } = useJuicerProgress()
   const isEnded = useIsJuicerCampaignEnded()
+  const { spend: spendJp, isLoading: jpLoading, error: jpError } = useSpendJp()
+  const { startFollow, isLoading: twitterLoading, error: twitterError } = useTwitterFollow()
+  const { startOAuth: startDiscord, isLoading: discordLoading, error: discordError } = useDiscordOAuth()
 
-  if (!progress && loading) {
+  if (loading && !progress) {
     return (
       <Flex alignItems="center" padding="$spacing40">
         <SpinningLoader size={32} />
@@ -67,28 +78,49 @@ export default function JuicerContent({ contractAddress }: JuicerContentProps) {
   }
 
   if (!progress) {
-    return (
-      <ConnectPrompt>
-        <Text variant="heading3" color="$neutral1">
-          Connect your wallet to start
-        </Text>
-        <Text variant="body2" color="$neutral2" textAlign="center">
-          The Juicer NFT is claimed against your Juice Points balance on Citrea Mainnet.
-        </Text>
-        <Button onPress={() => accountDrawer.open()}>
-          <Text variant="buttonLabel2">Connect wallet</Text>
-        </Button>
-        {error && (
-          <Text variant="body3" color="$statusCritical">
-            {error}
-          </Text>
-        )}
-      </ConnectPrompt>
-    )
+    return null
+  }
+
+  // Map each condition to its action handler / loading / error.
+  const handlerFor = (type: ConditionType) => {
+    switch (type) {
+      case ConditionType.JP_BALANCE:
+        return { onAction: spendJp, isLoading: jpLoading, error: jpError }
+      case ConditionType.TWITTER_FOLLOW:
+        return { onAction: startFollow, isLoading: twitterLoading, error: twitterError }
+      case ConditionType.DISCORD_JOIN:
+        return { onAction: startDiscord, isLoading: discordLoading, error: discordError }
+      default:
+        return { onAction: undefined, isLoading: false, error: null }
+    }
   }
 
   return (
     <ContentContainer>
+      {!account.isConnected && (
+        <ConnectBanner>
+          <Flex flex={1} gap="$spacing4" minWidth={0}>
+            <Text variant="subheading2" color="$neutral1">
+              Connect your wallet to track progress
+            </Text>
+            <Text variant="body3" color="$neutral2">
+              {`The Juicer NFT requires ${JUICER_JP_COST.toLocaleString()} JP plus an X follow and Discord verification.`}
+            </Text>
+          </Flex>
+          <Button
+            onPress={() => accountDrawer.open()}
+            backgroundColor="$accent1"
+            paddingHorizontal="$spacing24"
+            paddingVertical="$spacing12"
+            borderRadius="$rounded12"
+          >
+            <Text variant="buttonLabel3" color="$white">
+              Connect wallet
+            </Text>
+          </Button>
+        </ConnectBanner>
+      )}
+
       <Section>
         <SectionTitle>Your Juice Points</SectionTitle>
         <StatRow>
@@ -118,8 +150,34 @@ export default function JuicerContent({ contractAddress }: JuicerContentProps) {
           </Stat>
         </StatRow>
         <Text variant="body3" color="$neutral2">
-          {`Cost to mint: ${progress.cost.toLocaleString()} JP (defaults to ${JUICER_JP_COST.toLocaleString()}).`}
+          {`Cost to mint: ${progress.cost.toLocaleString()} JP. After paying, follow JuiceSwap on X and join the Discord to unlock the claim.`}
         </Text>
+      </Section>
+
+      <Section>
+        <SectionTitle>Earn the Juicer NFT</SectionTitle>
+        <Text variant="body3" color="$neutral2">
+          {`${progress.completedConditions} of ${progress.totalConditions} steps complete · ${progress.progress}%`}
+        </Text>
+        <ConditionList>
+          {progress.conditions.map((c) => {
+            const handler = handlerFor(c.type)
+            return (
+              <ConditionCard
+                key={c.id}
+                condition={c}
+                onAction={handler.onAction}
+                isLoading={handler.isLoading}
+                error={handler.error}
+              />
+            )
+          })}
+        </ConditionList>
+        {error && (
+          <Text variant="body3" color="$statusCritical">
+            {error}
+          </Text>
+        )}
       </Section>
 
       {isEnded ? (
@@ -133,9 +191,9 @@ export default function JuicerContent({ contractAddress }: JuicerContentProps) {
         </Section>
       ) : (
         <NFTClaimSection
-          availableJp={progress.availableJp}
+          isEligible={progress.isEligibleForNFT}
           alreadyMinted={progress.nftMinted}
-          contractAddress={contractAddress}
+          remainingSteps={progress.totalConditions - progress.completedConditions}
         />
       )}
     </ContentContainer>
