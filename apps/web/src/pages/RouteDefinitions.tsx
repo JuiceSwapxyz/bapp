@@ -38,6 +38,7 @@ const TokenDetails = lazy(() => import('pages/TokenDetails'))
 const ExtensionUninstall = lazy(() => import('pages/ExtensionUninstall/ExtensionUninstall'))
 const Bapps = lazy(() => import('pages/Bapps'))
 const FirstSqueezer = lazy(() => import('pages/FirstSqueezer'))
+const Juicer = lazy(() => import('pages/Juicer'))
 const OAuthCallback = lazy(() => import('pages/OAuthCallback'))
 const Launchpad = lazy(() => import('pages/Launchpad'))
 const LaunchpadTokenDetail = lazy(() => import('pages/Launchpad/TokenDetail'))
@@ -388,6 +389,14 @@ export const routes: RouteDefinition[] = [
     getTitle: () => 'First Squeezer NFT - JuiceSwap',
     getDescription: () =>
       'Exclusive to testnet claimers who verify X and Discord to claim the First Squeezer NFT on Citrea Mainnet.',
+  }),
+  // Juicer NFT Campaign Page
+  createRouteDefinition({
+    path: '/juicer',
+    getElement: () => <Juicer />,
+    getTitle: () => 'Juicer NFT - JuiceSwap',
+    getDescription: () =>
+      'Earn the Juicer NFT by completing 10+ swaps on JuiceSwap, depositing >$5 in JUSD savings, and lending >$5 in JUSD.',
   }),
   // OAuth Callback Page - Handles Twitter OAuth redirect
   createRouteDefinition({
