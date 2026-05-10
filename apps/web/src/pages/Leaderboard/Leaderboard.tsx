@@ -230,11 +230,6 @@ const PageButton = styled(Flex, {
 })
 
 type MedalRank = 1 | 2 | 3
-const MEDAL_KEY: Record<MedalRank, 'gold' | 'silver' | 'bronze'> = {
-  1: 'gold',
-  2: 'silver',
-  3: 'bronze',
-}
 
 function medalKeyForRank(rank: number): 'gold' | 'silver' | 'bronze' | 'none' {
   if (rank === 1) {
@@ -270,7 +265,8 @@ function formatRefreshAge(updatedAt?: number): string {
 
 function PodiumEntry({ entry, isUser }: { entry: LeaderboardEntry; isUser: boolean }) {
   const medal = medalKeyForRank(entry.rank)
-  const rankVariant = (entry.rank as MedalRank) <= 3 ? (entry.rank as MedalRank) : undefined
+  const rank = entry.rank as MedalRank
+  const rankVariant = rank <= 3 ? rank : undefined
   const avatarSize = 72
   const ringSize = avatarSize + 10
   return (
@@ -334,10 +330,7 @@ export default function Leaderboard() {
     return data.entries.find((e) => e.address.toLowerCase() === userAddress)
   }, [data, userAddress])
 
-  const totalPoints = useMemo(
-    () => data?.entries.reduce((sum, e) => sum + e.points, 0) ?? 0,
-    [data],
-  )
+  const totalPoints = useMemo(() => data?.entries.reduce((sum, e) => sum + e.points, 0) ?? 0, [data])
 
   const podium = useMemo(() => data?.entries.slice(0, 3) ?? [], [data])
   const rest = useMemo(() => data?.entries.slice(3) ?? [], [data])
@@ -360,11 +353,7 @@ export default function Leaderboard() {
         <HeaderBlock>
           <HeaderGlow />
           <HeaderInner>
-            <Text
-              variant="body3"
-              color={POINTS_BRAND_COLOR}
-              style={{ letterSpacing: 3, textTransform: 'uppercase' }}
-            >
+            <Text variant="body3" color={POINTS_BRAND_COLOR} style={{ letterSpacing: 3, textTransform: 'uppercase' }}>
               <Trans i18nKey="leaderboard.eyebrow" />
             </Text>
             <Text variant="heading1" color="$neutral1" fontWeight="800">
@@ -462,10 +451,7 @@ export default function Leaderboard() {
             <RowDivider />
             {visible.map((entry, i) => (
               <Fragment key={entry.rank}>
-                <Row
-                  entry={entry}
-                  isUser={!!userAddress && entry.address.toLowerCase() === userAddress}
-                />
+                <Row entry={entry} isUser={!!userAddress && entry.address.toLowerCase() === userAddress} />
                 {i < visible.length - 1 && <RowDivider />}
               </Fragment>
             ))}
