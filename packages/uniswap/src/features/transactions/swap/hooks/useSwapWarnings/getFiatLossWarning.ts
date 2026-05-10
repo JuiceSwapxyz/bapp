@@ -17,7 +17,7 @@ export function getFiatLossWarning({
   const inputUsd = derivedSwapInfo.currencyAmountsUSDValue[CurrencyField.INPUT]
   const outputUsd = derivedSwapInfo.currencyAmountsUSDValue[CurrencyField.OUTPUT]
 
-  // Only block when both USD values are reliably available; otherwise let the
+  // Only warn when both USD values are reliably available; otherwise let the
   // pool-based price-impact warning handle it.
   if (!inputUsd || !outputUsd) {
     return undefined

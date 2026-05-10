@@ -44,6 +44,24 @@ describe(getFiatLossWarning, () => {
     ).toBeUndefined()
   })
 
+  it('does not fire exactly at the threshold (matches usePriceDifference boundary)', () => {
+    // 100 USDC in -> 90 USDC out = exactly 10% loss; usePriceDifference also
+    // uses strict-greater-than so red color and popup share the same boundary.
+    expect(
+      getFiatLossWarning({ t, formatPercent, derivedSwapInfo: buildDerivedSwapInfo('100000000', '90000000') }),
+    ).toBeUndefined()
+  })
+
+  it('fires just above the threshold', () => {
+    // 100 USDC in -> 89.9 USDC out = 10.1% loss, just above the boundary
+    const result = getFiatLossWarning({
+      t,
+      formatPercent,
+      derivedSwapInfo: buildDerivedSwapInfo('100000000', '89900000'),
+    })
+    expect(result?.action).toBe(WarningAction.WarnBeforeSubmit)
+  })
+
   it('warns before submit when loss exceeds critical threshold', () => {
     // 100 USDC in -> 80 USDC out = 20% loss, above 10% critical threshold
     const result = getFiatLossWarning({
