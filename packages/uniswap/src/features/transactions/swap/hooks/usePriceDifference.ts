@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
 import { ColorTokens } from 'ui/src'
+import {
+  FIAT_LOSS_CRITICAL_PERCENT,
+  FIAT_LOSS_WARN_PERCENT,
+} from 'uniswap/src/features/transactions/swap/constants/fiatLoss'
 import { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { getPriceImpact } from 'uniswap/src/features/transactions/swap/utils/getPriceImpact'
 import { CurrencyField } from 'uniswap/src/types/currency'
-
-const PRICE_DIFFERENCE_THRESHOLD = 5
-const PRICE_DIFFERENCE_THRESHOLD_CRITICAL = 10
 
 export type UsePriceDifferenceReturnType =
   | {
@@ -39,14 +40,14 @@ export function usePriceDifference(derivedSwapInfo?: DerivedSwapInfo): UsePriceD
     }
 
     const showPriceDifferenceWarning =
-      !!priceDifferencePercentage && priceDifferencePercentage * -1 > PRICE_DIFFERENCE_THRESHOLD
+      !!priceDifferencePercentage && priceDifferencePercentage * -1 > FIAT_LOSS_WARN_PERCENT
 
     if (showPriceDifferenceWarning) {
       return {
         priceDifferencePercentage,
         showPriceDifferenceWarning,
         priceDifferenceColor:
-          priceDifferencePercentage * -1 > PRICE_DIFFERENCE_THRESHOLD_CRITICAL ? '$statusCritical' : '$statusWarning',
+          priceDifferencePercentage * -1 > FIAT_LOSS_CRITICAL_PERCENT ? '$statusCritical' : '$statusWarning',
       }
     }
 

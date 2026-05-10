@@ -3,10 +3,8 @@ import i18next from 'i18next'
 import { WarningAction, WarningLabel, WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
 import { USDC } from 'uniswap/src/constants/tokens'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
-import {
-  FIAT_LOSS_WARN_THRESHOLD,
-  getFiatLossWarning,
-} from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getFiatLossWarning'
+import { FIAT_LOSS_CRITICAL_PERCENT } from 'uniswap/src/features/transactions/swap/constants/fiatLoss'
+import { getFiatLossWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getFiatLossWarning'
 import { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { CurrencyField } from 'uniswap/src/types/currency'
 
@@ -40,18 +38,18 @@ describe(getFiatLossWarning, () => {
   })
 
   it('returns undefined when loss is below threshold', () => {
-    // 100 USDC in -> 75 USDC out = 25% loss, just under the 30% threshold
+    // 100 USDC in -> 95 USDC out = 5% loss, below the 10% critical threshold
     expect(
-      getFiatLossWarning({ t, formatPercent, derivedSwapInfo: buildDerivedSwapInfo('100000000', '75000000') }),
+      getFiatLossWarning({ t, formatPercent, derivedSwapInfo: buildDerivedSwapInfo('100000000', '95000000') }),
     ).toBeUndefined()
   })
 
-  it('warns before submit when loss exceeds threshold', () => {
-    // 100 USDC in -> 50 USDC out = 50% loss
+  it('warns before submit when loss exceeds critical threshold', () => {
+    // 100 USDC in -> 80 USDC out = 20% loss, above 10% critical threshold
     const result = getFiatLossWarning({
       t,
       formatPercent,
-      derivedSwapInfo: buildDerivedSwapInfo('100000000', '50000000'),
+      derivedSwapInfo: buildDerivedSwapInfo('100000000', '80000000'),
     })
     expect(result).toMatchObject({
       type: WarningLabel.FiatLossHigh,
@@ -87,7 +85,9 @@ describe(getFiatLossWarning, () => {
     ).toBeUndefined()
   })
 
-  it('threshold is set conservatively above visual critical (10%)', () => {
-    expect(FIAT_LOSS_WARN_THRESHOLD).toBeGreaterThan(10)
+  it('uses the same threshold as the visual critical tier', () => {
+    // Both the red color (usePriceDifference) and the popup trigger fire at
+    // FIAT_LOSS_CRITICAL_PERCENT — single source of truth.
+    expect(FIAT_LOSS_CRITICAL_PERCENT).toBe(10)
   })
 })

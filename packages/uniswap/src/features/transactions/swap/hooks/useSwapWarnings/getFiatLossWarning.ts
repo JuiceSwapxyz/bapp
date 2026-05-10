@@ -1,14 +1,9 @@
 import { TFunction } from 'i18next'
 import { Warning, WarningAction, WarningLabel, WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
 import { LocalizationContextState } from 'uniswap/src/features/language/LocalizationContext'
+import { FIAT_LOSS_CRITICAL_PERCENT } from 'uniswap/src/features/transactions/swap/constants/fiatLoss'
 import { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { CurrencyField } from 'uniswap/src/types/currency'
-
-// Warn the user before submit when output USD value falls below this fraction of
-// input USD value. Catches catastrophic mispricing / dry-pool quotes (e.g. $100k
-// input → $9 output). The user can still confirm and proceed if they really want
-// to — this is a guard rail, not a hard block.
-export const FIAT_LOSS_WARN_THRESHOLD = 30 // percent
 
 export function getFiatLossWarning({
   t,
@@ -36,7 +31,7 @@ export function getFiatLossWarning({
   }
 
   const lossPercent = ((inputNum - outputNum) / inputNum) * 100
-  if (lossPercent <= FIAT_LOSS_WARN_THRESHOLD) {
+  if (lossPercent <= FIAT_LOSS_CRITICAL_PERCENT) {
     return undefined
   }
 
