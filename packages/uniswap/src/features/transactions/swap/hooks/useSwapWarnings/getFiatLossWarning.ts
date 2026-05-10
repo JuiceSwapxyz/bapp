@@ -4,10 +4,11 @@ import { LocalizationContextState } from 'uniswap/src/features/language/Localiza
 import { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { CurrencyField } from 'uniswap/src/types/currency'
 
-// Block the swap when output USD value falls below this fraction of input USD value.
-// Catches catastrophic mispricing / dry-pool quotes (e.g. $100k input → $9 output)
-// without interfering with normal slippage or fee-heavy trades.
-export const FIAT_LOSS_HARD_BLOCK_THRESHOLD = 30 // percent
+// Warn the user before submit when output USD value falls below this fraction of
+// input USD value. Catches catastrophic mispricing / dry-pool quotes (e.g. $100k
+// input → $9 output). The user can still confirm and proceed if they really want
+// to — this is a guard rail, not a hard block.
+export const FIAT_LOSS_WARN_THRESHOLD = 30 // percent
 
 export function getFiatLossWarning({
   t,
@@ -35,7 +36,7 @@ export function getFiatLossWarning({
   }
 
   const lossPercent = ((inputNum - outputNum) / inputNum) * 100
-  if (lossPercent <= FIAT_LOSS_HARD_BLOCK_THRESHOLD) {
+  if (lossPercent <= FIAT_LOSS_WARN_THRESHOLD) {
     return undefined
   }
 
@@ -45,13 +46,12 @@ export function getFiatLossWarning({
 
   return {
     type: WarningLabel.FiatLossHigh,
-    severity: WarningSeverity.Blocked,
-    action: WarningAction.DisableReview,
+    severity: WarningSeverity.High,
+    action: WarningAction.WarnBeforeSubmit,
     title: t('swap.warning.fiatLoss.title', { lossValue }),
     message: t('swap.warning.fiatLoss.message', {
       inputCurrencySymbol,
       outputCurrencySymbol,
     }),
-    buttonText: t('swap.warning.fiatLoss.button', { lossValue }),
   }
 }

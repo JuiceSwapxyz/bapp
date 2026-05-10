@@ -76,7 +76,7 @@ export function getSwapWarnings({
     warnings.push(formIncompleteWarning)
   }
 
-  // hard-block on catastrophic USD-value loss (e.g. dry-pool quotes)
+  // warn before submit on catastrophic USD-value loss (e.g. dry-pool quotes)
   const fiatLossWarning = getFiatLossWarning({ t, formatPercent, derivedSwapInfo })
   if (fiatLossWarning) {
     warnings.push(fiatLossWarning)

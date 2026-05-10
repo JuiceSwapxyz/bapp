@@ -4,7 +4,7 @@ import { WarningAction, WarningLabel, WarningSeverity } from 'uniswap/src/compon
 import { USDC } from 'uniswap/src/constants/tokens'
 import { CurrencyInfo } from 'uniswap/src/features/dataApi/types'
 import {
-  FIAT_LOSS_HARD_BLOCK_THRESHOLD,
+  FIAT_LOSS_WARN_THRESHOLD,
   getFiatLossWarning,
 } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getFiatLossWarning'
 import { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
@@ -46,7 +46,7 @@ describe(getFiatLossWarning, () => {
     ).toBeUndefined()
   })
 
-  it('blocks the swap when loss exceeds threshold', () => {
+  it('warns before submit when loss exceeds threshold', () => {
     // 100 USDC in -> 50 USDC out = 50% loss
     const result = getFiatLossWarning({
       t,
@@ -55,29 +55,39 @@ describe(getFiatLossWarning, () => {
     })
     expect(result).toMatchObject({
       type: WarningLabel.FiatLossHigh,
-      severity: WarningSeverity.Blocked,
-      action: WarningAction.DisableReview,
+      severity: WarningSeverity.High,
+      action: WarningAction.WarnBeforeSubmit,
     })
   })
 
-  it('blocks catastrophic mispricing (≈99.99% loss)', () => {
+  it('warns on catastrophic mispricing (≈99.99% loss)', () => {
     // $122,259 in -> $8.73 out = ~99.99% loss; e.g. dry-pool quote
     const result = getFiatLossWarning({
       t,
       formatPercent,
       derivedSwapInfo: buildDerivedSwapInfo('122259000000', '8730000'),
     })
-    expect(result?.action).toBe(WarningAction.DisableReview)
+    expect(result?.action).toBe(WarningAction.WarnBeforeSubmit)
     expect(result?.type).toBe(WarningLabel.FiatLossHigh)
   })
 
-  it('does not block favorable trades (output > input USD)', () => {
+  it('never returns a blocking action — user must always be able to confirm', () => {
+    const result = getFiatLossWarning({
+      t,
+      formatPercent,
+      derivedSwapInfo: buildDerivedSwapInfo('100000000', '1'),
+    })
+    expect(result?.action).not.toBe(WarningAction.DisableReview)
+    expect(result?.action).not.toBe(WarningAction.DisableSubmit)
+  })
+
+  it('does not warn on favorable trades (output > input USD)', () => {
     expect(
       getFiatLossWarning({ t, formatPercent, derivedSwapInfo: buildDerivedSwapInfo('100000000', '101000000') }),
     ).toBeUndefined()
   })
 
   it('threshold is set conservatively above visual critical (10%)', () => {
-    expect(FIAT_LOSS_HARD_BLOCK_THRESHOLD).toBeGreaterThan(10)
+    expect(FIAT_LOSS_WARN_THRESHOLD).toBeGreaterThan(10)
   })
 })
