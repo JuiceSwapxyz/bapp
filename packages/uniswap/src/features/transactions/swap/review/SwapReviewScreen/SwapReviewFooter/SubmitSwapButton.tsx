@@ -10,6 +10,7 @@ import { useTransactionModalContext } from 'uniswap/src/features/transactions/co
 import { TransactionStepType } from 'uniswap/src/features/transactions/steps/types'
 import { FlashblocksConfirmButton } from 'uniswap/src/features/transactions/swap/components/UnichainInstantBalanceModal/FlashblocksConfirmButton'
 import { useIsUnichainFlashblocksEnabled } from 'uniswap/src/features/transactions/swap/hooks/useIsUnichainFlashblocksEnabled'
+import type { SubmitButtonDisableReason } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/getSubmitButtonDisableReason'
 import { useSwapReviewStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewStore/useSwapReviewStore'
 import { useSwapReviewTransactionStore } from 'uniswap/src/features/transactions/swap/review/stores/swapReviewTransactionStore/useSwapReviewTransactionStore'
 import type { BitcoinBridgeBitcoinToCitreaStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
@@ -31,12 +32,19 @@ const KEEP_OPEN_MSG_DELAY = 3 * ONE_SECOND_MS
 
 interface SubmitSwapButtonProps {
   disabled: boolean
+  disableReason?: SubmitButtonDisableReason | null
   onSubmit: () => void
   showPendingUI: boolean
   warning?: Warning
 }
 
-export function SubmitSwapButton({ disabled, onSubmit, showPendingUI, warning }: SubmitSwapButtonProps): JSX.Element {
+export function SubmitSwapButton({
+  disabled,
+  disableReason,
+  onSubmit,
+  showPendingUI,
+  warning,
+}: SubmitSwapButtonProps): JSX.Element {
   const { t } = useTranslation()
   const { renderBiometricsIcon, passkeyAuthStatus } = useTransactionModalContext()
 
@@ -62,6 +70,7 @@ export function SubmitSwapButton({ disabled, onSubmit, showPendingUI, warning }:
     swapTxContext,
     warning,
     isAuthenticated: Boolean(passkeyAuthStatus?.isSessionAuthenticated),
+    disableReason,
   })
 
   const isShortMobileDevice = useIsShortMobileDevice()
@@ -161,13 +170,27 @@ export const getActionText = ({
   swapTxContext,
   warning,
   isAuthenticated,
+  disableReason,
 }: {
   t: AppTFunction
   wrapType: WrapType
   swapTxContext?: SwapTxAndGasInfo
   warning?: Warning
   isAuthenticated?: boolean
+  disableReason?: SubmitButtonDisableReason | null
 }): string => {
+  // When the button is disabled for a reason the user can act on, the button
+  // label IS the explanation. Falls back to the standard action label otherwise.
+  // `blocking_warning` already has the `warning.buttonText` path on the form
+  // screen, but at review time we surface the warning's title so the user can
+  // see WHY (e.g. "Insufficient USDC.e balance") instead of a silent grey button.
+  if (disableReason) {
+    const reasonText = getDisableReasonText({ t, disableReason })
+    if (reasonText) {
+      return reasonText
+    }
+  }
+
   const action = getSwapAction({ wrapType, swapTxContext, warning })
 
   const textMap: Record<SwapAction, { default: string; authenticated: string }> = {
@@ -257,6 +280,46 @@ function ConfirmInWalletText({ passkeyAuthStatus }: { passkeyAuthStatus?: Passke
       </Flex>
     </AnimatePresence>
   )
+}
+
+/**
+ * Maps each disable reason to a user-facing label that goes ON the button.
+ *
+ * The `is_submitting` branch is intentionally absent — that state has its own
+ * loading button up in the main `switch` (the `isSubmitting` case renders
+ * `ConfirmInWalletText`), so the user already sees what's happening and we
+ * must not overwrite that text here.
+ *
+ * Returns `undefined` only for branches handled elsewhere; the calling code
+ * then falls back to the standard action label.
+ */
+const getDisableReasonText = ({
+  t,
+  disableReason,
+}: {
+  t: AppTFunction
+  disableReason: SubmitButtonDisableReason
+}): string | undefined => {
+  switch (disableReason.kind) {
+    case 'invalid_swap':
+      return t('swap.button.disabled.loadingQuote')
+    case 'blocking_warning':
+      // Prefer the warning's own buttonText (e.g. "Insufficient USDC.e balance")
+      // and fall back to its title so the button is never silently disabled.
+      return disableReason.warning.buttonText ?? disableReason.warning.title
+    case 'new_trade_requires_acceptance':
+      return t('swap.button.disabled.acceptNewPrice')
+    case 'token_warning_unchecked':
+      return t('swap.button.disabled.acknowledgeTokenWarning')
+    case 'lightning_address_invalid':
+      return t('swap.button.disabled.enterValidLightningAddress')
+    case 'bitcoin_address_invalid':
+      return t('swap.button.disabled.enterValidBitcoinAddress')
+    case 'is_submitting':
+      // Handled by the dedicated `isSubmitting` case in the main `switch` so
+      // the spinner + "Confirm in wallet" UI keeps rendering.
+      return undefined
+  }
 }
 
 const getSwapAction = ({
