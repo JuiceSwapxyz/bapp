@@ -12,6 +12,7 @@ import {
 } from 'uniswap/src/features/transactions/hooks/useParsedTransactionWarnings'
 import { getBalanceWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getBalanceWarning'
 import { getExceedsLimitWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getExceedsLimitWarning'
+import { getFiatLossWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getFiatLossWarning'
 import { getFormIncompleteWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getFormIncompleteWarning'
 import { getPriceImpactWarning } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getPriceImpactWarning'
 import { getSwapWarningFromError } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/getSwapWarningFromError'
@@ -73,6 +74,12 @@ export function getSwapWarnings({
   const formIncompleteWarning = getFormIncompleteWarning(derivedSwapInfo)
   if (formIncompleteWarning) {
     warnings.push(formIncompleteWarning)
+  }
+
+  // warn before submit on catastrophic USD-value loss (e.g. dry-pool quotes)
+  const fiatLossWarning = getFiatLossWarning({ t, formatPercent, derivedSwapInfo })
+  if (fiatLossWarning) {
+    warnings.push(fiatLossWarning)
   }
 
   // price impact warning

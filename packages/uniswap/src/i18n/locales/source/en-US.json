@@ -2021,6 +2021,8 @@
   "swap.warning.exceedsLimit.title": "Amount exceeds maximum limit",
   "swap.warning.expectedFailure.increaseSlippage": "Try increasing your slippage.",
   "swap.warning.expectedFailure.titleMay": "This swap may fail",
+  "swap.warning.fiatLoss.message": "The quoted output is worth far less than your input. This usually means the {{outputCurrencySymbol}} pool has very little liquidity for {{inputCurrencySymbol}}. Try a smaller amount or a different token if you don't want to proceed.",
+  "swap.warning.fiatLoss.title": "Output value too low ({{lossValue}} loss)",
   "swap.warning.insufficientBalance.title": "You don't have enough {{currencySymbol}}",
   "swap.warning.insufficientBridgeLiquidity.title": "Insufficient bridge liquidity",
   "swap.warning.insufficientBridgeLiquidity.message": "The bridge does not have enough tokens to complete this swap. Try a smaller amount or wait for the bridge to be replenished.",
