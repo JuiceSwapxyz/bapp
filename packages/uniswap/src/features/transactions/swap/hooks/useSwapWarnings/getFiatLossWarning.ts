@@ -1,7 +1,10 @@
 import { TFunction } from 'i18next'
 import { Warning, WarningAction, WarningLabel, WarningSeverity } from 'uniswap/src/components/modals/WarningModal/types'
 import { LocalizationContextState } from 'uniswap/src/features/language/LocalizationContext'
-import { FIAT_LOSS_CRITICAL_PERCENT } from 'uniswap/src/features/transactions/swap/constants/fiatLoss'
+import {
+  FIAT_LOSS_CRITICAL_PERCENT,
+  computeFiatLossPercent,
+} from 'uniswap/src/features/transactions/swap/constants/fiatLoss'
 import { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { CurrencyField } from 'uniswap/src/types/currency'
 
@@ -14,24 +17,8 @@ export function getFiatLossWarning({
   formatPercent: LocalizationContextState['formatPercent']
   derivedSwapInfo: DerivedSwapInfo
 }): Warning | undefined {
-  const inputUsd = derivedSwapInfo.currencyAmountsUSDValue[CurrencyField.INPUT]
-  const outputUsd = derivedSwapInfo.currencyAmountsUSDValue[CurrencyField.OUTPUT]
-
-  // Only warn when both USD values are reliably available; otherwise let the
-  // pool-based price-impact warning handle it.
-  if (!inputUsd || !outputUsd) {
-    return undefined
-  }
-
-  const inputNum = Number(inputUsd.toExact())
-  const outputNum = Number(outputUsd.toExact())
-
-  if (!Number.isFinite(inputNum) || !Number.isFinite(outputNum) || inputNum <= 0) {
-    return undefined
-  }
-
-  const lossPercent = ((inputNum - outputNum) / inputNum) * 100
-  if (lossPercent <= FIAT_LOSS_CRITICAL_PERCENT) {
+  const lossPercent = computeFiatLossPercent(derivedSwapInfo)
+  if (lossPercent === undefined || lossPercent <= FIAT_LOSS_CRITICAL_PERCENT) {
     return undefined
   }
 
