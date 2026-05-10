@@ -23,6 +23,7 @@ import { SwapEventType, timestampTracker } from 'uniswap/src/features/transactio
 import { getSwapFeeUsd } from 'uniswap/src/features/transactions/swap/utils/getSwapFeeUsd'
 import {
   GATEWAY_JUSD_ROUTING,
+  SATSUMA_ROUTING,
   TradeRouting,
   isClassic,
   isUniswapX,
@@ -386,6 +387,9 @@ export function tradeRoutingToFillType({
   // Handle custom routing types first
   if (routing === GATEWAY_JUSD_ROUTING) {
     return 'classic' // GATEWAY_JUSD is a same-chain swap, report as classic
+  }
+  if (routing === SATSUMA_ROUTING) {
+    return 'classic' // SATSUMA is a same-chain direct swap via Algebra pool, report as classic
   }
 
   switch (routing) {

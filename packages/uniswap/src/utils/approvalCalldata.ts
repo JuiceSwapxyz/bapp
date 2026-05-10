@@ -9,10 +9,15 @@ const ERC20_APPROVE_SELECTOR = '0x095ea7b3'
 const GATEWAY_ROUTING_VARIANTS = ['GATEWAY_JUSD', 'GATEWAY_JUICE_IN', 'GATEWAY_JUICE_OUT'] as const
 type GatewayRoutingVariant = (typeof GATEWAY_ROUTING_VARIANTS)[number]
 
+// Satsuma SwapRouter on Citrea Mainnet — kept local to avoid circular dependency.
+// Source of truth: api/src/services/SatsumaPoolService.ts
+const SATSUMA_SWAP_ROUTER_CITREA_MAINNET = '0x3012e9049d05b4b5369d690114d5a5861ebb85cb'
+
 /**
  * Determines the appropriate spender address for swaps
  * Uses sdk-core as single source of truth for router addresses
  * For Gateway swaps (including SUSD), returns JuiceSwapGateway address
+ * For Satsuma direct swaps, returns the Satsuma SwapRouter address
  */
 export function getSpenderAddress(chainId: UniverseChainId, routing?: string): string {
   // For Gateway swaps (JUSD abstraction, JUICE equity, SUSD bridging), use JuiceSwapGateway as spender
@@ -22,6 +27,14 @@ export function getSpenderAddress(chainId: UniverseChainId, routing?: string): s
       throw new Error(`No JuiceSwapGateway address for chainId ${chainId}`)
     }
     return gatewayAddress
+  }
+
+  // For Satsuma direct swaps the router is a separate Algebra contract.
+  if (routing === 'SATSUMA') {
+    if (chainId !== UniverseChainId.CitreaMainnet) {
+      throw new Error(`Satsuma routing is only supported on Citrea Mainnet (got ${chainId})`)
+    }
+    return SATSUMA_SWAP_ROUTER_CITREA_MAINNET
   }
 
   return SWAP_ROUTER_02_ADDRESSES(chainId)
