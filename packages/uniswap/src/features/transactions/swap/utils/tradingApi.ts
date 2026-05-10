@@ -56,7 +56,7 @@ import {
 } from 'uniswap/src/features/transactions/swap/types/trade'
 import type { FrontendSupportedProtocol } from 'uniswap/src/features/transactions/swap/utils/protocols'
 import { DEFAULT_PROTOCOL_OPTIONS, useProtocolsForChain } from 'uniswap/src/features/transactions/swap/utils/protocols'
-import { isClassic } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isClassic, isSatsuma } from 'uniswap/src/features/transactions/swap/utils/routing'
 import type { CurrencyField } from 'uniswap/src/types/currency'
 import { areAddressesEqual } from 'uniswap/src/utils/addresses'
 import { currencyAddress, currencyId } from 'uniswap/src/utils/currencyId'
@@ -459,6 +459,13 @@ export function getClassicQuoteFromResponse(
 ): ClassicQuote | undefined {
   if (quote && isClassic(quote)) {
     return quote.quote
+  }
+  // Satsuma quotes are emitted by the api with the same field shape as
+  // Classic quotes (quoteId, gasUseEstimate, routeString, …) — surfacing
+  // them here lets transaction-history and analytics treat SATSUMA swaps
+  // exactly like Classic.
+  if (quote && isSatsuma(quote)) {
+    return quote.quote as unknown as ClassicQuote
   }
   return undefined
 }
