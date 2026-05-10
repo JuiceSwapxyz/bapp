@@ -178,12 +178,14 @@ export function useBridgeLimits(params: BridgeLimitsQueryParams): BridgeLimitsIn
     queryKey: ['boltz-balance'],
     queryFn: fetchBoltzBalance,
     enabled: !!currencyIn && !!currencyOut && !!pairInfo,
+    refetchInterval: 10000,
   })
 
   const { data: onChainOut } = useQuery({
     queryKey: ['lds-onchain-balance', currencyOut?.chainId, currencyOut?.symbol],
     queryFn: () => fetchLdsOnChainBalance(currencyOut!.chainId, currencyOut!.symbol ?? ''),
     enabled: !!currencyOut?.chainId && !!currencyOut?.symbol && !!pairInfo,
+    refetchInterval: 10000,
   })
 
   if (!currencyIn || !currencyOut || !pairInfo) {

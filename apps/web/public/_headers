@@ -1,3 +1,16 @@
+# Global security headers - applied to every response.
+# CSP itself is injected as a <meta> at build time (see vite/vite.plugins.ts).
+# Headers below are the defence-in-depth, transport, and isolation layer.
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  X-Permitted-Cross-Domain-Policies: none
+
 # public allows this caching on the public cache (CDN) not just the browser
 # max-age=0 tells browsers to revalidate every time so they don't get a stale version pointing at outdated JS assets
 # s-maxage=60 tells CDN to cache for 1 minute

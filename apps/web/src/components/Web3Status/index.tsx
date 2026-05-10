@@ -3,6 +3,7 @@ import PortfolioDrawer from 'components/AccountDrawer'
 import { usePendingActivity } from 'components/AccountDrawer/MiniPortfolio/Activity/hooks'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import StatusIcon from 'components/Identicon/StatusIcon'
+import { WalletPointsLabel } from 'components/Web3Status/WalletPointsLabel'
 import { useAccountIdentifier } from 'components/Web3Status/useAccountIdentifier'
 import { useShowPendingAfterDelay } from 'components/Web3Status/useShowPendingAfterDelay'
 import { useAccount } from 'hooks/useAccount'
@@ -160,6 +161,7 @@ function Web3StatusInner() {
                 icon={<StatusIcon size={24} showMiniIcons={false} />}
               >
                 <AddressAndChevronContainer>
+                  {account.address && <WalletPointsLabel address={account.address} />}
                   <Text variant="body2" marginRight={hasUnitag ? '$spacing8' : undefined}>
                     {accountIdentifier}
                   </Text>

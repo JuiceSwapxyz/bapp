@@ -41,6 +41,7 @@ export enum WarningLabel {
   UnsupportedNetwork = 'unsupported_network',
   PriceImpactMedium = 'price_impact_medium',
   PriceImpactHigh = 'price_impact_high',
+  FiatLossHigh = 'fiat_loss_high',
   LowLiquidity = 'low_liquidity',
   SwapRouterError = 'swap_router_error',
   NoRoutesError = 'no_routes_error',

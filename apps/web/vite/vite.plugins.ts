@@ -13,6 +13,9 @@ const CSP_DIRECTIVE_MAP: Record<string, string> = {
   mediaSrc: 'media-src',
   fontSrc: 'font-src',
   formAction: 'form-action',
+  baseUri: 'base-uri',
+  objectSrc: 'object-src',
+  upgradeInsecureRequests: 'upgrade-insecure-requests',
 }
 
 // This plugin is used in vite.config.mts
@@ -57,7 +60,8 @@ export function cspMetaTagPlugin(mode: string): Plugin {
             }
             return null
           }
-          return `${directive} ${(values as string[]).join(' ')}`
+          const joined = (values as string[]).join(' ')
+          return joined ? `${directive} ${joined}` : directive
         })
         .filter(Boolean)
         .join('; ')

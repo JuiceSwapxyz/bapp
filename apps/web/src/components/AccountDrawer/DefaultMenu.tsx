@@ -3,6 +3,7 @@ import LocalCurrencyMenu from 'components/AccountDrawer/LocalCurrencyMenu'
 import { LimitsMenu } from 'components/AccountDrawer/MiniPortfolio/Limits/LimitsMenu'
 import { UniExtensionPoolsMenu } from 'components/AccountDrawer/MiniPortfolio/Pools/UniExtensionPoolsMenu'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { PointsMenu } from 'components/AccountDrawer/Points/PointsMenu'
 import PortfolioBalanceMenu from 'components/AccountDrawer/PortfolioBalanceMenu'
 import SettingsMenu from 'components/AccountDrawer/SettingsMenu'
 import { MenuState, miniPortfolioMenuStateAtom } from 'components/AccountDrawer/constants'
@@ -26,6 +27,7 @@ function DefaultMenu() {
   const openLocalCurrencySettings = useCallback(() => setMenu(MenuState.LOCAL_CURRENCY_SETTINGS), [setMenu])
   const openPortfolioBalanceSettings = useCallback(() => setMenu(MenuState.PORTFOLIO_BALANCE), [setMenu])
   const closeLimitsMenu = useCallback(() => setMenu(MenuState.DEFAULT), [setMenu])
+  const closePointsMenu = useCallback(() => setMenu(MenuState.DEFAULT), [setMenu])
   const { isOpen: drawerOpen } = useAccountDrawer()
 
   const prevMenu = usePrevious(menu)
@@ -36,6 +38,7 @@ function DefaultMenu() {
       [MenuState.SETTINGS]: 1,
       [MenuState.POOLS]: 1,
       [MenuState.OTHER_WALLETS]: 1,
+      [MenuState.POINTS]: 1,
       [MenuState.LOCAL_CURRENCY_SETTINGS]: 2,
       [MenuState.PORTFOLIO_BALANCE]: 2,
       [MenuState.LIMITS]: 2,
@@ -99,12 +102,15 @@ function DefaultMenu() {
         return account.address ? <LimitsMenu onClose={closeLimitsMenu} account={account.address} /> : null
       case MenuState.POOLS:
         return account.address ? <UniExtensionPoolsMenu account={account.address} onClose={closeLimitsMenu} /> : null
+      case MenuState.POINTS:
+        return account.address ? <PointsMenu account={account.address} onClose={closePointsMenu} /> : null
       default:
         return null
     }
   }, [
     account.address,
     closeLimitsMenu,
+    closePointsMenu,
     closeSettings,
     menu,
     openLocalCurrencySettings,
