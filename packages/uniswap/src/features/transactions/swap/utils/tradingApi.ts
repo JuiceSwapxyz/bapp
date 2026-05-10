@@ -11,6 +11,7 @@ import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import type {
   BridgeQuoteResponse,
   GatewayJusdQuoteResponse,
+  SatsumaQuoteResponse,
 } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 import {
   ClassicQuoteResponse,
@@ -47,6 +48,7 @@ import {
   GatewayJusdTrade,
   LightningBridgeTrade,
   PriorityOrderTrade,
+  SatsumaTrade,
   UniswapXV2Trade,
   UniswapXV3Trade,
   UnwrapTrade,
@@ -157,6 +159,16 @@ export function transformTradingApiResponseToTrade(params: TradingApiResponseToT
       if (unknownData && gatewayRoutingTypes.includes(routingType)) {
         return new GatewayJusdTrade({
           quote: unknownData as unknown as GatewayJusdQuoteResponse,
+          currencyIn,
+          currencyOut,
+          tradeType,
+        })
+      }
+
+      // Handle Satsuma direct routing (USDC.e/ctUSD on Citrea)
+      if (unknownData && routingType === 'SATSUMA') {
+        return new SatsumaTrade({
+          quote: unknownData as unknown as SatsumaQuoteResponse,
           currencyIn,
           currencyOut,
           tradeType,
@@ -439,7 +451,11 @@ export function toTradingApiSupportedChainId(chainId: Maybe<number>): TradingApi
 }
 
 export function getClassicQuoteFromResponse(
-  quote?: ClassicQuoteResponse | { routing: Exclude<Routing, Routing.CLASSIC> } | GatewayJusdQuoteResponse,
+  quote?:
+    | ClassicQuoteResponse
+    | { routing: Exclude<Routing, Routing.CLASSIC> }
+    | GatewayJusdQuoteResponse
+    | SatsumaQuoteResponse,
 ): ClassicQuote | undefined {
   if (quote && isClassic(quote)) {
     return quote.quote

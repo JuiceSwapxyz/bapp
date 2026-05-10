@@ -22,6 +22,7 @@ import { usePresignPermit } from 'uniswap/src/features/transactions/swap/review/
 import { createDecorateSwapTxInfoServiceWithEVMLogging } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/logging'
 import { createGatewayJusdSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/gateway/gatewayJusdSwapTxAndGasInfoService'
 import { createLightningBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/lightning/lightningBridgeSwapTxAndGasInfoService'
+import { createSatsumaSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/satsuma/satsumaSwapTxAndGasInfoService'
 import type {
   RoutingServicesMap,
   SwapTxAndGasInfoParameters,
@@ -41,6 +42,7 @@ import {
   GATEWAY_JUICE_IN_ROUTING,
   GATEWAY_JUICE_OUT_ROUTING,
   GATEWAY_JUSD_ROUTING,
+  SATSUMA_ROUTING,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
 import { CurrencyField } from 'uniswap/src/types/currency'
@@ -147,6 +149,13 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     })
   }, [swapConfig.gasStrategy, transactionSettings])
 
+  const satsumaSwapTxInfoService = useMemo(() => {
+    return createSatsumaSwapTxAndGasInfoService({
+      gasStrategy: swapConfig.gasStrategy,
+      transactionSettings,
+    })
+  }, [swapConfig.gasStrategy, transactionSettings])
+
   const services = useMemo(() => {
     return {
       [Routing.CLASSIC]: classicSwapTxInfoService,
@@ -167,6 +176,8 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [GATEWAY_JUSD_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
       [GATEWAY_JUICE_IN_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
       [GATEWAY_JUICE_OUT_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
+      // Satsuma direct routing (USDC.e/ctUSD on Citrea Mainnet)
+      [SATSUMA_ROUTING]: satsumaSwapTxInfoService as unknown as SwapTxAndGasInfoService,
     } satisfies RoutingServicesMap
   }, [
     classicSwapTxInfoService,
@@ -177,6 +188,7 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     lightningBridgeSwapTxInfoService,
     erc20ChainSwapTxInfoService,
     gatewayJusdSwapTxInfoService,
+    satsumaSwapTxInfoService,
   ])
 
   return useMemo(() => {

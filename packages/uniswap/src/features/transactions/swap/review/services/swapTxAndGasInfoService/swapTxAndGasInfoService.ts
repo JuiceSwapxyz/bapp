@@ -3,7 +3,7 @@ import type { ApprovalTxInfo } from 'uniswap/src/features/transactions/swap/revi
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import type { SwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import type { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
-import type { GatewayJusdRouting } from 'uniswap/src/features/transactions/swap/utils/routing'
+import type { GatewayJusdRouting, SatsumaRouting } from 'uniswap/src/features/transactions/swap/utils/routing'
 
 export type SwapTxAndGasInfoParameters<T extends Trade = Trade> = {
   derivedSwapInfo: DerivedSwapInfo
@@ -16,14 +16,16 @@ export interface SwapTxAndGasInfoService<T extends Trade = Trade> {
   getSwapTxAndGasInfo: (ctx: SwapTxAndGasInfoParameters<T>) => Promise<SwapTxAndGasInfo>
 }
 
-// Include both Routing enum values and custom routing types like GATEWAY_JUSD
+// Include both Routing enum values and custom routing types like GATEWAY_JUSD and SATSUMA
 export type RoutingServicesMap = { [K in Routing]: SwapTxAndGasInfoService<Trade & { routing: K }> } & {
   [K in GatewayJusdRouting]: SwapTxAndGasInfoService<Trade & { routing: K }>
+} & {
+  [K in SatsumaRouting]: SwapTxAndGasInfoService<Trade & { routing: K }>
 }
 
 export function createSwapTxAndGasInfoService(ctx: { services: RoutingServicesMap }): SwapTxAndGasInfoService<Trade> {
   function getServiceForTrade<T extends Trade>(trade: T): SwapTxAndGasInfoService<T> {
-    const service = ctx.services[trade.routing as Routing | GatewayJusdRouting]
+    const service = ctx.services[trade.routing as Routing | GatewayJusdRouting | SatsumaRouting]
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!service) {
       throw new Error(`Unsupported routing: ${trade.routing}`)
