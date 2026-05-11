@@ -114,11 +114,32 @@ describe(getSubmitButtonDisableReason, () => {
       expect(reason).toEqual({ kind: 'lightning_address_invalid' })
     })
 
+    it('returns lightning_address_invalid when the validator returned validated:false', () => {
+      // Real API path: `/v1/lightning/validate` can return `{validated:false}`.
+      // Falsy-coercing the response object would silently treat this as valid;
+      // the reason must drill into `.validated`.
+      const reason = getSubmitButtonDisableReason({
+        ...enabledBase,
+        shouldValidateLightningAddress: true,
+        validatedLightningAddress: { validated: false },
+      })
+      expect(reason).toEqual({ kind: 'lightning_address_invalid' })
+    })
+
     it('returns bitcoin_address_invalid while a Bitcoin address has not been validated', () => {
       const reason = getSubmitButtonDisableReason({
         ...enabledBase,
         shouldValidateBitcoinAddress: true,
         validatedBitcoinAddress: undefined,
+      })
+      expect(reason).toEqual({ kind: 'bitcoin_address_invalid' })
+    })
+
+    it('returns bitcoin_address_invalid when the validator returned validated:false', () => {
+      const reason = getSubmitButtonDisableReason({
+        ...enabledBase,
+        shouldValidateBitcoinAddress: true,
+        validatedBitcoinAddress: { validated: false },
       })
       expect(reason).toEqual({ kind: 'bitcoin_address_invalid' })
     })

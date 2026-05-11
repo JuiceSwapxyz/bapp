@@ -1884,6 +1884,7 @@
   "swap.button.confirmUnwrap": "Confirm unwrap",
   "swap.button.disabled.acceptNewPrice": "Accept the new price",
   "swap.button.disabled.acknowledgeTokenWarning": "Acknowledge token warning",
+  "swap.button.disabled.cannotProceed": "Cannot proceed",
   "swap.button.disabled.enterValidBitcoinAddress": "Enter a valid Bitcoin address",
   "swap.button.disabled.enterValidLightningAddress": "Enter a valid Lightning address",
   "swap.button.disabled.loadingQuote": "Loading quote...",

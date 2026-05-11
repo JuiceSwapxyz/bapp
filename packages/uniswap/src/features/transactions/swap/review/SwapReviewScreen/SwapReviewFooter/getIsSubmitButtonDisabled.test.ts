@@ -210,7 +210,7 @@ describe(getIsSubmitButtonDisabled, () => {
       ).toBe(true)
     })
 
-    it('is enabled once the Lightning-address validator query has returned', () => {
+    it('is enabled once the Lightning-address validator query confirms the address is valid', () => {
       expect(
         getIsSubmitButtonDisabled({
           ...enabledBase,
@@ -218,6 +218,19 @@ describe(getIsSubmitButtonDisabled, () => {
           validatedLightningAddress: { validated: true },
         }),
       ).toBe(false)
+    })
+
+    it('is disabled when the Lightning-address validator returned validated:false', () => {
+      // Lightning validation is an actual API call that can return
+      // `{ validated: false }`. Falsy-coercing the whole object would treat
+      // an explicit "invalid" answer as "valid"; we must look at `.validated`.
+      expect(
+        getIsSubmitButtonDisabled({
+          ...enabledBase,
+          shouldValidateLightningAddress: true,
+          validatedLightningAddress: { validated: false },
+        }),
+      ).toBe(true)
     })
 
     it('does not check Lightning validation when no Lightning address is required', () => {
@@ -242,7 +255,7 @@ describe(getIsSubmitButtonDisabled, () => {
       ).toBe(true)
     })
 
-    it('is enabled once the Bitcoin-address validator query has returned', () => {
+    it('is enabled once the Bitcoin-address validator query confirms the address is valid', () => {
       expect(
         getIsSubmitButtonDisabled({
           ...enabledBase,
@@ -250,6 +263,19 @@ describe(getIsSubmitButtonDisabled, () => {
           validatedBitcoinAddress: { validated: true },
         }),
       ).toBe(false)
+    })
+
+    it('is disabled when the Bitcoin-address validator returned validated:false', () => {
+      // The current Bitcoin validator throws on invalid (so the query data
+      // stays undefined), but the contract is the same as Lightning: an
+      // explicit `validated:false` must keep the button disabled.
+      expect(
+        getIsSubmitButtonDisabled({
+          ...enabledBase,
+          shouldValidateBitcoinAddress: true,
+          validatedBitcoinAddress: { validated: false },
+        }),
+      ).toBe(true)
     })
 
     it('does not check Bitcoin validation when no Bitcoin address is required', () => {

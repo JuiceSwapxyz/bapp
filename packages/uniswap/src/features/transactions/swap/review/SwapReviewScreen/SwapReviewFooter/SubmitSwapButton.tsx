@@ -121,17 +121,14 @@ export function SubmitSwapButton({
         </Button>
       )
     }
-    case warning?.severity === WarningSeverity.High: {
+    case warning?.severity === WarningSeverity.High && !disabled: {
+      // The critical (red) variant signals "you can proceed, but it's risky".
+      // When the button is *also* disabled for an unrelated reason, the red
+      // colour clashes with the disable-reason text (e.g. red "Loading
+      // quote..."). Falling through to the default case in that combination
+      // keeps the colour and the message in sync.
       return (
-        <Button
-          variant="critical"
-          emphasis="primary"
-          isDisabled={disabled}
-          icon={icon}
-          size={size}
-          testID={TestID.Swap}
-          onPress={onSubmit}
-        >
+        <Button variant="critical" emphasis="primary" icon={icon} size={size} testID={TestID.Swap} onPress={onSubmit}>
           {actionText}
         </Button>
       )
@@ -306,7 +303,9 @@ const getDisableReasonText = ({
     case 'blocking_warning':
       // Prefer the warning's own buttonText (e.g. "Insufficient USDC.e balance")
       // and fall back to its title so the button is never silently disabled.
-      return disableReason.warning.buttonText ?? disableReason.warning.title
+      // The generic last-resort ensures *every* path produces user-visible
+      // text — no blocking warning can ever produce a silent grey button.
+      return disableReason.warning.buttonText ?? disableReason.warning.title ?? t('swap.button.disabled.cannotProceed')
     case 'new_trade_requires_acceptance':
       return t('swap.button.disabled.acceptNewPrice')
     case 'token_warning_unchecked':

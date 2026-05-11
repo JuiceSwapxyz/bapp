@@ -4,8 +4,7 @@ import type { SubmitButtonDisabledInput } from 'uniswap/src/features/transaction
 /**
  * Discriminated reason the submit button is disabled. Whichever branch fires
  * here, the UI must surface a corresponding user-facing message — a silent
- * grey button with no explanation is a UX bug (see feedback memory
- * "User entscheidet immer selber").
+ * grey button with no explanation is a UX bug.
  */
 export type SubmitButtonDisableReason =
   | { kind: 'invalid_swap' }
@@ -58,10 +57,10 @@ export function getSubmitButtonDisableReason(input: SubmitButtonDisabledInput): 
   if (shouldDisplayTokenWarningCard && !tokenWarningChecked) {
     return { kind: 'token_warning_unchecked' }
   }
-  if (shouldValidateLightningAddress && !validatedLightningAddress) {
+  if (shouldValidateLightningAddress && !validatedLightningAddress?.validated) {
     return { kind: 'lightning_address_invalid' }
   }
-  if (shouldValidateBitcoinAddress && !validatedBitcoinAddress) {
+  if (shouldValidateBitcoinAddress && !validatedBitcoinAddress?.validated) {
     return { kind: 'bitcoin_address_invalid' }
   }
   return null
