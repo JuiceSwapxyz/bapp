@@ -142,10 +142,23 @@ export function useIsJuicerCampaignEnded(): boolean {
   return useMemo(() => Date.now() > new Date(CAMPAIGN_END_ISO).getTime(), [])
 }
 
+/**
+ * Mirrors `WebFeatureFlags.JUICE_POINTS_PROGRAM` introduced in #747. We read
+ * the env var directly so this module stays compilable independent of merge
+ * order — once #747 lands, this can be swapped to import `WebFeatureFlags`.
+ * Default OFF (must be explicitly enabled per environment).
+ */
+export function isJuicePointsProgramEnabled(): boolean {
+  return process.env.REACT_APP_JUICE_POINTS_PROGRAM === 'true'
+}
+
 export function useIsJuicerCampaignVisible(): boolean {
   const { defaultChainId } = useEnabledChains()
   const isCampaignTimeActive = useIsJuicerTimeActive()
-  return isCampaignTimeActive && defaultChainId === UniverseChainId.CitreaMainnet
+  // The Juicer NFT depends on the JP program (10,000 JP cost + 500 JP
+  // meme-token bonus). If the JP program is dark in this environment the
+  // Juicer flow stays hidden too.
+  return isJuicePointsProgramEnabled() && isCampaignTimeActive && defaultChainId === UniverseChainId.CitreaMainnet
 }
 
 // eslint-disable-next-line import/no-unused-modules

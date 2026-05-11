@@ -390,13 +390,16 @@ export const routes: RouteDefinition[] = [
     getDescription: () =>
       'Exclusive to testnet claimers who verify X and Discord to claim the First Squeezer NFT on Citrea Mainnet.',
   }),
-  // Juicer NFT Campaign Page
+  // Juicer NFT Campaign Page — gated behind the Juice Points program flag
+  // (mirrors #747). Cannot function without the points system live because
+  // the mint requires spending 10,000 JP.
   createRouteDefinition({
     path: '/juicer',
+    enabled: () => process.env.REACT_APP_JUICE_POINTS_PROGRAM === 'true',
     getElement: () => <Juicer />,
     getTitle: () => 'Juicer NFT - JuiceSwap',
     getDescription: () =>
-      'Earn the Juicer NFT by completing 10+ swaps on JuiceSwap, depositing >$5 in JUSD savings, and lending >$5 in JUSD.',
+      'Earn the Juicer NFT by spending 10,000 Juice Points, launching a meme token, following on X and joining Discord.',
   }),
   // OAuth Callback Page - Handles Twitter OAuth redirect
   createRouteDefinition({
