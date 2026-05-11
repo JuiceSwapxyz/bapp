@@ -1,7 +1,7 @@
 import { SharedEventName } from '@uniswap/analytics-events'
 import { POINTS_BRAND_COLOR } from 'components/AccountDrawer/Points/constants'
 import { usePfp, useSetPfp } from 'components/Identicon/usePfp'
-import { FeatureFlags } from 'constants/featureFlags'
+import { WebFeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import { NftCard } from 'nft/components/card'
 import { VerifiedIcon } from 'nft/components/iconExports'
@@ -33,7 +33,7 @@ export function NFT({
     currentPfp.tokenId === asset.tokenId
 
   const canSetPfp =
-    FeatureFlags.JUICE_POINTS_PROGRAM &&
+    WebFeatureFlags.JUICE_POINTS_PROGRAM &&
     !!account.address &&
     !!asset.imageUrl &&
     !!asset.asset_contract.address &&

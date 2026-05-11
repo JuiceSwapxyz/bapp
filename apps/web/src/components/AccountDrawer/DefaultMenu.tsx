@@ -9,7 +9,7 @@ import SettingsMenu from 'components/AccountDrawer/SettingsMenu'
 import { MenuState, miniPortfolioMenuStateAtom } from 'components/AccountDrawer/constants'
 import WalletModal from 'components/WalletModal'
 import { OtherWalletsModal } from 'components/WalletModal/OtherWalletsModal'
-import { FeatureFlags } from 'constants/featureFlags'
+import { WebFeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import usePrevious from 'hooks/usePrevious'
 import { useAtom } from 'jotai'
@@ -104,7 +104,7 @@ function DefaultMenu() {
       case MenuState.POOLS:
         return account.address ? <UniExtensionPoolsMenu account={account.address} onClose={closeLimitsMenu} /> : null
       case MenuState.POINTS:
-        return FeatureFlags.JUICE_POINTS_PROGRAM && account.address ? (
+        return WebFeatureFlags.JUICE_POINTS_PROGRAM && account.address ? (
           <PointsMenu account={account.address} onClose={closePointsMenu} />
         ) : null
       default:

@@ -10,8 +10,6 @@
 - **Send** tokens to another address
 - **Buy / Sell** crypto via on-ramps (Moonpay)
 - **Bridge** assets between Citrea and supported networks
-- **Earn Juice Points** for swaps (100 JP per finalized swap, daily cap to deter bots) and view the public Top 100 leaderboard
-- **Set an NFT as Profile Picture** from the wallet's holdings, persisted per address
 - **Launch a token** through the integrated launchpad
 - **Track positions** and on-chain activity in the wallet drawer
 
@@ -26,7 +24,6 @@
 - Swap: [https://bapp.juiceswap.com/swap](https://bapp.juiceswap.com/swap)
 - Positions: [https://bapp.juiceswap.com/positions](https://bapp.juiceswap.com/positions)
 - Explore: [https://bapp.juiceswap.com/explore](https://bapp.juiceswap.com/explore)
-- Leaderboard: [https://bapp.juiceswap.com/leaderboard](https://bapp.juiceswap.com/leaderboard)
 - Launchpad: [https://bapp.juiceswap.com/launchpad](https://bapp.juiceswap.com/launchpad)
 
 ## Public APIs (read-only, no auth required)
@@ -42,8 +39,6 @@
 - `GET https://ponder.juiceswap.com/tokens` — token catalogue
 - `GET https://ponder.juiceswap.com/v2-pool-stats` — V2 pool stats
 - `GET https://ponder.juiceswap.com/activity/swaps?address={addr}` — swap history per address
-- `GET https://ponder.juiceswap.com/points/{address}` — Juice Points breakdown
-- `GET https://ponder.juiceswap.com/points/leaderboard` — top 100 wallets
 
 ## Open source
 
