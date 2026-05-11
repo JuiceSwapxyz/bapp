@@ -66,6 +66,8 @@ interface ProgressApiResponse {
   spentJp: number
   cost?: number
   jpSpent: boolean
+  memeTokenCreated?: boolean // true once wallet has launched a meme token on Citrea Mainnet
+  memeTokenCreatedAt?: string | null
   twitterVerified: boolean
   twitterVerifiedAt?: string | null
   discordVerified: boolean
@@ -173,6 +175,8 @@ function buildConditions(
   state: {
     availableJp: number
     jpSpent: boolean
+    memeTokenCreated: boolean
+    memeTokenCreatedAt?: string | null
     twitterVerified: boolean
     twitterVerifiedAt?: string | null
     discordVerified: boolean
@@ -195,6 +199,17 @@ function buildConditions(
     },
     {
       id: 2,
+      type: ConditionType.MEME_TOKEN_CREATED,
+      name: 'Create a meme token on Citrea Mainnet',
+      description:
+        'Launch a meme token via the JuiceSwap launchpad on Citrea Mainnet. ' + 'Earns a one-time 500 JP bonus.',
+      status: state.memeTokenCreated ? ConditionStatus.COMPLETED : ConditionStatus.PENDING,
+      ctaText: state.memeTokenCreated ? undefined : 'Create meme token',
+      ctaUrl: '/launchpad/create',
+      completedAt: state.memeTokenCreatedAt ?? undefined,
+    },
+    {
+      id: 3,
       type: ConditionType.TWITTER_FOLLOW,
       name: 'Follow @JuiceSwap_com on X',
       description: 'Follow the official JuiceSwap account on X (Twitter).',
@@ -203,7 +218,7 @@ function buildConditions(
       completedAt: state.twitterVerifiedAt ?? undefined,
     },
     {
-      id: 3,
+      id: 4,
       type: ConditionType.DISCORD_JOIN,
       name: 'Join the JuiceSwap Discord',
       description: 'Join the JuiceSwap Discord server and pick up the Juicer role.',
@@ -219,6 +234,8 @@ function rawToProgress(raw: ProgressApiResponse): JuicerProgress {
   const conditions = buildConditions(cost, {
     availableJp: raw.availableJp,
     jpSpent: raw.jpSpent,
+    memeTokenCreated: raw.memeTokenCreated ?? false,
+    memeTokenCreatedAt: raw.memeTokenCreatedAt,
     twitterVerified: raw.twitterVerified,
     twitterVerifiedAt: raw.twitterVerifiedAt,
     discordVerified: raw.discordVerified,
@@ -254,6 +271,7 @@ export function buildEmptyJuicerProgress(walletAddress: string, chainId: Univers
   const conditions = buildConditions(cost, {
     availableJp: 0,
     jpSpent: false,
+    memeTokenCreated: false,
     twitterVerified: false,
     discordVerified: false,
   })

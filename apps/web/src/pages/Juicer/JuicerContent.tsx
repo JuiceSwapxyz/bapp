@@ -104,7 +104,7 @@ export default function JuicerContent() {
               Connect your wallet to track progress
             </Text>
             <Text variant="body3" color="$neutral2">
-              {`The Juicer NFT requires ${JUICER_JP_COST.toLocaleString()} JP plus an X follow and Discord verification.`}
+              {`The Juicer NFT requires ${JUICER_JP_COST.toLocaleString()} JP, a meme token launch, an X follow and Discord verification.`}
             </Text>
           </Flex>
           <Button
@@ -150,7 +150,7 @@ export default function JuicerContent() {
           </Stat>
         </StatRow>
         <Text variant="body3" color="$neutral2">
-          {`Cost to mint: ${progress.cost.toLocaleString()} JP. After paying, follow JuiceSwap on X and join the Discord to unlock the claim.`}
+          {`Cost to mint: ${progress.cost.toLocaleString()} JP. Launch a meme token (one-time +500 JP bonus), follow JuiceSwap on X and join the Discord to unlock the claim.`}
         </Text>
       </Section>
 

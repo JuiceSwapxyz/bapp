@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router'
-import { CampaignCondition, ConditionStatus, ConditionType } from 'services/juicerCampaign/types'
+import { CampaignCondition, ConditionStatus } from 'services/juicerCampaign/types'
 import { Button, Flex, Text, styled } from 'ui/src'
 import { Check } from 'ui/src/components/icons/Check'
 import { Clock } from 'ui/src/components/icons/Clock'
@@ -122,7 +122,9 @@ interface ConditionCardProps {
 export function ConditionCard({ condition, onAction, isLoading, error }: ConditionCardProps) {
   const navigate = useNavigate()
   const isCompleted = condition.status === ConditionStatus.COMPLETED
-  const isInternal = condition.type === ConditionType.BAPPS_COMPLETED
+  // Treat URLs that start with `/` as in-app routes; everything else opens
+  // in a new tab. Avoids hardcoding a per-condition-type allowlist.
+  const isInternalCta = condition.ctaUrl?.startsWith('/') ?? false
 
   const handleAction = () => {
     if (isCompleted) {
@@ -132,7 +134,7 @@ export function ConditionCard({ condition, onAction, isLoading, error }: Conditi
     if (onAction) {
       onAction()
     } else if (condition.ctaUrl) {
-      if (isInternal) {
+      if (isInternalCta) {
         navigate(condition.ctaUrl)
       } else {
         window.open(condition.ctaUrl, '_blank', 'noopener,noreferrer')
@@ -185,7 +187,7 @@ export function ConditionCard({ condition, onAction, isLoading, error }: Conditi
             <Text variant="buttonLabel4" color="$white">
               {isLoading ? 'Loading...' : condition.ctaText}
             </Text>
-            {!isInternal && <ExternalLink size="$icon.16" color="$white" />}
+            {!isInternalCta && <ExternalLink size="$icon.16" color="$white" />}
           </ActionButton>
 
           {error && (

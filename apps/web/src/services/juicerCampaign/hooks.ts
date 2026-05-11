@@ -258,7 +258,7 @@ interface UseClaimResult {
 }
 
 /**
- * Final step — fetch backend signature (only issued when all 3 conditions
+ * Final step — fetch backend signature (only issued when all 4 conditions
  * are met) and submit JuicerNFT.claim(signature) on Citrea Mainnet.
  */
 export function useClaimJuicerNFT(): UseClaimResult {

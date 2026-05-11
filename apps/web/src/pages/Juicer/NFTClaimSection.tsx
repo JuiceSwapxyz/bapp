@@ -6,7 +6,7 @@ import { Button, Flex, SpinningLoader, Text, styled } from 'ui/src'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
 
 interface NFTClaimSectionProps {
-  /** True once all 3 conditions (JP spend + Twitter + Discord) are satisfied. */
+  /** True once all 4 conditions (JP spend + meme token + Twitter + Discord) are satisfied. */
   isEligible: boolean
   /** True once the API has confirmed the wallet already minted. */
   alreadyMinted: boolean

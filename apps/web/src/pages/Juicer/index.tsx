@@ -62,7 +62,9 @@ export default function Juicer() {
                 <NFTIcon>🍊</NFTIcon>
                 <Flex gap="$spacing8" flex={1} minWidth={0}>
                   <MainTitle>Juicer NFT</MainTitle>
-                  <Subtitle>Trade Juice Points for the Juicer NFT on Citrea Mainnet.</Subtitle>
+                  <Subtitle>
+                    Trade 10,000 Juice Points and launch a meme token to mint the Juicer NFT on Citrea Mainnet.
+                  </Subtitle>
                 </Flex>
               </Flex>
             </TitleSection>
