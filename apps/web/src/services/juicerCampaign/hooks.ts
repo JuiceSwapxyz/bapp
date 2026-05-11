@@ -18,9 +18,11 @@ const JUICER_CAMPAIGN_UPDATED_EVENT = 'juicer-campaign-updated'
 
 const TWITTER_FOLLOW_INTENT_URL = 'https://x.com/intent/follow?screen_name=JuiceSwap_com'
 
-// Must match the deployed contract window.
+// Must match the deployed contract window. Tune to final launch dates
+// before this PR merges to PRD; current values keep the campaign open
+// through Q2 2026 so DEV testing is unblocked.
 const CAMPAIGN_START_ISO = '2026-04-24T00:00:00.000Z'
-const CAMPAIGN_END_ISO = '2026-05-08T23:59:59.000Z'
+const CAMPAIGN_END_ISO = '2026-06-30T23:59:59.000Z'
 
 function dispatchUpdate(): void {
   window.dispatchEvent(new CustomEvent(JUICER_CAMPAIGN_UPDATED_EVENT))
