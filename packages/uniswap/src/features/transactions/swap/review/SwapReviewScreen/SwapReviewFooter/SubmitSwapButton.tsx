@@ -297,28 +297,27 @@ const getDisableReasonText = ({
   t: AppTFunction
   disableReason: SubmitButtonDisableReason
 }): string | undefined => {
-  switch (disableReason.kind) {
-    case 'invalid_swap':
-      return t('swap.button.disabled.loadingQuote')
-    case 'blocking_warning':
-      // Prefer the warning's own buttonText (e.g. "Insufficient USDC.e balance")
-      // and fall back to its title so the button is never silently disabled.
-      // The generic last-resort ensures *every* path produces user-visible
-      // text — no blocking warning can ever produce a silent grey button.
-      return disableReason.warning.buttonText ?? disableReason.warning.title ?? t('swap.button.disabled.cannotProceed')
-    case 'new_trade_requires_acceptance':
-      return t('swap.button.disabled.acceptNewPrice')
-    case 'token_warning_unchecked':
-      return t('swap.button.disabled.acknowledgeTokenWarning')
-    case 'lightning_address_invalid':
-      return t('swap.button.disabled.enterValidLightningAddress')
-    case 'bitcoin_address_invalid':
-      return t('swap.button.disabled.enterValidBitcoinAddress')
-    case 'is_submitting':
-      // Handled by the dedicated `isSubmitting` case in the main `switch` so
-      // the spinner + "Confirm in wallet" UI keeps rendering.
-      return undefined
+  // Handled by the dedicated `isSubmitting` case in the main `switch` so
+  // the spinner + "Confirm in wallet" UI keeps rendering — we must not
+  // overwrite that label here.
+  if (disableReason.kind === 'is_submitting') {
+    return undefined
   }
+  // Prefer the warning's own buttonText (e.g. "Insufficient USDC.e balance")
+  // and fall back to its title so the button is never silently disabled.
+  // The generic last-resort ensures *every* path produces user-visible
+  // text — no blocking warning can ever produce a silent grey button.
+  if (disableReason.kind === 'blocking_warning') {
+    return disableReason.warning.buttonText ?? disableReason.warning.title ?? t('swap.button.disabled.cannotProceed')
+  }
+  const textByKind: Record<Exclude<SubmitButtonDisableReason['kind'], 'is_submitting' | 'blocking_warning'>, string> = {
+    invalid_swap: t('swap.button.disabled.loadingQuote'),
+    new_trade_requires_acceptance: t('swap.button.disabled.acceptNewPrice'),
+    token_warning_unchecked: t('swap.button.disabled.acknowledgeTokenWarning'),
+    lightning_address_invalid: t('swap.button.disabled.enterValidLightningAddress'),
+    bitcoin_address_invalid: t('swap.button.disabled.enterValidBitcoinAddress'),
+  }
+  return textByKind[disableReason.kind]
 }
 
 const getSwapAction = ({
