@@ -12,6 +12,7 @@ import { Power } from 'components/Icons/Power'
 import { Settings } from 'components/Icons/Settings'
 import StatusIcon from 'components/Identicon/StatusIcon'
 import DelegationMismatchModal from 'components/delegation/DelegationMismatchModal'
+import { WebFeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import { useDisconnect } from 'hooks/useDisconnect'
 import { useIsUniExtensionConnected } from 'hooks/useIsUniExtensionConnected'
@@ -207,9 +208,11 @@ export default function AuthenticatedHeader({ account, openSettings }: { account
             <ExtensionDeeplinks account={account} />
           ) : (
             <>
-              <Flex mb="$spacing12">
-                <PointsCard account={account} />
-              </Flex>
+              {WebFeatureFlags.JUICE_POINTS_PROGRAM && (
+                <Flex mb="$spacing12">
+                  <PointsCard account={account} />
+                </Flex>
+              )}
               {isPortfolioZero ? (
                 <EmptyWallet handleBuyCryptoClick={handleBuyCryptoClick} />
               ) : (

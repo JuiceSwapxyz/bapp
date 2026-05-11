@@ -7,10 +7,16 @@ export const GATEWAY_JUSD_ROUTING = 'GATEWAY_JUSD' as const
 export const GATEWAY_JUICE_IN_ROUTING = 'GATEWAY_JUICE_IN' as const
 export const GATEWAY_JUICE_OUT_ROUTING = 'GATEWAY_JUICE_OUT' as const
 
+// Satsuma direct routing — used when the JuiceSwap Quote API picks the
+// Satsuma USDC.e/ctUSD pool over the thin JuiceSwap V3 Classic pool.
+export const SATSUMA_ROUTING = 'SATSUMA' as const
+
 export type GatewayJusdRouting =
   | typeof GATEWAY_JUSD_ROUTING
   | typeof GATEWAY_JUICE_IN_ROUTING
   | typeof GATEWAY_JUICE_OUT_ROUTING
+
+export type SatsumaRouting = typeof SATSUMA_ROUTING
 
 // All Gateway routing variants
 // Note: SUSD is routed through Gateway via registerBridgedToken() - no separate routing type needed
@@ -21,7 +27,7 @@ export const GATEWAY_ROUTING_VARIANTS = [
 ] as const
 
 // TradeRouting encompasses all routing types including custom ones not in the Routing enum
-export type TradeRouting = Routing | GatewayJusdRouting
+export type TradeRouting = Routing | GatewayJusdRouting | SatsumaRouting
 
 export const UNISWAPX_ROUTING_VARIANTS = [
   Routing.DUTCH_V2,
@@ -43,10 +49,16 @@ export function isGatewayJusd<T extends { routing: TradeRouting }>(obj: T): obj 
   return GATEWAY_ROUTING_VARIANTS.includes(obj.routing as GatewayJusdRouting)
 }
 
+export function isSatsuma<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: SatsumaRouting } {
+  return obj.routing === SATSUMA_ROUTING
+}
+
 export function isBridge<T extends { routing: TradeRouting }>(
   obj: T,
 ): obj is T & { routing: Routing.BRIDGE | Routing.ERC20_CHAIN_SWAP | Routing.WBTC_BRIDGE } {
-  return obj.routing === Routing.BRIDGE || obj.routing === Routing.ERC20_CHAIN_SWAP || obj.routing === Routing.WBTC_BRIDGE
+  return (
+    obj.routing === Routing.BRIDGE || obj.routing === Routing.ERC20_CHAIN_SWAP || obj.routing === Routing.WBTC_BRIDGE
+  )
 }
 
 export function isBitcoinBridge<T extends { routing: TradeRouting }>(
@@ -67,9 +79,7 @@ export function isErc20ChainSwap<T extends { routing: TradeRouting }>(
   return obj.routing === Routing.ERC20_CHAIN_SWAP
 }
 
-export function isWbtcBridge<T extends { routing: TradeRouting }>(
-  obj: T,
-): obj is T & { routing: Routing.WBTC_BRIDGE } {
+export function isWbtcBridge<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: Routing.WBTC_BRIDGE } {
   return obj.routing === Routing.WBTC_BRIDGE
 }
 

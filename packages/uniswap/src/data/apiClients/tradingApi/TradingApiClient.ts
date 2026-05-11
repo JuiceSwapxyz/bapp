@@ -84,7 +84,12 @@ import {
 import { getChainInfo } from 'uniswap/src/features/chains/chainInfo'
 import { FeatureFlags } from 'uniswap/src/features/gating/flags'
 import { getFeatureFlag } from 'uniswap/src/features/gating/hooks'
-import { getLdsBridgeManager, LdsSwapStatus, SomeSwap, UserClaimsAndRefundsResponse } from 'uniswap/src/features/lds-bridge'
+import {
+  LdsSwapStatus,
+  SomeSwap,
+  UserClaimsAndRefundsResponse,
+  getLdsBridgeManager,
+} from 'uniswap/src/features/lds-bridge'
 import { getSpenderAddress } from 'uniswap/src/utils/approvalCalldata'
 import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 
@@ -153,6 +158,48 @@ export type GatewayJusdQuoteResponse = {
   requestId: string
   quote: GatewayJusdQuote
   routing: GatewayJusdRoutingType
+  permitData: null
+}
+
+// SATSUMA is a custom routing type for the Satsuma USDC.e/ctUSD pool on
+// Citrea Mainnet — the routing string is not in the generated Routing enum
+// so we mirror the GATEWAY_JUSD pattern. The quote shape mirrors what the
+// api emits: classic-style fields (route, routeString, quote*, gas*) plus an
+// `_internal` block carrying the Satsuma router/pool addresses.
+export type SatsumaQuote = {
+  blockNumber?: string
+  amount: string
+  amountDecimals: string
+  quote: string
+  quoteDecimals: string
+  quoteGasAdjusted: string
+  quoteGasAdjustedDecimals: string
+  gasUseEstimate: string
+  gasUseEstimateUSD: string
+  gasPriceWei: string
+  route: Array<
+    Array<{
+      type: string
+      address: string
+      router?: string
+      tokenIn: { chainId: number; decimals: string; address: string; symbol: string }
+      tokenOut: { chainId: number; decimals: string; address: string; symbol: string }
+      amountIn?: string
+      amountOut?: string
+    }>
+  >
+  routeString: string
+  quoteId: string
+  hitsCachedRoutes: boolean
+  priceImpact: string
+  swapper?: string
+  _internal?: { routingType: 'SATSUMA'; pool: string; router: string }
+}
+
+export type SatsumaQuoteResponse = {
+  requestId: string
+  quote: SatsumaQuote
+  routing: 'SATSUMA'
   permitData: null
 }
 
@@ -1334,7 +1381,9 @@ export const saveBridgeSwap = async (params: CreateBridgeSwapRequest): Promise<C
   })
 }
 
-export const fetchBridgeSwaps = async (params: { statuses?: LdsSwapStatus[] }): Promise<GetBridgeSwapsByUserResponse> => {
+export const fetchBridgeSwaps = async (params: {
+  statuses?: LdsSwapStatus[]
+}): Promise<GetBridgeSwapsByUserResponse> => {
   const statusFilter = params.statuses?.length
     ? params.statuses.map((s) => `status=${encodeURIComponent(s)}`).join('&')
     : ''

@@ -1,3 +1,4 @@
+import { WebFeatureFlags } from 'constants/featureFlags'
 import { getExploreDescription, getExploreTitle } from 'pages/getExploreTitle'
 import { getAddLiquidityPageTitle, getPositionPageDescription, getPositionPageTitle } from 'pages/getPositionPageTitle'
 import { ReactNode, Suspense, lazy, useMemo } from 'react'
@@ -199,6 +200,7 @@ export const routes: RouteDefinition[] = [
   createRouteDefinition({
     path: '/leaderboard',
     getTitle: () => i18n.t('leaderboard.title'),
+    enabled: () => WebFeatureFlags.JUICE_POINTS_PROGRAM,
     getElement: () => (
       <Suspense fallback={null}>
         <Leaderboard />
