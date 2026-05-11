@@ -21,6 +21,11 @@ import { Button, Flex, Text, styled } from 'ui/src'
 import { LiquidityProvisionCoins } from 'ui/src/components/icons/LiquidityProvisionCoins'
 import { SwapCoin } from 'ui/src/components/icons/SwapCoin'
 
+// External JuiceDollar dashboard surfaces (separate app, opens in new tab).
+const JUSD_SAVINGS_URL = 'https://bapp.juicedollar.com/savings'
+const JUSD_EQUITY_URL = 'https://bapp.juicedollar.com/equity'
+const JUSD_MINT_URL = 'https://bapp.juicedollar.com/mint'
+
 const HeroCard = styled(Flex, {
   position: 'relative',
   alignItems: 'center',
@@ -450,10 +455,7 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
               }
               state="active"
               ctaLabel="Open Savings"
-              onAction={() => {
-                accountDrawer.close()
-                navigate('/jusd')
-              }}
+              onAction={() => window.open(JUSD_SAVINGS_URL, '_blank', 'noopener,noreferrer')}
             />
             <BonusRow
               icon={<Text fontSize={20}>🪙</Text>}
@@ -467,10 +469,7 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
               }
               state="active"
               ctaLabel="View JUICE"
-              onAction={() => {
-                accountDrawer.close()
-                navigate('/juice')
-              }}
+              onAction={() => window.open(JUSD_EQUITY_URL, '_blank', 'noopener,noreferrer')}
             />
             <BonusRow
               icon={<Text fontSize={20}>💰</Text>}
@@ -484,10 +483,7 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
               }
               state="active"
               ctaLabel="Open Minting Hub"
-              onAction={() => {
-                accountDrawer.close()
-                navigate('/jusd')
-              }}
+              onAction={() => window.open(JUSD_MINT_URL, '_blank', 'noopener,noreferrer')}
             />
           </HowToList>
         </Flex>
