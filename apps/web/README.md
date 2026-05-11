@@ -48,3 +48,48 @@ The JuiceSwap Interface supports swapping, adding liquidity, removing liquidity 
 
 The JuiceSwap V1 interface for mainnet and testnets is accessible via IPFS gateways
 linked from the [v1.0.0 release](https://github.com/Uniswap/uniswap-interface/releases/tag/v1.0.0).
+
+## Feature flags
+
+Web-specific feature flags are defined in [`src/constants/featureFlags.ts`](src/constants/featureFlags.ts)
+and exported as `WebFeatureFlags` (distinct from the Statsig-backed `FeatureFlags` enum in
+`packages/uniswap/src/features/gating/flags.ts`).
+
+### How they are wired
+
+Each flag reads its value from a `REACT_APP_*` environment variable. Vite inlines those
+variables into the JS bundle **at build time** — they are not read at runtime. That means
+a `docker-compose` `environment:` entry on the dapp container has **no effect** on the
+bundle; the value must be set before `yarn web build:*` runs.
+
+The repo follows the standard Vite pattern of mode-specific env files:
+
+- `apps/web/.env.development` — loaded by `yarn web build:development` (DEV image)
+- `apps/web/.env.production` — loaded by `yarn web build:production` (PRD image)
+- `apps/web/.env.example` — committed reference for what env vars exist
+
+To activate a flag for DEV only, add it to `.env.development` and merge to `develop`;
+the next build bakes it into the `:beta` image. To activate for PRD, add it to
+`.env.production` and ship a release. Local development (`yarn web dev`) also reads
+`.env.development`.
+
+### Adding a new flag
+
+1. Add an entry to `WebFeatureFlags` in `src/constants/featureFlags.ts` with a clear
+   default (`!== 'false'` for opt-out, `=== 'true'` for opt-in)
+2. Gate the affected UI / route at every consumer site (component conditional render,
+   route `enabled:` hook, etc.)
+3. Document the env var in `.env.example`
+4. If the flag also surfaces in public discovery files (`sitemap.xml`, `llms.txt`,
+   `.well-known/ai-plugin.json`, `index.html` meta tags), gate or darken those too —
+   otherwise crawlers advertise a feature that is off
+
+### Current flags
+
+| Flag | Default | Notes |
+|------|---------|-------|
+| `CITREA_BAPPS_CAMPAIGN` | ON | Opt-out via `=false` |
+| `FIRST_SQUEEZER_CAMPAIGN` | ON | Opt-out via `=false` |
+| `CEX_TRANSFER_ENABLED` | OFF | Opt-in via `=true` |
+| `CROSS_CHAIN_SWAPS` | ON | Opt-out via `=false`, URL override `?cross-chain-swaps=false` |
+| `JUICE_POINTS_PROGRAM` | OFF | Opt-in via `=true` — DEV-only, PRD re-enablement tracked in issue #748 |
