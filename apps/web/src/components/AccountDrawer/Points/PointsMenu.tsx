@@ -139,6 +139,45 @@ const MethodIconWrap = styled(Flex, {
   background: 'linear-gradient(135deg, rgba(247,145,26,0.25) 0%, rgba(247,145,26,0.08) 100%)',
 })
 
+/**
+ * Card layout for one-time + daily-earning bonuses. Column-oriented so the
+ * title can wrap freely and the action button always sits flush at the
+ * bottom edge (avoids the squashed look when the inline layout runs out of
+ * horizontal room in the narrow drawer).
+ */
+const BonusCard = styled(Flex, {
+  gap: '$spacing12',
+  borderRadius: '$rounded16',
+  backgroundColor: '$surface2',
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: '$surface3',
+  px: '$padding20',
+  py: '$padding16',
+})
+
+const BonusActionButton = styled(Button, {
+  width: '100%',
+  backgroundColor: POINTS_BRAND_COLOR,
+  borderRadius: '$rounded12',
+  paddingVertical: '$spacing10',
+  hoverStyle: { backgroundColor: '#FFA64D' },
+})
+
+const EarnedPill = styled(Flex, {
+  row: true,
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '$spacing6',
+  borderRadius: '$rounded12',
+  paddingVertical: '$spacing10',
+  paddingHorizontal: '$spacing12',
+  backgroundColor: 'rgba(76, 175, 80, 0.12)',
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: 'rgba(76, 175, 80, 0.40)',
+})
+
 const WarningBanner = styled(Flex, {
   row: true,
   gap: '$spacing8',
@@ -210,57 +249,55 @@ interface BonusRowProps {
   icon: React.ReactNode
   title: React.ReactNode
   hint: React.ReactNode
-  /** Potential reward in JP. Displayed as "+N JP". */
-  reward: number
-  /** True once the indexer has confirmed the wallet earned this bonus. */
-  earned: boolean
-  /** JP already credited (= reward if earned, else 0). Surfaced for clarity. */
-  earnedPoints: number
-  ctaLabel: string
-  onAction: () => void
+  /** Reward as a free-form short label (e.g. "+500 JP" or "1 JP / JUSD / day"). */
+  rewardLabel: string
+  /** State of the bonus — "active" shows the action CTA, "earned" shows a green pill. */
+  state: 'active' | 'earned'
+  /** Optional secondary right-aligned line (e.g. accrued total when in daily mode). */
+  rewardSubLabel?: string
+  ctaLabel?: string
+  onAction?: () => void
 }
 
-function BonusRow({ icon, title, hint, reward, earned, earnedPoints, ctaLabel, onAction }: BonusRowProps) {
+function BonusRow({ icon, title, hint, rewardLabel, rewardSubLabel, state, ctaLabel, onAction }: BonusRowProps) {
   return (
-    <MethodRow>
-      <MethodIconWrap>{icon}</MethodIconWrap>
-      <Flex flex={1} gap="$spacing2" minWidth={0}>
-        <Text variant="body3" color="$neutral1">
-          {title}
-        </Text>
-        <Text variant="body4" color="$neutral2">
-          {hint}
-        </Text>
-      </Flex>
-      <Flex alignItems="flex-end" gap="$spacing4">
-        <Text variant="body2" color={POINTS_BRAND_COLOR}>
-          {earned
-            ? `+${earnedPoints.toLocaleString()} ${POINTS_TICKER}`
-            : `+${reward.toLocaleString()} ${POINTS_TICKER}`}
-        </Text>
-        {earned ? (
-          <Flex row alignItems="center" gap="$spacing4">
-            <Check size={14} color="#4CAF50" />
-            <Text variant="body4" color="$statusSuccess">
-              Earned
+    <BonusCard>
+      <Flex row gap="$spacing12" alignItems="flex-start">
+        <MethodIconWrap>{icon}</MethodIconWrap>
+        <Flex flex={1} gap="$spacing2" minWidth={0}>
+          <Text variant="body2" color="$neutral1" fontWeight="600">
+            {title}
+          </Text>
+          <Text variant="body4" color="$neutral2">
+            {hint}
+          </Text>
+        </Flex>
+        <Flex alignItems="flex-end" gap="$spacing2" flexShrink={0}>
+          <Text variant="body2" color={POINTS_BRAND_COLOR} fontWeight="600">
+            {rewardLabel}
+          </Text>
+          {rewardSubLabel && (
+            <Text variant="body4" color="$neutral3">
+              {rewardSubLabel}
             </Text>
-          </Flex>
-        ) : (
-          <Button
-            size="small"
-            backgroundColor={POINTS_BRAND_COLOR}
-            borderRadius="$rounded8"
-            paddingHorizontal="$spacing12"
-            paddingVertical="$spacing6"
-            onPress={onAction}
-          >
-            <Text variant="buttonLabel4" color="$white">
-              {ctaLabel}
-            </Text>
-          </Button>
-        )}
+          )}
+        </Flex>
       </Flex>
-    </MethodRow>
+      {state === 'earned' ? (
+        <EarnedPill>
+          <Check size={14} color="#4CAF50" />
+          <Text variant="buttonLabel4" color="$statusSuccess">
+            Earned
+          </Text>
+        </EarnedPill>
+      ) : ctaLabel && onAction ? (
+        <BonusActionButton onPress={onAction}>
+          <Text variant="buttonLabel3" color="$white">
+            {ctaLabel}
+          </Text>
+        </BonusActionButton>
+      ) : null}
+    </BonusCard>
   )
 }
 
@@ -279,9 +316,16 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
   const showBelowMinWarning = !!data && !meetsMinimum && data.liquidity.currentUsdValue > 0
 
   const memeTokenCreated = data?.bonuses?.memeTokenCreated ?? false
-  const memeTokenPoints = data?.bonuses?.memeTokenPoints ?? 0
   const memeTokenGraduated = data?.bonuses?.memeTokenGraduated ?? false
-  const memeTokenGraduatedPoints = data?.bonuses?.memeTokenGraduatedPoints ?? 0
+
+  // Daily-earning balances (filled by indexer; defaults keep the UI honest
+  // when the wallet has nothing yet or the backend hasn't responded).
+  const jusdSaved = data?.bonuses?.savings?.jusdSaved ?? 0
+  const jusdSavedPoints = data?.bonuses?.savings?.points ?? 0
+  const juiceHeld = data?.bonuses?.juiceHold?.juiceHeld ?? 0
+  const juiceHeldPoints = data?.bonuses?.juiceHold?.points ?? 0
+  const usdLent = data?.bonuses?.lending?.usdLent ?? 0
+  const lendingPoints = data?.bonuses?.lending?.points ?? 0
 
   const goLeaderboard = () => {
     accountDrawer.close()
@@ -365,29 +409,84 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
         </Flex>
 
         <Flex gap="$spacing8">
-          <SectionTitle>Meme launchpad bonuses</SectionTitle>
+          <SectionTitle>One-time bonuses</SectionTitle>
           <HowToList>
             <BonusRow
               icon={<Text fontSize={20}>🍊</Text>}
               title="Launch a meme token"
               hint="One-time bonus on first launch (Citrea Mainnet)."
-              reward={500}
-              earned={memeTokenCreated}
-              earnedPoints={memeTokenPoints}
-              ctaLabel="Create"
+              rewardLabel={`+500 ${POINTS_TICKER}`}
+              state={memeTokenCreated ? 'earned' : 'active'}
+              ctaLabel="Create token"
               onAction={goLaunchpadCreate}
             />
             <BonusRow
               icon={<Text fontSize={20}>🚀</Text>}
               title="Graduate via bonding curve"
               hint="Token's bonding curve fills and graduates to a V2 pair."
-              reward={10_000}
-              earned={memeTokenGraduated}
-              earnedPoints={memeTokenGraduatedPoints}
+              rewardLabel={`+10,000 ${POINTS_TICKER}`}
+              state={memeTokenGraduated ? 'earned' : 'active'}
               ctaLabel="Open launchpad"
               onAction={() => {
                 accountDrawer.close()
                 navigate('/launchpad')
+              }}
+            />
+          </HowToList>
+        </Flex>
+
+        <Flex gap="$spacing8">
+          <SectionTitle>Daily rewards</SectionTitle>
+          <HowToList>
+            <BonusRow
+              icon={<Text fontSize={20}>🏦</Text>}
+              title="Save JUSD"
+              hint="Deposit JUSD into the Savings Vault — earn while protocol borrowers pay interest."
+              rewardLabel={`1 ${POINTS_TICKER} / JUSD / day`}
+              rewardSubLabel={
+                jusdSaved > 0
+                  ? `${jusdSaved.toLocaleString()} JUSD · +${jusdSavedPoints.toLocaleString()} ${POINTS_TICKER} today`
+                  : undefined
+              }
+              state="active"
+              ctaLabel="Open Savings"
+              onAction={() => {
+                accountDrawer.close()
+                navigate('/jusd')
+              }}
+            />
+            <BonusRow
+              icon={<Text fontSize={20}>🪙</Text>}
+              title="Hold JUICE"
+              hint="Every 10 JUICE you hold earns 1 JP every 24h."
+              rewardLabel={`1 ${POINTS_TICKER} / 10 JUICE / day`}
+              rewardSubLabel={
+                juiceHeld > 0
+                  ? `${juiceHeld.toLocaleString()} JUICE · +${juiceHeldPoints.toLocaleString()} ${POINTS_TICKER} today`
+                  : undefined
+              }
+              state="active"
+              ctaLabel="View JUICE"
+              onAction={() => {
+                accountDrawer.close()
+                navigate('/juice')
+              }}
+            />
+            <BonusRow
+              icon={<Text fontSize={20}>💰</Text>}
+              title="Lend with a JUSD position"
+              hint="Mint JUSD against collateral via the Minting Hub. $1 borrowed = 5 JP / 24h."
+              rewardLabel={`5 ${POINTS_TICKER} / $1 / day`}
+              rewardSubLabel={
+                usdLent > 0
+                  ? `$${usdLent.toLocaleString()} active · +${lendingPoints.toLocaleString()} ${POINTS_TICKER} today`
+                  : undefined
+              }
+              state="active"
+              ctaLabel="Open Minting Hub"
+              onAction={() => {
+                accountDrawer.close()
+                navigate('/jusd')
               }}
             />
           </HowToList>

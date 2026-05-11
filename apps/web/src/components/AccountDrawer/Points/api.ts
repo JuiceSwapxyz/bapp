@@ -51,6 +51,9 @@ interface PointsApiResponse {
     memeTokenPoints: number
     memeTokenGraduated: boolean
     memeTokenGraduatedPoints: number
+    savings?: { jusdSaved: number; points: number }
+    juiceHold?: { juiceHeld: number; points: number }
+    lending?: { usdLent: number; points: number }
     points: number
   }
 }
