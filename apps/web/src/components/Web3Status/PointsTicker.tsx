@@ -1,7 +1,8 @@
-import { POINTS_BRAND_COLOR, POINTS_TICKER } from 'components/AccountDrawer/Points/constants'
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { POINTS_BRAND_COLOR, POINTS_TICKER } from 'components/AccountDrawer/Points/constants'
 import { usePoints } from 'components/AccountDrawer/Points/usePoints'
 import { MenuState, miniPortfolioMenuStateAtom } from 'components/AccountDrawer/constants'
+import { WebFeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import { useUpdateAtom } from 'jotai/utils'
 import { Flex, Text, styled } from 'ui/src'
@@ -24,7 +25,7 @@ export function PointsTicker() {
   const { data } = usePoints(account.address)
 
   const total = data?.total ?? 0
-  if (!account.address || total <= 0) {
+  if (!WebFeatureFlags.JUICE_POINTS_PROGRAM || !account.address || total <= 0) {
     return null
   }
 

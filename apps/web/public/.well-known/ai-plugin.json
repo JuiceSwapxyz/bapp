@@ -2,8 +2,8 @@
   "schema_version": "v1",
   "name_for_human": "JuiceSwap",
   "name_for_model": "juiceswap",
-  "description_for_human": "Swap, provide liquidity, and earn points on JuiceSwap — the DEX on Citrea (Bitcoin ZK rollup).",
-  "description_for_model": "JuiceSwap is a Uniswap V2/V3 fork on Citrea (Bitcoin ZK rollup, chainIds 4114 mainnet, 5115 testnet). Use the public REST API at https://ponder.juiceswap.com to read on-chain state: token catalogue, V3 positions per wallet, swap activity per wallet, V2 pool statistics, and Juice Points leaderboard. All endpoints are read-only and require no authentication. The web interface is at https://bapp.juiceswap.com.",
+  "description_for_human": "Swap and provide liquidity on JuiceSwap — the DEX on Citrea (Bitcoin ZK rollup).",
+  "description_for_model": "JuiceSwap is a Uniswap V2/V3 fork on Citrea (Bitcoin ZK rollup, chainIds 4114 mainnet, 5115 testnet). Use the public REST API at https://ponder.juiceswap.com to read on-chain state: token catalogue, V3 positions per wallet, swap activity per wallet, and V2 pool statistics. All endpoints are read-only and require no authentication. The web interface is at https://bapp.juiceswap.com.",
   "auth": {
     "type": "none"
   },

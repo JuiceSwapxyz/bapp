@@ -1,5 +1,7 @@
-// Feature flags for enabling/disabling features
-export const FeatureFlags = {
+// Web-specific feature flags for enabling/disabling features.
+// Named WebFeatureFlags to avoid collision with the Statsig-backed
+// `FeatureFlags` enum exported from uniswap/src/features/gating/flags.
+export const WebFeatureFlags = {
   // Enable/disable Citrea bApps Campaign integration
   // Set REACT_APP_CITREA_BAPPS_CAMPAIGN=false in .env to disable
   CITREA_BAPPS_CAMPAIGN: process.env.REACT_APP_CITREA_BAPPS_CAMPAIGN !== 'false', // Default to true unless explicitly disabled
@@ -16,4 +18,9 @@ export const FeatureFlags = {
   // Set REACT_APP_CROSS_CHAIN_SWAPS=false in .env to disable
   // Or use ?cross-chain-swaps=false in URL to disable temporarily
   CROSS_CHAIN_SWAPS: process.env.REACT_APP_CROSS_CHAIN_SWAPS !== 'false', // Default to true unless explicitly disabled
+
+  // Enable/disable Juice Points program (Points UI, Leaderboard route, NFT PFP)
+  // Set REACT_APP_JUICE_POINTS_PROGRAM=true in .env to enable
+  // Re-enablement checklist (incl. public discovery surfaces): see issue #748
+  JUICE_POINTS_PROGRAM: process.env.REACT_APP_JUICE_POINTS_PROGRAM === 'true', // Default to false unless explicitly enabled
 } as const

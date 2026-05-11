@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { FeatureFlags } from 'constants/featureFlags'
+import { WebFeatureFlags } from 'constants/featureFlags'
 import { useEffect, useState } from 'react'
 import { CROSS_CHAIN_SWAPS_STORAGE_KEY } from 'uniswap/src/utils/featureFlags'
 
@@ -85,5 +85,5 @@ export function useCrossChainSwapsEnabled(): boolean {
   const isUrlDisabled = useUrlCrossChainSwapsDisabled()
 
   // URL override to disable takes priority, otherwise check env variable
-  return !isUrlDisabled && FeatureFlags.CROSS_CHAIN_SWAPS
+  return !isUrlDisabled && WebFeatureFlags.CROSS_CHAIN_SWAPS
 }
