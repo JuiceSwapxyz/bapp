@@ -53,7 +53,7 @@ export const ASSET_CHAIN_ID_MAP: Record<string, UniverseChainId> = {
 }
 
 export const minimumBalanceForSponsoredClaim: Partial<Record<UniverseChainId, number>> = {
-  [UniverseChainId.CitreaMainnet]: 0.0000001,
+  [UniverseChainId.CitreaMainnet]: 0.0001,
   [UniverseChainId.CitreaTestnet]: 0.0000001,
   [UniverseChainId.Mainnet]: 0.0001,
   [UniverseChainId.Polygon]: 0.0001,
