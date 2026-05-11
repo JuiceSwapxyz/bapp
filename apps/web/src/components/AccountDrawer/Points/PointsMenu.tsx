@@ -1,4 +1,4 @@
-import { SlideOutMenu } from 'components/AccountDrawer/SlideOutMenu'
+import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import {
   MIN_LIQUIDITY_USD,
   POINTS_BRAND_COLOR,
@@ -6,7 +6,6 @@ import {
   POINTS_PER_SWAP,
   POINTS_TICKER,
 } from 'components/AccountDrawer/Points/constants'
-import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
 import {
   LIQUID_BUBBLE_CLASS,
   LiquidBg,
@@ -14,10 +13,11 @@ import {
   bubbleTextStyle,
 } from 'components/AccountDrawer/Points/styles'
 import { usePoints } from 'components/AccountDrawer/Points/usePoints'
-import { ArrowUpRight, Award } from 'react-feather'
+import { SlideOutMenu } from 'components/AccountDrawer/SlideOutMenu'
+import { ArrowUpRight, Award, Check } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { Flex, Text, styled } from 'ui/src'
+import { Button, Flex, Text, styled } from 'ui/src'
 import { LiquidityProvisionCoins } from 'ui/src/components/icons/LiquidityProvisionCoins'
 import { SwapCoin } from 'ui/src/components/icons/SwapCoin'
 
@@ -206,6 +206,64 @@ function Method({ icon, title, reward, hint }: MethodProps) {
   )
 }
 
+interface BonusRowProps {
+  icon: React.ReactNode
+  title: React.ReactNode
+  hint: React.ReactNode
+  /** Potential reward in JP. Displayed as "+N JP". */
+  reward: number
+  /** True once the indexer has confirmed the wallet earned this bonus. */
+  earned: boolean
+  /** JP already credited (= reward if earned, else 0). Surfaced for clarity. */
+  earnedPoints: number
+  ctaLabel: string
+  onAction: () => void
+}
+
+function BonusRow({ icon, title, hint, reward, earned, earnedPoints, ctaLabel, onAction }: BonusRowProps) {
+  return (
+    <MethodRow>
+      <MethodIconWrap>{icon}</MethodIconWrap>
+      <Flex flex={1} gap="$spacing2" minWidth={0}>
+        <Text variant="body3" color="$neutral1">
+          {title}
+        </Text>
+        <Text variant="body4" color="$neutral2">
+          {hint}
+        </Text>
+      </Flex>
+      <Flex alignItems="flex-end" gap="$spacing4">
+        <Text variant="body2" color={POINTS_BRAND_COLOR}>
+          {earned
+            ? `+${earnedPoints.toLocaleString()} ${POINTS_TICKER}`
+            : `+${reward.toLocaleString()} ${POINTS_TICKER}`}
+        </Text>
+        {earned ? (
+          <Flex row alignItems="center" gap="$spacing4">
+            <Check size={14} color="#4CAF50" />
+            <Text variant="body4" color="$statusSuccess">
+              Earned
+            </Text>
+          </Flex>
+        ) : (
+          <Button
+            size="small"
+            backgroundColor={POINTS_BRAND_COLOR}
+            borderRadius="$rounded8"
+            paddingHorizontal="$spacing12"
+            paddingVertical="$spacing6"
+            onPress={onAction}
+          >
+            <Text variant="buttonLabel4" color="$white">
+              {ctaLabel}
+            </Text>
+          </Button>
+        )}
+      </Flex>
+    </MethodRow>
+  )
+}
+
 export function PointsMenu({ account, onClose }: { account: string; onClose: () => void }) {
   const { t } = useTranslation()
   const accountDrawer = useAccountDrawer()
@@ -220,9 +278,19 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
   const meetsMinimum = data?.liquidity.meetsMinimum ?? false
   const showBelowMinWarning = !!data && !meetsMinimum && data.liquidity.currentUsdValue > 0
 
+  const memeTokenCreated = data?.bonuses?.memeTokenCreated ?? false
+  const memeTokenPoints = data?.bonuses?.memeTokenPoints ?? 0
+  const memeTokenGraduated = data?.bonuses?.memeTokenGraduated ?? false
+  const memeTokenGraduatedPoints = data?.bonuses?.memeTokenGraduatedPoints ?? 0
+
   const goLeaderboard = () => {
     accountDrawer.close()
     navigate('/leaderboard')
+  }
+
+  const goLaunchpadCreate = () => {
+    accountDrawer.close()
+    navigate('/launchpad/create')
   }
 
   return (
@@ -247,11 +315,7 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
                 —
               </span>
             ) : (
-              <span
-                className={LIQUID_BUBBLE_CLASS}
-                style={HERO_BUBBLE_STYLE}
-                data-testid="points-menu-total"
-              >
+              <span className={LIQUID_BUBBLE_CLASS} style={HERO_BUBBLE_STYLE} data-testid="points-menu-total">
                 {`${total.toLocaleString()} ${POINTS_TICKER}`}
               </span>
             )}
@@ -298,6 +362,35 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
               </Text>
             </WarningBanner>
           )}
+        </Flex>
+
+        <Flex gap="$spacing8">
+          <SectionTitle>Meme launchpad bonuses</SectionTitle>
+          <HowToList>
+            <BonusRow
+              icon={<Text fontSize={20}>🍊</Text>}
+              title="Launch a meme token"
+              hint="One-time bonus on first launch (Citrea Mainnet)."
+              reward={500}
+              earned={memeTokenCreated}
+              earnedPoints={memeTokenPoints}
+              ctaLabel="Create"
+              onAction={goLaunchpadCreate}
+            />
+            <BonusRow
+              icon={<Text fontSize={20}>🚀</Text>}
+              title="Graduate via bonding curve"
+              hint="Token's bonding curve fills and graduates to a V2 pair."
+              reward={10_000}
+              earned={memeTokenGraduated}
+              earnedPoints={memeTokenGraduatedPoints}
+              ctaLabel="Open launchpad"
+              onAction={() => {
+                accountDrawer.close()
+                navigate('/launchpad')
+              }}
+            />
+          </HowToList>
         </Flex>
 
         <Flex gap="$spacing8">

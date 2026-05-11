@@ -1,8 +1,4 @@
-import {
-  MIN_LIQUIDITY_USD,
-  POINTS_PER_LIQUIDITY_DAY,
-  POINTS_PER_SWAP,
-} from 'components/AccountDrawer/Points/constants'
+import { MIN_LIQUIDITY_USD, POINTS_PER_LIQUIDITY_DAY, POINTS_PER_SWAP } from 'components/AccountDrawer/Points/constants'
 import { PointsBreakdown } from 'components/AccountDrawer/Points/types'
 import {
   LEADERBOARD_MAX_ENTRIES,
@@ -49,6 +45,13 @@ interface PointsApiResponse {
     points: number
     currentUsdValue: number
     meetsMinimum: boolean
+  }
+  bonuses?: {
+    memeTokenCreated: boolean
+    memeTokenPoints: number
+    memeTokenGraduated: boolean
+    memeTokenGraduatedPoints: number
+    points: number
   }
 }
 
@@ -103,6 +106,13 @@ function mockPoints(address: string): PointsBreakdown {
       currentUsdValue,
       meetsMinimum: currentUsdValue >= MIN_LIQUIDITY_USD,
     },
+    bonuses: {
+      memeTokenCreated: false,
+      memeTokenPoints: 0,
+      memeTokenGraduated: false,
+      memeTokenGraduatedPoints: 0,
+      points: 0,
+    },
   }
 }
 
@@ -137,9 +147,7 @@ function mockLeaderboard(): LeaderboardData {
 }
 
 export async function fetchPointsForAddress(address: string): Promise<PointsBreakdown> {
-  const apiResponse = await safeFetch<PointsApiResponse>(
-    `${POINTS_API_BASE}/points/${address.toLowerCase()}`,
-  )
+  const apiResponse = await safeFetch<PointsApiResponse>(`${POINTS_API_BASE}/points/${address.toLowerCase()}`)
   if (apiResponse) {
     return apiResponse
   }
@@ -147,9 +155,7 @@ export async function fetchPointsForAddress(address: string): Promise<PointsBrea
 }
 
 export async function fetchLeaderboard(): Promise<LeaderboardData> {
-  const apiResponse = await safeFetch<LeaderboardApiResponse>(
-    `${POINTS_API_BASE}/points/leaderboard`,
-  )
+  const apiResponse = await safeFetch<LeaderboardApiResponse>(`${POINTS_API_BASE}/points/leaderboard`)
   if (apiResponse) {
     return {
       entries: apiResponse.entries,
