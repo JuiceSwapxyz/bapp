@@ -21,5 +21,6 @@ export const WebFeatureFlags = {
 
   // Enable/disable Juice Points program (Points UI, Leaderboard route, NFT PFP)
   // Set REACT_APP_JUICE_POINTS_PROGRAM=true in .env to enable
+  // Re-enablement checklist (incl. public discovery surfaces): see issue #748
   JUICE_POINTS_PROGRAM: process.env.REACT_APP_JUICE_POINTS_PROGRAM === 'true', // Default to false unless explicitly enabled
 } as const
