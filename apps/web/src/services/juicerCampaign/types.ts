@@ -18,7 +18,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
  *   - JuiceSwapxyz/api        (campaign backend exposes memeTokenCreated)
  * This Juicer flow cannot ship before both of those land.
  */
-export const JUICER_JP_COST = 10_000
+export const JUICER_JP_COST = 5_000
 
 export enum ConditionType {
   JP_BALANCE = 'jp_balance',

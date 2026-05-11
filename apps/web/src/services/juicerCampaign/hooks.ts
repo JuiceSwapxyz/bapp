@@ -157,7 +157,7 @@ export function isJuicePointsProgramEnabled(): boolean {
 export function useIsJuicerCampaignVisible(): boolean {
   const { defaultChainId } = useEnabledChains()
   const isCampaignTimeActive = useIsJuicerTimeActive()
-  // The Juicer NFT depends on the JP program (10,000 JP cost + 500 JP
+  // The Juicer NFT depends on the JP program (5,000 JP cost + 500 JP
   // meme-token bonus). If the JP program is dark in this environment the
   // Juicer flow stays hidden too.
   return isJuicePointsProgramEnabled() && isCampaignTimeActive && defaultChainId === UniverseChainId.CitreaMainnet
