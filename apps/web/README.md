@@ -86,10 +86,16 @@ the next build bakes it into the `:beta` image. To activate for PRD, add it to
 
 ### Current flags
 
-| Flag | Default | Notes |
-|------|---------|-------|
-| `CITREA_BAPPS_CAMPAIGN` | ON | Opt-out via `=false` |
-| `FIRST_SQUEEZER_CAMPAIGN` | ON | Opt-out via `=false` |
-| `CEX_TRANSFER_ENABLED` | OFF | Opt-in via `=true` |
-| `CROSS_CHAIN_SWAPS` | ON | Opt-out via `=false`, URL override `?cross-chain-swaps=false` |
-| `JUICE_POINTS_PROGRAM` | OFF | Opt-in via `=true` — DEV-only, PRD re-enablement tracked in issue #748 |
+Effective state per build mode. Source: code default in `src/constants/featureFlags.ts`
+overridden by the matching `.env.{mode}` file when set.
+
+| Flag | DEV (`.env.development`) | PRD (`.env.production`) | Control |
+|------|---|---|---------|
+| `CITREA_BAPPS_CAMPAIGN` | **ON** | **ON** | Default ON; opt-out via `=false` |
+| `FIRST_SQUEEZER_CAMPAIGN` | **ON** | **ON** | Default ON; opt-out via `=false` |
+| `CEX_TRANSFER_ENABLED` | **OFF** | **OFF** | Default OFF; opt-in via `=true` |
+| `CROSS_CHAIN_SWAPS` | **ON** | **ON** | Default ON; opt-out via `=false`, URL override `?cross-chain-swaps=false` |
+| `JUICE_POINTS_PROGRAM` | **ON** (set in `.env.development`) | **OFF** | Default OFF; PRD re-enablement tracked in issue #748 |
+
+When you flip a flag in either env file, **update this table in the same PR** so the
+documented state stays in sync with the shipped state.
