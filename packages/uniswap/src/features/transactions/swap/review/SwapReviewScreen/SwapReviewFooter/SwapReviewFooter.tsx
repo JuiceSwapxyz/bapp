@@ -10,6 +10,10 @@ import { UnichainPoweredMessage } from 'uniswap/src/features/transactions/Transa
 import { getShouldDisplayTokenWarningCard } from 'uniswap/src/features/transactions/TransactionDetails/utils/getShouldDisplayTokenWarningCard'
 import { TransactionModalFooterContainer } from 'uniswap/src/features/transactions/components/TransactionModal/TransactionModal'
 import { SubmitSwapButton } from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/SubmitSwapButton'
+import {
+  getSubmitButtonDisableReason,
+  type SubmitButtonDisableReason,
+} from 'uniswap/src/features/transactions/swap/review/SwapReviewScreen/SwapReviewFooter/getSubmitButtonDisableReason'
 import { useBtcBridgeDetails } from 'uniswap/src/features/transactions/swap/review/hooks/useBtcBridgeDetails'
 import { useLnBrideSwapDetails } from 'uniswap/src/features/transactions/swap/review/hooks/useLnBrideSwapDetails'
 import { useSwapOnPrevious } from 'uniswap/src/features/transactions/swap/review/hooks/useSwapOnPrevious'
@@ -24,7 +28,7 @@ import { isWeb } from 'utilities/src/platform'
 export const SwapReviewFooter = memo(function SwapReviewFooter(): JSX.Element | null {
   const showInterfaceReviewSteps = useShowInterfaceReviewSteps()
   const { onPrev } = useSwapOnPrevious()
-  const { disabled, showPendingUI, warning, onSubmit } = useSwapSubmitButton()
+  const { disabled, disableReason, showPendingUI, warning, onSubmit } = useSwapSubmitButton()
   const isShortMobileDevice = useIsShortMobileDevice()
   const { chainId } = useSwapReviewTransactionStore((s) => ({ chainId: s.chainId }))
 
@@ -46,7 +50,13 @@ export const SwapReviewFooter = memo(function SwapReviewFooter(): JSX.Element | 
             onPress={onPrev}
           />
         )}
-        <SubmitSwapButton disabled={disabled} showPendingUI={showPendingUI} warning={warning} onSubmit={onSubmit} />
+        <SubmitSwapButton
+          disabled={disabled}
+          disableReason={disableReason}
+          showPendingUI={showPendingUI}
+          warning={warning}
+          onSubmit={onSubmit}
+        />
       </Flex>
     </TransactionModalFooterContainer>
   )
@@ -54,6 +64,7 @@ export const SwapReviewFooter = memo(function SwapReviewFooter(): JSX.Element | 
 
 function useSwapSubmitButton(): {
   disabled: boolean
+  disableReason: SubmitButtonDisableReason | null
   showPendingUI: boolean
   warning: Warning | undefined
   onSubmit: () => Promise<void>
@@ -103,37 +114,39 @@ function useSwapSubmitButton(): {
     feeOnTransferProps,
   })
 
-  const submitButtonDisabled = useMemo(() => {
-    const validSwap = isValidSwapTxContext(swapTxContext)
-    const isTokenWarningBlocking = shouldDisplayTokenWarningCard && !tokenWarningChecked
-    const isLightningAddressInvalid = shouldValidateLightningAddress && !validatedLightningAddress
-    const isBitcoinAddressInvalid = shouldValidateBitcoinAddress && !validatedBitcoinAddress
-
-    return (
-      (!validSwap && !isWrap) ||
-      !!blockingWarning ||
-      newTradeRequiresAcceptance ||
-      isSubmitting ||
-      isTokenWarningBlocking ||
-      isLightningAddressInvalid ||
-      isBitcoinAddressInvalid
-    )
-  }, [
-    swapTxContext,
-    isWrap,
-    blockingWarning,
-    newTradeRequiresAcceptance,
-    isSubmitting,
-    tokenWarningChecked,
-    shouldDisplayTokenWarningCard,
-    shouldValidateLightningAddress,
-    shouldValidateBitcoinAddress,
-    validatedLightningAddress,
-    validatedBitcoinAddress,
-  ])
+  const submitButtonDisableReason = useMemo(
+    () =>
+      getSubmitButtonDisableReason({
+        isValidSwap: isValidSwapTxContext(swapTxContext),
+        isWrap,
+        blockingWarning,
+        newTradeRequiresAcceptance,
+        isSubmitting,
+        shouldDisplayTokenWarningCard,
+        tokenWarningChecked,
+        shouldValidateLightningAddress,
+        validatedLightningAddress,
+        shouldValidateBitcoinAddress,
+        validatedBitcoinAddress,
+      }),
+    [
+      swapTxContext,
+      isWrap,
+      blockingWarning,
+      newTradeRequiresAcceptance,
+      isSubmitting,
+      tokenWarningChecked,
+      shouldDisplayTokenWarningCard,
+      shouldValidateLightningAddress,
+      shouldValidateBitcoinAddress,
+      validatedLightningAddress,
+      validatedBitcoinAddress,
+    ],
+  )
 
   return {
-    disabled: submitButtonDisabled,
+    disabled: submitButtonDisableReason !== null,
+    disableReason: submitButtonDisableReason,
     showPendingUI,
     onSubmit: onSwapButtonClick,
     warning: reviewScreenWarning?.warning,
