@@ -6,6 +6,7 @@ import StatusIcon from 'components/Identicon/StatusIcon'
 import { WalletPointsLabel } from 'components/Web3Status/WalletPointsLabel'
 import { useAccountIdentifier } from 'components/Web3Status/useAccountIdentifier'
 import { useShowPendingAfterDelay } from 'components/Web3Status/useShowPendingAfterDelay'
+import { FeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import { atom, useAtom } from 'jotai'
 import styled from 'lib/styled-components'
@@ -161,7 +162,7 @@ function Web3StatusInner() {
                 icon={<StatusIcon size={24} showMiniIcons={false} />}
               >
                 <AddressAndChevronContainer>
-                  {account.address && <WalletPointsLabel address={account.address} />}
+                  {FeatureFlags.JUICE_POINTS_PROGRAM && <WalletPointsLabel address={account.address} />}
                   <Text variant="body2" marginRight={hasUnitag ? '$spacing8' : undefined}>
                     {accountIdentifier}
                   </Text>

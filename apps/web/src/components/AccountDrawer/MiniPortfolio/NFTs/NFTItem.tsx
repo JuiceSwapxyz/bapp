@@ -1,6 +1,7 @@
 import { SharedEventName } from '@uniswap/analytics-events'
 import { POINTS_BRAND_COLOR } from 'components/AccountDrawer/Points/constants'
 import { usePfp, useSetPfp } from 'components/Identicon/usePfp'
+import { FeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import { NftCard } from 'nft/components/card'
 import { VerifiedIcon } from 'nft/components/iconExports'
@@ -31,7 +32,12 @@ export function NFT({
     currentPfp.contract.toLowerCase() === asset.asset_contract.address?.toLowerCase() &&
     currentPfp.tokenId === asset.tokenId
 
-  const canSetPfp = !!account.address && !!asset.imageUrl && !!asset.asset_contract.address && !!asset.tokenId
+  const canSetPfp =
+    FeatureFlags.JUICE_POINTS_PROGRAM &&
+    !!account.address &&
+    !!asset.imageUrl &&
+    !!asset.asset_contract.address &&
+    !!asset.tokenId
 
   const onPress = () => {
     if (asset.asset_contract.address && asset.tokenId) {
@@ -103,20 +109,14 @@ export function NFT({
               background: isCurrentPfp
                 ? 'linear-gradient(135deg, #FFB35C 0%, #F7911A 55%, #B05E00 100%)'
                 : 'linear-gradient(135deg, rgba(20,12,4,0.72) 0%, rgba(10,6,4,0.62) 100%)',
-              border: isCurrentPfp
-                ? '1px solid rgba(255,214,153,0.65)'
-                : '1px solid rgba(255,255,255,0.14)',
+              border: isCurrentPfp ? '1px solid rgba(255,214,153,0.65)' : '1px solid rgba(255,255,255,0.14)',
               boxShadow: isCurrentPfp
                 ? '0 4px 14px rgba(247,145,26,0.45), inset 0 1px 0 rgba(255,255,255,0.35)'
                 : '0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)',
               transition: 'transform 120ms ease, box-shadow 120ms ease',
             }}
           >
-            {isCurrentPfp ? (
-              <Check size={13} color="$white" />
-            ) : (
-              <Sparkle size={13} color={POINTS_BRAND_COLOR} />
-            )}
+            {isCurrentPfp ? <Check size={13} color="$white" /> : <Sparkle size={13} color={POINTS_BRAND_COLOR} />}
             <Text variant="buttonLabel3" color="$white">
               {isCurrentPfp ? 'PFP' : 'Set PFP'}
             </Text>

@@ -1,6 +1,7 @@
 import sockImg from 'assets/svg/socks.svg'
 import Identicon from 'components/Identicon'
 import { usePfp } from 'components/Identicon/usePfp'
+import { FeatureFlags } from 'constants/featureFlags'
 import { useHasSocks } from 'hooks/useSocksBalance'
 import styled from 'lib/styled-components'
 import { flexColumnNoWrap } from 'theme/styles'
@@ -77,9 +78,10 @@ export default function StatusIcon({
   const effectiveAddress = address ?? account?.address
   const pfp = usePfp(effectiveAddress)
   const hasSocks = useHasSocks()
+  const showPfp = FeatureFlags.JUICE_POINTS_PROGRAM && pfp
   return (
     <IconWrapper size={size} data-testid="StatusIconRoot">
-      {pfp ? (
+      {showPfp ? (
         <PfpImg src={pfp.imageUrl} size={size} alt="" />
       ) : (
         <Identicon account={effectiveAddress} size={size} />

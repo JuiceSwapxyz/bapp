@@ -16,4 +16,8 @@ export const FeatureFlags = {
   // Set REACT_APP_CROSS_CHAIN_SWAPS=false in .env to disable
   // Or use ?cross-chain-swaps=false in URL to disable temporarily
   CROSS_CHAIN_SWAPS: process.env.REACT_APP_CROSS_CHAIN_SWAPS !== 'false', // Default to true unless explicitly disabled
+
+  // Enable/disable Juice Points program (Points UI, Leaderboard route, NFT PFP)
+  // Set REACT_APP_JUICE_POINTS_PROGRAM=true in .env to enable
+  JUICE_POINTS_PROGRAM: process.env.REACT_APP_JUICE_POINTS_PROGRAM === 'true', // Default to false unless explicitly enabled
 } as const
