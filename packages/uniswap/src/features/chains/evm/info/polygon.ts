@@ -1,6 +1,6 @@
 import { POLYGON_LOGO } from 'ui/src/assets'
+import { config } from 'uniswap/src/config'
 import { Chain as BackendChainId } from 'uniswap/src/data/graphql/uniswap-data-api/__generated__/types-and-hooks'
-import { getQuicknodeEndpointUrl } from 'uniswap/src/features/chains/evm/rpc'
 import { buildChainTokens } from 'uniswap/src/features/chains/evm/tokens'
 import {
   GqlChainId,
@@ -56,11 +56,10 @@ export const POLYGON_CHAIN_INFO = {
   networkLayer: NetworkLayer.L1,
   pendingTransactionsRetryOptions: undefined,
   rpcUrls: {
-    [RPCType.Public]: { http: [getQuicknodeEndpointUrl(UniverseChainId.Polygon)] },
-    [RPCType.PublicAlt]: { http: ['https://polygon-rpc.com/'] },
-    [RPCType.Default]: { http: ['https://polygon-rpc.com/'] },
-    // Use public RPC instead of Infura to avoid API key issues
-    [RPCType.Interface]: { http: ['https://polygon-rpc.com/'] },
+    [RPCType.Public]: { http: [`https://polygon-mainnet.g.alchemy.com/v2/${config.alchemyApiKey}`] },
+    [RPCType.PublicAlt]: { http: [`https://polygon-mainnet.g.alchemy.com/v2/${config.alchemyApiKey}`] },
+    [RPCType.Default]: { http: [`https://polygon-mainnet.g.alchemy.com/v2/${config.alchemyApiKey}`] },
+    [RPCType.Interface]: { http: [`https://polygon-mainnet.g.alchemy.com/v2/${config.alchemyApiKey}`] },
   },
   tokens,
   statusPage: undefined,
