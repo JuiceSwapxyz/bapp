@@ -44,7 +44,7 @@ jobs:
           build-args: |
             BUILD_MODE=development
             COMMIT_HASH=${{ github.sha }}
-            REACT_APP_ALCHEMY_API_KEY=${{ secrets.REACT_APP_ALCHEMY_API_KEY }}
+            REACT_APP_ALCHEMY_API_KEY=${{ secrets.REACT_APP_ALCHEMY_API_KEY_DEV }}
 
       - name: Install cloudflared
         run: |
