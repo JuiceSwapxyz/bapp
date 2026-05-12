@@ -6,7 +6,6 @@ import {
   DEFAULT_MS_BEFORE_WARNING,
   DEFAULT_NATIVE_ADDRESS_LEGACY,
   getPlaywrightRpcUrls,
-  getQuicknodeEndpointUrl,
 } from 'uniswap/src/features/chains/evm/rpc'
 import { buildChainTokens } from 'uniswap/src/features/chains/evm/tokens'
 import {
@@ -74,16 +73,16 @@ export const MAINNET_CHAIN_INFO = {
           http: ['https://rpc.mevblocker.io/?referrer=uniswapwallet'],
         },
         [RPCType.Public]: {
-          http: [getQuicknodeEndpointUrl(UniverseChainId.Mainnet)],
+          http: [`https://eth-mainnet.g.alchemy.com/v2/${config.alchemyApiKey}`],
         },
         [RPCType.Default]: {
-          http: [getQuicknodeEndpointUrl(UniverseChainId.Mainnet)],
+          http: [`https://eth-mainnet.g.alchemy.com/v2/${config.alchemyApiKey}`],
         },
         [RPCType.Fallback]: {
-          http: ['https://rpc.ankr.com/eth', 'https://eth-mainnet.public.blastapi.io'],
+          http: [`https://eth-mainnet.g.alchemy.com/v2/${config.alchemyApiKey}`],
         },
         [RPCType.Interface]: {
-          http: [`https://mainnet.infura.io/v3/${config.infuraKey}`, getQuicknodeEndpointUrl(UniverseChainId.Mainnet)],
+          http: [`https://eth-mainnet.g.alchemy.com/v2/${config.alchemyApiKey}`],
         },
       },
   urlParam: 'ethereum',
@@ -97,7 +96,7 @@ export const MAINNET_CHAIN_INFO = {
     decimals: 18,
     address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
   },
-  tradingApiPollingIntervalMs: 500,
+  tradingApiPollingIntervalMs: 4000,
 } as const satisfies UniverseChainInfo
 
 const testnetTokens = buildChainTokens({
@@ -141,22 +140,17 @@ export const SEPOLIA_CHAIN_INFO = {
   pendingTransactionsRetryOptions: undefined,
   rpcUrls: {
     [RPCType.Public]: {
-      http: [getQuicknodeEndpointUrl(UniverseChainId.Sepolia)],
+      http: [`https://eth-sepolia.g.alchemy.com/v2/${config.alchemyApiKey}`],
     },
     [RPCType.Default]: {
-      http: ['https://eth-sepolia.g.alchemy.com/v2/D41tT-VNane_JyxuXN6lI'],
+      http: [`https://eth-sepolia.g.alchemy.com/v2/${config.alchemyApiKey}`],
     },
     [RPCType.Fallback]: {
-      http: [
-        'https://eth-sepolia.g.alchemy.com/v2/D41tT-VNane_JyxuXN6lI',
-        'https://rpc2.sepolia.org/',
-        'https://rpc.sepolia.online/',
-        'https://www.sepoliarpc.space/',
-        'https://rpc-sepolia.rockx.com/',
-        'https://rpc.bordel.wtf/sepolia',
-      ],
+      http: [`https://eth-sepolia.g.alchemy.com/v2/${config.alchemyApiKey}`],
     },
-    [RPCType.Interface]: { http: [`https://sepolia.infura.io/v3/${config.infuraKey}`] },
+    [RPCType.Interface]: {
+      http: [`https://eth-sepolia.g.alchemy.com/v2/${config.alchemyApiKey}`],
+    },
   },
   spotPriceStablecoinAmountOverride: CurrencyAmount.fromRawAmount(testnetTokens.USDC, 100e6),
   tokens: testnetTokens,
@@ -169,5 +163,5 @@ export const SEPOLIA_CHAIN_INFO = {
     decimals: 18,
     address: '0xfff9976782d46cc05630d1f6ebab18b2324d6b14',
   },
-  tradingApiPollingIntervalMs: 500,
+  tradingApiPollingIntervalMs: 4000,
 } as const satisfies UniverseChainInfo

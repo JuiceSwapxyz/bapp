@@ -71,5 +71,5 @@ export const POLYGON_CHAIN_INFO = {
     decimals: 18,
     address: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
   },
-  tradingApiPollingIntervalMs: 1000,
+  tradingApiPollingIntervalMs: 2000,
 } as const satisfies UniverseChainInfo
