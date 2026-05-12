@@ -14,7 +14,7 @@ import {
 } from 'components/AccountDrawer/Points/styles'
 import { usePoints } from 'components/AccountDrawer/Points/usePoints'
 import { SlideOutMenu } from 'components/AccountDrawer/SlideOutMenu'
-import { ArrowUpRight, Award, Check } from 'react-feather'
+import { ArrowUpRight, Award, Check, DollarSign, Droplet, Layers, TrendingUp, Zap } from 'react-feather'
 import { Trans, useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Button, Flex, Text, styled } from 'ui/src'
@@ -26,41 +26,66 @@ const JUSD_SAVINGS_URL = 'https://bapp.juicedollar.com/savings'
 const JUSD_EQUITY_URL = 'https://bapp.juicedollar.com/equity'
 const JUSD_MINT_URL = 'https://bapp.juicedollar.com/mint'
 
+const JUICE_CREAM = '#FFE6B8'
+const JUICE_BORDER = 'rgba(247, 165, 54, 0.28)'
+
 const HeroCard = styled(Flex, {
   position: 'relative',
   alignItems: 'center',
   justifyContent: 'center',
   gap: '$spacing12',
-  borderRadius: '$rounded24',
+  borderRadius: '$rounded20',
   px: '$padding24',
-  py: '$padding32',
-  minHeight: 220,
+  py: '$padding28',
+  minHeight: 244,
   overflow: 'hidden',
-  background: 'linear-gradient(180deg, #1a1208 0%, #0a0604 100%)',
+  background:
+    'linear-gradient(180deg, rgba(255,196,100,0.12) 0%, rgba(247,145,26,0.04) 44%, rgba(9,6,4,0.98) 100%), linear-gradient(180deg, #1B1007 0%, #080503 100%)',
   borderWidth: 1,
   borderStyle: 'solid',
-  borderColor: '#3a2814',
+  borderColor: 'rgba(255, 196, 100, 0.34)',
 })
 
-const HERO_BUBBLE_STYLE = bubbleTextStyle(68)
+const HERO_BUBBLE_STYLE = bubbleTextStyle(60)
 
 const HERO_LABEL_STYLE: React.CSSProperties = {
-  letterSpacing: 2,
+  letterSpacing: 1.6,
   textTransform: 'uppercase',
   fontSize: 11,
-  fontWeight: 600,
-  color: '#F2C998',
+  fontWeight: 700,
+  color: JUICE_CREAM,
   margin: 0,
   width: '100%',
   textAlign: 'center',
   display: 'block',
 }
 
+const BrandPill = styled(Flex, {
+  row: true,
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '$spacing6',
+  borderRadius: '$roundedFull',
+  px: '$padding12',
+  py: '$padding6',
+  backgroundColor: 'rgba(247, 165, 54, 0.14)',
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: 'rgba(255, 214, 153, 0.28)',
+})
+
 const SectionTitle = styled(Text, {
   variant: 'body4',
-  color: '$neutral2',
+  color: JUICE_CREAM,
   letterSpacing: 1.5,
   textTransform: 'uppercase',
+  fontWeight: '700',
+})
+
+const SectionHint = styled(Text, {
+  variant: 'body4',
+  color: '$neutral2',
+  lineHeight: 18,
 })
 
 const StatsRow = styled(Flex, {
@@ -71,12 +96,14 @@ const StatsRow = styled(Flex, {
 
 const StatCard = styled(Flex, {
   flex: 1,
-  gap: '$spacing12',
+  gap: '$spacing10',
   borderRadius: '$rounded16',
-  backgroundColor: '$surface2',
+  minHeight: 118,
+  background:
+    'linear-gradient(180deg, rgba(255,214,153,0.06) 0%, rgba(247,145,26,0.03) 100%), linear-gradient(180deg, #17110C 0%, #0E0B08 100%)',
   borderWidth: 1,
   borderStyle: 'solid',
-  borderColor: '$surface3',
+  borderColor: JUICE_BORDER,
   p: '$padding16',
 })
 
@@ -86,24 +113,29 @@ const IconBadge = styled(Flex, {
   borderRadius: '$roundedFull',
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: 'rgba(247,145,26,0.15)',
+  backgroundColor: 'rgba(247,165,54,0.16)',
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: 'rgba(247,165,54,0.26)',
 })
 
 const LeaderboardCard = styled(Flex, {
   row: true,
   alignItems: 'center',
   gap: '$spacing16',
-  borderRadius: '$rounded20',
+  borderRadius: '$rounded16',
   px: '$padding20',
   py: '$padding20',
   cursor: 'pointer',
   borderWidth: 1,
   borderStyle: 'solid',
-  borderColor: 'rgba(247,145,26,0.35)',
-  background: 'linear-gradient(135deg, rgba(247,145,26,0.18) 0%, rgba(247,145,26,0.06) 100%)',
+  borderColor: 'rgba(247,165,54,0.34)',
+  background:
+    'linear-gradient(135deg, rgba(247,165,54,0.17) 0%, rgba(88,146,255,0.06) 100%), linear-gradient(180deg, #17110C 0%, #0F0B08 100%)',
   hoverStyle: {
     borderColor: POINTS_BRAND_COLOR,
-    background: 'linear-gradient(135deg, rgba(247,145,26,0.28) 0%, rgba(247,145,26,0.10) 100%)',
+    background:
+      'linear-gradient(135deg, rgba(247,165,54,0.24) 0%, rgba(88,146,255,0.08) 100%), linear-gradient(180deg, #1C1209 0%, #100B07 100%)',
   },
 })
 
@@ -113,7 +145,7 @@ const LeaderboardIconWrap = styled(Flex, {
   borderRadius: '$roundedFull',
   alignItems: 'center',
   justifyContent: 'center',
-  background: 'linear-gradient(135deg, #F7911A 0%, #B05E00 100%)',
+  background: 'linear-gradient(135deg, #FFCE78 0%, #F7911A 54%, #B35D00 100%)',
 })
 
 const HowToList = styled(Flex, {
@@ -125,7 +157,7 @@ const MethodRow = styled(Flex, {
   row: true,
   alignItems: 'center',
   gap: '$spacing16',
-  borderRadius: '$rounded16',
+  borderRadius: '$rounded14',
   backgroundColor: '$surface2',
   borderWidth: 1,
   borderStyle: 'solid',
@@ -141,7 +173,10 @@ const MethodIconWrap = styled(Flex, {
   alignItems: 'center',
   justifyContent: 'center',
   flexShrink: 0,
-  background: 'linear-gradient(135deg, rgba(247,145,26,0.25) 0%, rgba(247,145,26,0.08) 100%)',
+  background: 'linear-gradient(135deg, rgba(247,165,54,0.24) 0%, rgba(247,145,26,0.08) 100%)',
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: 'rgba(247,165,54,0.18)',
 })
 
 /**
@@ -151,22 +186,42 @@ const MethodIconWrap = styled(Flex, {
  * horizontal room in the narrow drawer).
  */
 const BonusCard = styled(Flex, {
+  position: 'relative',
   gap: '$spacing12',
   borderRadius: '$rounded16',
-  backgroundColor: '$surface2',
+  overflow: 'hidden',
+  background:
+    'linear-gradient(180deg, rgba(255,214,153,0.055) 0%, rgba(247,145,26,0.025) 100%), linear-gradient(180deg, #17110C 0%, #0F0B08 100%)',
   borderWidth: 1,
   borderStyle: 'solid',
-  borderColor: '$surface3',
+  borderColor: 'rgba(255,214,153,0.16)',
   px: '$padding20',
   py: '$padding16',
+  hoverStyle: {
+    borderColor: 'rgba(247,165,54,0.34)',
+    background:
+      'linear-gradient(180deg, rgba(255,214,153,0.08) 0%, rgba(247,145,26,0.04) 100%), linear-gradient(180deg, #1A120C 0%, #100B08 100%)',
+  },
 })
 
 const BonusActionButton = styled(Button, {
   width: '100%',
-  backgroundColor: POINTS_BRAND_COLOR,
+  background: 'linear-gradient(135deg, #FFBE5C 0%, #F7911A 48%, #C96B05 100%)',
   borderRadius: '$rounded12',
   paddingVertical: '$spacing10',
   hoverStyle: { backgroundColor: '#FFA64D' },
+})
+
+const RewardBadge = styled(Flex, {
+  alignItems: 'flex-end',
+  gap: '$spacing2',
+  borderRadius: '$rounded12',
+  paddingVertical: '$spacing8',
+  paddingHorizontal: '$spacing10',
+  backgroundColor: 'rgba(247,165,54,0.1)',
+  borderWidth: 1,
+  borderStyle: 'solid',
+  borderColor: 'rgba(247,165,54,0.22)',
 })
 
 const EarnedPill = styled(Flex, {
@@ -277,7 +332,7 @@ function BonusRow({ icon, title, hint, rewardLabel, rewardSubLabel, state, ctaLa
             {hint}
           </Text>
         </Flex>
-        <Flex alignItems="flex-end" gap="$spacing2" flexShrink={0}>
+        <RewardBadge flexShrink={0}>
           <Text variant="body2" color={POINTS_BRAND_COLOR} fontWeight="600">
             {rewardLabel}
           </Text>
@@ -286,7 +341,7 @@ function BonusRow({ icon, title, hint, rewardLabel, rewardSubLabel, state, ctaLa
               {rewardSubLabel}
             </Text>
           )}
-        </Flex>
+        </RewardBadge>
       </Flex>
       {state === 'earned' ? (
         <EarnedPill>
@@ -297,9 +352,12 @@ function BonusRow({ icon, title, hint, rewardLabel, rewardSubLabel, state, ctaLa
         </EarnedPill>
       ) : ctaLabel && onAction ? (
         <BonusActionButton onPress={onAction}>
-          <Text variant="buttonLabel3" color="$white">
-            {ctaLabel}
-          </Text>
+          <Flex row alignItems="center" justifyContent="center" gap="$spacing8">
+            <Text variant="buttonLabel3" color="$white">
+              {ctaLabel}
+            </Text>
+            <ArrowUpRight size={15} color="white" />
+          </Flex>
         </BonusActionButton>
       ) : null}
     </BonusCard>
@@ -355,7 +413,13 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
         <HeroCard>
           <LiquidBg />
           <LiquidBubbleStyleTag />
-          <Flex zIndex={1} alignItems="center" gap="$spacing8" width="100%">
+          <Flex zIndex={1} alignItems="center" gap="$spacing10" width="100%">
+            <BrandPill>
+              <Droplet size={13} color={POINTS_BRAND_COLOR} />
+              <Text variant="buttonLabel4" color={JUICE_CREAM}>
+                JuiceSwap Rewards
+              </Text>
+            </BrandPill>
             <span style={HERO_LABEL_STYLE}>
               <Trans i18nKey="account.points.total" />
             </span>
@@ -368,6 +432,9 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
                 {`${total.toLocaleString()} ${POINTS_TICKER}`}
               </span>
             )}
+            <Text variant="body4" color="$neutral2" textAlign="center" maxWidth={300} lineHeight={18}>
+              Stack Juice Points through real JuiceSwap activity, JUSD depth and JUICE alignment.
+            </Text>
           </Flex>
         </HeroCard>
 
@@ -415,9 +482,10 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
 
         <Flex gap="$spacing8">
           <SectionTitle>One-time bonuses</SectionTitle>
+          <SectionHint>High-signal JuiceSwap milestones earn the biggest single boosts.</SectionHint>
           <HowToList>
             <BonusRow
-              icon={<Text fontSize={20}>🍊</Text>}
+              icon={<Zap size={18} color={POINTS_BRAND_COLOR} />}
               title="Launch a meme token"
               hint="One-time bonus on first launch (Citrea Mainnet)."
               rewardLabel={`+500 ${POINTS_TICKER}`}
@@ -426,7 +494,7 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
               onAction={goLaunchpadCreate}
             />
             <BonusRow
-              icon={<Text fontSize={20}>🚀</Text>}
+              icon={<TrendingUp size={18} color={POINTS_BRAND_COLOR} />}
               title="Graduate via bonding curve"
               hint="Token's bonding curve fills and graduates to a V2 pair."
               rewardLabel={`+10,000 ${POINTS_TICKER}`}
@@ -442,9 +510,10 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
 
         <Flex gap="$spacing8">
           <SectionTitle>Daily rewards</SectionTitle>
+          <SectionHint>Turn idle balances into a daily JP stream across JuiceDollar and JUICE.</SectionHint>
           <HowToList>
             <BonusRow
-              icon={<Text fontSize={20}>🏦</Text>}
+              icon={<DollarSign size={18} color={POINTS_BRAND_COLOR} />}
               title="Save JUSD"
               hint="Deposit JUSD into the Savings Vault — earn while protocol borrowers pay interest."
               rewardLabel={`1 ${POINTS_TICKER} / JUSD / day`}
@@ -454,11 +523,11 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
                   : undefined
               }
               state="active"
-              ctaLabel="Open Savings"
+              ctaLabel="Start saving"
               onAction={() => window.open(JUSD_SAVINGS_URL, '_blank', 'noopener,noreferrer')}
             />
             <BonusRow
-              icon={<Text fontSize={20}>🪙</Text>}
+              icon={<Droplet size={18} color={POINTS_BRAND_COLOR} />}
               title="Hold JUICE"
               hint="Every 10 JUICE you hold earns 1 JP every 24h."
               rewardLabel={`1 ${POINTS_TICKER} / 10 JUICE / day`}
@@ -468,11 +537,11 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
                   : undefined
               }
               state="active"
-              ctaLabel="View JUICE"
+              ctaLabel="Open JUICE"
               onAction={() => window.open(JUSD_EQUITY_URL, '_blank', 'noopener,noreferrer')}
             />
             <BonusRow
-              icon={<Text fontSize={20}>💰</Text>}
+              icon={<Layers size={18} color={POINTS_BRAND_COLOR} />}
               title="Lend with a JUSD position"
               hint="Mint JUSD against collateral via the Minting Hub. $1 borrowed = 5 JP / 24h."
               rewardLabel={`5 ${POINTS_TICKER} / $1 / day`}
@@ -482,7 +551,7 @@ export function PointsMenu({ account, onClose }: { account: string; onClose: () 
                   : undefined
               }
               state="active"
-              ctaLabel="Open Minting Hub"
+              ctaLabel="Open minting"
               onAction={() => window.open(JUSD_MINT_URL, '_blank', 'noopener,noreferrer')}
             />
           </HowToList>

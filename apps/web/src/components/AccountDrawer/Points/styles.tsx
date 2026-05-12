@@ -28,6 +28,11 @@ export const LIQUID_BUBBLE_KEYFRAMES = `
   50% { transform: translateY(0) scaleY(0.985) scaleX(1.01); }
   75% { transform: translateY(1px) scaleY(1.015) scaleX(0.99); }
 }
+@keyframes juice-wave-drift {
+  0% { transform: translateX(-18px); }
+  50% { transform: translateX(18px); }
+  100% { transform: translateX(-18px); }
+}
 .${LIQUID_BUBBLE_CLASS} {
   background-size: 220% 220%;
   animation:
@@ -37,13 +42,19 @@ export const LIQUID_BUBBLE_KEYFRAMES = `
   transform-origin: center bottom;
   will-change: background-position, filter, transform;
 }
+.juice-wave-front {
+  animation: juice-wave-drift 8s ease-in-out infinite;
+}
+.juice-wave-back {
+  animation: juice-wave-drift 11s ease-in-out infinite reverse;
+}
 `
 
 export function bubbleTextStyle(fontSize: number): CSSProperties {
   return {
     fontSize,
     fontWeight: 900,
-    letterSpacing: -fontSize * 0.03,
+    letterSpacing: 0,
     lineHeight: 1,
     backgroundImage:
       'linear-gradient(135deg, #FFE9C4 0%, #FFB35C 25%, #F7911A 50%, #C46800 75%, #FFB35C 100%)',
@@ -59,32 +70,28 @@ export function bubbleTextStyle(fontSize: number): CSSProperties {
 }
 
 export function LiquidBubbleStyleTag() {
-  return <style dangerouslySetInnerHTML={{ __html: LIQUID_BUBBLE_KEYFRAMES }} />
+  return <style>{LIQUID_BUBBLE_KEYFRAMES}</style>
 }
 
-const FILTER_ID_HERO = 'juice-goo-hero'
-const FILTER_ID_COMPACT = 'juice-goo-compact'
-const ORB_ID_HERO = 'juice-orb-hero'
-const ORB_ID_COMPACT = 'juice-orb-compact'
+const GRADIENT_ID_HERO = 'juice-liquid-hero'
+const GRADIENT_ID_COMPACT = 'juice-liquid-compact'
 
 interface LiquidBgProps {
   variant?: 'hero' | 'compact'
 }
 
 /**
- * Animated orange goo blobs filling the bottom of a dark surface.
+ * Animated orange liquid waves filling the bottom of a dark surface.
  * `hero` is for the big hero card in PointsMenu; `compact` is a wider
  * shallow version sized for the small PointsCard in the drawer.
  *
- * Each variant has its own viewBox/preserveAspectRatio so the blobs
+ * Each variant has its own viewBox/preserveAspectRatio so the waves
  * sit in the visible region of their respective container aspect ratio
  * (the hero card is roughly 2:1 tall, the drawer card is ~4:1 wide).
  */
 export function LiquidBg({ variant = 'hero' }: LiquidBgProps) {
   const isHero = variant === 'hero'
-  const filterId = isHero ? FILTER_ID_HERO : FILTER_ID_COMPACT
-  const orbId = isHero ? ORB_ID_HERO : ORB_ID_COMPACT
-  const stdDev = isHero ? 22 : 12
+  const gradientId = isHero ? GRADIENT_ID_HERO : GRADIENT_ID_COMPACT
 
   return (
     <svg
@@ -100,39 +107,42 @@ export function LiquidBg({ variant = 'hero' }: LiquidBgProps) {
       aria-hidden
     >
       <defs>
-        <filter id={filterId} x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation={stdDev} result="blur" />
-          <feColorMatrix
-            in="blur"
-            mode="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8"
-            result="goo"
-          />
-          <feBlend in="SourceGraphic" in2="goo" />
-        </filter>
-        <radialGradient id={orbId} cx="50%" cy="40%">
-          <stop offset="0%" stopColor="#FFD699" />
-          <stop offset="60%" stopColor="#F7911A" />
-          <stop offset="100%" stopColor="#9B5300" />
-        </radialGradient>
+        <linearGradient id={gradientId} x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%" stopColor="#FFE0A6" />
+          <stop offset="36%" stopColor="#F7911A" />
+          <stop offset="72%" stopColor="#C96100" />
+          <stop offset="100%" stopColor="#5D2E00" />
+        </linearGradient>
       </defs>
-      {isHero ? (
-        <g filter={`url(#${filterId})`} opacity="0.85">
-          <circle cx="80" cy="230" r="70" fill={`url(#${orbId})`} />
-          <circle cx="180" cy="280" r="55" fill={`url(#${orbId})`} />
-          <circle cx="340" cy="260" r="80" fill={`url(#${orbId})`} />
-          <circle cx="470" cy="290" r="65" fill={`url(#${orbId})`} />
-          <circle cx="540" cy="220" r="40" fill={`url(#${orbId})`} />
-        </g>
-      ) : (
-        <g filter={`url(#${filterId})`} opacity="0.95">
-          <circle cx="50" cy="160" r="55" fill={`url(#${orbId})`} />
-          <circle cx="170" cy="170" r="65" fill={`url(#${orbId})`} />
-          <circle cx="300" cy="155" r="60" fill={`url(#${orbId})`} />
-          <circle cx="430" cy="170" r="58" fill={`url(#${orbId})`} />
-          <circle cx="555" cy="160" r="50" fill={`url(#${orbId})`} />
-        </g>
-      )}
+      <path
+        d={
+          isHero
+            ? 'M0 218 C70 184 132 246 206 214 C282 181 346 246 430 210 C506 178 552 210 600 188 L600 300 L0 300 Z'
+            : 'M0 116 C78 94 132 132 206 112 C292 88 360 134 438 108 C508 86 554 104 600 92 L600 160 L0 160 Z'
+        }
+        fill="#5A2B00"
+        opacity={isHero ? 0.42 : 0.5}
+        className="juice-wave-back"
+      />
+      <path
+        d={
+          isHero
+            ? 'M0 246 C88 204 150 268 234 232 C322 194 390 264 482 224 C538 200 574 210 600 198 L600 300 L0 300 Z'
+            : 'M0 132 C82 102 150 144 236 120 C318 96 388 148 474 120 C532 102 574 108 600 98 L600 160 L0 160 Z'
+        }
+        fill={`url(#${gradientId})`}
+        opacity={isHero ? 0.9 : 0.95}
+        className="juice-wave-front"
+      />
+      <path
+        d={
+          isHero
+            ? 'M0 270 C90 238 172 284 266 252 C346 226 444 278 600 232 L600 300 L0 300 Z'
+            : 'M0 144 C120 126 194 152 298 136 C402 120 500 148 600 126 L600 160 L0 160 Z'
+        }
+        fill="#F7A536"
+        opacity={isHero ? 0.28 : 0.32}
+      />
     </svg>
   )
 }
