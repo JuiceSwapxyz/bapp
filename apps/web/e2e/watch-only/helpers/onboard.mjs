@@ -130,4 +130,5 @@ if (/erfolgreich|added|hinzugefügt|success/i.test(finalText)) {
   console.warn(finalText.replace(/\s+/g, ' ').slice(0, 400))
 }
 
+// CDP transport sometimes closes before close() resolves; we're already done.
 await browser.close().catch(() => {})

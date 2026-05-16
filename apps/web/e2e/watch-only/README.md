@@ -139,7 +139,7 @@ On a successful first run, a Chrome for Testing window opens (yellow Chrome-for-
 1. The dApp at `localhost:3001/swap?…`
 2. Rabby's UI (`chrome-extension://acmaco…/index.html`)
 
-The Rabby toolbar icon shows the throwaway-wallet address by default. After running `connectRabby` and accepting the popup, the dApp's header shows the **watch-only** address (`0xb126…` in the example) along with whatever balance the chain returns. The chainId in the wallet status badge should be `4114 (Citrea)` after the example runs.
+The Rabby toolbar icon shows the throwaway-wallet address by default. After running `connectRabby` and accepting the popup, the dApp's header shows the **watch-only** address you onboarded with along with whatever balance the chain returns. The chainId in the wallet status badge should be `4114 (Citrea)` after the example runs.
 
 If the dApp's wallet modal only shows WalletConnect + Coinbase (no "Rabby Wallet Detected"), Rabby announced its provider too late and the dApp didn't see it. Hard-reload the page; the dApp re-broadcasts `eip6963:requestProvider` on mount.
 
@@ -251,5 +251,6 @@ The persistent profile remembers the state, so subsequent `launch-chrome.sh` run
 | `[ ]` returned from `/json/list` on port 9223 | Chrome for Testing has no open tabs; the harness needs at least one | Open one with `curl -X PUT "http://localhost:9223/json/new?http://localhost:3001/"` or use `playwright` to create it |
 | `onboard.mjs` throws `could not find … button — wrong locale?` | Rabby UI is not in German | Update the label strings in `helpers/onboard.mjs`; see [Changing the UI locale](#changing-the-ui-locale) |
 | `fetch-rabby.sh` fails with `API rate limit exceeded` | Hit GitHub's anonymous rate limit (60/hr per IP) | `brew install gh && gh auth login` — the script auto-uses gh when available for the 5000/hr authenticated limit |
-| `Port 9223 is busy. Killing existing…` then nothing connects | A previous Chrome instance is wedged on the port | `pkill -9 -f chrome-rabby-profile`; if that fails, reboot Chrome state with `rm -rf ~/.cache/chrome-rabby-profile/SingletonLock` |
+| `ERROR: port 9223 is busy and not held by this harness.` | Another process (a stale stable Chrome, another tool's debug port) is on the port | Either free port 9223 yourself (`lsof -ti :9223` to find the PID) or re-run with `DEBUG_PORT=9224 apps/web/e2e/watch-only/scripts/launch-chrome.sh` |
+| `Reusing port 9223: stopping the previous Chrome for Testing…` then nothing connects | The previous Chrome for Testing was wedged and the `SingletonLock` cleanup wasn't enough | Force-kill with `pkill -9 -f chrome-rabby-profile` and remove the lock by hand: `rm -f ~/.cache/chrome-rabby-profile/SingletonLock` |
 | Helpers attach but `app` is `null` | No `http://localhost:3001/…` tab is open | Open the dApp manually first, or call `ctx.newPage()` and `goto()` it (see `examples/swap-flow.mjs`) |

@@ -148,6 +148,11 @@ export async function switchChain(app, chainIdHex) {
 
 /**
  * Convenience: return the connected accounts and chainId.
+ *
+ * Note: the `.catch(() => [])` on `eth_accounts` is intentional — `walletState`
+ * is used as a probe (e.g. "are we connected yet?"), so callers expect a shape,
+ * not an exception, even before the wallet has been authorised. Errors only
+ * arise when the page has no `window.ethereum` yet, which is itself an answer.
  */
 export async function walletState(app) {
   return await app.evaluate(async () => ({
@@ -171,6 +176,8 @@ export function recordRequests(app, urlSubstring) {
     if (!resp.url().includes(urlSubstring)) return
     const entry = calls.find((c) => c.req === resp.request() && !c.response)
     if (entry) {
+      // body=null when text() fails (binary response, transport teardown, …);
+      // the status code on its own is still useful for "did this fire?" probes.
       entry.response = { status: resp.status(), body: await resp.text().catch(() => null) }
     }
   }

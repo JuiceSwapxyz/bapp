@@ -82,8 +82,10 @@ for (const amount of AMOUNTS) {
   await sleep(4000)
 
   const reviewBtn = app.locator('button[data-testid="review-swap"]').first()
+  // Sweep continues across amounts; if the Review button isn't on the page yet
+  // (e.g. for an amount where the dApp is still loading), we log "?" rather
+  // than aborting — the bug we're chasing is precisely "Review never enables".
   const reviewText = (await reviewBtn.innerText().catch(() => '?')).replace(/\s+/g, ' ').trim()
-
   await reviewBtn.click({ force: true }).catch(() => {})
   await sleep(5000)
 
@@ -107,4 +109,6 @@ console.log()
 console.log(`/v1/swap calls observed: ${swapRequests.calls.length}`)
 swapRequests.dispose()
 
+// At end-of-script the CDP transport sometimes tears down before close()
+// resolves; we already have the data we wanted so swallowing the error is fine.
 await browser.close().catch(() => {})
