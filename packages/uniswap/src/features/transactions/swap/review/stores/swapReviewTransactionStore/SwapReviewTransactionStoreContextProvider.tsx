@@ -13,6 +13,7 @@ import {
   isErc20ChainSwap,
   isGatewayJusd,
   isLightningBridge,
+  isSatsuma,
   isUniswapX,
   isWbtcBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -54,7 +55,7 @@ export const SwapReviewTransactionStoreContextProvider = ({
   const tokenWarningProps = getRelevantTokenWarningSeverity(acceptedDerivedSwapInfo)
 
   const txSimulationErrors = useMemo(() => {
-    if (!trade || (!isClassic(trade) && !isGatewayJusd(trade))) {
+    if (!trade || (!isClassic(trade) && !isGatewayJusd(trade) && !isSatsuma(trade))) {
       return undefined
     }
     return (trade.quote.quote as { txFailureReasons?: TransactionFailureReason[] }).txFailureReasons
