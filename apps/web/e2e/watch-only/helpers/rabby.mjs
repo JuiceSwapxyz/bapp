@@ -52,13 +52,14 @@ const TIMINGS = {
 
 /**
  * Connect to a running Chrome for Testing instance on the given CDP port.
- * Returns { browser, ctx, app } where `app` is the first localhost page.
+ * Returns `{ browser, ctx, app }` where `app` is the first page whose URL
+ * starts with `appUrlPrefix`, or `undefined` when no such page is open yet.
  */
 export async function attach({ port = '9223', appUrlPrefix = 'http://localhost:3001' } = {}) {
   const browser = await chromium.connectOverCDP(`http://localhost:${port}`)
   const ctx = browser.contexts()[0]
   const app = ctx.pages().find((p) => p.url().startsWith(appUrlPrefix))
-  return { browser, ctx, app: app ?? null }
+  return { browser, ctx, app }
 }
 
 /**
@@ -138,7 +139,9 @@ export async function switchChain(app, chainIdHex) {
       await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: hex }] })
       return { ok: true }
     } catch (e) {
-      return { ok: false, error: e.message ?? String(e) }
+      // String(e) handles both real Errors ("Error: message") and weird
+      // non-Error throws (ProviderRpcError, plain strings, …) without a default.
+      return { ok: false, error: String(e) }
     }
   }, chainIdHex)
   await sleep(TIMINGS.CHAIN_SWITCH_MS)
@@ -149,14 +152,17 @@ export async function switchChain(app, chainIdHex) {
 /**
  * Convenience: return the connected accounts and chainId.
  *
- * Note: the `.catch(() => [])` on `eth_accounts` is intentional — `walletState`
- * is used as a probe (e.g. "are we connected yet?"), so callers expect a shape,
- * not an exception, even before the wallet has been authorised. Errors only
- * arise when the page has no `window.ethereum` yet, which is itself an answer.
+ * Shape over exception: this is a probe, so it never rejects. When
+ * `window.ethereum` is not injected, both fields are `undefined`. When
+ * `eth_accounts` itself throws (rare — e.g. the user is locked), `accounts`
+ * is `[]`. Distinguish "not connected" (`accounts === undefined`) from
+ * "ethereum present but no authorised accounts" (`accounts === []`).
  */
 export async function walletState(app) {
   return await app.evaluate(async () => ({
-    accounts: await window.ethereum?.request?.({ method: 'eth_accounts' }).catch(() => []),
+    // `?.catch` (not `.catch`) so the chain short-circuits to undefined when
+    // request() isn't callable, instead of trying to call .catch on undefined.
+    accounts: await window.ethereum?.request?.({ method: 'eth_accounts' })?.catch(() => []),
     chainId: window.ethereum?.chainId,
   }))
 }

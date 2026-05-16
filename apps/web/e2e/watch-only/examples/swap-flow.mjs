@@ -9,6 +9,12 @@
 //   yarn web dev                                                # in a separate terminal
 //   apps/web/e2e/watch-only/scripts/launch-chrome.sh            # one-shot
 //   node apps/web/e2e/watch-only/examples/swap-flow.mjs
+//
+// Optional env (defaults are the values we developed against):
+//   APP_PREFIX   dApp origin (default: http://localhost:3001 — vite.config.mts pin)
+//   AMOUNTS      comma-separated input amounts to sweep
+//                (default: 100,1000,10000,50000 — covers below + above the
+//                 50000-threshold edge case)
 
 import {
   attach,
