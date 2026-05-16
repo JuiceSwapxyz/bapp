@@ -13,9 +13,12 @@
 
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+// Resolve playwright-core relative to this file, not the caller's CWD.
 const require = createRequire(import.meta.url)
-const playwrightCore = require(path.resolve(process.cwd(), 'node_modules/playwright-core'))
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const playwrightCore = require(path.resolve(__dirname, '../../../../../node_modules/playwright-core'))
 const { chromium } = playwrightCore
 
 const WATCH_ADDR = process.env.WATCH_ADDR

@@ -78,8 +78,8 @@ nohup "${CFT_BIN}" \
   >/tmp/chrome-rabby.log 2>&1 &
 disown
 
-# Wait for CDP to come up
-for i in $(seq 1 20); do
+# Wait for CDP to come up (10s budget)
+for _ in $(seq 1 20); do
   if curl -sf "http://localhost:${DEBUG_PORT}/json/version" >/dev/null; then
     echo "✓ CDP up at http://localhost:${DEBUG_PORT}"
     exit 0

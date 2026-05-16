@@ -37,8 +37,12 @@ System tools — install once:
 
 ```bash
 # macOS
-brew install gh node     # gh is needed by fetch-rabby.sh, node for everything
-xcode-select --install   # for unzip + dev tools (usually already present)
+brew install node                  # node is required everywhere in the harness
+xcode-select --install             # ships curl + unzip + dev tools (usually already present)
+brew install gh && gh auth login   # OPTIONAL — fetch-rabby.sh uses gh when available
+                                   # for higher GitHub API rate limits; otherwise it
+                                   # falls back to anonymous curl, which is fine for
+                                   # one-shot use.
 ```
 
 Repo tooling:
@@ -47,17 +51,10 @@ Repo tooling:
 yarn install             # MUST succeed — populates ~/.cache/puppeteer/chrome
 ```
 
-If `~/.cache/puppeteer/chrome/mac_arm-*` is empty after `yarn install`, puppeteer skipped its postinstall. Re-run with `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=` (no value) explicitly, or trigger a manual download:
+If `~/.cache/puppeteer/chrome/mac_arm-*` is empty after `yarn install`, puppeteer skipped its postinstall. Trigger the download manually:
 
 ```bash
 node -e "require('puppeteer-core/internal/node/Browser').install({ browser: 'chrome' })"
-```
-
-GitHub auth (for `fetch-rabby.sh`):
-
-```bash
-gh auth status           # if not authenticated:
-gh auth login
 ```
 
 A short-lived `chrome-rabby-profile` is created under `~/.cache/`. It is disposable; delete it to reset Rabby (see [Reset / cleanup](#reset--cleanup)).
@@ -102,10 +99,10 @@ What `onboard.sh` does:
 
 - launches Chrome for Testing if it isn't already up
 - opens Rabby's welcome page
-- clears `chrome.storage.local` to guarantee a clean first-run
-- creates a throwaway HD wallet (the seed phrase never leaves the disposable profile)
-- sets a predictable password (`TestPass123!`, override via `PASSWORD=…`)
-- jumps to `#/import/watch-address` and adds your address
+- checks `chrome.storage.local` for an existing `keyringState`:
+  - **First run** — clears storage, creates a throwaway HD wallet (seed phrase never leaves the disposable profile), and sets password `TestPass123!` (override via `PASSWORD=…`)
+  - **Re-runs** — skips the wallet/password step; the existing keystore is reused
+- jumps to `#/import/watch-address` and adds your address (Rabby refuses duplicates silently, so re-running with the same `WATCH_ADDR` is a no-op)
 
 > **Why a throwaway HD wallet?** Rabby's first-run flow refuses to proceed without a "real" first account. Watch-only is only available *after* a seed/private-key/hardware wallet exists. The throwaway wallet exists only in `~/.cache/chrome-rabby-profile/` and has no balance anywhere; we never touch it again.
 
@@ -115,7 +112,7 @@ After step 3, both wallets are visible in Rabby. The watch-only one is selected 
 
 ```bash
 # Tab 1: dev server
-yarn web dev    # serves on http://localhost:3001 (or 3000)
+yarn web dev    # serves on http://localhost:3001 (port hard-coded in apps/web/vite.config.mts)
 
 # Tab 2: launch Chrome for Testing with the prepared profile + Rabby
 apps/web/e2e/watch-only/scripts/launch-chrome.sh
@@ -162,12 +159,13 @@ Two files contain locale-specific strings:
 - `helpers/rabby.mjs` → top of the file, the `LABELS` object
 - `helpers/onboard.mjs` → the literal strings inside `clickByText('…')` calls (welcome flow + password step)
 
-Replace them with the labels Rabby shows on your machine. Inspect Rabby with:
+Replace them with the labels Rabby shows on your machine. After `launch-chrome.sh`, navigate to Rabby's UI in the already-running window — in the address bar, type:
 
-```bash
-# After launch-chrome.sh, open the Rabby UI tab and check the buttons:
-open -a "Google Chrome for Testing" chrome-extension://acmacodkjbdgmoleebolmdjonilkdbch/index.html
 ```
+chrome-extension://acmacodkjbdgmoleebolmdjonilkdbch/index.html
+```
+
+(The puppeteer-shipped Chrome for Testing isn't registered with macOS Launch Services, so `open -a` can't find it. The address-bar route works.)
 
 Common mappings (English ↔ German):
 
@@ -222,7 +220,9 @@ The puppeteer-cached Chrome for Testing under `~/.cache/puppeteer/chrome/` is sh
 If a Rabby UI change makes `onboard.mjs` fail, you can drive the first-run by hand:
 
 1. `apps/web/e2e/watch-only/scripts/launch-chrome.sh`
-2. In the Chrome window, click the Rabby toolbar icon (yellow Rabby dog)
+2. In the Chrome window's address bar, paste:
+   `chrome-extension://acmacodkjbdgmoleebolmdjonilkdbch/index.html`
+   (Chrome for Testing started with `--enable-automation` hides the extension toolbar pin by default, so the address-bar route is the reliable one.)
 3. Welcome → "Get Started" → "Create a new address" → set any password
 4. Once the dashboard appears, click the wallet selector (top-left) → "Add Address" → "Watch-only Address" → paste the address → "Confirm"
 
@@ -230,8 +230,7 @@ The persistent profile remembers the state, so subsequent `launch-chrome.sh` run
 
 ## Caveats
 
-- **Locale dependency** — see [Changing the UI locale](#changing-the-ui-locale) above.
-- **The "Loading quote…" / "Approve and swap" labels** are i18n keys defined in `packages/uniswap/src/i18n/locales/source/en-US.json`. Your assertions should match whichever locale `Accept-Language` was using for the page.
+- **Two independent locales** — Rabby inherits the OS locale (German on the dev machine; see [Changing the UI locale](#changing-the-ui-locale)). The dApp itself respects the `Accept-Language` header / its own language setting and resolves text against `packages/uniswap/src/i18n/locales/source/en-US.json`. Examples that assert on app text (`"Loading quote…"`, `"Approve and swap"`) match those source-language keys; if your browser negotiated a different dApp locale, update the assertions.
 - **Rate limits** — the live Quote API rate-limits aggressive polling. Don't loop your tests at >1Hz.
 - **Watch-only signing** — any `eth_sendTransaction` / `eth_signTypedData_v4` call from the page will be rejected by Rabby. That's the point — debugging ends one step before the wallet popup.
 - **Chain switching** — Citrea Mainnet (chainId 4114) is not in the default wallet's chain list. The example calls `window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1012' }] })` after connect; Rabby's popup auto-accepts it via the helper.
@@ -249,6 +248,6 @@ The persistent profile remembers the state, so subsequent `launch-chrome.sh` run
 | `window.ethereum` is undefined when probed via `chrome-devtools-mcp` | MCP runs scripts in the isolated world; injected providers live in the main world | Probe via `playwright-core` `page.evaluate(…)` instead — it executes in the main world |
 | `[ ]` returned from `/json/list` on port 9223 | Chrome for Testing has no open tabs; the harness needs at least one | Open one with `curl -X PUT "http://localhost:9223/json/new?http://localhost:3001/"` or use `playwright` to create it |
 | `onboard.mjs` throws `could not find … button — wrong locale?` | Rabby UI is not in German | Update the label strings in `helpers/onboard.mjs`; see [Changing the UI locale](#changing-the-ui-locale) |
-| `gh: command not found` from `fetch-rabby.sh` | GitHub CLI missing | `brew install gh` then `gh auth login` |
+| `fetch-rabby.sh` fails with `API rate limit exceeded` | Hit GitHub's anonymous rate limit (60/hr per IP) | `brew install gh && gh auth login` — the script auto-uses gh when available for the 5000/hr authenticated limit |
 | `Port 9223 is busy. Killing existing…` then nothing connects | A previous Chrome instance is wedged on the port | `pkill -9 -f chrome-rabby-profile`; if that fails, reboot Chrome state with `rm -rf ~/.cache/chrome-rabby-profile/SingletonLock` |
 | Helpers attach but `app` is `null` | No `http://localhost:3001/…` tab is open | Open the dApp manually first, or call `ctx.newPage()` and `goto()` it (see `examples/swap-flow.mjs`) |

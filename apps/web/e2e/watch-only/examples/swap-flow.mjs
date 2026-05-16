@@ -88,7 +88,6 @@ for (const amount of AMOUNTS) {
     return {
       loadingQuote: t.includes('Loading quote'),
       approveAndSwap: /Approve and [sS]wap/.test(t),
-      youreSwapping: t.includes("You're swapping"),
       submit: Array.from(document.querySelectorAll('button'))
         .map((b) => (b.innerText || '').replace(/\s+/g, ' ').trim())
         .find((s) => /Approve|Loading|Acknowledge|Swap|quote|Insufficient/.test(s)),
