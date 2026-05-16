@@ -7,6 +7,18 @@
 
 set -euo pipefail
 
+# Platform guard — see README "Platform support" for porting notes
+case "$(uname -s)/$(uname -m)" in
+  Darwin/arm64) ;;
+  *)
+    echo "ERROR: this harness is only tested on macOS arm64." >&2
+    echo "       Current platform: $(uname -s) $(uname -m)" >&2
+    echo "       To port: change the mac_arm-* glob and chrome-mac-arm64" >&2
+    echo "       subpath below to your puppeteer Chrome variant." >&2
+    exit 1
+    ;;
+esac
+
 PROFILE_DIR="${HOME}/.cache/chrome-rabby-profile"
 EXT_DIR="${HOME}/.cache/chrome-extensions/rabby"
 DEBUG_PORT="${DEBUG_PORT:-9223}"
@@ -28,6 +40,9 @@ fi
 CFT_DIR="$(ls -1d "${PUPPETEER_CACHE}"/mac_arm-* 2>/dev/null | sort -V | tail -1)"
 if [[ -z "${CFT_DIR}" ]]; then
   echo "ERROR: no Chrome for Testing variant in ${PUPPETEER_CACHE}" >&2
+  echo "       \`yarn install\` may have skipped puppeteer's postinstall." >&2
+  echo "       Trigger the download manually with:" >&2
+  echo "       node -e \"require('puppeteer-core/internal/node/Browser').install({ browser: 'chrome' })\"" >&2
   exit 1
 fi
 

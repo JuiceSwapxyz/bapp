@@ -11,7 +11,16 @@ mkdir -p "${CACHE_DIR}"
 
 echo "Fetching latest Rabby release URL…"
 if ! command -v gh >/dev/null 2>&1; then
-  echo "ERROR: gh CLI is required (brew install gh)" >&2
+  echo "ERROR: gh CLI is required" >&2
+  echo "       brew install gh && gh auth login" >&2
+  exit 1
+fi
+if ! command -v unzip >/dev/null 2>&1; then
+  echo "ERROR: unzip is required (macOS ships it; install Xcode CLT if missing)" >&2
+  exit 1
+fi
+if ! gh auth status >/dev/null 2>&1; then
+  echo "ERROR: gh is not authenticated — run \`gh auth login\` first" >&2
   exit 1
 fi
 
