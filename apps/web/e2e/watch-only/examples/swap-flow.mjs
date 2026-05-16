@@ -55,7 +55,11 @@ if (!accountState.accounts?.length) {
 
 if ((await walletState(app)).chainId !== CITREA_MAINNET_HEX) {
   console.log('Switching to Citrea Mainnet…')
-  await switchChain(app, CITREA_MAINNET_HEX)
+  const switchResult = await switchChain(app, CITREA_MAINNET_HEX)
+  if (!switchResult.ok) {
+    console.error(`ERROR: chain switch rejected (${switchResult.error}); on ${switchResult.chainId}`)
+    process.exit(1)
+  }
 }
 
 const final = await walletState(app)

@@ -33,6 +33,16 @@ if (!WATCH_ADDR || !/^0x[a-fA-F0-9]{40}$/.test(WATCH_ADDR)) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
+// Timings tuned on a 2024 M-series Mac; the Rabby UI is React + animated and
+// occasionally needs a full second to settle between route transitions. Each
+// constant names the transition it waits on.
+const TIMINGS = {
+  ROUTE_TRANSITION_MS: 2000, // welcome → no-address, no-address → import flow
+  WALLET_CREATE_MS: 2500, // password submit → success screen render
+  FIELD_SETTLE_MS: 500, // input fill → submit-enabled validation
+  ADDRESS_FILL_MS: 800, // address fill → "Confirm" enable
+}
+
 const browser = await chromium.connectOverCDP(`http://localhost:${DEBUG_PORT}`)
 const ctx = browser.contexts()[0]
 
@@ -70,7 +80,7 @@ if (!(await isSetUp())) {
     async () => await new Promise((r) => chrome.storage.local.clear(() => chrome.storage.session.clear(() => r()))),
   )
   await page.goto(`chrome-extension://${RABBY_ID}/index.html#/new-user/guide`, { waitUntil: 'domcontentloaded' })
-  await sleep(2000)
+  await sleep(TIMINGS.ROUTE_TRANSITION_MS)
 
   // The first-time guide insists on a seed-bearing first wallet; create a throwaway HD wallet.
   // It only exists in this disposable profile and never sees real value.
@@ -79,18 +89,18 @@ if (!(await isSetUp())) {
       throw new Error('could not find "Create new address" button — wrong locale?')
     }
   }
-  await sleep(2000)
+  await sleep(TIMINGS.ROUTE_TRANSITION_MS)
 
   // Set the password (used to unlock the keystore on each session; we keep it predictable)
   const pwInputs = await page.$$('input[type=password]')
   for (const inp of pwInputs) {
     await inp.fill(PASSWORD)
   }
-  await sleep(500)
+  await sleep(TIMINGS.FIELD_SETTLE_MS)
   if (!(await clickByText('Bestätigen')) && !(await clickByText('Confirm'))) {
     throw new Error('could not find password Confirm button')
   }
-  await sleep(2500)
+  await sleep(TIMINGS.WALLET_CREATE_MS)
 
   console.log('✓ throwaway HD wallet created')
 }
@@ -105,7 +115,7 @@ if (addrInputs.length === 0) {
   throw new Error('watch-address page has no text input — Rabby UI changed?')
 }
 await addrInputs[0].fill(WATCH_ADDR)
-await sleep(800)
+await sleep(TIMINGS.ADDRESS_FILL_MS)
 
 if (!(await clickByText('Bestätigen')) && !(await clickByText('Confirm'))) {
   throw new Error('could not find Confirm button on watch-address page')

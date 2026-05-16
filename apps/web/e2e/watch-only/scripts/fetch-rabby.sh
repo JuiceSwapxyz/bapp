@@ -20,11 +20,20 @@ done
 # RabbyHub/Rabby is a public repo, so the unauthenticated GitHub REST API works
 # (rate-limited but fine for one-shot use). gh CLI is optional; we use it when
 # available to get a higher rate limit.
+extract_zip_url_from_stdin() {
+  node --input-type=module -e "
+    const chunks = []
+    for await (const c of process.stdin) chunks.push(c)
+    const release = JSON.parse(Buffer.concat(chunks).toString())
+    const zip = release.assets?.find((a) => a.name.endsWith('.zip'))
+    process.stdout.write(zip ? zip.browser_download_url : '')
+  "
+}
+
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
   ZIP_URL="$(gh api repos/RabbyHub/Rabby/releases/latest --jq '.assets[] | select(.name | endswith(".zip")) | .browser_download_url' | head -1)"
 else
-  ZIP_URL="$(curl -fsSL https://api.github.com/repos/RabbyHub/Rabby/releases/latest \
-    | node -e "let d=''; process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d); const a=j.assets.find(a=>a.name.endsWith('.zip')); process.stdout.write(a?a.browser_download_url:'')})")"
+  ZIP_URL="$(curl -fsSL https://api.github.com/repos/RabbyHub/Rabby/releases/latest | extract_zip_url_from_stdin)"
 fi
 
 if [[ -z "${ZIP_URL}" ]]; then

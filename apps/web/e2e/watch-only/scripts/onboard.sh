@@ -17,7 +17,9 @@ if [[ -z "${WATCH_ADDR:-}" ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEBUG_PORT="${DEBUG_PORT:-9223}"
+# Export so child processes (curl invocations below + the node helper) see the
+# same effective value regardless of whether the caller set it.
+export DEBUG_PORT="${DEBUG_PORT:-9223}"
 RABBY_ID="acmacodkjbdgmoleebolmdjonilkdbch"
 
 # Ensure Chrome is running
@@ -33,6 +35,7 @@ if ! curl -s "http://localhost:${DEBUG_PORT}/json/list" | grep -q "${RABBY_ID}/i
   sleep 2
 fi
 
-# Drive the onboarding via the node helper. WATCH_ADDR, PASSWORD, DEBUG_PORT
-# are inherited from this script's environment via execve(2).
+# Drive the onboarding via the node helper. WATCH_ADDR + PASSWORD are inherited
+# from the calling shell (bash auto-exports `VAR=val cmd` assignments for cmd's
+# lifetime); DEBUG_PORT is exported explicitly above.
 exec node "${SCRIPT_DIR}/../helpers/onboard.mjs"

@@ -29,6 +29,27 @@ export const LABELS = {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
+// Timings tuned against Citrea Mainnet on a 2024 M-series Mac.
+// All numbers are wall-clock milliseconds; increase if your network/machine is
+// slower. Values are paired with what they wait on:
+//   POPUP_SETTLE_MS   — Rabby renders the notification popup HTML before its
+//                       React tree is interactive. The locator-click below
+//                       fails on the initial paint without this grace period.
+//   POPUP_RISK_GAP_MS — the risk-warning row is fully dismissed before we
+//                       click the primary confirm button, so the confirm is
+//                       not gated.
+//   MODAL_OPEN_MS     — the dApp's wallet-modal slides in via Tamagui
+//                       animation; clicking too early misses the option grid.
+//   CHAIN_SWITCH_MS   — wallet_switchEthereumChain returns immediately, but
+//                       window.ethereum.chainId only updates after Rabby
+//                       broadcasts the chainChanged event back to the page.
+const TIMINGS = {
+  POPUP_SETTLE_MS: 1200,
+  POPUP_RISK_GAP_MS: 500,
+  MODAL_OPEN_MS: 1500,
+  CHAIN_SWITCH_MS: 3000,
+}
+
 /**
  * Connect to a running Chrome for Testing instance on the given CDP port.
  * Returns { browser, ctx, app } where `app` is the first localhost page.
@@ -56,7 +77,7 @@ export function autoApproveRabbyPopups(ctx, { labels = LABELS, log = console.log
     try {
       await popup.waitForLoadState('domcontentloaded')
     } catch {}
-    await sleep(1200)
+    await sleep(TIMINGS.POPUP_SETTLE_MS)
 
     const tryClick = async (text) => {
       const loc = popup.locator(`text="${text}"`).first()
@@ -72,7 +93,7 @@ export function autoApproveRabbyPopups(ctx, { labels = LABELS, log = console.log
 
     // Dismiss any risk warnings first; some popups gate the primary action on this.
     await tryClick(labels.ignoreRiskWarning)
-    await sleep(500)
+    await sleep(TIMINGS.POPUP_RISK_GAP_MS)
 
     // Click the first matching primary action.
     for (const candidate of [labels.connect, labels.switchChain, labels.confirm, labels.allow]) {
@@ -89,7 +110,7 @@ export function autoApproveRabbyPopups(ctx, { labels = LABELS, log = console.log
  */
 export async function connectRabby(app) {
   await app.locator('button[data-testid="navbar-connect-wallet"]').first().click({ force: true })
-  await sleep(1500)
+  await sleep(TIMINGS.MODAL_OPEN_MS)
   const rabbyOption = app.locator('text=/Rabby/').first()
   if ((await rabbyOption.count()) === 0) return false
   await rabbyOption.click({ force: true })
@@ -100,19 +121,23 @@ export async function connectRabby(app) {
  * Ask the connected wallet to switch chains. Pair with `autoApproveRabbyPopups`
  * to dismiss the chain-switch popup automatically.
  *
- * Returns the resulting chainId hex.
+ * Returns `{ ok, error?, chainId }`. `ok` reflects whether the request resolved
+ * cleanly inside the page; `chainId` is the eventual `window.ethereum.chainId`
+ * (which the page reads from the `chainChanged` event, so it may still be the
+ * old chain if the popup was rejected — check `ok`).
  */
 export async function switchChain(app, chainIdHex) {
-  await app.evaluate(async (hex) => {
+  const requestResult = await app.evaluate(async (hex) => {
     try {
       await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: hex }] })
+      return { ok: true }
     } catch (e) {
-      return 'err: ' + e.message
+      return { ok: false, error: e.message ?? String(e) }
     }
-    return 'ok'
   }, chainIdHex)
-  await sleep(3000)
-  return app.evaluate(() => window.ethereum?.chainId)
+  await sleep(TIMINGS.CHAIN_SWITCH_MS)
+  const chainId = await app.evaluate(() => window.ethereum?.chainId)
+  return { ...requestResult, chainId }
 }
 
 /**

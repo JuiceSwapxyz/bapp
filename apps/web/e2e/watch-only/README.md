@@ -37,13 +37,15 @@ System tools — install once:
 
 ```bash
 # macOS
-brew install node                  # node is required everywhere in the harness
+brew install node                  # ≥ 18 — the helper scripts use top-level await
 xcode-select --install             # ships curl + unzip + dev tools (usually already present)
 brew install gh && gh auth login   # OPTIONAL — fetch-rabby.sh uses gh when available
                                    # for higher GitHub API rate limits; otherwise it
                                    # falls back to anonymous curl, which is fine for
                                    # one-shot use.
 ```
+
+The repo's `.nvmrc` pins the working Node version. `nvm use` (or `fnm use`, etc.) picks it up; the harness needs Node ≥ 14.8 in absolute terms, the repo's pin is higher.
 
 Repo tooling:
 
