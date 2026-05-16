@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Launch Chrome for Testing with Rabby loaded and remote debugging on port 9223.
+#
+# Stable Google Chrome 130+ silently rejects --load-extension, so we use the
+# puppeteer-shipped variant. The binary lives in the puppeteer cache after a
+# successful `yarn install`.
+
+set -euo pipefail
+
+# Platform guard — see README "Platform support" for porting notes
+case "$(uname -s)/$(uname -m)" in
+  Darwin/arm64) ;;
+  *)
+    echo "ERROR: this harness is only tested on macOS arm64." >&2
+    echo "       Current platform: $(uname -s) $(uname -m)" >&2
+    echo "       To port: change the mac_arm-* glob and chrome-mac-arm64" >&2
+    echo "       subpath below to your puppeteer Chrome variant." >&2
+    exit 1
+    ;;
+esac
+
+PROFILE_DIR="${HOME}/.cache/chrome-rabby-profile"
+EXT_DIR="${HOME}/.cache/chrome-extensions/rabby"
+DEBUG_PORT="${DEBUG_PORT:-9223}"
+
+if [[ ! -d "${EXT_DIR}" ]]; then
+  echo "ERROR: Rabby is not installed at ${EXT_DIR}" >&2
+  echo "  Run apps/web/e2e/watch-only/scripts/fetch-rabby.sh first." >&2
+  exit 1
+fi
+
+# Pick the most recent Chrome for Testing in puppeteer's cache
+PUPPETEER_CACHE="${HOME}/.cache/puppeteer/chrome"
+if [[ ! -d "${PUPPETEER_CACHE}" ]]; then
+  echo "ERROR: puppeteer cache not found at ${PUPPETEER_CACHE}" >&2
+  echo "  Run \`yarn install\` from the repo root to populate it." >&2
+  exit 1
+fi
+
+CFT_DIR="$(ls -1d "${PUPPETEER_CACHE}"/mac_arm-* 2>/dev/null | sort -V | tail -1)"
+if [[ -z "${CFT_DIR}" ]]; then
+  echo "ERROR: no Chrome for Testing variant in ${PUPPETEER_CACHE}" >&2
+  echo "       \`yarn install\` may have skipped puppeteer's postinstall." >&2
+  echo "       Trigger the download manually with:" >&2
+  echo "       node -e \"require('puppeteer-core/internal/node/Browser').install({ browser: 'chrome' })\"" >&2
+  exit 1
+fi
+
+CFT_BIN="${CFT_DIR}/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+if [[ ! -x "${CFT_BIN}" ]]; then
+  echo "ERROR: ${CFT_BIN} not found or not executable" >&2
+  exit 1
+fi
+
+# If something is already on the debug port, only reap it when it's *our* Chrome
+# (matched via the unique --user-data-dir). Foreign port-holders are left alone
+# and the user is told to free the port themselves — silently killing whatever
+# is on port 9223 would be a footgun.
+if lsof -ti ":${DEBUG_PORT}" >/dev/null 2>&1; then
+  if pgrep -f "chrome-rabby-profile" >/dev/null 2>&1; then
+    echo "Reusing port ${DEBUG_PORT}: stopping the previous Chrome for Testing…"
+    pkill -f "chrome-rabby-profile" 2>/dev/null || true
+    sleep 2
+    # Chrome leaves a SingletonLock that prevents the next launch from reusing
+    # the profile. Remove it so the new instance starts cleanly.
+    rm -f "${PROFILE_DIR}/SingletonLock"
+  else
+    echo "ERROR: port ${DEBUG_PORT} is busy and not held by this harness." >&2
+    echo "  Free it (or set DEBUG_PORT=<other port>) and retry." >&2
+    exit 1
+  fi
+fi
+
+# Ensure profile dir exists (Rabby state lives here after onboarding)
+mkdir -p "${PROFILE_DIR}"
+
+echo "Launching Chrome for Testing…"
+echo "  binary:  ${CFT_BIN}"
+echo "  profile: ${PROFILE_DIR}"
+echo "  rabby:   ${EXT_DIR}"
+echo "  CDP:     http://localhost:${DEBUG_PORT}"
+
+# nohup so this survives the parent shell exiting
+nohup "${CFT_BIN}" \
+  --user-data-dir="${PROFILE_DIR}" \
+  --load-extension="${EXT_DIR}" \
+  --remote-debugging-port="${DEBUG_PORT}" \
+  --no-first-run \
+  --no-default-browser-check \
+  >/tmp/chrome-rabby.log 2>&1 &
+disown
+
+# Wait for CDP to come up (10s budget)
+for _ in $(seq 1 20); do
+  if curl -sf "http://localhost:${DEBUG_PORT}/json/version" >/dev/null; then
+    echo "✓ CDP up at http://localhost:${DEBUG_PORT}"
+    exit 0
+  fi
+  sleep 0.5
+done
+
+# Don't leave an orphaned Chrome behind if CDP never came up — it would
+# otherwise hold the profile lock and confuse the next launch.
+echo "ERROR: Chrome for Testing did not expose CDP on port ${DEBUG_PORT}" >&2
+echo "  tail /tmp/chrome-rabby.log for details" >&2
+pkill -f "chrome-rabby-profile" 2>/dev/null || true
+exit 1
