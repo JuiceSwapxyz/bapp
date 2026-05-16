@@ -154,9 +154,11 @@ export async function switchChain(app, chainIdHex) {
  *
  * Shape over exception: this is a probe, so it never rejects. When
  * `window.ethereum` is not injected, both fields are `undefined`. When
- * `eth_accounts` itself throws (rare — e.g. the user is locked), `accounts`
- * is `[]`. Distinguish "not connected" (`accounts === undefined`) from
- * "ethereum present but no authorised accounts" (`accounts === []`).
+ * `eth_accounts` rejects (a rare RPC-level error, not the locked-wallet
+ * case — EIP-1193 specifies the locked state returns `[]` instead of
+ * throwing), `accounts` is `[]`. Distinguish "not connected"
+ * (`accounts === undefined`) from "ethereum present but no authorised
+ * accounts" (`accounts === []`).
  */
 export async function walletState(app) {
   return await app.evaluate(async () => ({

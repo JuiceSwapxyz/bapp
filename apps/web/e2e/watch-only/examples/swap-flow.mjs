@@ -101,13 +101,14 @@ for (const amount of AMOUNTS) {
       loadingQuote: t.includes('Loading quote'),
       approveAndSwap: /Approve and [sS]wap/.test(t),
       submit: Array.from(document.querySelectorAll('button'))
-        .map((b) => (b.innerText || '').replace(/\s+/g, ' ').trim())
+        .map((b) => b.innerText.replace(/\s+/g, ' ').trim())
         .find((s) => /Approve|Loading|Acknowledge|Swap|quote|Insufficient/.test(s)),
     }
   })
   const stuck = result.loadingQuote && !result.approveAndSwap
+  const submitLabel = result.submit?.slice(0, 40) ?? '?'
   console.log(
-    `[${amount.padStart(8)}]  review="${reviewText.slice(0, 18)}"  submit="${(result.submit || '?').slice(0, 40)}"  ${stuck ? '❌ STUCK' : '✓'}`,
+    `[${amount.padStart(8)}]  review="${reviewText.slice(0, 18)}"  submit="${submitLabel}"  ${stuck ? '❌ STUCK' : '✓'}`,
   )
 }
 
