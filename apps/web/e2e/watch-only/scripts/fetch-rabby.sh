@@ -43,7 +43,9 @@ fi
 
 echo "Downloading ${ZIP_URL}…"
 TMP_ZIP="${CACHE_DIR}/rabby.zip"
-curl -sSL -o "${TMP_ZIP}" "${ZIP_URL}"
+# -f makes curl fail loudly on HTTP errors instead of saving an HTML error page
+# (which would then break unzip with a confusing "End-of-central-directory" error).
+curl -fsSL -o "${TMP_ZIP}" "${ZIP_URL}"
 
 echo "Extracting to ${TARGET}…"
 rm -rf "${TARGET}"

@@ -17,14 +17,14 @@ export const RABBY_ID = 'acmacodkjbdgmoleebolmdjonilkdbch'
 
 // German UI labels — Chrome for Testing inherits the system locale and the
 // onboarding scripts ran in DE. If you're on a different locale, swap these.
+// Only the labels actually clicked by helpers below are listed; if you need
+// more (e.g. to detect a "Cancel" path), add them here.
 export const LABELS = {
   connect: 'Verbinden',
-  cancel: 'Abbrechen',
   confirm: 'Bestätigen',
   ignoreRiskWarning: 'Alle ignorieren',
   switchChain: 'Wechseln',
   allow: 'Erlauben',
-  done: 'Erledigt',
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -68,6 +68,12 @@ export async function attach({ port = '9223', appUrlPrefix = 'http://localhost:3
  * The handler:
  *   1. dismisses the risk-warning row ("Alle ignorieren") if present
  *   2. clicks the primary confirm button ("Verbinden", "Wechseln", "Bestätigen", …)
+ *
+ * Options:
+ *   labels — label strings to click; defaults to LABELS (German).
+ *   log    — logger called once per successful popup click. Defaults to
+ *            console.log; pass () => {} to silence, or a custom sink to route
+ *            into the example script's own log stream.
  *
  * Returns a disposer; call it to remove the listener.
  */

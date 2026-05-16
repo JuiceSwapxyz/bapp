@@ -52,11 +52,23 @@ if [[ ! -x "${CFT_BIN}" ]]; then
   exit 1
 fi
 
-# Nothing running on the debug port?
+# If something is already on the debug port, only reap it when it's *our* Chrome
+# (matched via the unique --user-data-dir). Foreign port-holders are left alone
+# and the user is told to free the port themselves — silently killing whatever
+# is on port 9223 would be a footgun.
 if lsof -ti ":${DEBUG_PORT}" >/dev/null 2>&1; then
-  echo "Port ${DEBUG_PORT} is busy. Killing existing Chrome for Testing…"
-  pkill -f "chrome-rabby-profile" 2>/dev/null || true
-  sleep 2
+  if pgrep -f "chrome-rabby-profile" >/dev/null 2>&1; then
+    echo "Reusing port ${DEBUG_PORT}: stopping the previous Chrome for Testing…"
+    pkill -f "chrome-rabby-profile" 2>/dev/null || true
+    sleep 2
+    # Chrome leaves a SingletonLock that prevents the next launch from reusing
+    # the profile. Remove it so the new instance starts cleanly.
+    rm -f "${PROFILE_DIR}/SingletonLock"
+  else
+    echo "ERROR: port ${DEBUG_PORT} is busy and not held by this harness." >&2
+    echo "  Free it (or set DEBUG_PORT=<other port>) and retry." >&2
+    exit 1
+  fi
 fi
 
 # Ensure profile dir exists (Rabby state lives here after onboarding)
@@ -87,6 +99,9 @@ for _ in $(seq 1 20); do
   sleep 0.5
 done
 
+# Don't leave an orphaned Chrome behind if CDP never came up — it would
+# otherwise hold the profile lock and confuse the next launch.
 echo "ERROR: Chrome for Testing did not expose CDP on port ${DEBUG_PORT}" >&2
 echo "  tail /tmp/chrome-rabby.log for details" >&2
+pkill -f "chrome-rabby-profile" 2>/dev/null || true
 exit 1
