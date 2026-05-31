@@ -45,8 +45,7 @@ export function bubbleTextStyle(fontSize: number): CSSProperties {
     fontWeight: 900,
     letterSpacing: -fontSize * 0.03,
     lineHeight: 1,
-    backgroundImage:
-      'linear-gradient(135deg, #FFE9C4 0%, #FFB35C 25%, #F7911A 50%, #C46800 75%, #FFB35C 100%)',
+    backgroundImage: 'linear-gradient(135deg, #FFE9C4 0%, #FFB35C 25%, #F7911A 50%, #C46800 75%, #FFB35C 100%)',
     backgroundSize: '220% 220%',
     WebkitBackgroundClip: 'text',
     backgroundClip: 'text',
@@ -59,7 +58,7 @@ export function bubbleTextStyle(fontSize: number): CSSProperties {
 }
 
 export function LiquidBubbleStyleTag() {
-  return <style dangerouslySetInnerHTML={{ __html: LIQUID_BUBBLE_KEYFRAMES }} />
+  return <style>{LIQUID_BUBBLE_KEYFRAMES}</style>
 }
 
 const FILTER_ID_HERO = 'juice-goo-hero'
@@ -102,12 +101,7 @@ export function LiquidBg({ variant = 'hero' }: LiquidBgProps) {
       <defs>
         <filter id={filterId} x="-30%" y="-30%" width="160%" height="160%">
           <feGaussianBlur in="SourceGraphic" stdDeviation={stdDev} result="blur" />
-          <feColorMatrix
-            in="blur"
-            mode="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8"
-            result="goo"
-          />
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -8" result="goo" />
           <feBlend in="SourceGraphic" in2="goo" />
         </filter>
         <radialGradient id={orbId} cx="50%" cy="40%">

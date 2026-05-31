@@ -81,7 +81,7 @@ function WebUniswapProviderInner({ children }: PropsWithChildren) {
 
   const navigateToBridgesSwaps = useCallback(() => {
     navigate('/bridge-swaps')
-  }, [])
+  }, [navigate])
 
   const navigateToUrl = useCallback(
     (url: string) => {
