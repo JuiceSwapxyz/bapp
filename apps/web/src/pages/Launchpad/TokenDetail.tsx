@@ -11,11 +11,18 @@ import { ActivityTable } from 'pages/Launchpad/components/ActivityTable'
 import { BondingCurveHero } from 'pages/Launchpad/components/BondingCurveHero'
 import { BuySellPanel } from 'pages/Launchpad/components/BuySellPanel'
 import { TokenLogo } from 'pages/Launchpad/components/TokenLogo'
-import { BackButton, GraduatedBadge, StatLabel, StatRow, StatValue } from 'pages/Launchpad/components/shared'
+import {
+  BackButton,
+  GraduatedBadge,
+  LaunchpadBackdrop,
+  StatLabel,
+  StatRow,
+  StatValue,
+} from 'pages/Launchpad/components/shared'
 import { LAUNCHPAD_TOKEN_TOTAL_SUPPLY } from 'pages/Launchpad/constants'
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { Flex, ModalCloseIcon, Text, styled, useIsDarkMode } from 'ui/src'
+import { Flex, ModalCloseIcon, Text, styled } from 'ui/src'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
 import { CopyAlt } from 'ui/src/components/icons/CopyAlt'
 import { ExternalLink } from 'ui/src/components/icons/ExternalLink'
@@ -86,15 +93,6 @@ function buildMockCandles(): PriceChartData[] {
 // shadows for depth.
 // ---------------------------------------------------------------------------
 
-// Theme-aware launchpad canvas. Each theme gets its own crafted background:
-// dark = citrus glow on near-black; light = soft warm citrus glow on off-white.
-const DARK_BASE = '#0A0A0C'
-const LIGHT_BASE = '#FAF8F4'
-const DARK_GLOW =
-  'radial-gradient(900px 520px at 8% -10%, rgba(247,145,26,0.22), transparent 60%), radial-gradient(760px 520px at 104% -4%, rgba(255,124,58,0.13), transparent 55%), radial-gradient(720px 640px at 50% 118%, rgba(99,200,122,0.07), transparent 60%)'
-const LIGHT_GLOW =
-  'radial-gradient(820px 480px at 6% -12%, rgba(247,145,26,0.16), transparent 58%), radial-gradient(700px 460px at 104% -6%, rgba(255,124,58,0.10), transparent 55%), radial-gradient(740px 560px at 50% 120%, rgba(99,200,122,0.06), transparent 60%)'
-
 const PageContainer = styled(Flex, {
   position: 'relative',
   overflow: 'hidden',
@@ -104,16 +102,6 @@ const PageContainer = styled(Flex, {
   paddingTop: '$spacing20',
   paddingBottom: '$spacing60',
   paddingHorizontal: '$spacing20',
-})
-
-const PageBackdrop = styled(Flex, {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  zIndex: 0,
-  pointerEvents: 'none',
 })
 
 const ContentWrapper = styled(Flex, {
@@ -295,7 +283,6 @@ export default function TokenDetail() {
   const { tokenAddress } = useParams<{ tokenAddress: string }>()
   const navigate = useNavigate()
   const account = useAccount()
-  const isDark = useIsDarkMode()
   const [chartInterval, setChartInterval] = useState<LaunchpadCandleInterval>('5m')
   const [chartPriceUnit, setChartPriceUnit] = useState<ChartPriceUnit>('usd')
 
@@ -476,8 +463,8 @@ export default function TokenDetail() {
 
   return (
     <Trace logImpression page={InterfacePageName.LaunchpadTokenDetailPage}>
-      <PageContainer style={{ backgroundColor: isDark ? DARK_BASE : LIGHT_BASE }}>
-        <PageBackdrop style={{ background: isDark ? DARK_GLOW : LIGHT_GLOW }} />
+      <PageContainer>
+        <LaunchpadBackdrop />
         <ContentWrapper>
           <BackButton onPress={handleBack}>
             <BackArrow size="$icon.20" color="$neutral2" />
