@@ -9,6 +9,7 @@ import type { CustomSwapDataForRequest, GasStrategy } from 'uniswap/src/data/tra
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 import type { SwapDelegationInfo } from 'uniswap/src/features/smartWallet/delegation/types'
 import type { TransactionSettings } from 'uniswap/src/features/transactions/components/settings/types'
+import { JUICESWAP_DEFAULT_SLIPPAGE } from 'uniswap/src/features/transactions/swap/constants/juiceSwapSlippage'
 import type {
   EVMSwapRepository,
   SwapData,
@@ -120,7 +121,7 @@ export const getCustomSwapTokenData = (
       tokenOutChainId: currencyOut.chainId,
       tokenOutAddress: currencyOut.isNative ? ZERO_ADDRESS : currencyOut.address,
       tokenOutDecimals: currencyOut.decimals,
-      slippageTolerance: transactionSettings?.customSlippageTolerance?.toString() ?? '5',
+      slippageTolerance: transactionSettings?.customSlippageTolerance?.toString() ?? JUICESWAP_DEFAULT_SLIPPAGE.toString(),
     }
   }
 

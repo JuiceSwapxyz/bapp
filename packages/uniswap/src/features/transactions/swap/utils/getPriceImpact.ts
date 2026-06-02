@@ -2,7 +2,8 @@ import { CurrencyAmount, Percent, type Currency } from '@juiceswapxyz/sdk-core'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import { getSwapFeeUsdFromDerivedSwapInfo } from 'uniswap/src/features/transactions/swap/utils/getSwapFeeUsd'
-import { isClassic, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { getJuiceSwapPriceImpact } from 'uniswap/src/features/transactions/swap/utils/juiceSwapPriceImpact'
+import { isClassic, isGatewayJusd, isSatsuma, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 
 function stringToUSDAmount(value: string | number | undefined, USDCurrency: Currency): Maybe<CurrencyAmount<Currency>> {
   if (!value) {
@@ -54,6 +55,8 @@ export function getPriceImpact(derivedSwapInfo: DerivedSwapInfo): Percent | unde
     return getUniswapXPriceImpact({ derivedSwapInfo })
   } else if (isClassic(trade)) {
     return trade.priceImpact
+  } else if (isSatsuma(trade) || isGatewayJusd(trade)) {
+    return getJuiceSwapPriceImpact(trade)
   } else {
     return undefined
   }
