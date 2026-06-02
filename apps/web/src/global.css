@@ -59,6 +59,37 @@ html {
   }
 }
 
+/* Launchpad live trade ticker — seamless horizontal scroll (content duplicated 2x) */
+@keyframes launchpad-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Launchpad progress-bar sheen — a highlight sweeps across the filled portion */
+@keyframes lp-sheen {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  55%,
+  100% {
+    transform: translateX(420%) skewX(-20deg);
+  }
+}
+
+/* Launchpad shimmer — animated gradient sweep for empty/loading surfaces */
+@keyframes lp-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 @keyframes token-rotate-animation {
   0% {
     transform: rotate(-22deg);
