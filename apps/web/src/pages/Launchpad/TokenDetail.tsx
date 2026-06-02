@@ -60,33 +60,6 @@ function extractSocialHandle(value: string | null | undefined, platform: SocialP
   return trimmed.replace('@', '')
 }
 
-// ⚠️ TEMP — SESSION PREVIEW ONLY. Remove before committing.
-// The backend /candles endpoint is not deployed (404), so the chart is always
-// empty. This synthesizes a plausible price series so the chart design can be
-// reviewed. Set MOCK_CHART to false (or delete) to restore the real empty state.
-const MOCK_CHART: boolean = true
-function buildMockCandles(): PriceChartData[] {
-  const now = Math.floor(Date.now() / 1000)
-  const count = 120
-  const step = 300 // 5m
-  const out: PriceChartData[] = []
-  let base = 0.0000031
-  for (let i = 0; i < count; i++) {
-    base *= 1.0042 // gentle uptrend
-    const osc = 1 + Math.sin(i / 6) * 0.06 + (Math.random() - 0.5) * 0.05
-    const close = base * osc
-    out.push({
-      time: (now - (count - i) * step) as UTCTimestamp,
-      open: close * 0.997,
-      high: close * 1.012,
-      low: close * 0.988,
-      close,
-      value: close,
-    })
-  }
-  return out
-}
-
 // ---------------------------------------------------------------------------
 // Layout — clean, light, JuiceSwap-branded trading terminal.
 // Citrus (#F7911A) is used only as an accent; surfaces stay clean with soft
@@ -377,9 +350,6 @@ export default function TokenDetail() {
         close: candle.close,
         value: candle.close,
       })) ?? []
-    if (real.length === 0 && MOCK_CHART) {
-      return buildMockCandles() // TEMP: session preview only
-    }
     return real
   }, [candlesData?.candles])
 
