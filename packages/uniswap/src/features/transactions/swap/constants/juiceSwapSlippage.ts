@@ -8,3 +8,13 @@
  * swap (issue #764).
  */
 export const JUICESWAP_DEFAULT_SLIPPAGE = 5
+
+/**
+ * Resolves the slippage tolerance (as the string the `/v1/swap` body expects)
+ * for JuiceSwap's routing types: the user's custom tolerance when set,
+ * otherwise the shared default. Keeping this in one place guarantees the
+ * submit paths and the slippage display agree (issue #764).
+ */
+export function resolveJuiceSwapSlippageTolerance(customSlippageTolerance?: number): string {
+  return customSlippageTolerance?.toString() ?? JUICESWAP_DEFAULT_SLIPPAGE.toString()
+}
