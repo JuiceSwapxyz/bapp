@@ -1,18 +1,33 @@
 import { Contract, ContractTransaction } from '@ethersproject/contracts'
+import type { JsonRpcSigner } from '@ethersproject/providers'
+import { AllowanceTransfer, PermitSingle, permit2Address } from '@uniswap/permit2-sdk'
 import { wagmiConfig } from 'components/Web3Provider/wagmiConfig'
 import {
   BONDING_CURVE_TOKEN_ABI,
   DEFAULT_LAUNCHPAD_SLIPPAGE_BPS,
-  LAUNCHPAD_ADDRESSES,
   TOKEN_FACTORY_ABI,
+  getRuntimeLaunchpadAddresses,
 } from 'constants/launchpad'
 import { clientToProvider } from 'hooks/useEthersProvider'
 import { useCallback } from 'react'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { logger } from 'utilities/src/logger/logger'
 import { UserRejectedRequestError } from 'utils/errors'
+import { signTypedData } from 'utils/signing'
 import { didUserReject } from 'utils/swapErrorToUserReadableMessage'
 import { getConnectorClient } from 'wagmi/actions'
+
+const ERC20_APPROVAL_ABI = [
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function approve(address spender, uint256 amount) returns (bool)',
+]
+
+const PERMIT2_ALLOWANCE_ABI = [
+  'function allowance(address owner, address token, address spender) view returns (uint160 amount, uint48 expiration, uint48 nonce)',
+]
+
+const MAX_UINT160 = (1n << 160n) - 1n
+const DEV_BUY_PERMIT_TTL_SECONDS = 30 * 60
 
 /**
  * Get a fresh signer for the wallet's current chain.
@@ -49,7 +64,7 @@ async function getFreshBondingCurveContract(tokenAddress: string, expectedChainI
  * Get a fresh TokenFactory contract with a signer for the current chain.
  */
 async function getFreshTokenFactoryContract(expectedChainId: UniverseChainId) {
-  const addresses = LAUNCHPAD_ADDRESSES[expectedChainId]
+  const addresses = getRuntimeLaunchpadAddresses(expectedChainId)
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!addresses || addresses.factory === '0x0000000000000000000000000000000000000000') {
     throw new Error('Token factory not available for this chain')
@@ -62,6 +77,11 @@ async function getFreshTokenFactoryContract(expectedChainId: UniverseChainId) {
   }
 
   return new Contract(addresses.factory, TOKEN_FACTORY_ABI, signer)
+}
+
+function getPermit2(chainId: UniverseChainId): string {
+  const addresses = getRuntimeLaunchpadAddresses(chainId) as { permit2?: string } | undefined
+  return addresses?.permit2 ?? permit2Address(chainId)
 }
 
 export interface BuyParams {
@@ -78,6 +98,9 @@ export interface CreateTokenParams {
   name: string
   symbol: string
   metadataURI: string
+  devBuyBaseIn?: bigint
+  minDevBuyTokensOut?: bigint
+  onStatus?: (status: string) => void
 }
 
 /**
@@ -172,6 +195,9 @@ export function useCreateToken(
       name,
       symbol,
       metadataURI,
+      devBuyBaseIn = 0n,
+      minDevBuyTokensOut = 0n,
+      onStatus,
     }: CreateTokenParams): Promise<{ tx: ContractTransaction; tokenAddress: string | null }> => {
       if (!name.trim()) {
         throw new Error('Token name is required')
@@ -182,17 +208,84 @@ export function useCreateToken(
       if (!metadataURI.trim()) {
         throw new Error('Token metadata URI is required')
       }
+      if (devBuyBaseIn < 0n) {
+        throw new Error('Dev buy amount cannot be negative')
+      }
+      if (devBuyBaseIn > MAX_UINT160) {
+        throw new Error('Dev buy amount exceeds Permit2 limit')
+      }
 
       try {
         // Get fresh contract with signer at transaction time
         const contract = await getFreshTokenFactoryContract(chainId)
+        const addresses = getRuntimeLaunchpadAddresses(chainId)
+        if (!addresses) {
+          throw new Error('Token factory not available for this chain')
+        }
+        const permit2 = getPermit2(chainId)
+        const signerAddress = await contract.signer.getAddress()
 
-        const tx = await contract.createToken(name, symbol, metadataURI)
+        let tx: ContractTransaction
+
+        if (devBuyBaseIn > 0n) {
+          if (!addresses.supportsDevBuy) {
+            throw new Error('Dev buy requires the upgraded launchpad factory on this chain')
+          }
+
+          onStatus?.('Checking JUSD Permit2 setup...')
+          const baseAsset = addresses.baseAsset
+          const baseToken = new Contract(baseAsset, ERC20_APPROVAL_ABI, contract.signer)
+          const currentTokenAllowance = await baseToken.allowance(signerAddress, permit2)
+
+          if (BigInt(currentTokenAllowance.toString()) < devBuyBaseIn) {
+            onStatus?.('Approving JUSD Permit2 setup...')
+            const approveTx = await baseToken.approve(permit2, devBuyBaseIn.toString())
+            await approveTx.wait()
+          }
+
+          onStatus?.('Signing JUSD permit...')
+          const permit2Contract = new Contract(permit2, PERMIT2_ALLOWANCE_ABI, contract.signer)
+          const [, , nonce] = await permit2Contract.allowance(signerAddress, baseAsset, addresses.factory)
+          const deadline = Math.floor(Date.now() / 1000) + DEV_BUY_PERMIT_TTL_SECONDS
+          const permit: PermitSingle = {
+            details: {
+              token: baseAsset,
+              amount: devBuyBaseIn.toString(),
+              expiration: deadline,
+              nonce: Number(nonce.toString()),
+            },
+            spender: addresses.factory,
+            sigDeadline: deadline,
+          }
+          const { domain, types, values } = AllowanceTransfer.getPermitData(permit, permit2, chainId)
+          const signature = await signTypedData({
+            signer: contract.signer as JsonRpcSigner,
+            domain,
+            types,
+            value: values,
+          })
+
+          onStatus?.('Creating token with dev buy...')
+          tx = await contract.createTokenWithDevBuyPermit(
+            name,
+            symbol,
+            metadataURI,
+            devBuyBaseIn.toString(),
+            minDevBuyTokensOut.toString(),
+            permit,
+            signature,
+          )
+        } else {
+          onStatus?.('Creating token on-chain...')
+          tx = await contract.createToken(name, symbol, metadataURI)
+        }
         logger.info('useLaunchpadActions', 'useCreateToken', 'Create token transaction submitted', {
           hash: tx.hash,
           name,
           symbol,
           metadataURI,
+          devBuyBaseIn: devBuyBaseIn.toString(),
+          minDevBuyTokensOut: minDevBuyTokensOut.toString(),
         })
 
         // Wait for receipt to get the token address from events
@@ -200,17 +293,15 @@ export function useCreateToken(
         let tokenAddress: string | null = null
 
         // Parse TokenCreated event to get the new token address
-        if (receipt.logs) {
-          for (const log of receipt.logs) {
-            try {
-              const parsed = contract.interface.parseLog(log)
-              if (parsed.name === 'TokenCreated') {
-                tokenAddress = parsed.args.token
-                break
-              }
-            } catch {
-              // Skip logs that don't match
+        for (const log of receipt.logs) {
+          try {
+            const parsed = contract.interface.parseLog(log)
+            if (parsed.name === 'TokenCreated') {
+              tokenAddress = parsed.args.token
+              break
             }
+          } catch {
+            // Skip logs that don't match
           }
         }
 

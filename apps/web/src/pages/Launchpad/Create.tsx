@@ -1,5 +1,10 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
-import { isLaunchpadChainSupported } from 'constants/launchpad'
+import {
+  BONDING_CURVE_CONSTANTS,
+  DEFAULT_LAUNCHPAD_SLIPPAGE_BPS,
+  MAX_DEV_BUY_BPS,
+  isLaunchpadChainSupported,
+} from 'constants/launchpad'
 import { useAccount } from 'hooks/useAccount'
 import { useCreateToken, useUploadTokenMetadata } from 'hooks/useLaunchpadActions'
 import useSelectChain from 'hooks/useSelectChain'
@@ -10,6 +15,7 @@ import {
   Card,
   JuiceScriptText,
   LaunchpadBackdrop,
+  Pill,
   PrimaryButton,
   StatLabel,
   StatRow,
@@ -30,7 +36,7 @@ import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
 import { TransactionType } from 'uniswap/src/features/transactions/types/transactionDetails'
-import { formatUnits, parseEther } from 'viem'
+import { formatUnits, parseEther, parseUnits } from 'viem'
 import { useBalance } from 'wagmi'
 
 const PageContainer = styled(Flex, {
@@ -168,8 +174,99 @@ const ErrorText = styled(Text, {
   color: '$statusCritical',
 })
 
+// Dev buy amount + JUSD/% mode toggle live on one row (stacks on mobile).
+const InputRow = styled(Flex, {
+  flexDirection: 'row',
+  gap: '$spacing8',
+  alignItems: 'center',
+  $sm: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
+})
+
+// Optional dev buy block, set off from the form fields by a top divider.
+const DevBuySection = styled(Flex, {
+  gap: '$spacing12',
+  paddingTop: '$spacing16',
+  borderTopWidth: 1,
+  borderTopColor: '$surface3',
+})
+
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml']
+const MAX_DEV_BUY_PERCENT = MAX_DEV_BUY_BPS / 100
+const FEE_DENOMINATOR = BONDING_CURVE_CONSTANTS.BPS_DENOMINATOR
+const FEE_NUMERATOR = FEE_DENOMINATOR - BONDING_CURVE_CONSTANTS.FEE_BPS
+const DEFAULT_VIRTUAL_BASE_RESERVES = parseEther('4500')
+
+type DevBuyMode = 'jusd' | 'percent'
+
+function ceilDiv(a: bigint, b: bigint): bigint {
+  return (a + b - 1n) / b
+}
+
+function calculateInitialBuy(baseIn: bigint, virtualBaseReserves: bigint): bigint {
+  if (baseIn <= 0n) {
+    return 0n
+  }
+
+  const baseInAfterFee = (baseIn * FEE_NUMERATOR) / FEE_DENOMINATOR
+  const newVirtualBaseReserves = virtualBaseReserves + baseInAfterFee
+  const k = virtualBaseReserves * BONDING_CURVE_CONSTANTS.INITIAL_VIRTUAL_TOKEN_RESERVES
+  const newVirtualTokenReserves = k / newVirtualBaseReserves
+  const tokensOut = BONDING_CURVE_CONSTANTS.INITIAL_VIRTUAL_TOKEN_RESERVES - newVirtualTokenReserves
+
+  return tokensOut > BONDING_CURVE_CONSTANTS.INITIAL_REAL_TOKEN_RESERVES
+    ? BONDING_CURVE_CONSTANTS.INITIAL_REAL_TOKEN_RESERVES
+    : tokensOut
+}
+
+function calculateBaseInForInitialTokens(targetTokens: bigint, virtualBaseReserves: bigint): bigint {
+  if (targetTokens <= 0n) {
+    return 0n
+  }
+
+  const maxTokens = BONDING_CURVE_CONSTANTS.INITIAL_REAL_TOKEN_RESERVES
+  const cappedTarget = targetTokens > maxTokens ? maxTokens : targetTokens
+  const denominator = BONDING_CURVE_CONSTANTS.INITIAL_VIRTUAL_TOKEN_RESERVES - cappedTarget
+  const baseInAfterFee = ceilDiv(virtualBaseReserves * cappedTarget, denominator)
+
+  return ceilDiv(baseInAfterFee * FEE_DENOMINATOR, FEE_NUMERATOR)
+}
+
+function parsePercentToBps(value: string): number | null {
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return 0
+  }
+  const parts = trimmed.split('.')
+  if (parts.length > 2) {
+    return null
+  }
+  const [whole = '', fraction = ''] = parts
+  const isDigits = (part: string) => [...part].every((char) => char >= '0' && char <= '9')
+  if (
+    (!whole && !fraction) ||
+    whole.length > 2 ||
+    fraction.length > 2 ||
+    (whole.length > 0 && !isDigits(whole)) ||
+    (fraction.length > 0 && !isDigits(fraction))
+  ) {
+    return null
+  }
+  const bps = Number(whole || '0') * 100 + Number(fraction.padEnd(2, '0').slice(0, 2))
+
+  return Number.isFinite(bps) ? bps : null
+}
+
+function formatCompactTokenAmount(amount: bigint): string {
+  const value = Number(formatUnits(amount, 18))
+  if (!Number.isFinite(value)) {
+    return '-'
+  }
+  return value.toLocaleString(undefined, { maximumFractionDigits: value >= 1 ? 2 : 6 })
+}
 
 export default function CreateToken() {
   const navigate = useNavigate()
@@ -197,6 +294,8 @@ export default function CreateToken() {
   const [website, setWebsite] = useState('')
   const [twitter, setTwitter] = useState('')
   const [telegram, setTelegram] = useState('')
+  const [devBuyMode, setDevBuyMode] = useState<DevBuyMode>('jusd')
+  const [devBuyInput, setDevBuyInput] = useState('')
 
   // UI state
   const [isLoading, setIsLoading] = useState(false)
@@ -206,13 +305,21 @@ export default function CreateToken() {
   const createToken = useCreateToken(launchpadChainId)
   const uploadMetadata = useUploadTokenMetadata()
   const selectChain = useSelectChain()
-  const { initialVirtualBaseReserves } = useTokenFactory(launchpadChainId)
+  const { initialVirtualBaseReserves, baseAsset } = useTokenFactory(launchpadChainId)
   const addTransaction = useTransactionAdder()
 
   // Check native balance for gas fees
   const { data: nativeBalance } = useBalance({
     address: account.address as `0x${string}` | undefined,
     chainId: launchpadChainId as number,
+  })
+
+  // JUSD balance — used to validate the optional dev buy
+  const { data: jusdBalance } = useBalance({
+    address: account.address as `0x${string}` | undefined,
+    chainId: launchpadChainId as number,
+    token: baseAsset as `0x${string}` | undefined,
+    query: { enabled: Boolean(account.address && baseAsset) },
   })
 
   // Minimum gas threshold (~7x typical token creation fee of ~0.0000007 cBTC)
@@ -286,6 +393,73 @@ export default function CreateToken() {
     setError(null)
   }, [])
 
+  const handleDevBuyInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setDevBuyInput(e.target.value)
+    setError(null)
+  }, [])
+
+  const handleDevBuyModeChange = useCallback((mode: DevBuyMode) => {
+    setDevBuyMode(mode)
+    setDevBuyInput('')
+    setError(null)
+  }, [])
+
+  const devBuyQuote = useMemo(() => {
+    const trimmed = devBuyInput.trim()
+    const virtualBase = initialVirtualBaseReserves ?? DEFAULT_VIRTUAL_BASE_RESERVES
+
+    if (!trimmed) {
+      return { baseIn: 0n, tokensOut: 0n, minTokensOut: 0n, percentBps: 0, error: null as string | null }
+    }
+
+    if (devBuyMode === 'jusd') {
+      try {
+        const baseIn = parseUnits(trimmed, 18)
+        if (baseIn < 0n) {
+          throw new Error('negative')
+        }
+        const tokensOut = calculateInitialBuy(baseIn, virtualBase)
+        const percentBps = Number((tokensOut * 10000n) / BONDING_CURVE_CONSTANTS.INITIAL_REAL_TOKEN_RESERVES)
+        const minTokensOut = tokensOut - (tokensOut * BigInt(DEFAULT_LAUNCHPAD_SLIPPAGE_BPS)) / 10000n
+        const error = percentBps > MAX_DEV_BUY_BPS ? `Dev buy max is ${MAX_DEV_BUY_PERCENT}% of curve supply` : null
+
+        return { baseIn, tokensOut, minTokensOut, percentBps, error }
+      } catch {
+        return { baseIn: 0n, tokensOut: 0n, minTokensOut: 0n, percentBps: 0, error: 'Enter a valid JUSD amount' }
+      }
+    }
+
+    const percentBps = parsePercentToBps(trimmed)
+    if (percentBps === null) {
+      return {
+        baseIn: 0n,
+        tokensOut: 0n,
+        minTokensOut: 0n,
+        percentBps: 0,
+        error: 'Enter a valid percent with up to 2 decimals',
+      }
+    }
+    if (percentBps > MAX_DEV_BUY_BPS) {
+      return {
+        baseIn: 0n,
+        tokensOut: 0n,
+        minTokensOut: 0n,
+        percentBps,
+        error: `Dev buy max is ${MAX_DEV_BUY_PERCENT}% of curve supply`,
+      }
+    }
+
+    const tokensOut = (BONDING_CURVE_CONSTANTS.INITIAL_REAL_TOKEN_RESERVES * BigInt(percentBps)) / 10000n
+    const baseIn = calculateBaseInForInitialTokens(tokensOut, virtualBase)
+    const minTokensOut = tokensOut - (tokensOut * BigInt(DEFAULT_LAUNCHPAD_SLIPPAGE_BPS)) / 10000n
+
+    return { baseIn, tokensOut, minTokensOut, percentBps, error: null as string | null }
+  }, [devBuyInput, devBuyMode, initialVirtualBaseReserves])
+
+  const hasInsufficientJusd = Boolean(
+    account.address && devBuyQuote.baseIn > 0n && jusdBalance && jusdBalance.value < devBuyQuote.baseIn,
+  )
+
   const handleCreate = useCallback(async () => {
     const trimmedName = name.trim()
     const trimmedSymbol = symbol.trim()
@@ -331,6 +505,14 @@ export default function CreateToken() {
       setError('Website must be a valid URL starting with http:// or https://')
       return
     }
+    if (devBuyQuote.error) {
+      setError(devBuyQuote.error)
+      return
+    }
+    if (hasInsufficientJusd) {
+      setError('Insufficient JUSD balance for dev buy')
+      return
+    }
 
     setIsLoading(true)
     setError(null)
@@ -363,13 +545,16 @@ export default function CreateToken() {
         }
       }
 
-      // Step 3: Create token on-chain
+      // Step 3: Create token on-chain (optionally with an atomic dev buy)
       // createToken() gets a fresh signer at transaction time, so it works correctly after chain switch
-      setLoadingStatus('Creating token on-chain...')
+      setLoadingStatus(devBuyQuote.baseIn > 0n ? 'Preparing dev buy...' : 'Creating token on-chain...')
       const { tx, tokenAddress } = await createToken({
         name: trimmedName,
         symbol: trimmedSymbol,
         metadataURI,
+        devBuyBaseIn: devBuyQuote.baseIn,
+        minDevBuyTokensOut: devBuyQuote.minTokensOut,
+        onStatus: setLoadingStatus,
       })
 
       addTransaction(tx, {
@@ -403,21 +588,29 @@ export default function CreateToken() {
     launchpadChainId,
     selectChain,
     createToken,
+    devBuyQuote,
+    hasInsufficientJusd,
     navigate,
     addTransaction,
   ])
 
   const isWalletConnected = !!account.address
   const isFormComplete = !!name.trim() && !!symbol.trim() && !!description.trim() && !!imageFile
-  const isButtonDisabled = isWalletConnected && (isLoading || !isFormComplete || hasInsufficientGas)
+  const isButtonDisabled =
+    isWalletConnected &&
+    (isLoading || !isFormComplete || hasInsufficientGas || !!devBuyQuote.error || hasInsufficientJusd)
 
   const buttonText = !isWalletConnected
     ? 'Connect Wallet'
     : hasInsufficientGas
       ? 'Insufficient cBTC for gas'
-      : isLoading
-        ? loadingStatus || 'Creating...'
-        : 'Create Token'
+      : hasInsufficientJusd
+        ? 'Insufficient JUSD for dev buy'
+        : devBuyQuote.error
+          ? 'Check dev buy'
+          : isLoading
+            ? loadingStatus || 'Creating...'
+            : 'Create Token'
 
   const handleButtonPress = useCallback(() => {
     if (!isWalletConnected) {
@@ -431,6 +624,14 @@ export default function CreateToken() {
   const initialLiquidity = initialVirtualBaseReserves
     ? Number(formatUnits(initialVirtualBaseReserves, 18)).toLocaleString(undefined, { maximumFractionDigits: 0 })
     : '4,500'
+  const devBuyPercentLabel = `${(devBuyQuote.percentBps / 100).toLocaleString(undefined, {
+    maximumFractionDigits: 2,
+  })}%`
+  const devBuyBaseLabel =
+    devBuyQuote.baseIn > 0n
+      ? Number(formatUnits(devBuyQuote.baseIn, 18)).toLocaleString(undefined, { maximumFractionDigits: 6 })
+      : '0'
+  const devBuyTokensLabel = devBuyQuote.tokensOut > 0n ? formatCompactTokenAmount(devBuyQuote.tokensOut) : '0'
 
   return (
     <Trace logImpression page={InterfacePageName.LaunchpadCreatePage}>
@@ -594,6 +795,59 @@ export default function CreateToken() {
                 maxLength={100}
               />
             </InputGroup>
+
+            <DevBuySection>
+              <Flex flexDirection="row" alignItems="center" gap="$spacing8">
+                <InputLabel>Dev buy</InputLabel>
+                <OptionalLabel>(optional)</OptionalLabel>
+              </Flex>
+              <Text variant="body4" color="$neutral3">
+                Seed your own launch and be the first squeezer — bought atomically with creation via a scoped JUSD
+                permit.
+              </Text>
+              <InputRow>
+                <Flex flexDirection="row" gap="$spacing6" flexShrink={0}>
+                  <Pill active={devBuyMode === 'jusd'} onPress={() => handleDevBuyModeChange('jusd')}>
+                    <Text variant="buttonLabel4" color={devBuyMode === 'jusd' ? '$accent1' : '$neutral2'}>
+                      JUSD
+                    </Text>
+                  </Pill>
+                  <Pill active={devBuyMode === 'percent'} onPress={() => handleDevBuyModeChange('percent')}>
+                    <Text variant="buttonLabel4" color={devBuyMode === 'percent' ? '$accent1' : '$neutral2'}>
+                      %
+                    </Text>
+                  </Pill>
+                </Flex>
+                <Flex flex={1} minWidth={0}>
+                  <StyledInput
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={devBuyInput}
+                    onChange={handleDevBuyInputChange}
+                  />
+                </Flex>
+              </InputRow>
+              <InputHint>Max {MAX_DEV_BUY_PERCENT}% of curve supply · 1% slippage protection.</InputHint>
+              {devBuyQuote.baseIn > 0n && !devBuyQuote.error && (
+                <Flex gap="$spacing6" backgroundColor="$surface1" borderRadius="$rounded12" padding="$spacing12">
+                  <StatRow>
+                    <StatLabel variant="body3">Dev buy spend</StatLabel>
+                    <StatValue variant="body3">{devBuyBaseLabel} JUSD</StatValue>
+                  </StatRow>
+                  <StatRow>
+                    <StatLabel variant="body3">Estimated tokens</StatLabel>
+                    <StatValue variant="body3">{devBuyTokensLabel}</StatValue>
+                  </StatRow>
+                  <StatRow>
+                    <StatLabel variant="body3">Curve share</StatLabel>
+                    <StatValue variant="body3">{devBuyPercentLabel}</StatValue>
+                  </StatRow>
+                </Flex>
+              )}
+              {devBuyQuote.error && <ErrorText>{devBuyQuote.error}</ErrorText>}
+              {hasInsufficientJusd && <ErrorText>Insufficient JUSD balance for dev buy</ErrorText>}
+            </DevBuySection>
 
             {!isOnSupportedChain && account.address && (
               <ErrorText>Please switch to Citrea Mainnet or Citrea Testnet to continue</ErrorText>

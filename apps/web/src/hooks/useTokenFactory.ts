@@ -1,8 +1,10 @@
-import { LAUNCHPAD_ADDRESSES, TOKEN_FACTORY_ABI } from 'constants/launchpad'
+import { TOKEN_FACTORY_ABI, getRuntimeLaunchpadAddresses } from 'constants/launchpad'
 import { useMemo } from 'react'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { assume0xAddress } from 'utils/wagmi'
 import { useReadContract, useReadContracts } from 'wagmi'
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 export interface TokenInfo {
   address: string
@@ -26,7 +28,10 @@ export interface TokenFactoryState {
  */
 export function useFactoryAddress(chainId: UniverseChainId = UniverseChainId.CitreaMainnet): string | undefined {
   return useMemo(() => {
-    const addresses = LAUNCHPAD_ADDRESSES[chainId]
+    const addresses = getRuntimeLaunchpadAddresses(chainId)
+    if (!addresses) {
+      return undefined
+    }
     if (addresses.factory === '0x0000000000000000000000000000000000000000') {
       return undefined
     }
@@ -146,6 +151,10 @@ export function useTokenInfo(
     }
 
     const [creator, timestamp, name, symbol] = data as readonly [string, bigint, string, string, string]
+
+    if (creator === ZERO_ADDRESS || timestamp === 0n || !name || !symbol) {
+      return { tokenInfo: undefined, isLoading }
+    }
 
     return {
       tokenInfo: {
