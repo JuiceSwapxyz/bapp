@@ -20,7 +20,8 @@ import {
   StatValue,
 } from 'pages/Launchpad/components/shared'
 import { LAUNCHPAD_TOKEN_TOTAL_SUPPLY } from 'pages/Launchpad/constants'
-import { useCallback, useMemo, useState } from 'react'
+import { useLaunchpadAnimation } from 'pages/Launchpad/useLaunchpadMotion'
+import { useCallback, useMemo, useState, type ComponentProps } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Flex, ModalCloseIcon, Text, styled } from 'ui/src'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
@@ -87,7 +88,7 @@ const ContentWrapper = styled(Flex, {
   gap: '$spacing16',
 })
 
-const Panel = styled(Flex, {
+const PanelSurface = styled(Flex, {
   backgroundColor: '$surface2',
   borderRadius: '$rounded20',
   borderWidth: 1,
@@ -105,6 +106,13 @@ const Panel = styled(Flex, {
     },
   } as const,
 })
+
+// The `lp-elev` class lets global.css drop the soft 24px depth-shadow
+// layer on phones (≤640px) — a paint win on low-end GPUs while scrolling.
+// Desktop keeps the full two-layer shadow.
+function Panel(props: ComponentProps<typeof PanelSurface>) {
+  return <PanelSurface className="lp-elev" {...props} />
+}
 
 const TokenName = styled(Text, {
   variant: 'heading2',
@@ -222,6 +230,8 @@ const SegmentButton = styled(Flex, {
 })
 
 const ChartEmpty = styled(Flex, {
+  position: 'relative',
+  overflow: 'hidden',
   height: 360,
   alignItems: 'center',
   justifyContent: 'center',
@@ -234,12 +244,37 @@ const ChartEmpty = styled(Flex, {
 })
 
 // Subtle moving citrus shimmer for the empty chart surface (high-end touch).
-const CHART_SHIMMER = {
-  backgroundImage:
-    'linear-gradient(100deg, rgba(247,145,26,0) 35%, rgba(247,145,26,0.08) 50%, rgba(247,145,26,0) 65%)',
-  backgroundSize: '220% 100%',
-  animation: 'lp-shimmer 3.6s linear infinite',
+// A `transform`-driven sweep (compositor-only, `lp-shimmer-x` in global.css)
+// instead of an animated `background-position`, which forces a full repaint
+// of the 360px surface every frame on low-end GPUs. Removed entirely under
+// prefers-reduced-motion and paused while off-screen / tab hidden.
+const ChartShimmerBar = styled(Flex, {
+  position: 'absolute',
+  top: 0,
+  bottom: 0,
+  left: 0,
+  width: '45%',
+  pointerEvents: 'none',
+})
+
+const CHART_SHIMMER_STYLE = {
+  background:
+    'linear-gradient(100deg, rgba(247,145,26,0) 0%, rgba(247,145,26,0.08) 50%, rgba(247,145,26,0) 100%)',
+  animation: 'lp-shimmer-x 3.6s linear infinite',
 } as const
+
+function ChartShimmerSweep() {
+  const { ref, active, reduced } = useLaunchpadAnimation()
+  if (reduced) {
+    return null
+  }
+  return (
+    <ChartShimmerBar
+      ref={ref}
+      style={{ ...CHART_SHIMMER_STYLE, animationPlayState: active ? 'running' : 'paused' }}
+    />
+  )
+}
 
 const AddressRow = styled(Flex, {
   flexDirection: 'row',
@@ -635,7 +670,8 @@ export default function TokenDetail() {
                     valueFormatter={chartValueFormatter}
                   />
                 ) : (
-                  <ChartEmpty style={CHART_SHIMMER}>
+                  <ChartEmpty>
+                    <ChartShimmerSweep />
                     {candlesLoading ? (
                       <Text variant="body2" color="$neutral2">
                         Loading chart…
