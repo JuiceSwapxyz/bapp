@@ -27,6 +27,7 @@ const PageContainer = styled(Flex, {
   paddingTop: '$spacing24',
   paddingBottom: '$spacing60',
   paddingHorizontal: '$spacing20',
+  $sm: { paddingHorizontal: '$spacing12' },
 })
 
 const ContentWrapper = styled(Flex, {
@@ -66,6 +67,7 @@ const ControlsRow = styled(Flex, {
   alignItems: 'center',
   flexWrap: 'wrap',
   gap: '$spacing12',
+  $sm: { flexDirection: 'column', alignItems: 'stretch', justifyContent: 'flex-start' },
 })
 
 const PillGroup = styled(Flex, {
@@ -187,7 +189,7 @@ export default function Launchpad() {
         <LaunchpadBackdrop />
         <ContentWrapper>
           <TopBar>
-            <Flex gap="$spacing4" flex={1} minWidth={240}>
+            <Flex gap="$spacing4" flex={1} minWidth={240} $sm={{ minWidth: '100%' }}>
               <Eyebrow>JUICESWAP LAUNCHPAD</Eyebrow>
               <JuiceScriptText fontSize={46} lineHeight={68} $md={{ fontSize: 40, lineHeight: 60 }} $sm={{ fontSize: 32, lineHeight: 48 }}>
                 freshly squeezed
@@ -197,7 +199,7 @@ export default function Launchpad() {
                 active · {(stats?.graduatedTokens ?? 0).toLocaleString()} graduated
               </StatsLine>
             </Flex>
-            <PrimaryButton size="lg" onPress={handleCreateToken}>
+            <PrimaryButton size="lg" onPress={handleCreateToken} $sm={{ width: '100%' }}>
               <Plus size="$icon.20" color="$white" />
               <Text variant="buttonLabel2" color="$white">
                 Create Token

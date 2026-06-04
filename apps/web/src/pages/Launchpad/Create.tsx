@@ -48,6 +48,7 @@ const PageContainer = styled(Flex, {
   paddingTop: '$spacing24',
   paddingBottom: '$spacing60',
   paddingHorizontal: '$spacing20',
+  $sm: { paddingHorizontal: '$spacing12' },
 })
 
 const ContentWrapper = styled(Flex, {

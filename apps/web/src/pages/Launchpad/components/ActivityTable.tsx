@@ -152,26 +152,30 @@ export function ActivityTable({
         <HeadCell {...COL.age}>Age</HeadCell>
       </HeaderRow>
 
-      {isLoading ? (
-        <Flex padding="$spacing24" alignItems="center">
-          <Text variant="body3" color="$neutral3">
-            Loading activity…
-          </Text>
-        </Flex>
-      ) : trades.length === 0 ? (
-        <Flex padding="$spacing24" alignItems="center" gap="$spacing4">
-          <Text variant="body2" color="$neutral1" fontWeight="600">
-            No trades yet
-          </Text>
-          <Text variant="body3" color="$neutral3">
-            Be the first to trade this token.
-          </Text>
-        </Flex>
-      ) : (
-        trades.map((trade) => (
-          <TradeRow key={`${trade.txHash}-${trade.id}`} trade={trade} symbol={symbol} chainId={chainId} />
-        ))
-      )}
+      {/* Rows scroll within a capped height on mobile so the long trade list
+          doesn't dominate the page; desktop keeps its natural full height. */}
+      <Flex gap="$spacing4" $md={{ maxHeight: 420, overflow: 'scroll' }}>
+        {isLoading ? (
+          <Flex padding="$spacing24" alignItems="center">
+            <Text variant="body3" color="$neutral3">
+              Loading activity…
+            </Text>
+          </Flex>
+        ) : trades.length === 0 ? (
+          <Flex padding="$spacing24" alignItems="center" gap="$spacing4">
+            <Text variant="body2" color="$neutral1" fontWeight="600">
+              No trades yet
+            </Text>
+            <Text variant="body3" color="$neutral3">
+              Be the first to trade this token.
+            </Text>
+          </Flex>
+        ) : (
+          trades.map((trade) => (
+            <TradeRow key={`${trade.txHash}-${trade.id}`} trade={trade} symbol={symbol} chainId={chainId} />
+          ))
+        )}
+      </Flex>
     </Flex>
   )
 }

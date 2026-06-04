@@ -75,6 +75,7 @@ const PageContainer = styled(Flex, {
   paddingTop: '$spacing20',
   paddingBottom: '$spacing60',
   paddingHorizontal: '$spacing20',
+  $sm: { paddingHorizontal: '$spacing12' },
 })
 
 const ContentWrapper = styled(Flex, {
@@ -135,7 +136,10 @@ const LeftColumn = styled(Flex, {
   flexShrink: 1,
   minWidth: 0,
   gap: '$spacing16',
-  $md: { width: '100%' },
+  // On mobile the two columns collapse into MainContent's single flex column.
+  // `display: contents` promotes each panel into that column so they can be
+  // freely reordered via per-panel `$md={{ order }}` (buy/sell pulled up).
+  $md: { width: '100%', display: 'contents' },
 })
 
 const RightColumn = styled(Flex, {
@@ -144,7 +148,7 @@ const RightColumn = styled(Flex, {
   width: 372,
   maxWidth: '100%',
   gap: '$spacing16',
-  $md: { width: '100%', flexShrink: 1 },
+  $md: { width: '100%', flexShrink: 1, display: 'contents' },
 })
 
 const StatGrid = styled(Flex, {
@@ -576,15 +580,18 @@ export default function TokenDetail() {
 
           <MainContent>
             <LeftColumn>
-              <BondingCurveHero
-                progress={displayProgress}
-                graduated={displayGraduated}
-                tokensRemaining={tokensRemaining}
-                onInfo={() => setShowBondingModal(true)}
-              />
+              {/* `$md` order props arrange the flattened mobile column: curve → buy/sell → chart → activity → info → about */}
+              <Flex $md={{ order: 1 }}>
+                <BondingCurveHero
+                  progress={displayProgress}
+                  graduated={displayGraduated}
+                  tokensRemaining={tokensRemaining}
+                  onInfo={() => setShowBondingModal(true)}
+                />
+              </Flex>
 
               {/* Chart */}
-              <Panel>
+              <Panel $md={{ order: 3 }}>
                 <ChartHeaderRow>
                   <Flex gap="$spacing2">
                     <CardTitle>Price chart</CardTitle>
@@ -674,7 +681,7 @@ export default function TokenDetail() {
               </Panel>
 
               {/* Live activity (real trades) */}
-              <Panel>
+              <Panel $md={{ order: 4 }}>
                 <Flex flexDirection="row" justifyContent="space-between" alignItems="center">
                   <CardTitle>Recent activity</CardTitle>
                   <Text variant="body4" color="$neutral3">
@@ -687,21 +694,23 @@ export default function TokenDetail() {
 
             <RightColumn>
               {displayBaseAsset && (
-                <BuySellPanel
-                  tokenAddress={tokenAddress}
-                  tokenSymbol={displaySymbol}
-                  baseAsset={displayBaseAsset}
-                  graduated={displayGraduated}
-                  canGraduate={displayCanGraduate}
-                  chainId={chainId}
-                  reserves={reserves}
-                  onTransactionComplete={refetchBondingCurve}
-                  onGraduateComplete={refetchBondingCurve}
-                />
+                <Flex $md={{ order: 2 }}>
+                  <BuySellPanel
+                    tokenAddress={tokenAddress}
+                    tokenSymbol={displaySymbol}
+                    baseAsset={displayBaseAsset}
+                    graduated={displayGraduated}
+                    canGraduate={displayCanGraduate}
+                    chainId={chainId}
+                    reserves={reserves}
+                    onTransactionComplete={refetchBondingCurve}
+                    onGraduateComplete={refetchBondingCurve}
+                  />
+                </Flex>
               )}
 
               {/* Token info */}
-              <Panel>
+              <Panel $md={{ order: 5 }}>
                 <CardTitle>Token info</CardTitle>
                 <Flex gap="$spacing2">
                   <StatRow paddingVertical="$spacing4">
@@ -765,7 +774,7 @@ export default function TokenDetail() {
 
               {/* About */}
               {metadata?.description && (
-                <Panel>
+                <Panel $md={{ order: 6 }}>
                   <CardTitle>About</CardTitle>
                   <Text variant="body2" color="$neutral2">
                     {metadata.description}
