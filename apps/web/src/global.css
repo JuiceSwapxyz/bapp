@@ -80,13 +80,15 @@ html {
   }
 }
 
-/* Launchpad shimmer — animated gradient sweep for empty/loading surfaces */
-@keyframes lp-shimmer {
+/* Launchpad shimmer — a citrus highlight bar sweeps across empty surfaces.
+   `transform`-driven (compositor-only) instead of animating background-position,
+   which would repaint the whole surface every frame on low-end GPUs. */
+@keyframes lp-shimmer-x {
   0% {
-    background-position: -200% 0;
+    transform: translateX(-120%);
   }
   100% {
-    background-position: 200% 0;
+    transform: translateX(260%);
   }
 }
 
@@ -96,6 +98,28 @@ html {
   }
   100% {
     transform: rotate(22deg);
+  }
+}
+
+/* Launchpad performance for low-end / battery-saver phones ------------------ */
+
+/* Lighter elevation on phones: drop the soft 24px depth-shadow layer (a paint
+   cost while scrolling on old GPUs), keep a hairline. Desktop keeps the full
+   two-layer shadow. Applied to launchpad panels/cards tagged `lp-elev`. */
+@media (max-width: 640px) {
+  .lp-elev {
+    box-shadow: 0 1px 2px rgba(16, 16, 16, 0.05) !important;
+  }
+}
+
+/* Belt-and-suspenders for reduced-motion: the launchpad's continuous
+   animations are already gated in JS (useLaunchpadMotion), but never let the
+   marquee / sheen / shimmer run for users who explicitly opt out of motion. */
+@media (prefers-reduced-motion: reduce) {
+  [style*='launchpad-ticker'],
+  [style*='lp-sheen'],
+  [style*='lp-shimmer-x'] {
+    animation: none !important;
   }
 }
 

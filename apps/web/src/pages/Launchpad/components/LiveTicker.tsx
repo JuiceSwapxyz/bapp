@@ -1,4 +1,5 @@
 import { useRecentLaunchpadTrades, type LaunchpadTrade } from 'hooks/useLaunchpadTokens'
+import { useLaunchpadAnimation } from 'pages/Launchpad/useLaunchpadMotion'
 import { useMemo } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { formatUnits } from 'viem'
@@ -88,13 +89,22 @@ export function LiveTicker({ chainId }: { chainId?: number }) {
   // Duplicate the list so the -50% translate loops seamlessly.
   const loop = useMemo(() => [...trades, ...trades], [trades])
 
+  // Only spend frames on the marquee when it is on screen, the tab is
+  // visible, and the user hasn't asked for reduced motion — otherwise
+  // freeze it (a static, readable trade list) to spare low-end devices.
+  const { ref, active } = useLaunchpadAnimation()
+  const trackStyle = useMemo(
+    () => ({ ...TICKER_ANIMATION, animationPlayState: active ? 'running' : 'paused' }) as const,
+    [active],
+  )
+
   if (trades.length === 0) {
     return null
   }
 
   return (
-    <Viewport>
-      <Track style={TICKER_ANIMATION}>
+    <Viewport ref={ref}>
+      <Track style={trackStyle}>
         <LivePulse>
           <Dot backgroundColor="$statusSuccess" />
           <Text variant="body3" color="$statusSuccess" fontWeight="700" letterSpacing={0.6}>

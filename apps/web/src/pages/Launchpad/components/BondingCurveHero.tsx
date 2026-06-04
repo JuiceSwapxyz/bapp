@@ -1,4 +1,5 @@
 import { getProgressGradient } from 'pages/Launchpad/components/shared'
+import { useLaunchpadAnimation } from 'pages/Launchpad/useLaunchpadMotion'
 import { useEffect, useRef, useState } from 'react'
 import { Flex, Text, styled } from 'ui/src'
 import { InfoCircle } from 'ui/src/components/icons/InfoCircle'
@@ -42,16 +43,24 @@ const Marker = styled(Flex, {
 
 const SHEEN_STYLE = { animation: 'lp-sheen 2.8s ease-in-out infinite' } as const
 
-// requestAnimationFrame count-up to `target`, eased.
-function useCountUp(target: number, durationMs = 1100): number {
+const COUNT_UP_DURATION_MS = 1100
+
+// requestAnimationFrame count-up to `target`, eased. With `skip` (reduced
+// motion) the value snaps straight to the target — no rAF loop at all.
+function useCountUp(target: number, skip: boolean): number {
   const [val, setVal] = useState(0)
   const fromRef = useRef(0)
   useEffect(() => {
+    if (skip) {
+      fromRef.current = target
+      setVal(target)
+      return undefined
+    }
     const from = fromRef.current
     let raf = 0
     const start = performance.now()
     const tick = (now: number) => {
-      const t = Math.min((now - start) / durationMs, 1)
+      const t = Math.min((now - start) / COUNT_UP_DURATION_MS, 1)
       const eased = 1 - Math.pow(1 - t, 3)
       const next = from + (target - from) * eased
       setVal(next)
@@ -63,7 +72,7 @@ function useCountUp(target: number, durationMs = 1100): number {
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [target, durationMs])
+  }, [target, skip])
   return val
 }
 
@@ -76,19 +85,28 @@ interface BondingCurveHeroProps {
 
 export function BondingCurveHero({ progress, graduated, tokensRemaining, onInfo }: BondingCurveHeroProps) {
   const pct = graduated ? 100 : Math.min(Math.max(progress, 0), 100)
-  const animatedPct = useCountUp(pct)
+  // `ref`/`active` pause the infinite sheen sweep when off-screen; `reduced`
+  // removes the count-up, the fill transition, and the sheen entirely for
+  // users (and battery-saver phones) that prefer reduced motion.
+  const { ref, active, reduced } = useLaunchpadAnimation()
+  const animatedPct = useCountUp(pct, reduced)
 
-  // Animate the fill width from 0 -> pct on mount / change.
-  const [fillW, setFillW] = useState(0)
+  // Animate the fill width from 0 -> pct on mount / change (skipped under
+  // reduced motion, where it is rendered at its final width immediately).
+  const [fillW, setFillW] = useState(reduced ? pct : 0)
   useEffect(() => {
+    if (reduced) {
+      setFillW(pct)
+      return undefined
+    }
     const id = requestAnimationFrame(() => setFillW(pct))
     return () => cancelAnimationFrame(id)
-  }, [pct])
+  }, [pct, reduced])
 
   const accentColor = graduated ? '$statusSuccess' : '$accent1'
 
   return (
-    <Panel>
+    <Panel ref={ref} className="lp-elev">
       <Flex flexDirection="row" justifyContent="space-between" alignItems="flex-end" gap="$spacing16" flexWrap="wrap">
         <Flex gap="$spacing2">
           <Text variant="subheading2" color="$neutral1" fontWeight="700">
@@ -117,19 +135,23 @@ export function BondingCurveHero({ progress, graduated, tokensRemaining, onInfo 
           style={{
             width: `${fillW}%`,
             background: getProgressGradient(pct),
-            transition: 'width 1.4s cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: reduced ? 'none' : 'width 1.4s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         >
-          <Flex
-            position="absolute"
-            top={0}
-            bottom={0}
-            width={60}
-            style={{
-              ...SHEEN_STYLE,
-              background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%)',
-            }}
-          />
+          {!reduced && (
+            <Flex
+              position="absolute"
+              top={0}
+              bottom={0}
+              width={60}
+              style={{
+                ...SHEEN_STYLE,
+                animationPlayState: active ? 'running' : 'paused',
+                background:
+                  'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%)',
+              }}
+            />
+          )}
         </Flex>
         {!graduated && <Marker />}
       </Track>
