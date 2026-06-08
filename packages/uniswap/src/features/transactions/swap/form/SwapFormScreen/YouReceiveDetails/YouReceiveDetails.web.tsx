@@ -19,6 +19,7 @@ import {
   BestRouteUniswapXTooltip,
 } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormTooltips/BestRouteTooltip'
 import { SwapFeeOnTransferTooltip } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormTooltips/FeeDetailsTooltip'
+import { LargePriceDifferenceTooltip } from 'uniswap/src/features/transactions/swap/form/SwapFormScreen/SwapFormTooltips/LargePriceDifferenceTooltip'
 import {
   AutoSlippageBadge,
   MaxSlippageTooltip,
@@ -31,7 +32,8 @@ import { usePriceDifference } from 'uniswap/src/features/transactions/swap/hooks
 import { useParsedSwapWarnings } from 'uniswap/src/features/transactions/swap/hooks/useSwapWarnings/useSwapWarnings'
 import { useSwapFormStore } from 'uniswap/src/features/transactions/swap/stores/swapFormStore/useSwapFormStore'
 import { useSwapTxStore } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/useSwapTxStore'
-import { isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { JUICESWAP_DEFAULT_SLIPPAGE } from 'uniswap/src/features/transactions/swap/constants/juiceSwapSlippage'
+import { isGatewayJusd, isSatsuma, isUniswapX } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { WrapType } from 'uniswap/src/features/transactions/types/wrap'
 import { useIsBlocked } from 'uniswap/src/features/trm/hooks'
 import { useWallet } from 'uniswap/src/features/wallet/hooks/useWallet'
@@ -127,33 +129,31 @@ function PriceDifferenceDisplay({
 }: {
   priceDifference: UsePriceDifferenceReturnType
 }): JSX.Element | null {
+  const { t } = useTranslation()
+  const { formatPercent } = useLocalizationContext()
+
   if (!priceDifference.showPriceDifferenceWarning) {
     return null
   }
 
-  return null // TODO: add price difference warning when calculation is implemented
-
-  /*
-  const { t } = useTranslation()
-  const { formatPercent } = useLocalizationContext()
-
+  // `priceDifferencePercentage` is negative when the user is losing value;
+  // show the magnitude as the JuiceSwap Price Impact, with severity colour.
   return (
     <SwapDetailsRow.Outer>
       <SwapDetailsRow.Label
-        label={t('large.price.difference')}
-        analyticsTitle="Large price difference"
+        label={t('swap.priceImpact.juiceswap')}
+        analyticsTitle="JuiceSwap price impact"
         tooltip={<LargePriceDifferenceTooltip />}
       />
       <Flex row gap="$spacing4" alignItems="center">
         <AlertTriangleFilled color={priceDifference.priceDifferenceColor} size="$icon.16" />
         <SwapDetailsRow.ValueLabel
-          value={formatPercent(priceDifference.priceDifferencePercentage)}
+          value={formatPercent(Math.abs(priceDifference.priceDifferencePercentage))}
           color={priceDifference.priceDifferenceColor}
         />
       </Flex>
     </SwapDetailsRow.Outer>
   )
-  */
 }
 
 function MaxSlippageDisplay({
@@ -271,6 +271,7 @@ export function YouReceiveDetails({ isBridge }: YouReceiveDetailsProps): JSX.Ele
     inlineWarning?.warning.type === WarningLabel.PriceImpactMedium
   const feeOnTransferProps = useFeeOnTransferAmounts(derivedSwapInfo)
   const isUniswapXContext = useSwapTxStore((s) => isUniswapX({ routing: s.routing }))
+  const swapTxRouting = useSwapTxStore((s) => s.routing)
   const trade = useSwapTxStore((s) => s.trade)
   const receivedAmountPostFees = derivedSwapInfo.outputAmountUserWillReceive
     ? formatCurrencyAmount({
@@ -292,7 +293,15 @@ export function YouReceiveDetails({ isBridge }: YouReceiveDetailsProps): JSX.Ele
     placeholder: '-',
   })} ${outputCurrency?.currency.symbol}`
 
-  const formattedCurrentSlippageTolerance = formatPercent(currentSlippageTolerance)
+  // JuiceSwap's own routes submit a fixed default slippage to /v1/swap when the
+  // user has not set a custom tolerance. Display that same value so the shown
+  // "Max slippage" can never differ from what is actually signed (issue #764).
+  const usesJuiceSwapDefaultSlippage =
+    !customSlippageTolerance &&
+    (isSatsuma({ routing: swapTxRouting }) || isGatewayJusd({ routing: swapTxRouting }))
+  const formattedCurrentSlippageTolerance = formatPercent(
+    usesJuiceSwapDefaultSlippage ? JUICESWAP_DEFAULT_SLIPPAGE : currentSlippageTolerance,
+  )
 
   const showDropdown =
     derivedSwapInfo.wrapType === WrapType.NotApplicable &&

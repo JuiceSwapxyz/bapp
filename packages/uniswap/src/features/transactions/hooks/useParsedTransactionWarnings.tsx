@@ -25,26 +25,28 @@ export const getNetworkWarning = (t: AppTFunction): Warning => ({
 })
 
 // Format an array of warnings into the ParsedWarnings type
+export function getParsedWarnings(warnings: Warning[]): ParsedWarnings {
+  const blockingWarning = warnings.find(
+    (warning) => warning.action === WarningAction.DisableReview || warning.action === WarningAction.DisableSubmit,
+  )
+
+  const insufficientBalanceWarning = warnings.find((warning) => warning.type === WarningLabel.InsufficientFunds)
+  const insufficientGasFundsWarning = warnings.find((warning) => warning.type === WarningLabel.InsufficientGasFunds)
+  const priceImpactWarning = warnings.find((warning) => isPriceImpactWarning(warning))
+
+  return {
+    blockingWarning,
+    formScreenWarning: getFormScreenWarning(warnings),
+    insufficientBalanceWarning,
+    insufficientGasFundsWarning,
+    priceImpactWarning,
+    reviewScreenWarning: getReviewScreenWarning(warnings),
+    warnings,
+  }
+}
+
 export function useFormattedWarnings(warnings: Warning[]): ParsedWarnings {
-  return useMemo(() => {
-    const blockingWarning = warnings.find(
-      (warning) => warning.action === WarningAction.DisableReview || warning.action === WarningAction.DisableSubmit,
-    )
-
-    const insufficientBalanceWarning = warnings.find((warning) => warning.type === WarningLabel.InsufficientFunds)
-    const insufficientGasFundsWarning = warnings.find((warning) => warning.type === WarningLabel.InsufficientGasFunds)
-    const priceImpactWarning = warnings.find((warning) => isPriceImpactWarning(warning))
-
-    return {
-      blockingWarning,
-      formScreenWarning: getFormScreenWarning(warnings),
-      insufficientBalanceWarning,
-      insufficientGasFundsWarning,
-      priceImpactWarning,
-      reviewScreenWarning: getReviewScreenWarning(warnings),
-      warnings,
-    }
-  }, [warnings])
+  return useMemo(() => getParsedWarnings(warnings), [warnings])
 }
 
 function getReviewScreenWarning(warnings: Warning[]): ParsedWarnings['reviewScreenWarning'] | undefined {
@@ -62,6 +64,19 @@ function getFormScreenWarning(warnings: Warning[]): ParsedWarnings['reviewScreen
   const insufficientBalanceWarning = warnings.find((warning) => warning.type === WarningLabel.InsufficientFunds)
 
   if (insufficientBalanceWarning) {
+    // An insufficient-funds state must not hide a critical (high-severity)
+    // price-impact or value-loss warning — surface the critical one inline
+    // instead, while the "Not enough" message still drives the review button
+    // text (issue #764).
+    const criticalLossWarning = warnings.find(
+      (warning) =>
+        warning.severity >= WarningSeverity.High &&
+        (isPriceImpactWarning(warning) || warning.type === WarningLabel.FiatLossHigh),
+    )
+    if (criticalLossWarning) {
+      return getWarningWithStyle({ warning: criticalLossWarning, displayedInline: true })
+    }
+
     return {
       warning: insufficientBalanceWarning,
       color: getAlertColor(WarningSeverity.Medium),

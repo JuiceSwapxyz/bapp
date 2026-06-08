@@ -44,7 +44,9 @@ export function GasAndWarningRows(): JSX.Element | null {
         />
       )}
 
-      {!hasInsufficientFundsWarning && hasGasInfo && (
+      {/* Keep the trade-info row when a critical warning must stay visible even
+          under an insufficient-funds state (issue #764). */}
+      {(!hasInsufficientFundsWarning || Boolean(inlineWarning)) && hasGasInfo && (
         <Flex gap="$spacing8" px="$spacing8" py="$spacing4">
           <TradeInfoRow gasInfo={debouncedGasInfo} warning={inlineWarning} />
         </Flex>
