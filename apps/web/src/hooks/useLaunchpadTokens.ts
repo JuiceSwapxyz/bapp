@@ -78,6 +78,45 @@ export interface LaunchpadTradesResponse {
   }
 }
 
+export type LaunchpadCandleInterval = '1m' | '5m' | '15m' | '1h' | '4h' | '1d'
+
+export interface LaunchpadCandle {
+  time: number
+  open: number
+  high: number
+  low: number
+  close: number
+  volumeBase: number
+  volumeToken: number
+  tradeCount: number
+}
+
+export interface LaunchpadUserTradeMarker {
+  time: number
+  side: 'buy' | 'sell'
+  price: number
+  baseAmount: number
+  tokenAmount: number
+  txHash: `0x${string}`
+  blockNumber: number
+}
+
+export interface LaunchpadCandlesResponse {
+  range: {
+    from: number
+    to: number
+    interval: LaunchpadCandleInterval
+    intervalSeconds: number
+    limit: number
+  }
+  source: 'bonding_curve' | 'bonding_curve_pre_graduation'
+  priceBasis: 'execution_price'
+  currency: 'base'
+  candles: LaunchpadCandle[]
+  latest: { price: number; timestamp: number } | null
+  userTrades?: LaunchpadUserTradeMarker[]
+}
+
 export interface UseLaunchpadTokensOptions {
   filter?: LaunchpadFilterType
   page?: number
@@ -213,6 +252,45 @@ export function useLaunchpadTrades(options: UseLaunchpadTradesOptions) {
     enabled: !!address,
     staleTime: 10_000,
     refetchInterval: 15_000, // 15 seconds
+  })
+}
+
+export function useLaunchpadCandles({
+  address,
+  chainId,
+  interval = '5m',
+  trader,
+}: {
+  address: string | undefined
+  chainId?: number
+  interval?: LaunchpadCandleInterval
+  trader?: string
+}) {
+  return useQuery({
+    queryKey: ['launchpad-candles', address, chainId, interval, trader],
+    queryFn: async (): Promise<LaunchpadCandlesResponse> => {
+      const params = new URLSearchParams({
+        interval,
+        limit: '240',
+        fill: 'last',
+        currency: 'base',
+      })
+      if (chainId) {
+        params.set('chainId', chainId.toString())
+      }
+      if (trader) {
+        params.set('trader', trader)
+      }
+
+      const response = await fetch(`${API_URL}/v1/launchpad/token/${address}/candles?${params}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch launchpad candles')
+      }
+      return response.json()
+    },
+    enabled: !!address,
+    staleTime: 10_000,
+    refetchInterval: 10_000,
   })
 }
 

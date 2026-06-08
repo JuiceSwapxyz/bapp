@@ -15,8 +15,9 @@ export default function QueryTokenLogo(
     token?: TokenStat
   },
 ) {
-  const chainId = getChainIdFromChainUrlParam(props.token?.chain.toLowerCase()) ?? UniverseChainId.Mainnet
-  const isNative = props.token?.address === NATIVE_CHAIN_ID
+  const { token } = props
+  const chainId = getChainIdFromChainUrlParam(token?.chain.toLowerCase()) ?? UniverseChainId.Mainnet
+  const isNative = token?.address === NATIVE_CHAIN_ID
 
   const nativeCurrency = useNativeCurrency(chainId)
   const currency = isNative ? nativeCurrency : undefined
@@ -24,10 +25,9 @@ export default function QueryTokenLogo(
   const currencies = useMemo(() => (!isNative ? undefined : [currency]), [currency, isNative])
 
   // Launchpad token logo - resolved from metadata when token is from launchpad
-  const launchpadLogoUrl = useLaunchpadTokenLogoUrl(props.token?.address, chainId)
+  const launchpadLogoUrl = useLaunchpadTokenLogoUrl(token?.address, chainId)
 
   const logoUrl = useMemo(() => {
-    const { token } = props
     const candidates = [
       token?.logo,
       token?.project?.logo?.url,
@@ -37,15 +37,7 @@ export default function QueryTokenLogo(
       launchpadLogoUrl,
     ]
     return candidates.find(Boolean) ?? undefined
-  }, [
-    props.token,
-    props.token?.logo,
-    props.token?.project?.logo?.url,
-    props.token?.address,
-    props.token?.symbol,
-    chainId,
-    launchpadLogoUrl,
-  ])
+  }, [token, chainId, launchpadLogoUrl])
 
   return <PortfolioLogo currencies={currencies} chainId={chainId} images={[logoUrl]} {...props} />
 }

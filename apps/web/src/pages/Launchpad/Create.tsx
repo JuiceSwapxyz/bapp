@@ -5,13 +5,27 @@ import { useCreateToken, useUploadTokenMetadata } from 'hooks/useLaunchpadAction
 import useSelectChain from 'hooks/useSelectChain'
 import { useTokenFactory } from 'hooks/useTokenFactory'
 import styledComponents from 'lib/styled-components'
-import { BackButton, StatLabel, StatRow, StatValue } from 'pages/Launchpad/components/shared'
+import {
+  BackButton,
+  Card,
+  JuiceScriptText,
+  LaunchpadBackdrop,
+  PrimaryButton,
+  StatLabel,
+  StatRow,
+  StatValue,
+  TrustBadge,
+} from 'pages/Launchpad/components/shared'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { waitForNetwork } from 'state/sagas/transactions/chainSwitchUtils'
 import { useTransactionAdder } from 'state/transactions/hooks'
 import { Flex, Text, styled } from 'ui/src'
 import { BackArrow } from 'ui/src/components/icons/BackArrow'
+import { CheckCircleFilled } from 'ui/src/components/icons/CheckCircleFilled'
+import { Lock } from 'ui/src/components/icons/Lock'
+import { ShieldCheck } from 'ui/src/components/icons/ShieldCheck'
+import { Verified } from 'ui/src/components/icons/Verified'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import Trace from 'uniswap/src/features/telemetry/Trace'
 import { InterfacePageName } from 'uniswap/src/features/telemetry/constants'
@@ -20,32 +34,35 @@ import { formatUnits, parseEther } from 'viem'
 import { useBalance } from 'wagmi'
 
 const PageContainer = styled(Flex, {
+  position: 'relative',
+  overflow: 'hidden',
   width: '100%',
   minHeight: '100vh',
   backgroundColor: '$surface1',
-  paddingTop: '$spacing20',
+  paddingTop: '$spacing24',
   paddingBottom: '$spacing60',
   paddingHorizontal: '$spacing20',
+  $sm: { paddingHorizontal: '$spacing12' },
 })
 
 const ContentWrapper = styled(Flex, {
+  position: 'relative',
+  zIndex: 1,
   maxWidth: 600,
   width: '100%',
   alignSelf: 'center',
-  gap: '$spacing24',
+  gap: '$spacing20',
 })
 
 const HeaderSection = styled(Flex, {
-  gap: '$spacing8',
-  paddingBottom: '$spacing24',
-  borderBottomWidth: 1,
-  borderBottomColor: '$surface3',
+  gap: '$spacing4',
 })
 
-const MainTitle = styled(Text, {
-  variant: 'heading2',
-  color: '$neutral1',
-  fontWeight: 'bold',
+const Eyebrow = styled(Text, {
+  variant: 'body3',
+  color: '$accent1',
+  fontWeight: '700',
+  letterSpacing: 1.4,
 })
 
 const Subtitle = styled(Text, {
@@ -53,13 +70,10 @@ const Subtitle = styled(Text, {
   color: '$neutral2',
 })
 
-const FormCard = styled(Flex, {
-  backgroundColor: '$surface2',
-  borderRadius: '$rounded16',
-  borderWidth: 1,
-  borderColor: '$surface3',
-  padding: '$spacing24',
-  gap: '$spacing20',
+const TrustRow = styled(Flex, {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  gap: '$spacing8',
 })
 
 const InputGroup = styled(Flex, {
@@ -149,33 +163,6 @@ const ImagePreview = styledComponents.img`
   border-radius: 8px;
   object-fit: cover;
 `
-
-const CreateButton = styled(Flex, {
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingVertical: '$spacing16',
-  backgroundColor: '$accent1',
-  borderRadius: '$rounded12',
-  cursor: 'pointer',
-  hoverStyle: {
-    backgroundColor: '$accent2',
-  },
-  variants: {
-    disabled: {
-      true: {
-        backgroundColor: '$surface3',
-        cursor: 'not-allowed',
-      },
-    },
-  } as const,
-})
-
-const InfoCard = styled(Flex, {
-  backgroundColor: '$accent2',
-  borderRadius: '$rounded12',
-  padding: '$spacing16',
-  gap: '$spacing12',
-})
 
 const ErrorText = styled(Text, {
   variant: 'body3',
@@ -449,6 +436,7 @@ export default function CreateToken() {
   return (
     <Trace logImpression page={InterfacePageName.LaunchpadCreatePage}>
       <PageContainer>
+        <LaunchpadBackdrop />
         <ContentWrapper>
           <BackButton onPress={handleBack}>
             <BackArrow size="$icon.20" color="$neutral2" />
@@ -458,11 +446,44 @@ export default function CreateToken() {
           </BackButton>
 
           <HeaderSection>
-            <MainTitle>Create Token</MainTitle>
-            <Subtitle>Launch your token on the bonding curve. No upfront liquidity required.</Subtitle>
+            <Eyebrow>JUICESWAP LAUNCHPAD</Eyebrow>
+            <JuiceScriptText fontSize={40} lineHeight={60} $sm={{ fontSize: 32, lineHeight: 48 }}>
+              fresh squeeze
+            </JuiceScriptText>
+            <Subtitle>
+              Fair-launch a token on a bonding curve — no upfront liquidity. It graduates to JuiceSwap V2 with
+              liquidity locked forever.
+            </Subtitle>
           </HeaderSection>
 
-          <FormCard>
+          <TrustRow>
+            <TrustBadge>
+              <Lock size="$icon.16" color="$statusSuccess" />
+              <Text variant="body4" color="$statusSuccess" fontWeight="600">
+                Locked liquidity
+              </Text>
+            </TrustBadge>
+            <TrustBadge>
+              <ShieldCheck size="$icon.16" color="$statusSuccess" />
+              <Text variant="body4" color="$statusSuccess" fontWeight="600">
+                Immutable metadata
+              </Text>
+            </TrustBadge>
+            <TrustBadge>
+              <Verified size="$icon.16" color="$statusSuccess" />
+              <Text variant="body4" color="$statusSuccess" fontWeight="600">
+                JUSD-backed
+              </Text>
+            </TrustBadge>
+            <TrustBadge>
+              <CheckCircleFilled size="$icon.16" color="$statusSuccess" />
+              <Text variant="body4" color="$statusSuccess" fontWeight="600">
+                1% flat fee
+              </Text>
+            </TrustBadge>
+          </TrustRow>
+
+          <Card emphasis padding="$spacing24" gap="$spacing20">
             <InputGroup>
               <InputLabel>Token Name</InputLabel>
               <StyledInput
@@ -585,23 +606,28 @@ export default function CreateToken() {
 
             {error && <ErrorText>{error}</ErrorText>}
 
-            <CreateButton disabled={isButtonDisabled} onPress={isButtonDisabled ? undefined : handleButtonPress}>
+            <PrimaryButton
+              fill
+              size="lg"
+              disabled={isButtonDisabled}
+              onPress={isButtonDisabled ? undefined : handleButtonPress}
+            >
               <Text variant="buttonLabel2" color="$white">
                 {buttonText}
               </Text>
-            </CreateButton>
-          </FormCard>
+            </PrimaryButton>
+          </Card>
 
-          <InfoCard>
+          <Card gap="$spacing12">
             <Text variant="body2" color="$neutral1" fontWeight="600">
-              Token Economics
+              Token economics
             </Text>
             <StatRow>
-              <StatLabel variant="body3">Total Supply</StatLabel>
+              <StatLabel variant="body3">Total supply</StatLabel>
               <StatValue variant="body3">1,000,000,000</StatValue>
             </StatRow>
             <StatRow>
-              <StatLabel variant="body3">Available on Curve</StatLabel>
+              <StatLabel variant="body3">Available on curve</StatLabel>
               <StatValue variant="body3">793,100,000 (79.31%)</StatValue>
             </StatRow>
             <StatRow>
@@ -609,32 +635,60 @@ export default function CreateToken() {
               <StatValue variant="body3">206,900,000 (20.69%)</StatValue>
             </StatRow>
             <StatRow>
-              <StatLabel variant="body3">Initial Virtual Liquidity</StatLabel>
+              <StatLabel variant="body3">Initial virtual liquidity</StatLabel>
               <StatValue variant="body3">{initialLiquidity} JUSD</StatValue>
             </StatRow>
             <StatRow>
-              <StatLabel variant="body3">Trading Fee</StatLabel>
+              <StatLabel variant="body3">Trading fee</StatLabel>
               <StatValue variant="body3">1%</StatValue>
             </StatRow>
-          </InfoCard>
+          </Card>
 
-          <Flex gap="$spacing8" backgroundColor="$surface2" padding="$spacing16" borderRadius="$rounded12">
+          <Card gap="$spacing12">
             <Text variant="body2" color="$neutral1" fontWeight="600">
               How it works
             </Text>
-            <Text variant="body3" color="$neutral2">
-              1. Your token launches on a bonding curve with virtual liquidity
-            </Text>
-            <Text variant="body3" color="$neutral2">
-              2. Anyone can buy tokens - price increases with each purchase
-            </Text>
-            <Text variant="body3" color="$neutral2">
-              3. When all tokens are sold, the token graduates to JuiceSwap V2
-            </Text>
-            <Text variant="body3" color="$neutral2">
-              4. LP tokens are burned forever - liquidity is permanently locked
-            </Text>
-          </Flex>
+            {[
+              'Your token launches on a bonding curve with virtual liquidity — no upfront capital needed.',
+              'Anyone can buy from the curve; the price rises with every purchase.',
+              'Once the curve fills, the token graduates to JuiceSwap V2.',
+            ].map((step, i) => (
+              <Flex key={i} flexDirection="row" gap="$spacing12" alignItems="flex-start">
+                <Flex
+                  width={22}
+                  height={22}
+                  borderRadius="$roundedFull"
+                  backgroundColor="$accent2"
+                  alignItems="center"
+                  justifyContent="center"
+                  flexShrink={0}
+                >
+                  <Text variant="body4" color="$accent1" fontWeight="700">
+                    {i + 1}
+                  </Text>
+                </Flex>
+                <Text variant="body3" color="$neutral2" flex={1}>
+                  {step}
+                </Text>
+              </Flex>
+            ))}
+            <Flex flexDirection="row" gap="$spacing12" alignItems="flex-start">
+              <Flex
+                width={22}
+                height={22}
+                borderRadius="$roundedFull"
+                backgroundColor="$statusSuccess2"
+                alignItems="center"
+                justifyContent="center"
+                flexShrink={0}
+              >
+                <Lock size={12} color="$statusSuccess" />
+              </Flex>
+              <Text variant="body3" color="$neutral1" flex={1} fontWeight="600">
+                LP tokens are burned forever — liquidity is permanently locked. No rug.
+              </Text>
+            </Flex>
+          </Card>
         </ContentWrapper>
       </PageContainer>
     </Trace>
