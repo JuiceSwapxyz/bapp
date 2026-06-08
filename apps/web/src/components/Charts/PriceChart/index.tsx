@@ -19,7 +19,7 @@ import {
   PriceLineOptions,
   UTCTimestamp,
 } from 'lightweight-charts'
-import { useMemo } from 'react'
+import { useMemo, type ReactElement } from 'react'
 import { Trans } from 'react-i18next'
 import { Flex, Text, styled } from 'ui/src'
 import { opacify } from 'ui/src/theme'
@@ -30,6 +30,7 @@ export type PriceChartData = CandlestickData<UTCTimestamp> & AreaData<UTCTimesta
 
 interface PriceChartModelParams extends ChartModelParams<PriceChartData> {
   type: PriceChartType
+  variant?: 'default' | 'launchpad'
 }
 
 const LOW_PRICE_RANGE_THRESHOLD = 0.2
@@ -93,7 +94,8 @@ export class PriceChartModel extends ChartModel<PriceChartData> {
   }
 
   updateOptions(params: PriceChartModelParams) {
-    const { data, theme, type, locale, format, tokenFormatType } = params
+    const { data, theme, type, locale, format, tokenFormatType, variant } = params
+    const isLaunchpad = variant === 'launchpad'
     super.updateOptions(params, {
       localization: {
         locale,
@@ -112,9 +114,53 @@ export class PriceChartModel extends ChartModel<PriceChartData> {
         },
       },
       grid: {
-        vertLines: { style: LineStyle.CustomDotGrid, color: theme.neutral3 },
-        horzLines: { style: LineStyle.CustomDotGrid, color: theme.neutral3 },
+        vertLines: {
+          visible: true,
+          style: isLaunchpad ? LineStyle.Solid : LineStyle.CustomDotGrid,
+          color: isLaunchpad ? opacify(10, theme.accent1) : theme.neutral3,
+        },
+        horzLines: {
+          visible: true,
+          style: isLaunchpad ? LineStyle.Solid : LineStyle.CustomDotGrid,
+          color: isLaunchpad ? theme.surface3 : theme.neutral3,
+        },
       },
+      ...(isLaunchpad
+        ? {
+            crosshair: {
+              horzLine: {
+                visible: true,
+                style: LineStyle.Solid,
+                width: 1,
+                color: opacify(55, theme.accent1),
+                labelVisible: false,
+              },
+              vertLine: {
+                visible: true,
+                style: LineStyle.Solid,
+                width: 1,
+                color: opacify(55, theme.accent1),
+                labelVisible: false,
+              },
+            },
+            rightPriceScale: {
+              visible: false,
+              borderVisible: false,
+              scaleMargins: {
+                top: 0.24,
+                bottom: 0.18,
+              },
+              autoScale: true,
+            },
+            timeScale: {
+              borderVisible: false,
+              ticksVisible: false,
+              timeVisible: true,
+              fixLeftEdge: true,
+              fixRightEdge: true,
+            },
+          }
+        : {}),
     })
 
     // Handles changing between line/candlestick view
@@ -150,17 +196,17 @@ export class PriceChartModel extends ChartModel<PriceChartData> {
 
       // Line-specific options:
       lineType: data.length < 20 ? LineType.WithSteps : LineType.Curved, // Stepped line is visually preferred for smaller datasets
-      lineWidth: 2,
+      lineWidth: isLaunchpad ? 3 : 2,
       lineColor,
-      topColor: opacify(12, lineColor),
-      bottomColor: opacify(12, lineColor),
+      topColor: opacify(isLaunchpad ? 22 : 12, lineColor),
+      bottomColor: opacify(isLaunchpad ? 4 : 12, lineColor),
       crosshairMarkerRadius: 5,
-      crosshairMarkerBorderColor: opacify(30, lineColor),
+      crosshairMarkerBorderColor: opacify(isLaunchpad ? 55 : 30, lineColor),
       crosshairMarkerBorderWidth: 3,
 
       // Candlestick-specific options:
-      upColor: theme.success,
-      wickUpColor: theme.success,
+      upColor: isLaunchpad ? theme.accent1 : theme.success,
+      wickUpColor: isLaunchpad ? theme.accent1 : theme.success,
       downColor: theme.critical,
       wickDownColor: theme.critical,
       borderVisible: false,
@@ -225,6 +271,8 @@ interface PriceChartProps {
   height: number
   data: PriceChartData[]
   stale: boolean
+  variant?: 'default' | 'launchpad'
+  valueFormatter?: (value: number | undefined) => ReactElement
 }
 
 const CandlestickTooltipRow = styled(Flex, {
@@ -259,20 +307,26 @@ function CandlestickTooltip({ data }: { data: PriceChartData }) {
   )
 }
 
-export function PriceChart({ data, height, type, stale }: PriceChartProps) {
+export function PriceChart({ data, height, type, stale, variant = 'default', valueFormatter }: PriceChartProps) {
   const lastPrice = data[data.length - 1]
 
   return (
     <Chart
       Model={PriceChartModel}
-      params={useMemo(() => ({ data, type, stale }), [data, stale, type])}
+      params={useMemo(() => ({ data, type, stale, variant }), [data, stale, type, variant])}
       height={height}
       TooltipBody={type === PriceChartType.CANDLESTICK ? CandlestickTooltip : undefined}
     >
       {(crosshairData) => (
         <ChartHeader
-          value={(crosshairData ?? lastPrice).value}
-          additionalFields={<PriceChartDelta startingPrice={data[0]} endingPrice={crosshairData ?? lastPrice} />}
+          value={
+            valueFormatter ? valueFormatter((crosshairData ?? lastPrice).value) : (crosshairData ?? lastPrice).value
+          }
+          additionalFields={
+            variant === 'launchpad' ? undefined : (
+              <PriceChartDelta startingPrice={data[0]} endingPrice={crosshairData ?? lastPrice} />
+            )
+          }
           valueFormatterType={NumberType.FiatTokenPrice}
           time={crosshairData?.time}
         />

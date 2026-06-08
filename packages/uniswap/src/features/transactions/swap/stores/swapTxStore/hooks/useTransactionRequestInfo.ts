@@ -26,6 +26,7 @@ import {
   isBridge,
   isClassic,
   isGatewayJusd,
+  isSatsuma,
   isUniswapX,
   isWrap,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -50,17 +51,24 @@ function useSwapTransactionRequestInfo({
 
   const swapQuoteResponse = useMemo(() => {
     const quote = derivedSwapInfo.trade.trade?.quote
-    // Gateway JUSD quotes use a separate request params path (see gatewaySwapRequestParams below)
+    // Gateway JUSD and Satsuma quotes use a separate request params path
+    // (see gatewaySwapRequestParams below) because they don't go through the
+    // Universal-Router / Permit2 flow and `fetchSwap` builds the request body
+    // directly from the quote object.
     if (quote && (isClassic(quote) || isBridge(quote) || isBitcoinBridge(quote) || isWrap(quote))) {
       return quote
     }
     return undefined
   }, [derivedSwapInfo.trade.trade?.quote])
 
-  // Separate handling for Gateway JUSD quotes which have a different structure
+  // Separate handling for Gateway JUSD and Satsuma quotes. Both have a
+  // non-Universal-Router structure and call the JuiceSwap API /swap endpoint
+  // directly; `fetchSwap` discriminates between Gateway-shape (`input`/
+  // `output` on the quote) and Satsuma-shape (`route` on the quote) at
+  // request time, so the same upstream params apply to both.
   const gatewayQuoteResponse = useMemo(() => {
     const quote = derivedSwapInfo.trade.trade?.quote
-    if (quote && isGatewayJusd(quote)) {
+    if (quote && (isGatewayJusd(quote) || isSatsuma(quote))) {
       return quote
     }
     return undefined

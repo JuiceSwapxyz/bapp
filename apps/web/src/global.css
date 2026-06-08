@@ -59,12 +59,67 @@ html {
   }
 }
 
+/* Launchpad live trade ticker — seamless horizontal scroll (content duplicated 2x) */
+@keyframes launchpad-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Launchpad progress-bar sheen — a highlight sweeps across the filled portion */
+@keyframes lp-sheen {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  55%,
+  100% {
+    transform: translateX(420%) skewX(-20deg);
+  }
+}
+
+/* Launchpad shimmer — a citrus highlight bar sweeps across empty surfaces.
+   `transform`-driven (compositor-only) instead of animating background-position,
+   which would repaint the whole surface every frame on low-end GPUs. */
+@keyframes lp-shimmer-x {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
 @keyframes token-rotate-animation {
   0% {
     transform: rotate(-22deg);
   }
   100% {
     transform: rotate(22deg);
+  }
+}
+
+/* Launchpad performance for low-end / battery-saver phones ------------------ */
+
+/* Lighter elevation on phones: drop the soft 24px depth-shadow layer (a paint
+   cost while scrolling on old GPUs), keep a hairline. Desktop keeps the full
+   two-layer shadow. Applied to launchpad panels/cards tagged `lp-elev`. */
+@media (max-width: 640px) {
+  .lp-elev {
+    box-shadow: 0 1px 2px rgba(16, 16, 16, 0.05) !important;
+  }
+}
+
+/* Belt-and-suspenders for reduced-motion: the launchpad's continuous
+   animations are already gated in JS (useLaunchpadMotion), but never let the
+   marquee / sheen / shimmer run for users who explicitly opt out of motion. */
+@media (prefers-reduced-motion: reduce) {
+  [style*='launchpad-ticker'],
+  [style*='lp-sheen'],
+  [style*='lp-shimmer-x'] {
+    animation: none !important;
   }
 }
 
