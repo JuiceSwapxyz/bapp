@@ -9,6 +9,7 @@ import type { CustomSwapDataForRequest, GasStrategy } from 'uniswap/src/data/tra
 import type { UniverseChainId } from 'uniswap/src/features/chains/types'
 import type { SwapDelegationInfo } from 'uniswap/src/features/smartWallet/delegation/types'
 import type { TransactionSettings } from 'uniswap/src/features/transactions/components/settings/types'
+import { resolveJuiceSwapSlippageTolerance } from 'uniswap/src/features/transactions/swap/constants/juiceSwapSlippage'
 import type {
   EVMSwapRepository,
   SwapData,
@@ -25,10 +26,11 @@ import {
   BridgeTrade,
   ClassicTrade,
   GatewayJusdTrade,
+  SatsumaTrade,
   UnwrapTrade,
   WrapTrade,
 } from 'uniswap/src/features/transactions/swap/types/trade'
-import { isGatewayJusd } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isGatewayJusd, isSatsuma } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { tradingApiToUniverseChainId } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 
 type SwapInstructions =
@@ -59,7 +61,7 @@ interface EVMSwapInstructionsServiceContext {
 }
 
 export const getCustomSwapTokenData = (
-  trade: ClassicTrade | BridgeTrade | WrapTrade | UnwrapTrade | GatewayJusdTrade | undefined,
+  trade: ClassicTrade | BridgeTrade | WrapTrade | UnwrapTrade | GatewayJusdTrade | SatsumaTrade | undefined,
   transactionSettings?: TransactionSettings,
 ): CustomSwapDataForRequest | undefined => {
   if (!trade) {
@@ -84,8 +86,9 @@ export const getCustomSwapTokenData = (
   }
 
   if (trade.routing === Routing.WRAP || trade.routing === Routing.UNWRAP) {
-    const currencyIn = trade.inputAmount.currency
-    const currencyOut = trade.outputAmount.currency
+    const wrapTrade = trade as WrapTrade | UnwrapTrade
+    const currencyIn = wrapTrade.inputAmount.currency
+    const currencyOut = wrapTrade.outputAmount.currency
 
     return {
       chainId: currencyIn.chainId,
@@ -95,12 +98,18 @@ export const getCustomSwapTokenData = (
       tokenOutChainId: currencyOut.chainId,
       tokenOutAddress: currencyOut.isNative ? ZERO_ADDRESS : currencyOut.address,
       tokenOutDecimals: currencyOut.decimals,
-      amount: trade.quote.quote.input?.amount,
-      type: trade.routing,
+      amount: wrapTrade.quote.quote.input?.amount,
+      type: wrapTrade.routing,
     }
   }
 
-  if (isGatewayJusd(trade)) {
+  if (isGatewayJusd(trade) || isSatsuma(trade)) {
+    // Gateway-JUSD and Satsuma are structurally the same at this layer: both
+    // hit /v1/swap with the user's slippage and the parsed token info; the
+    // backend infers the actual router (JuiceSwapGateway vs Satsuma) from the
+    // routing tag carried on the quote. Without this branch, Satsuma swaps
+    // would fall through to `return undefined` and fetchSwap would default
+    // slippage to 5% instead of using the user's setting.
     const currencyIn = trade.inputAmount.currency
     const currencyOut = trade.outputAmount.currency
 
@@ -112,7 +121,7 @@ export const getCustomSwapTokenData = (
       tokenOutChainId: currencyOut.chainId,
       tokenOutAddress: currencyOut.isNative ? ZERO_ADDRESS : currencyOut.address,
       tokenOutDecimals: currencyOut.decimals,
-      slippageTolerance: transactionSettings?.customSlippageTolerance?.toString() ?? '5',
+      slippageTolerance: resolveJuiceSwapSlippageTolerance(transactionSettings?.customSlippageTolerance),
     }
   }
 

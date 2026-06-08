@@ -22,7 +22,7 @@ import type {
   UniswapXTrade,
   WrapTrade,
 } from 'uniswap/src/features/transactions/swap/types/trade'
-import { isGatewayJusd } from 'uniswap/src/features/transactions/swap/utils/routing'
+import { isGatewayJusd, isSatsuma } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 import { CurrencyField } from 'uniswap/src/types/currency'
 
@@ -66,9 +66,14 @@ export function useSwapTxAndGasInfo({
       return getFallbackSwapTxAndGasInfo({ swapTxInfo, approvalTxInfo })
     }
 
-    // Handle Gateway JUSD routing (uses string literal, not Routing enum)
-    // Gateway trades use the same structure as classic swaps for tx info
-    if (isGatewayJusd(trade)) {
+    // Handle Gateway JUSD and Satsuma routing (string literals, not in the
+    // Routing enum). Both go through the JuiceSwap API /swap endpoint and
+    // produce a single ERC20-router call, so downstream we wrap them as a
+    // Classic swap context. Without this branch, Satsuma trades fall through
+    // to `getFallbackSwapTxAndGasInfo` *and* `useTransactionRequestInfo`
+    // never fires `/v1/swap` for them, so `txRequests` stays undefined and
+    // the review button is stuck on "Loading quote..." forever.
+    if (isGatewayJusd(trade) || isSatsuma(trade)) {
       return getClassicSwapTxAndGasInfo({
         trade: trade as unknown as ClassicTrade,
         swapTxInfo,

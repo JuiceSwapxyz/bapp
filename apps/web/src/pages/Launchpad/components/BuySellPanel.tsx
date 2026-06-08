@@ -36,6 +36,16 @@ const PanelContainer = styled(Flex, {
   gap: '$spacing16',
   overflow: 'hidden',
   minWidth: 0,
+  variants: {
+    matchChartHeight: {
+      true: {
+        minHeight: 524,
+        height: '100%',
+        padding: '$spacing24',
+        gap: '$spacing20',
+      },
+    },
+  } as const,
 })
 
 const TabContainer = styled(Flex, {
@@ -44,6 +54,14 @@ const TabContainer = styled(Flex, {
   padding: '$spacing4',
   backgroundColor: '$surface3',
   borderRadius: '$rounded12',
+  variants: {
+    large: {
+      true: {
+        padding: '$spacing6',
+        borderRadius: '$rounded16',
+      },
+    },
+  } as const,
 })
 
 const Tab = styled(Flex, {
@@ -57,6 +75,12 @@ const Tab = styled(Flex, {
     active: {
       true: {
         backgroundColor: '$accent1',
+      },
+    },
+    large: {
+      true: {
+        paddingVertical: '$spacing16',
+        borderRadius: '$rounded12',
       },
     },
   } as const,
@@ -208,6 +232,8 @@ interface BuySellPanelProps {
   chainId: number | undefined
   /** Bonding curve reserves - used for excess JUSD warning */
   reserves: BondingCurveReserves | undefined
+  /** Enlarges the panel for token detail layouts where it sits beside a chart. */
+  matchChartHeight?: boolean
   onTransactionComplete?: () => void
   onGraduateComplete?: () => void
 }
@@ -220,6 +246,7 @@ export function BuySellPanel({
   canGraduate,
   chainId,
   reserves,
+  matchChartHeight = false,
   onTransactionComplete,
   onGraduateComplete,
 }: BuySellPanelProps) {
@@ -694,7 +721,7 @@ export function BuySellPanel({
 
   if (graduated) {
     return (
-      <PanelContainer>
+      <PanelContainer matchChartHeight={matchChartHeight}>
         <Text variant="body1" color="$neutral1" textAlign="center">
           This token has graduated to JuiceSwap V2
         </Text>
@@ -711,14 +738,14 @@ export function BuySellPanel({
   }
 
   return (
-    <PanelContainer>
-      <TabContainer>
-        <Tab active={isBuy} onPress={() => setIsBuy(true)}>
+    <PanelContainer matchChartHeight={matchChartHeight}>
+      <TabContainer large={matchChartHeight}>
+        <Tab active={isBuy} large={matchChartHeight} onPress={() => setIsBuy(true)}>
           <Text variant="buttonLabel3" color={isBuy ? '$white' : '$neutral2'}>
             Buy
           </Text>
         </Tab>
-        <Tab active={!isBuy} onPress={() => setIsBuy(false)}>
+        <Tab active={!isBuy} large={matchChartHeight} onPress={() => setIsBuy(false)}>
           <Text variant="buttonLabel3" color={!isBuy ? '$white' : '$neutral2'}>
             Sell
           </Text>

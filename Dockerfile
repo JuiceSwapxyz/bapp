@@ -34,8 +34,10 @@ RUN yarn g:prepare
 # Build (production or development mode)
 ARG BUILD_MODE=production
 ARG COMMIT_HASH=unknown
+ARG REACT_APP_ALCHEMY_API_KEY
 ENV NODE_ENV=production
 ENV COMMIT_HASH=${COMMIT_HASH}
+ENV REACT_APP_ALCHEMY_API_KEY=${REACT_APP_ALCHEMY_API_KEY}
 RUN yarn web build:${BUILD_MODE}
 
 # --- Serve with nginx ---

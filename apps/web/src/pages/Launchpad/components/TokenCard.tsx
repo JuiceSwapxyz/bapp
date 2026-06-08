@@ -7,9 +7,7 @@ import {
   GraduatedBadge,
   ProgressBar,
   ProgressFill,
-  StatLabel,
   StatRow,
-  StatValue,
   getProgressGradient,
 } from 'pages/Launchpad/components/shared'
 import { useCallback, useMemo } from 'react'
@@ -28,16 +26,28 @@ const TokenName = styled(Text, {
   variant: 'body1',
   color: '$neutral1',
   fontWeight: '600',
+  numberOfLines: 1,
 })
 
 const TokenSymbol = styled(Text, {
   variant: 'body3',
   color: '$neutral2',
+  numberOfLines: 1,
 })
 
-const GraduatedText = styled(Text, {
-  variant: 'body4',
-  color: '$statusSuccess',
+const Divider = styled(Flex, {
+  height: 1,
+  backgroundColor: '$surface3',
+})
+
+const StatLabel = styled(Text, {
+  variant: 'body3',
+  color: '$neutral2',
+})
+
+const StatValue = styled(Text, {
+  variant: 'body3',
+  color: '$neutral1',
   fontWeight: '600',
 })
 
@@ -72,7 +82,6 @@ export function TokenCard({ token }: TokenCardProps) {
     return value.toLocaleString(undefined, { maximumFractionDigits: 2 })
   }, [token.totalVolumeBase])
 
-  // Format creator address
   const creatorShort = useMemo(() => {
     return `${token.creator.slice(0, 6)}...${token.creator.slice(-4)}`
   }, [token.creator])
@@ -94,65 +103,76 @@ export function TokenCard({ token }: TokenCardProps) {
     return `${Math.floor(diff / 86400)}d ago`
   }, [token.createdAt])
 
-  // Total trades from indexed data
   const totalTrades = token.totalBuys + token.totalSells
+  const pct = token.graduated ? 100 : progress
 
   return (
-    <Card interactive graduated={token.graduated} onPress={handleClick}>
+    <Card interactive graduated={token.graduated} onPress={handleClick} gap="$spacing16">
       <TokenHeader>
-        <TokenLogo metadataURI={token.metadataURI} symbol={token.symbol} size={48} />
-        <Flex flex={1} gap="$spacing2">
-          <Flex flexDirection="row" alignItems="center" gap="$spacing8">
-            <TokenName>{token.name || 'Unknown Token'}</TokenName>
-            {token.canGraduate && !token.graduated && (
-              <GraduatedBadge backgroundColor="$accent2">
-                <GraduatedText color="$accent1">Ready!</GraduatedText>
-              </GraduatedBadge>
-            )}
-          </Flex>
+        <TokenLogo metadataURI={token.metadataURI} symbol={token.symbol} size={44} />
+        <Flex flex={1} gap="$spacing2" minWidth={0}>
+          <TokenName>{token.name || 'Unknown Token'}</TokenName>
           <TokenSymbol>${token.symbol || '???'}</TokenSymbol>
+        </Flex>
+        <Flex alignItems="flex-end" gap="$spacing2" flexShrink={0}>
+          <Text variant="subheading2" color="$neutral1" fontWeight="700">
+            ${marketCap}
+          </Text>
+          <StatLabel variant="body4" color="$neutral3">
+            Market cap
+          </StatLabel>
         </Flex>
       </TokenHeader>
 
-      <Flex gap="$spacing4">
-        <StatRow>
-          <StatLabel variant="body3">{token.graduated ? 'Graduated' : 'Progress to graduation'}</StatLabel>
-          <StatValue variant="body3">{token.graduated ? '100%' : `${progress.toFixed(1)}%`}</StatValue>
-        </StatRow>
-        <ProgressBar>
+      <Flex gap="$spacing8">
+        <Flex flexDirection="row" justifyContent="space-between" alignItems="center">
+          <Flex flexDirection="row" alignItems="center" gap="$spacing6">
+            <Text variant="body3" color="$neutral2">
+              {token.graduated ? 'Graduated to V2' : 'Bonding curve'}
+            </Text>
+            {token.canGraduate && !token.graduated && (
+              <GraduatedBadge backgroundColor="$accent2" size="sm">
+                <Text variant="body4" color="$accent1" fontWeight="700">
+                  Ready
+                </Text>
+              </GraduatedBadge>
+            )}
+          </Flex>
+          <Text variant="body2" color={token.graduated ? '$statusSuccess' : '$accent1'} fontWeight="700">
+            {pct.toFixed(1)}%
+          </Text>
+        </Flex>
+        <ProgressBar size="md">
           <ProgressFill
+            size="md"
             style={{
-              width: `${token.graduated ? 100 : Math.min(progress, 100)}%`,
-              background: getProgressGradient(token.graduated ? 100 : progress),
+              width: `${Math.min(pct, 100)}%`,
+              background: getProgressGradient(pct),
             }}
           />
         </ProgressBar>
       </Flex>
 
-      <StatRow>
-        <StatLabel variant="body3">Market Cap</StatLabel>
-        <StatValue variant="body3">{marketCap} JUSD</StatValue>
-      </StatRow>
+      <Divider />
 
-      <StatRow>
-        <StatLabel variant="body3">Volume</StatLabel>
-        <StatValue variant="body3">{volume} JUSD</StatValue>
-      </StatRow>
-
-      <StatRow>
-        <StatLabel variant="body3">Trades</StatLabel>
-        <StatValue variant="body3">{totalTrades}</StatValue>
-      </StatRow>
-
-      <StatRow>
-        <StatLabel variant="body3">Creator</StatLabel>
-        <StatValue variant="body3">{creatorShort}</StatValue>
-      </StatRow>
-
-      <StatRow>
-        <StatLabel variant="body3">Created</StatLabel>
-        <StatValue variant="body3">{timeAgo}</StatValue>
-      </StatRow>
+      <Flex gap="$spacing8">
+        <StatRow>
+          <StatLabel>Volume</StatLabel>
+          <StatValue>${volume}</StatValue>
+        </StatRow>
+        <StatRow>
+          <StatLabel>Trades</StatLabel>
+          <StatValue>{totalTrades.toLocaleString()}</StatValue>
+        </StatRow>
+        <StatRow>
+          <StatLabel>Creator</StatLabel>
+          <StatValue>{creatorShort}</StatValue>
+        </StatRow>
+        <StatRow>
+          <StatLabel>Created</StatLabel>
+          <StatValue>{timeAgo}</StatValue>
+        </StatRow>
+      </Flex>
     </Card>
   )
 }

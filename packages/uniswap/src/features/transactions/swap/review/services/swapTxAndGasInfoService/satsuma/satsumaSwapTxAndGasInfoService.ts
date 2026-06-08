@@ -6,6 +6,7 @@ import { Routing } from 'uniswap/src/data/tradingApi/__generated__'
 import type { GasStrategy } from 'uniswap/src/data/tradingApi/types'
 import { convertGasFeeToDisplayValue } from 'uniswap/src/features/gas/hooks'
 import type { TransactionSettings } from 'uniswap/src/features/transactions/components/settings/types'
+import { resolveJuiceSwapSlippageTolerance } from 'uniswap/src/features/transactions/swap/constants/juiceSwapSlippage'
 import type {
   SwapTxAndGasInfoParameters,
   SwapTxAndGasInfoService,
@@ -52,7 +53,7 @@ export function createSatsumaSwapTxAndGasInfoService(ctx: {
         tokenOutChainId: currencyOut.chainId,
         tokenOutAddress: currencyOut.isNative ? ADDRESS_ZERO : currencyOut.address,
         tokenOutDecimals: currencyOut.decimals,
-        slippageTolerance: transactionSettings.customSlippageTolerance?.toString() ?? '5',
+        slippageTolerance: resolveJuiceSwapSlippageTolerance(transactionSettings.customSlippageTolerance),
       }
       const deadline = getTradeSettingsDeadline(transactionSettings.customDeadline)
 

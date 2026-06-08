@@ -73,7 +73,9 @@ export default class AppJsonRpcProvider extends ConfiguredJsonRpcProvider {
     }
     super({ networkish: providers[0].network })
     // AppJsonRpcProvider configures its own pollingInterval, so the encapsulated providers do not need to poll.
-    // providers.forEach((provider) => (provider.pollingInterval = Infinity))
+    // ethers' setter rejects Infinity (requires Math.floor(v) === v) and setInterval clamps anything > int32
+    // back down to 1ms, so use the largest int32-safe value — ~24.8 days, effectively never.
+    providers.forEach((provider) => (provider.pollingInterval = 0x7fffffff))
     this.providers = providers.map((provider) => ({ provider, controller: new Controller(minimumBackoffTime) }))
   }
 

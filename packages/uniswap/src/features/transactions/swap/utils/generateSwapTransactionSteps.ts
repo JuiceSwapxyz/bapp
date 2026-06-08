@@ -1,4 +1,7 @@
-import { Erc20ChainSwapDirection, WbtcBridgeDirection } from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
+import {
+  Erc20ChainSwapDirection,
+  WbtcBridgeDirection,
+} from 'uniswap/src/data/apiClients/tradingApi/utils/isBitcoinBridge'
 import { BridgeQuote } from 'uniswap/src/data/tradingApi/__generated__'
 import { BitcoinBridgeDirection, LightningBridgeDirection } from 'uniswap/src/data/tradingApi/types'
 import { createApprovalTransactionStep } from 'uniswap/src/features/transactions/steps/approve'
@@ -9,7 +12,6 @@ import { TransactionStep } from 'uniswap/src/features/transactions/steps/types'
 import { createBitcoinBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/bitcoinBridge'
 import { orderClassicSwapSteps } from 'uniswap/src/features/transactions/swap/steps/classicSteps'
 import { createErc20ChainSwapStep } from 'uniswap/src/features/transactions/swap/steps/erc20ChainSwap'
-import { createWbtcBridgeStep } from 'uniswap/src/features/transactions/swap/steps/wbtcBridge'
 import { createLightningBridgeTransactionStep } from 'uniswap/src/features/transactions/swap/steps/lightningBridge'
 import { createSignUniswapXOrderStep } from 'uniswap/src/features/transactions/swap/steps/signOrder'
 import {
@@ -18,6 +20,7 @@ import {
   createSwapTransactionStepBatched,
 } from 'uniswap/src/features/transactions/swap/steps/swap'
 import { orderUniswapXSteps } from 'uniswap/src/features/transactions/swap/steps/uniswapxSteps'
+import { createWbtcBridgeStep } from 'uniswap/src/features/transactions/swap/steps/wbtcBridge'
 import {
   ClassicSwapTxAndGasInfo,
   GatewayJusdSwapTxAndGasInfo,
@@ -31,6 +34,7 @@ import {
   isErc20ChainSwap,
   isGatewayJusd,
   isLightningBridge,
+  isSatsuma,
   isUniswapX,
   isWbtcBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -45,8 +49,10 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo, _v4Ena
     const revocation = createRevocationTransactionStep(revocationTxRequest, trade.inputAmount.currency.wrapped)
     const approval = createApprovalTransactionStep({ txRequest: approveTxRequest, amountIn: trade.inputAmount })
 
-    if (isClassic(txContext) || isGatewayJusd(txContext)) {
-      // Cast to the union type since TypeScript has trouble narrowing with || on complex unions
+    if (isClassic(txContext) || isGatewayJusd(txContext) || isSatsuma(txContext)) {
+      // Cast to the union type since TypeScript has trouble narrowing with || on complex unions.
+      // Satsuma rides the same shape as Gateway here (single ERC20-router call, no Permit2 sign);
+      // see validateSwapTxContext in swapTxAndGasInfo.ts for the matching validation branch.
       const classicContext = txContext as ClassicSwapTxAndGasInfo | GatewayJusdSwapTxAndGasInfo
       const { swapRequestArgs } = classicContext
 

@@ -38,6 +38,7 @@ import { GasEstimate } from 'uniswap/src/data/tradingApi/types'
 import { ValueType, getCurrencyAmount } from 'uniswap/src/features/tokens/getCurrencyAmount'
 import { getSwapFee } from 'uniswap/src/features/transactions/swap/types/getSwapFee'
 import { slippageToleranceToPercent } from 'uniswap/src/features/transactions/swap/utils/format'
+import { parseJuiceSwapPriceImpact } from 'uniswap/src/features/transactions/swap/utils/juiceSwapPriceImpact'
 import { FrontendSupportedProtocol } from 'uniswap/src/features/transactions/swap/utils/protocols'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 
@@ -840,7 +841,6 @@ export class SatsumaTrade {
   readonly outputTax: Percent = ZERO_PERCENT
 
   readonly slippageTolerance: number
-  readonly priceImpact: undefined
   readonly deadline: undefined
 
   constructor({
@@ -877,6 +877,12 @@ export class SatsumaTrade {
     // Satsuma trades use slippage applied at /v1/swap submit time
     this.maxAmountIn = this.inputAmount
     this.minAmountOut = this.outputAmount
+  }
+
+  // JuiceSwap Price Impact: surface the API-reported impact for pool fallback
+  // routes so the swap UI can warn on bad quotes (issue #764).
+  public get priceImpact(): Percent | undefined {
+    return parseJuiceSwapPriceImpact(this.quote.quote.priceImpact)
   }
 
   public get quoteOutputAmount(): CurrencyAmount<Currency> {
