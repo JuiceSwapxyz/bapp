@@ -38,6 +38,7 @@ const TokenDetails = lazy(() => import('pages/TokenDetails'))
 const ExtensionUninstall = lazy(() => import('pages/ExtensionUninstall/ExtensionUninstall'))
 const Bapps = lazy(() => import('pages/Bapps'))
 const FirstSqueezer = lazy(() => import('pages/FirstSqueezer'))
+const Juicer = lazy(() => import('pages/Juicer'))
 const OAuthCallback = lazy(() => import('pages/OAuthCallback'))
 const Launchpad = lazy(() => import('pages/Launchpad'))
 const LaunchpadTokenDetail = lazy(() => import('pages/Launchpad/TokenDetail'))
@@ -388,6 +389,17 @@ export const routes: RouteDefinition[] = [
     getTitle: () => 'First Squeezer NFT - JuiceSwap',
     getDescription: () =>
       'Exclusive to testnet claimers who verify X and Discord to claim the First Squeezer NFT on Citrea Mainnet.',
+  }),
+  // Juicer NFT Campaign Page — gated behind the Juice Points program flag
+  // (mirrors #747). Cannot function without the points system live because
+  // the mint requires spending 5,000 JP.
+  createRouteDefinition({
+    path: '/juicer',
+    enabled: () => process.env.REACT_APP_JUICE_POINTS_PROGRAM === 'true',
+    getElement: () => <Juicer />,
+    getTitle: () => 'Juicer NFT - JuiceSwap',
+    getDescription: () =>
+      'Earn the Juicer NFT by spending 5,000 Juice Points, launching a meme token, following on X and joining Discord.',
   }),
   // OAuth Callback Page - Handles Twitter OAuth redirect
   createRouteDefinition({
