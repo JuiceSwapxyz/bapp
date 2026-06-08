@@ -63,7 +63,8 @@ export default function Juicer() {
                 <Flex gap="$spacing8" flex={1} minWidth={0}>
                   <MainTitle>Juicer NFT</MainTitle>
                   <Subtitle>
-                    Trade 5,000 Juice Points and launch a meme token to mint the Juicer NFT on Citrea Mainnet.
+                    Spend 5,000 Juice Points, launch a meme token, follow on X and join Discord to mint the Juicer
+                    NFT on Citrea Mainnet.
                   </Subtitle>
                 </Flex>
               </Flex>

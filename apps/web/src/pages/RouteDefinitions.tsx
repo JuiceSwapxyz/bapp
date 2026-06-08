@@ -392,14 +392,14 @@ export const routes: RouteDefinition[] = [
   }),
   // Juicer NFT Campaign Page — gated behind the Juice Points program flag
   // (mirrors #747). Cannot function without the points system live because
-  // the mint requires spending 10,000 JP.
+  // the mint requires spending 5,000 JP.
   createRouteDefinition({
     path: '/juicer',
     enabled: () => process.env.REACT_APP_JUICE_POINTS_PROGRAM === 'true',
     getElement: () => <Juicer />,
     getTitle: () => 'Juicer NFT - JuiceSwap',
     getDescription: () =>
-      'Earn the Juicer NFT by spending 10,000 Juice Points, launching a meme token, following on X and joining Discord.',
+      'Earn the Juicer NFT by spending 5,000 Juice Points, launching a meme token, following on X and joining Discord.',
   }),
   // OAuth Callback Page - Handles Twitter OAuth redirect
   createRouteDefinition({
