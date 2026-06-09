@@ -3,6 +3,7 @@ import {
   BONDING_CURVE_CONSTANTS,
   DEFAULT_LAUNCHPAD_SLIPPAGE_BPS,
   MAX_DEV_BUY_BPS,
+  getRuntimeLaunchpadAddresses,
   isLaunchpadChainSupported,
 } from 'constants/launchpad'
 import { useAccount } from 'hooks/useAccount'
@@ -194,6 +195,17 @@ const DevBuySection = styled(Flex, {
   borderTopColor: '$surface3',
 })
 
+// "Coming soon" pill shown next to the Dev buy label while the dev-buy launch
+// contract is not yet live (supportsDevBuy === false) on the active chain.
+const ComingSoonBadge = styled(Flex, {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingHorizontal: '$spacing8',
+  paddingVertical: '$spacing4',
+  borderRadius: '$roundedFull',
+  backgroundColor: '$accent2',
+})
+
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml']
 const MAX_DEV_BUY_PERCENT = MAX_DEV_BUY_BPS / 100
@@ -285,6 +297,15 @@ export default function CreateToken() {
   }, [account.chainId])
 
   const isOnSupportedChain = account.chainId ? isLaunchpadChainSupported(account.chainId) : false
+
+  // Dev buy is only available once an upgraded factory exposing
+  // createTokenWithDevBuyPermit is deployed and wired up for this chain
+  // (supportsDevBuy). Until then the UI shows a disabled "Coming soon" block and
+  // the dev buy can never influence token creation.
+  const devBuyLive = useMemo(
+    () => getRuntimeLaunchpadAddresses(launchpadChainId)?.supportsDevBuy ?? false,
+    [launchpadChainId],
+  )
 
   // Form state
   const [name, setName] = useState('')
@@ -409,7 +430,9 @@ export default function CreateToken() {
     const trimmed = devBuyInput.trim()
     const virtualBase = initialVirtualBaseReserves ?? DEFAULT_VIRTUAL_BASE_RESERVES
 
-    if (!trimmed) {
+    // When dev buy is not live yet, always resolve to a neutral zero quote so it
+    // can never gate or alter token creation, regardless of any stale input.
+    if (!devBuyLive || !trimmed) {
       return { baseIn: 0n, tokensOut: 0n, minTokensOut: 0n, percentBps: 0, error: null as string | null }
     }
 
@@ -455,7 +478,7 @@ export default function CreateToken() {
     const minTokensOut = tokensOut - (tokensOut * BigInt(DEFAULT_LAUNCHPAD_SLIPPAGE_BPS)) / 10000n
 
     return { baseIn, tokensOut, minTokensOut, percentBps, error: null as string | null }
-  }, [devBuyInput, devBuyMode, initialVirtualBaseReserves])
+  }, [devBuyInput, devBuyMode, initialVirtualBaseReserves, devBuyLive])
 
   const hasInsufficientJusd = Boolean(
     account.address && devBuyQuote.baseIn > 0n && jusdBalance && jusdBalance.value < devBuyQuote.baseIn,
@@ -652,8 +675,8 @@ export default function CreateToken() {
               fresh squeeze
             </JuiceScriptText>
             <Subtitle>
-              Fair-launch a token on a bonding curve — no upfront liquidity. It graduates to JuiceSwap V2 with
-              liquidity locked forever.
+              Fair-launch a token on a bonding curve — no upfront liquidity. It graduates to JuiceSwap V2 with liquidity
+              locked forever.
             </Subtitle>
           </HeaderSection>
 
@@ -797,57 +820,90 @@ export default function CreateToken() {
               />
             </InputGroup>
 
-            <DevBuySection>
+            <DevBuySection opacity={devBuyLive ? 1 : 0.6}>
               <Flex flexDirection="row" alignItems="center" gap="$spacing8">
                 <InputLabel>Dev buy</InputLabel>
-                <OptionalLabel>(optional)</OptionalLabel>
+                {devBuyLive ? (
+                  <OptionalLabel>(optional)</OptionalLabel>
+                ) : (
+                  <ComingSoonBadge>
+                    <Text variant="body4" color="$accent1" fontWeight="700">
+                      Coming soon
+                    </Text>
+                  </ComingSoonBadge>
+                )}
               </Flex>
               <Text variant="body4" color="$neutral3">
                 Seed your own launch and be the first squeezer — bought atomically with creation via a scoped JUSD
                 permit.
               </Text>
-              <InputRow>
-                <Flex flexDirection="row" gap="$spacing6" flexShrink={0}>
-                  <Pill active={devBuyMode === 'jusd'} onPress={() => handleDevBuyModeChange('jusd')}>
-                    <Text variant="buttonLabel4" color={devBuyMode === 'jusd' ? '$accent1' : '$neutral2'}>
-                      JUSD
-                    </Text>
-                  </Pill>
-                  <Pill active={devBuyMode === 'percent'} onPress={() => handleDevBuyModeChange('percent')}>
-                    <Text variant="buttonLabel4" color={devBuyMode === 'percent' ? '$accent1' : '$neutral2'}>
-                      %
-                    </Text>
-                  </Pill>
-                </Flex>
-                <Flex flex={1} minWidth={0}>
-                  <StyledInput
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="0.00"
-                    value={devBuyInput}
-                    onChange={handleDevBuyInputChange}
-                  />
-                </Flex>
-              </InputRow>
-              <InputHint>Max {MAX_DEV_BUY_PERCENT}% of curve supply · 1% slippage protection.</InputHint>
-              {devBuyQuote.baseIn > 0n && !devBuyQuote.error && (
-                <Flex gap="$spacing6" backgroundColor="$surface1" borderRadius="$rounded12" padding="$spacing12">
-                  <StatRow>
-                    <StatLabel variant="body3">Dev buy spend</StatLabel>
-                    <StatValue variant="body3">{devBuyBaseLabel} JUSD</StatValue>
-                  </StatRow>
-                  <StatRow>
-                    <StatLabel variant="body3">Estimated tokens</StatLabel>
-                    <StatValue variant="body3">{devBuyTokensLabel}</StatValue>
-                  </StatRow>
-                  <StatRow>
-                    <StatLabel variant="body3">Curve share</StatLabel>
-                    <StatValue variant="body3">{devBuyPercentLabel}</StatValue>
-                  </StatRow>
+              {devBuyLive ? (
+                <>
+                  <InputRow>
+                    <Flex flexDirection="row" gap="$spacing6" flexShrink={0}>
+                      <Pill active={devBuyMode === 'jusd'} onPress={() => handleDevBuyModeChange('jusd')}>
+                        <Text variant="buttonLabel4" color={devBuyMode === 'jusd' ? '$accent1' : '$neutral2'}>
+                          JUSD
+                        </Text>
+                      </Pill>
+                      <Pill active={devBuyMode === 'percent'} onPress={() => handleDevBuyModeChange('percent')}>
+                        <Text variant="buttonLabel4" color={devBuyMode === 'percent' ? '$accent1' : '$neutral2'}>
+                          %
+                        </Text>
+                      </Pill>
+                    </Flex>
+                    <Flex flex={1} minWidth={0}>
+                      <StyledInput
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        value={devBuyInput}
+                        onChange={handleDevBuyInputChange}
+                      />
+                    </Flex>
+                  </InputRow>
+                  <InputHint>Max {MAX_DEV_BUY_PERCENT}% of curve supply · 1% slippage protection.</InputHint>
+                  {devBuyQuote.baseIn > 0n && !devBuyQuote.error && (
+                    <Flex gap="$spacing6" backgroundColor="$surface1" borderRadius="$rounded12" padding="$spacing12">
+                      <StatRow>
+                        <StatLabel variant="body3">Dev buy spend</StatLabel>
+                        <StatValue variant="body3">{devBuyBaseLabel} JUSD</StatValue>
+                      </StatRow>
+                      <StatRow>
+                        <StatLabel variant="body3">Estimated tokens</StatLabel>
+                        <StatValue variant="body3">{devBuyTokensLabel}</StatValue>
+                      </StatRow>
+                      <StatRow>
+                        <StatLabel variant="body3">Curve share</StatLabel>
+                        <StatValue variant="body3">{devBuyPercentLabel}</StatValue>
+                      </StatRow>
+                    </Flex>
+                  )}
+                  {devBuyQuote.error && <ErrorText>{devBuyQuote.error}</ErrorText>}
+                  {hasInsufficientJusd && <ErrorText>Insufficient JUSD balance for dev buy</ErrorText>}
+                </>
+              ) : (
+                <Flex gap="$spacing12" pointerEvents="none">
+                  <InputRow>
+                    <Flex flexDirection="row" gap="$spacing6" flexShrink={0}>
+                      <Pill active>
+                        <Text variant="buttonLabel4" color="$accent1">
+                          JUSD
+                        </Text>
+                      </Pill>
+                      <Pill>
+                        <Text variant="buttonLabel4" color="$neutral2">
+                          %
+                        </Text>
+                      </Pill>
+                    </Flex>
+                    <Flex flex={1} minWidth={0}>
+                      <StyledInput type="text" placeholder="0.00" value="" disabled readOnly />
+                    </Flex>
+                  </InputRow>
+                  <InputHint>Atomic dev buy unlocks once the launch contract is live on Citrea.</InputHint>
                 </Flex>
               )}
-              {devBuyQuote.error && <ErrorText>{devBuyQuote.error}</ErrorText>}
-              {hasInsufficientJusd && <ErrorText>Insufficient JUSD balance for dev buy</ErrorText>}
             </DevBuySection>
 
             {!isOnSupportedChain && account.address && (
