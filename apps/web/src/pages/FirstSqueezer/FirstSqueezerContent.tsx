@@ -1,4 +1,5 @@
 import { useAccountDrawer } from 'components/AccountDrawer/MiniPortfolio/hooks'
+import { WebFeatureFlags } from 'constants/featureFlags'
 import { ConditionCard } from 'pages/FirstSqueezer/ConditionCard'
 import { NFTClaimSection } from 'pages/FirstSqueezer/NFTClaimSection'
 import {
@@ -236,8 +237,9 @@ export default function FirstSqueezerContent({ account }: FirstSqueezerContentPr
         </Flex>
       </Section>
 
-      {/* NFT Claim Section */}
-      {(progress?.isEligibleForNFT || progress?.nftMinted) && (
+      {/* NFT Claim Section — NFT acquisition is hidden until the NFT is
+          explicitly unlocked (JUICE_POINTS_NFT). Points/progress stay visible. */}
+      {WebFeatureFlags.JUICE_POINTS_NFT && (progress?.isEligibleForNFT || progress?.nftMinted) && (
         <NFTClaimSection
           isEligible={progress.isEligibleForNFT}
           walletAddress={account.address}

@@ -25,16 +25,18 @@ import {
  *   - Detect and exclude wash-trading patterns (same EOA via different routers,
  *     A→B→A round-trips, etc.).
  *
- * Expected endpoints (ponder service):
+ * Endpoints (ponder service):
  *   GET {BASE}/points/{address}      -> PointsApiResponse
  *   GET {BASE}/points/leaderboard    -> LeaderboardApiResponse
  *
- * BASE is read from REACT_APP_PONDER_JUICESWAP_URL.
- * Toggle with REACT_APP_JUICE_POINTS_API_ENABLED=true (defaults to mock).
+ * BASE comes from REACT_APP_PONDER_JUICESWAP_URL (primary, prod ponder).
+ * REACT_APP_PONDER_FALLBACK_JUICESWAP_URL (dev ponder) is tried if the
+ * primary fails — same pattern as packages/uniswap/src/data/apiClients/ponderApi.
  *
- * Until the backend ships these endpoints the fetchers fall back to a deterministic
- * mock (see `mockPoints` / `mockLeaderboard`) so the UI is fully functional during
- * development.
+ * On total API failure we return zeros (NOT mock random data) so the header
+ * ticker and points UI never show a fabricated balance. Set
+ * REACT_APP_JUICE_POINTS_DEV_MOCK=true to opt into the deterministic mock for
+ * fully offline development.
  */
 
 interface PointsApiResponse {
@@ -63,14 +65,12 @@ interface LeaderboardApiResponse {
   updatedAt: number
 }
 
-const POINTS_API_BASE = process.env.REACT_APP_PONDER_JUICESWAP_URL || ''
-const POINTS_API_ENABLED = process.env.REACT_APP_JUICE_POINTS_API_ENABLED === 'true'
+const PRIMARY_BASE = process.env.REACT_APP_PONDER_JUICESWAP_URL || 'https://ponder.juiceswap.com'
+const FALLBACK_BASE = process.env.REACT_APP_PONDER_FALLBACK_JUICESWAP_URL || 'https://dev.ponder.juiceswap.com'
+const DEV_MOCK_ENABLED = process.env.REACT_APP_JUICE_POINTS_DEV_MOCK === 'true'
 const REQUEST_TIMEOUT_MS = 5_000
 
-async function safeFetch<T>(url: string): Promise<T | undefined> {
-  if (!POINTS_API_ENABLED || !POINTS_API_BASE) {
-    return undefined
-  }
+async function tryFetch<T>(url: string): Promise<T | undefined> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   try {
@@ -84,6 +84,27 @@ async function safeFetch<T>(url: string): Promise<T | undefined> {
   } finally {
     clearTimeout(timer)
   }
+}
+
+async function fetchWithFallback<T>(path: string): Promise<T | undefined> {
+  for (const base of [PRIMARY_BASE, FALLBACK_BASE]) {
+    if (!base) {
+      continue
+    }
+    const result = await tryFetch<T>(`${base}${path}`)
+    if (result !== undefined) {
+      return result
+    }
+  }
+  return undefined
+}
+
+// Real zero — shown when the points API is unreachable, so the UI reflects the
+// wallet's actual (unknown/0) standing instead of a fabricated mock value.
+const ZERO_POINTS: PointsBreakdown = {
+  total: 0,
+  swaps: { count: 0, points: 0 },
+  liquidity: { days: 0, points: 0, currentUsdValue: 0, meetsMinimum: false },
 }
 
 function pseudoRandomFromAddress(address: string, max: number): number {
@@ -150,15 +171,18 @@ function mockLeaderboard(): LeaderboardData {
 }
 
 export async function fetchPointsForAddress(address: string): Promise<PointsBreakdown> {
-  const apiResponse = await safeFetch<PointsApiResponse>(`${POINTS_API_BASE}/points/${address.toLowerCase()}`)
+  const apiResponse = await fetchWithFallback<PointsApiResponse>(`/points/${address.toLowerCase()}`)
   if (apiResponse) {
     return apiResponse
   }
-  return mockPoints(address)
+  if (DEV_MOCK_ENABLED) {
+    return mockPoints(address)
+  }
+  return ZERO_POINTS
 }
 
 export async function fetchLeaderboard(): Promise<LeaderboardData> {
-  const apiResponse = await safeFetch<LeaderboardApiResponse>(`${POINTS_API_BASE}/points/leaderboard`)
+  const apiResponse = await fetchWithFallback<LeaderboardApiResponse>('/points/leaderboard')
   if (apiResponse) {
     return {
       entries: apiResponse.entries,
@@ -166,5 +190,8 @@ export async function fetchLeaderboard(): Promise<LeaderboardData> {
       updatedAt: apiResponse.updatedAt,
     }
   }
-  return mockLeaderboard()
+  if (DEV_MOCK_ENABLED) {
+    return mockLeaderboard()
+  }
+  return { entries: [], total: 0, updatedAt: Date.now() }
 }
