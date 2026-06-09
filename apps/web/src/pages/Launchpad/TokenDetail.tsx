@@ -430,50 +430,6 @@ export default function TokenDetail() {
     [chartPriceUnit],
   )
 
-  const latestCandle = candlesData?.candles[candlesData.candles.length - 1]
-  const latestChartPriceValue = candlesData?.latest?.price ?? latestCandle?.close ?? null
-
-  const chartData = useMemo<PriceChartData[]>(() => {
-    const real =
-      candlesData?.candles.map((candle) => ({
-        time: candle.time as UTCTimestamp,
-        open: candle.open,
-        high: candle.high,
-        low: candle.low,
-        close: candle.close,
-        value: candle.close,
-      })) ?? []
-    return real
-  }, [candlesData?.candles])
-
-  const latestChartPrice = latestChartPriceValue
-    ? latestChartPriceValue.toLocaleString(undefined, { maximumSignificantDigits: 6 })
-    : null
-  const fallbackMarketCap = latestChartPriceValue ? latestChartPriceValue * LAUNCHPAD_TOKEN_TOTAL_SUPPLY : null
-  const displayMarketCap =
-    marketCap && !['0', 'N/A', '...'].includes(marketCap)
-      ? marketCap
-      : fallbackMarketCap?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? marketCap
-
-  const chartValueFormatter = useCallback(
-    (value: number | undefined) => {
-      const formatted =
-        chartPriceUnit === 'usd'
-          ? typeof value === 'number' && Number.isFinite(value)
-            ? `$${value.toLocaleString(undefined, { maximumSignificantDigits: 6 })}`
-            : '-'
-          : typeof value === 'number' && Number.isFinite(value)
-            ? `${value.toLocaleString(undefined, { maximumSignificantDigits: 8 })} JUSD`
-            : '-'
-      return (
-        <Text variant="heading2" color="$neutral1">
-          {formatted}
-        </Text>
-      )
-    },
-    [chartPriceUnit],
-  )
-
   const tokensRemaining = useMemo(() => {
     if (!reserves) {
       return '0'
