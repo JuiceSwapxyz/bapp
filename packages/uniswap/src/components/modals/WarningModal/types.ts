@@ -54,6 +54,7 @@ export enum WarningLabel {
   BlockedToken = 'blocked_token',
   NoQuotesFound = 'no_quotes_found',
   ExceedsLimit = 'exceeds_limit',
+  GatewayJusdDisabled = 'gateway_jusd_disabled',
 }
 
 export interface Warning {

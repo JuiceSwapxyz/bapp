@@ -10,6 +10,7 @@ import { Pool as V4Pool, Route as V4Route } from '@juiceswapxyz/v4-sdk'
 import { nativeOnChain } from 'uniswap/src/constants/tokens'
 import type {
   BridgeQuoteResponse,
+  DirectPoolQuoteResponse,
   GatewayJusdQuoteResponse,
   SatsumaQuoteResponse,
 } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
@@ -455,7 +456,8 @@ export function getClassicQuoteFromResponse(
     | ClassicQuoteResponse
     | { routing: Exclude<Routing, Routing.CLASSIC> }
     | GatewayJusdQuoteResponse
-    | SatsumaQuoteResponse,
+    | SatsumaQuoteResponse
+    | DirectPoolQuoteResponse,
 ): ClassicQuote | undefined {
   if (quote && isClassic(quote)) {
     return quote.quote
@@ -467,6 +469,9 @@ export function getClassicQuoteFromResponse(
   if (quote && isSatsuma(quote)) {
     return quote.quote as unknown as ClassicQuote
   }
+  // Direct-pool quotes are locally computed and carry none of the Classic
+  // quote fields (quoteId/gasUseEstimate/routeString), so there is no classic
+  // quote to surface — analytics/history fall back to undefined for those.
   return undefined
 }
 

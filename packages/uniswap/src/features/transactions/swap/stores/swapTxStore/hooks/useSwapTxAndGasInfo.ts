@@ -11,6 +11,7 @@ import {
   getWrapTxAndGasInfo,
   usePermitTxInfo,
 } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/utils'
+import { useJusdDirectPoolSwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/hooks/useJusdDirectPoolSwapTxAndGasInfo'
 import { useTransactionRequestInfo } from 'uniswap/src/features/transactions/swap/stores/swapTxStore/hooks/useTransactionRequestInfo'
 import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/types/derivedSwapInfo'
 import type { SwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
@@ -22,7 +23,8 @@ import type {
   UniswapXTrade,
   WrapTrade,
 } from 'uniswap/src/features/transactions/swap/types/trade'
-import { isGatewayJusd, isSatsuma } from 'uniswap/src/features/transactions/swap/utils/routing'
+import type { JusdDirectPoolTrade } from 'uniswap/src/features/transactions/swap/types/trade'
+import { isGatewayJusd, isJusdDirectPool, isSatsuma } from 'uniswap/src/features/transactions/swap/utils/routing'
 import { AccountDetails } from 'uniswap/src/features/wallet/types/AccountDetails'
 import { CurrencyField } from 'uniswap/src/types/currency'
 
@@ -60,10 +62,20 @@ export function useSwapTxAndGasInfo({
 
   const permitTxInfo = usePermitTxInfo({ quote: trade?.quote })
 
+  // Direct-pool JUSD-sell fallback: built entirely client-side (no api call). The hook no-ops when
+  // the trade isn't a direct-pool trade, so it's safe to call unconditionally.
+  const directPoolTxAndGasInfo = useJusdDirectPoolSwapTxAndGasInfo(
+    trade && isJusdDirectPool(trade) ? (trade as JusdDirectPoolTrade) : undefined,
+  )
+
   return useMemo(() => {
     // Early return if trade is null/undefined to avoid accessing properties on null
     if (!trade) {
       return getFallbackSwapTxAndGasInfo({ swapTxInfo, approvalTxInfo })
+    }
+
+    if (isJusdDirectPool(trade) && directPoolTxAndGasInfo) {
+      return directPoolTxAndGasInfo
     }
 
     // Handle Gateway JUSD and Satsuma routing (string literals, not in the
@@ -113,5 +125,5 @@ export function useSwapTxAndGasInfo({
       default:
         return getFallbackSwapTxAndGasInfo({ swapTxInfo, approvalTxInfo })
     }
-  }, [approvalTxInfo, permitTxInfo, swapTxInfo, trade, bitcoinDestinationAddress])
+  }, [approvalTxInfo, permitTxInfo, swapTxInfo, trade, bitcoinDestinationAddress, directPoolTxAndGasInfo])
 }

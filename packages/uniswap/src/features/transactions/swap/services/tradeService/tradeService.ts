@@ -13,6 +13,7 @@ import {
   validateParsedInput,
   type ValidatedTradeInput,
 } from 'uniswap/src/features/transactions/swap/services/tradeService/transformations/buildQuoteRequest'
+import { tryBuildJusdDirectPoolTrade } from 'uniswap/src/features/transactions/swap/services/tradeService/transformations/buildJusdDirectPoolTrade'
 import { transformQuoteToTrade } from 'uniswap/src/features/transactions/swap/services/tradeService/transformations/transformQuoteToTrade'
 import {
   IndicativeTrade,
@@ -59,6 +60,16 @@ interface TradeServiceContext {
   getEnabledChains: () => UniverseChainId[]
   getIsL2ChainId: (chainId?: UniverseChainId) => boolean
   getMinAutoSlippageToleranceL2: () => number
+}
+
+/**
+ * True when a fetchQuote error is the JuiceSwap Gateway being deliberately paused (e.g. savings
+ * rate 0%), surfaced by the api as `{ error: "GATEWAY_*_DISABLED", … }`. Kept intentionally narrow
+ * so the direct-pool fallback never masks unrelated failures.
+ */
+function isGatewayDisabledError(error: unknown): boolean {
+  const data = (error as { data?: { error?: unknown } } | undefined)?.data
+  return typeof data?.error === 'string' && /^GATEWAY_.*_DISABLED$/.test(data.error)
 }
 
 export function createTradeService(ctx: TradeServiceContext): TradeService {
@@ -120,7 +131,24 @@ export function createTradeService(ctx: TradeServiceContext): TradeService {
         quoteRequestArgs = flattenQuoteRequestResult(quoteRequestParams)
 
         // Step 4: Fetch quote from API
-        const quoteResponse = await tradeRepository.fetchQuote(quoteRequestArgs)
+        let quoteResponse
+        try {
+          quoteResponse = await tradeRepository.fetchQuote(quoteRequestArgs)
+        } catch (fetchError) {
+          // JUSD-sell fallback — narrowly scoped to the paused-gateway condition only. When the
+          // JuiceSwap Gateway is disabled (savings rate 0% -> `GATEWAY_*_DISABLED`), JUSD can't be
+          // sold via the api, so we build a trade from a real on-chain JUSD/WCBTC V3 pool instead.
+          // We deliberately do NOT fall back on other errors (rate limits, transient failures,
+          // amount-too-small): those must surface unchanged rather than silently rerouting the user
+          // into a possibly-thin pool.
+          if (isGatewayDisabledError(fetchError)) {
+            const directPoolTrade = await tryBuildJusdDirectPoolTrade(validatedInput, input.customSlippageTolerance)
+            if (directPoolTrade) {
+              return { trade: directPoolTrade, gasEstimate: undefined }
+            }
+          }
+          throw fetchError
+        }
 
         // Step 5: Transform quote to trade
         const result = transformQuoteToTrade({
