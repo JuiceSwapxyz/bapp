@@ -29,6 +29,9 @@
  * Prerequisite: a funded JUSD/WCBTC V3 pool must exist on-chain. See
  * `scripts/seed-jusd-wcbtc-pool.mjs`. Until such a pool exists, `getJusdDirectPoolQuote` resolves
  * to `null` and callers fall back to the existing generic error message.
+ *
+ * The full rationale (why the svJUSD liquidity must be redeemed back to raw JUSD, why a new pool
+ * is required, and the seeding runbook) lives in `docs/jusd-liquidity-migration.md`.
  */
 import { CurrencyAmount, Token } from '@juiceswapxyz/sdk-core'
 import { FeeAmount, Pool } from '@juiceswapxyz/v3-sdk'
@@ -156,8 +159,33 @@ const erc20Abi = [
 
 let cachedClient: PublicClient | undefined
 function getCitreaMainnetPublicClient(): PublicClient {
-  cachedClient ??= createPublicClient({ transport: http(CITREA_MAINNET_RPC_URL) })
+  // `batch: true` coalesces concurrent reads into a single JSON-RPC batch request; verified live
+  // against rpc.citreascan.com (all fee-tier probes resolve in one HTTP round trip).
+  cachedClient ??= createPublicClient({ transport: http(CITREA_MAINNET_RPC_URL, { batch: true }) })
   return cachedClient
+}
+
+// V3 factory pool addresses are CREATE2-deterministic and append-only: once `getPool` returns a
+// non-zero address for a (token0, token1, fee) key it can never change, so it's safe to cache for
+// the session. Zero results are deliberately NOT cached — the pool can be created at any moment
+// (that is exactly what scripts/seed-jusd-wcbtc-pool.mjs does) and must be picked up on the next poll.
+const poolAddressByFeeTier = new Map<FeeAmount, Address>()
+
+async function getPoolAddress(client: PublicClient, fee: FeeAmount): Promise<Address> {
+  const cached = poolAddressByFeeTier.get(fee)
+  if (cached) {
+    return cached
+  }
+  const poolAddress = (await client.readContract({
+    address: JUICESWAP_V3_FACTORY_CITREA_MAINNET,
+    abi: factoryAbi,
+    functionName: 'getPool',
+    args: [JUSD_ADDRESS_CITREA_MAINNET, WCBTC_ADDRESS_CITREA_MAINNET, fee],
+  })) as Address
+  if (poolAddress !== zeroAddress) {
+    poolAddressByFeeTier.set(fee, poolAddress)
+  }
+  return poolAddress
 }
 
 export interface JusdDirectPoolQuote {
@@ -197,11 +225,66 @@ export function isJusdDirectPoolSupported(params: {
   )
 }
 
+async function getTierQuote(params: {
+  client: PublicClient
+  fee: FeeAmount
+  inputAmount: CurrencyAmount<Token>
+  jusd: Token
+  wcbtc: Token
+  amountIn: bigint
+}): Promise<JusdDirectPoolQuote | null> {
+  const { client, fee, inputAmount, jusd, wcbtc, amountIn } = params
+
+  const poolAddress = await getPoolAddress(client, fee)
+  if (poolAddress === zeroAddress) {
+    return null
+  }
+
+  const [slot0, liquidity] = await Promise.all([
+    client.readContract({ address: poolAddress, abi: poolAbi, functionName: 'slot0' }),
+    client.readContract({ address: poolAddress, abi: poolAbi, functionName: 'liquidity' }),
+  ])
+  const [sqrtPriceX96, tick] = slot0 as readonly [bigint, number, ...unknown[]]
+
+  if ((liquidity as bigint) === BigInt(0) || sqrtPriceX96 === BigInt(0)) {
+    // Pool exists but was never seeded with liquidity (e.g. only initialized, never minted into).
+    return null
+  }
+
+  let amountOut: bigint
+  try {
+    const pool = new Pool(jusd, wcbtc, fee, sqrtPriceX96.toString(), (liquidity as bigint).toString(), tick)
+    const [outputAmount] = await pool.getOutputAmount(inputAmount)
+    amountOut = BigInt(outputAmount.quotient.toString())
+  } catch {
+    // getOutputAmount throws if the swap would exhaust the pool's in-range liquidity (insufficient
+    // depth for this size). Skip this tier rather than aborting the whole quote.
+    return null
+  }
+
+  if (amountOut <= BigInt(0)) {
+    return null
+  }
+
+  return {
+    poolAddress,
+    fee,
+    amountIn,
+    amountOut,
+    tokenIn: JUSD_ADDRESS_CITREA_MAINNET,
+    tokenOut: WCBTC_ADDRESS_CITREA_MAINNET,
+  }
+}
+
 /**
  * Finds the best JUSD/WCBTC pool across the candidate fee tiers and computes the exact-input quote
  * directly from on-chain pool state, using the same `Pool.getOutputAmount` math the rest of this
  * codebase relies on for parsing CLASSIC routes. "Best" = highest output amount, so thin-liquidity
  * tiers don't silently give the user a worse price. Returns `null` if no seeded pool exists yet.
+ *
+ * All tiers are probed concurrently and the transport batches concurrent reads into one JSON-RPC
+ * batch request, so a full quote costs at most two HTTP round trips (factory lookups + pool state)
+ * per poll — and only one once the pool addresses are cached.
  */
 export async function getJusdDirectPoolQuote(amountIn: bigint): Promise<JusdDirectPoolQuote | null> {
   if (amountIn <= BigInt(0)) {
@@ -213,54 +296,16 @@ export async function getJusdDirectPoolQuote(amountIn: bigint): Promise<JusdDire
   const wcbtc = new Token(UniverseChainId.CitreaMainnet, WCBTC_ADDRESS_CITREA_MAINNET, 18, 'WcBTC', 'Wrapped Citrea BTC')
   const inputAmount = CurrencyAmount.fromRawAmount(jusd, amountIn.toString())
 
+  const tierQuotes = await Promise.all(
+    CANDIDATE_FEE_TIERS.map((fee) => getTierQuote({ client, fee, inputAmount, jusd, wcbtc, amountIn })),
+  )
+
   let best: JusdDirectPoolQuote | null = null
-
-  for (const fee of CANDIDATE_FEE_TIERS) {
-    const poolAddress = (await client.readContract({
-      address: JUICESWAP_V3_FACTORY_CITREA_MAINNET,
-      abi: factoryAbi,
-      functionName: 'getPool',
-      args: [JUSD_ADDRESS_CITREA_MAINNET, WCBTC_ADDRESS_CITREA_MAINNET, fee],
-    })) as Address
-
-    if (poolAddress === zeroAddress) {
-      continue
-    }
-
-    const [slot0, liquidity] = await Promise.all([
-      client.readContract({ address: poolAddress, abi: poolAbi, functionName: 'slot0' }),
-      client.readContract({ address: poolAddress, abi: poolAbi, functionName: 'liquidity' }),
-    ])
-    const [sqrtPriceX96, tick] = slot0 as readonly [bigint, number, ...unknown[]]
-
-    if ((liquidity as bigint) === BigInt(0) || sqrtPriceX96 === BigInt(0)) {
-      // Pool exists but was never seeded with liquidity (e.g. only initialized, never minted into).
-      continue
-    }
-
-    let amountOut: bigint
-    try {
-      const pool = new Pool(jusd, wcbtc, fee, sqrtPriceX96.toString(), (liquidity as bigint).toString(), tick)
-      const [outputAmount] = await pool.getOutputAmount(inputAmount)
-      amountOut = BigInt(outputAmount.quotient.toString())
-    } catch {
-      // getOutputAmount throws if the swap would exhaust the pool's in-range liquidity (insufficient
-      // depth for this size). Skip this tier rather than aborting the whole quote.
-      continue
-    }
-
-    if (amountOut > BigInt(0) && (!best || amountOut > best.amountOut)) {
-      best = {
-        poolAddress,
-        fee,
-        amountIn,
-        amountOut,
-        tokenIn: JUSD_ADDRESS_CITREA_MAINNET,
-        tokenOut: WCBTC_ADDRESS_CITREA_MAINNET,
-      }
+  for (const quote of tierQuotes) {
+    if (quote && (!best || quote.amountOut > best.amountOut)) {
+      best = quote
     }
   }
-
   return best
 }
 
