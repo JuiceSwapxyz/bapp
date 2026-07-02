@@ -5,6 +5,7 @@
 // that fallback only activates once this pool exists on-chain with real liquidity.
 //
 // This moves REAL funds. Run manually, review every step, never commit your key.
+// Full rationale + runbook: docs/jusd-liquidity-migration.md
 //
 // Usage:
 //   PRIVATE_KEY=0x... \
