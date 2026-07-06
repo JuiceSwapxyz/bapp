@@ -192,8 +192,8 @@ export function filterChainIdsByFeatureFlag(featureFlaggedChainIds: {
   })
 }
 
-// JuiceSwap only supports Citrea chains
-export const ALWAYS_ENABLED_CHAIN_IDS = [UniverseChainId.CitreaMainnet, UniverseChainId.CitreaTestnet]
+// JuiceSwap only supports Citrea Mainnet (Citrea Testnet was sunset)
+export const ALWAYS_ENABLED_CHAIN_IDS = [UniverseChainId.CitreaMainnet]
 
 // Chains that can be switched to for ERC20 cross-chain swaps
 // These are NOT shown in the UI chain selector but CAN be switched to
@@ -231,14 +231,8 @@ export function getEnabledChains({
       return false
     }
 
-    // JuiceSwap only supports Citrea chains:
-    // - Mainnet mode: only CitreaMainnet
-    // - Testnet mode: only CitreaTestnet
-    if (isTestnetModeEnabled) {
-      return chainInfo.id === UniverseChainId.CitreaTestnet
-    } else {
-      return chainInfo.id === UniverseChainId.CitreaMainnet
-    }
+    // JuiceSwap only supports Citrea Mainnet (Citrea Testnet was sunset)
+    return chainInfo.id === UniverseChainId.CitreaMainnet
   })
 
   // Extract chain IDs and GQL chains from filtered results
@@ -257,15 +251,12 @@ export function getEnabledChains({
 
 function getDefaultChainId({
   platform: _platform,
-  isTestnetModeEnabled,
+  isTestnetModeEnabled: _isTestnetModeEnabled,
 }: {
   platform?: Platform
   isTestnetModeEnabled: boolean
 }): UniverseChainId {
-  if (isTestnetModeEnabled) {
-    return UniverseChainId.CitreaTestnet
-  }
-
+  // Citrea Testnet was sunset — JuiceSwap defaults to Citrea Mainnet.
   return UniverseChainId.CitreaMainnet
 }
 
