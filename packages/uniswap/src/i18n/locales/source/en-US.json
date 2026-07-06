@@ -1970,6 +1970,7 @@
   "swap.outputEstimated.atLeast": "Output is estimated. You will receive at least <amount /> or the transaction will revert.",
   "swap.placeOrder": "Place order",
   "swap.priceImpact": "Price impact",
+  "swap.priceImpact.juiceswap": "JuiceSwap price impact",
   "swap.request.title.full": "Swap {{inputCurrencySymbol}} → {{outputCurrencySymbol}}",
   "swap.request.title.short": "Swap Tokens",
   "swap.review": "Review swap",

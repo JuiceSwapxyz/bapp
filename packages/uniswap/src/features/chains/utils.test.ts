@@ -116,89 +116,55 @@ describe('hexadecimalStringToInt', () => {
 })
 
 describe('getEnabledChains', () => {
-  it('returns all mainnet chains', () => {
+  // JuiceSwap only supports Citrea Mainnet (Citrea Testnet was sunset), so
+  // getEnabledChains always resolves to Citrea Mainnet regardless of testnet
+  // mode, feature flags, or includeTestnets.
+  const citreaMainnetOnly = {
+    chains: [UniverseChainId.CitreaMainnet],
+    gqlChains: ['CITREA_MAINNET'],
+    defaultChainId: UniverseChainId.CitreaMainnet,
+  }
+
+  it('returns only Citrea Mainnet in mainnet mode', () => {
     expect(getEnabledChains({ isTestnetModeEnabled: false, featureFlaggedChainIds: ALL_CHAIN_IDS })).toEqual({
-      chains: [
-        UniverseChainId.Mainnet,
-        UniverseChainId.Unichain,
-        UniverseChainId.Polygon,
-        UniverseChainId.ArbitrumOne,
-        UniverseChainId.Optimism,
-        UniverseChainId.Base,
-        UniverseChainId.Bnb,
-        UniverseChainId.Blast,
-        UniverseChainId.Avalanche,
-        UniverseChainId.Celo,
-        UniverseChainId.WorldChain,
-        UniverseChainId.Soneium,
-        UniverseChainId.Zora,
-        UniverseChainId.Zksync,
-      ],
-      gqlChains: [
-        Chain.Ethereum,
-        Chain.Unichain,
-        Chain.Polygon,
-        Chain.Arbitrum,
-        Chain.Optimism,
-        Chain.Base,
-        Chain.Bnb,
-        Chain.Blast,
-        Chain.Avalanche,
-        Chain.Celo,
-        Chain.Worldchain,
-        Chain.Soneium,
-        Chain.Zora,
-        Chain.Zksync,
-      ],
-      defaultChainId: UniverseChainId.Mainnet,
+      ...citreaMainnetOnly,
       isTestnetModeEnabled: false,
     })
   })
 
-  it('returns feature flagged chains', () => {
+  it('ignores featureFlaggedChainIds', () => {
     expect(
       getEnabledChains({
         isTestnetModeEnabled: false,
         featureFlaggedChainIds: [UniverseChainId.Mainnet, UniverseChainId.Polygon],
       }),
     ).toEqual({
-      chains: [UniverseChainId.Mainnet, UniverseChainId.Polygon],
-      gqlChains: [Chain.Ethereum, Chain.Polygon],
-      defaultChainId: UniverseChainId.Mainnet,
+      ...citreaMainnetOnly,
       isTestnetModeEnabled: false,
     })
   })
 
-  it('returns testnet chains', () => {
+  it('returns Citrea Mainnet even in testnet mode (Citrea Testnet was sunset)', () => {
     expect(
       getEnabledChains({
         isTestnetModeEnabled: true,
         featureFlaggedChainIds: ALL_CHAIN_IDS,
       }),
     ).toEqual({
-      chains: [UniverseChainId.Sepolia, UniverseChainId.CitreaTestnet],
-      gqlChains: [Chain.EthereumSepolia, Chain.UnknownChain],
-      defaultChainId: UniverseChainId.Sepolia,
+      ...citreaMainnetOnly,
       isTestnetModeEnabled: true,
     })
   })
 
-  it('returns both mainnet and testnet chains when includeTestnets is true', () => {
+  it('ignores includeTestnets', () => {
     expect(
       getEnabledChains({
         includeTestnets: true,
         isTestnetModeEnabled: false,
-        featureFlaggedChainIds: [
-          UniverseChainId.Mainnet,
-          UniverseChainId.Unichain,
-          UniverseChainId.Base,
-          UniverseChainId.Sepolia,
-        ],
+        featureFlaggedChainIds: [UniverseChainId.Mainnet, UniverseChainId.Unichain, UniverseChainId.Base],
       }),
     ).toEqual({
-      chains: [UniverseChainId.Mainnet, UniverseChainId.Unichain, UniverseChainId.Base, UniverseChainId.Sepolia],
-      gqlChains: [Chain.Ethereum, Chain.Unichain, Chain.Base, Chain.EthereumSepolia],
-      defaultChainId: UniverseChainId.Mainnet,
+      ...citreaMainnetOnly,
       isTestnetModeEnabled: false,
     })
   })

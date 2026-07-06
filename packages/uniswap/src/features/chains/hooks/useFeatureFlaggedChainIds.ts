@@ -20,7 +20,7 @@ export function createGetFeatureFlaggedChainIds(ctx: { getSoneiumStatus: () => b
     // Example: [ChainId.BLAST]: useFeatureFlag(FeatureFlags.BLAST)
     filterChainIdsByFeatureFlag({
       [UniverseChainId.Soneium]: ctx.getSoneiumStatus(),
-      // Explicitly enable Citrea testnet for quote calculation
-      [UniverseChainId.CitreaTestnet]: true,
+      // Citrea Testnet was sunset — disable it (mainnet only)
+      [UniverseChainId.CitreaTestnet]: false,
     })
 }
