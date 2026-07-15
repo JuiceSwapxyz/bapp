@@ -55,6 +55,13 @@ RUN printf 'server {\n\
         try_files $uri $uri/ /index.html;\n\
     }\n\
 \n\
+    # A doubled /assets/assets/ path is never produced by the app - only by a\n\
+    # recurring crawler that mis-resolves relative imports (500-line 404 bursts\n\
+    # in the error log). ^~ wins over the regex location below.\n\
+    location ^~ /assets/assets/ {\n\
+        return 404;\n\
+    }\n\
+\n\
     location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {\n\
         expires 1y;\n\
         add_header Cache-Control "public, immutable";\n\
