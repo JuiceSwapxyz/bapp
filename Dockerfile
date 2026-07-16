@@ -55,6 +55,13 @@ RUN printf 'server {\n\
         try_files $uri $uri/ /index.html;\n\
     }\n\
 \n\
+    # Hashed assets are immutable, but index.html must always revalidate:\n\
+    # without this, heuristically cached copies keep clients on a stale build\n\
+    # requesting chunk hashes that no longer exist after a deploy.\n\
+    location = /index.html {\n\
+        add_header Cache-Control "no-cache";\n\
+    }\n\
+\n\
     # A doubled /assets/assets/ path is never produced by the app - only by a\n\
     # recurring crawler that mis-resolves relative imports (500-line 404 bursts\n\
     # in the error log). ^~ wins over the regex location below.\n\

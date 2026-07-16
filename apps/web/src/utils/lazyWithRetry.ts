@@ -72,7 +72,7 @@ function calculateDelay(attempt: number, options: { baseDelay: number; maxDelay:
 /**
  * Attempts to refresh the page with cooldown protection
  */
-function attemptPageRefresh(): void {
+export function attemptPageRefresh(): void {
   try {
     const lastRefresh = localStorage.getItem(REFRESH_COOLDOWN_KEY)
     const now = Date.now()
