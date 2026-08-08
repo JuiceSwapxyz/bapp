@@ -72,6 +72,10 @@ RUN printf 'server {\n\
     location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {\n\
         expires 1y;\n\
         add_header Cache-Control "public, immutable";\n\
+        # Requests for files that do not exist are routine here (vulnerability\n\
+        # scanners probing paths, stale clients asking for old chunk hashes):\n\
+        # keep answering 404 but do not write each miss to the error log.\n\
+        log_not_found off;\n\
     }\n\
 }\n' > /etc/nginx/conf.d/default.conf
 
