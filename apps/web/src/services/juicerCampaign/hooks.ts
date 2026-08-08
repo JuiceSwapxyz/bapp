@@ -1,3 +1,4 @@
+import { WebFeatureFlags } from 'constants/featureFlags'
 import { useAccount } from 'hooks/useAccount'
 import useSelectChain from 'hooks/useSelectChain'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -145,22 +146,27 @@ export function useIsJuicerCampaignEnded(): boolean {
 }
 
 /**
- * Mirrors `WebFeatureFlags.JUICE_POINTS_PROGRAM` introduced in #747. We read
- * the env var directly so this module stays compilable independent of merge
- * order — once #747 lands, this can be swapped to import `WebFeatureFlags`.
- * Default OFF (must be explicitly enabled per environment).
+ * Whether the Juice Points program is live. Delegates to the shared
+ * `WebFeatureFlags.JUICE_POINTS_PROGRAM` (default ON).
  */
 export function isJuicePointsProgramEnabled(): boolean {
-  return process.env.REACT_APP_JUICE_POINTS_PROGRAM === 'true'
+  return WebFeatureFlags.JUICE_POINTS_PROGRAM
 }
 
 export function useIsJuicerCampaignVisible(): boolean {
   const { defaultChainId } = useEnabledChains()
   const isCampaignTimeActive = useIsJuicerTimeActive()
-  // The Juicer NFT depends on the JP program (5,000 JP cost + 500 JP
-  // meme-token bonus). If the JP program is dark in this environment the
-  // Juicer flow stays hidden too.
-  return isJuicePointsProgramEnabled() && isCampaignTimeActive && defaultChainId === UniverseChainId.CitreaMainnet
+  // The points program can be live while the NFT stays hidden: people collect
+  // points, but the Juicer NFT flow only surfaces once it is explicitly
+  // unlocked (JUICE_POINTS_NFT). It still depends on the points program being
+  // live (5,000 JP cost + 500 JP meme-token bonus), an active window and
+  // Citrea Mainnet.
+  return (
+    WebFeatureFlags.JUICE_POINTS_NFT &&
+    isJuicePointsProgramEnabled() &&
+    isCampaignTimeActive &&
+    defaultChainId === UniverseChainId.CitreaMainnet
+  )
 }
 
 // eslint-disable-next-line import/no-unused-modules

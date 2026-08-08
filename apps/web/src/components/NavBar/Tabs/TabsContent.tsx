@@ -5,7 +5,6 @@ import { useTheme } from 'lib/styled-components'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 import { useIsBAppsCampaignVisible } from 'services/bappsCampaign/hooks'
-import { useIsFirstSqueezerCampaignVisible } from 'services/firstSqueezerCampaign/hooks'
 import { useIsJuicerCampaignVisible } from 'services/juicerCampaign/hooks'
 import { Text } from 'ui/src'
 import { Compass } from 'ui/src/components/icons/Compass'
@@ -29,7 +28,6 @@ export const useTabsContent = (): TabsSection[] => {
   const { pathname } = useLocation()
   const theme = useTheme()
   const showBAppsTab = useIsBAppsCampaignVisible()
-  const showFirstSqueezerTab = useIsFirstSqueezerCampaignVisible()
   const showJuicerTab = useIsJuicerCampaignVisible()
   const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
 
@@ -129,10 +127,10 @@ export const useTabsContent = (): TabsSection[] => {
     })
   }
 
-  // Add Juicer NFT tab if campaign is visible (replaces First Squeezer in the navbar).
-  // The First Squeezer route still exists for previously eligible wallets, but it
-  // is no longer surfaced in the primary navigation.
-  if (showJuicerTab || showFirstSqueezerTab) {
+  // Add Juicer NFT tab only when the NFT is unlocked (useIsJuicerCampaignVisible
+  // requires JUICE_POINTS_NFT). While the NFT is hidden, the tab stays out of the
+  // primary navigation even though the points program is live.
+  if (showJuicerTab) {
     conditionalTabs.push({
       title: 'Juicer NFT',
       href: '/juicer',

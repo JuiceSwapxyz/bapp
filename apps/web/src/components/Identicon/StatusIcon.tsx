@@ -78,7 +78,9 @@ export default function StatusIcon({
   const effectiveAddress = address ?? account?.address
   const pfp = usePfp(effectiveAddress)
   const hasSocks = useHasSocks()
-  const showPfp = WebFeatureFlags.JUICE_POINTS_PROGRAM && pfp
+  // NFT-as-PFP is an NFT surface — kept behind the NFT-reveal flag so the
+  // points program can be live while the NFT stays hidden.
+  const showPfp = WebFeatureFlags.JUICE_POINTS_NFT && pfp
   return (
     <IconWrapper size={size} data-testid="StatusIconRoot">
       {showPfp ? (

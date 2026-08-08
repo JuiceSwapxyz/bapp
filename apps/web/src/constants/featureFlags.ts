@@ -19,8 +19,16 @@ export const WebFeatureFlags = {
   // Or use ?cross-chain-swaps=false in URL to disable temporarily
   CROSS_CHAIN_SWAPS: process.env.REACT_APP_CROSS_CHAIN_SWAPS !== 'false', // Default to true unless explicitly disabled
 
-  // Enable/disable Juice Points program (Points UI, Leaderboard route, NFT PFP)
-  // Set REACT_APP_JUICE_POINTS_PROGRAM=true in .env to enable
+  // Enable/disable Juice Points program (Points UI, Leaderboard route, header
+  // points ticker). Default ON so users can collect and see their points.
+  // Set REACT_APP_JUICE_POINTS_PROGRAM=false in .env to disable.
   // Re-enablement checklist (incl. public discovery surfaces): see issue #748
-  JUICE_POINTS_PROGRAM: process.env.REACT_APP_JUICE_POINTS_PROGRAM === 'true', // Default to false unless explicitly enabled
+  JUICE_POINTS_PROGRAM: process.env.REACT_APP_JUICE_POINTS_PROGRAM !== 'false', // Default to true unless explicitly disabled
+
+  // Enable/disable the NFT acquisition surfaces that ride on top of the points
+  // program: the Juicer NFT page + nav tab, the Juicer/First Squeezer NFT
+  // claim/mint sections, and NFT-as-profile-picture. Kept OFF so people only
+  // collect points while the NFT stays hidden until it is manually unlocked.
+  // Set REACT_APP_JUICE_POINTS_NFT=true in .env to reveal.
+  JUICE_POINTS_NFT: process.env.REACT_APP_JUICE_POINTS_NFT === 'true', // Default to false unless explicitly enabled
 } as const

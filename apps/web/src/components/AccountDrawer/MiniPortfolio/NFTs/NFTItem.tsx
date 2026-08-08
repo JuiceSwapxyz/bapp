@@ -33,7 +33,7 @@ export function NFT({
     currentPfp.tokenId === asset.tokenId
 
   const canSetPfp =
-    WebFeatureFlags.JUICE_POINTS_PROGRAM &&
+    WebFeatureFlags.JUICE_POINTS_NFT &&
     !!account.address &&
     !!asset.imageUrl &&
     !!asset.asset_contract.address &&
