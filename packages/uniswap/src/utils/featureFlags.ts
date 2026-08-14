@@ -1,8 +1,11 @@
 export const CROSS_CHAIN_SWAPS_STORAGE_KEY = 'crossChainSwapsOverride'
 
 export function isCrossChainSwapsEnabled(): boolean {
-  const envDisabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'false'
-  if (envDisabled) {
+  // The swap backend and claim indexer this feature depends on have been
+  // decommissioned (see JuiceSwapxyz/api#283), so it's off until a
+  // replacement backend is wired up.
+  const envEnabled = process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
+  if (!envEnabled) {
     return false
   }
   if (typeof window !== 'undefined') {
@@ -11,5 +14,5 @@ export function isCrossChainSwapsEnabled(): boolean {
       return false
     }
   }
-  return true // Default to enabled
+  return true
 }
