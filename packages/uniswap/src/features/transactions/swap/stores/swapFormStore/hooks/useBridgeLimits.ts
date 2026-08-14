@@ -65,10 +65,10 @@ const useSubmarineBridge = (params?: {
 }
 
 /** Prefetches Boltz/LDS pair config into the React Query cache so bridge limits resolve faster on first open. */
-export function useWarmBridgePairInfo(): void {
-  useChainBridge({ enabled: true })
-  useReverseBridge({ enabled: true })
-  useSubmarineBridge({ enabled: true })
+export function useWarmBridgePairInfo(enabled: boolean): void {
+  useChainBridge({ enabled })
+  useReverseBridge({ enabled })
+  useSubmarineBridge({ enabled })
 }
 
 const isChainBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): boolean => {
