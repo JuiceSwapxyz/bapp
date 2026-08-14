@@ -14,13 +14,6 @@ export const WebFeatureFlags = {
   // Set REACT_APP_CEX_TRANSFER_ENABLED=true in .env to enable
   CEX_TRANSFER_ENABLED: process.env.REACT_APP_CEX_TRANSFER_ENABLED === 'true', // Default to false unless explicitly enabled
 
-  // Enable/disable Cross-Chain Swaps (Bitcoin, Lightning, ERC20 bridges)
-  // The swap backend and claim indexer this feature depends on have been
-  // decommissioned (see JuiceSwapxyz/api#283), so it's off until a
-  // replacement backend is wired up.
-  // Set REACT_APP_CROSS_CHAIN_SWAPS=true in .env to re-enable
-  CROSS_CHAIN_SWAPS: process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true', // Default to false unless explicitly enabled
-
   // Enable/disable Juice Points program (Points UI, Leaderboard route, NFT PFP)
   // Set REACT_APP_JUICE_POINTS_PROGRAM=true in .env to enable
   // Re-enablement checklist (incl. public discovery surfaces): see issue #748

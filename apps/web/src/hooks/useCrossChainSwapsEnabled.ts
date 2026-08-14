@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { WebFeatureFlags } from 'constants/featureFlags'
 import { useEffect, useState } from 'react'
-import { CROSS_CHAIN_SWAPS_STORAGE_KEY } from 'uniswap/src/utils/featureFlags'
+import { CROSS_CHAIN_SWAPS_STORAGE_KEY, isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 
 type CrossChainSwapsOverride = 'true' | 'false' | undefined
 
@@ -77,14 +76,16 @@ function useCrossChainSwapsOverride(): CrossChainSwapsOverride {
 
 /**
  * Hook to check if cross-chain swaps are enabled
- * Checks both env variable and URL/localStorage override
+ * Checks both env variable and URL/localStorage override.
+ * `useCrossChainSwapsOverride()` only drives re-renders (URL-param handling,
+ * cross-tab storage sync) - the boolean itself always comes from
+ * `isCrossChainSwapsEnabled()`, which reads localStorage/env fresh. Deriving
+ * it from local state instead would let multiple co-mounted instances of
+ * this hook (nav, page body, etc.) disagree on the very render where a URL
+ * param is first processed, since only one instance's effect wins the race
+ * to strip the param from the URL.
  */
 export function useCrossChainSwapsEnabled(): boolean {
-  const override = useCrossChainSwapsOverride()
-
-  if (override === 'true' || override === 'false') {
-    return override === 'true'
-  }
-
-  return WebFeatureFlags.CROSS_CHAIN_SWAPS
+  useCrossChainSwapsOverride()
+  return isCrossChainSwapsEnabled()
 }
