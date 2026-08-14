@@ -816,20 +816,24 @@ export async function fetchQuote({
   isUSDQuote: _isUSDQuote,
   ...params
 }: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  if (isBitcoinBridgeQuote(params)) {
-    return await getBitcoinCrossChainQuote(params)
-  }
+  // Cross-chain swaps disabled: fall through to normal Uniswap routing below
+  // instead of routing bridge pairs to the decommissioned Boltz/LDS backend.
+  if (isCrossChainSwapsEnabled()) {
+    if (isBitcoinBridgeQuote(params)) {
+      return await getBitcoinCrossChainQuote(params)
+    }
 
-  if (isLnBitcoinBridgeQuote(params)) {
-    return await getLightningBridgeQuote(params)
-  }
+    if (isLnBitcoinBridgeQuote(params)) {
+      return await getLightningBridgeQuote(params)
+    }
 
-  if (isErc20ChainSwapQuote(params)) {
-    return await getErc20ChainSwapQuote(params)
-  }
+    if (isErc20ChainSwapQuote(params)) {
+      return await getErc20ChainSwapQuote(params)
+    }
 
-  if (isWbtcBridgeQuote(params)) {
-    return await getWbtcBridgeQuote(params)
+    if (isWbtcBridgeQuote(params)) {
+      return await getWbtcBridgeQuote(params)
+    }
   }
 
   return await swapQuote(params)
