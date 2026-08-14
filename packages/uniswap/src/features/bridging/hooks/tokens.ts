@@ -223,7 +223,10 @@ function useBridgingTokensToTokenOptions(
 }
 
 export function useCommonBridgeTokensOptions(): GqlResult<BridgePairOption[] | undefined> {
-  const bridgePairOptions = useMemo(() => {
+  // Not memoized: isCrossChainSwapsEnabled() reads a mutable localStorage
+  // override, so this must re-evaluate on every render to stay in sync when
+  // the override changes mid-session. BRIDGE_PAIR_DISPLAYS.map is cheap.
+  const bridgePairOptions = ((): BridgePairOption[] => {
     if (!isCrossChainSwapsEnabled()) {
       return []
     }
@@ -285,7 +288,7 @@ export function useCommonBridgeTokensOptions(): GqlResult<BridgePairOption[] | u
         url: pair.url,
       }
     }).filter((option): option is BridgePairOption => option !== undefined)
-  }, [])
+  })()
 
   return {
     data: bridgePairOptions,

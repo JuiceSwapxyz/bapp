@@ -94,7 +94,7 @@ overridden by the matching `.env.{mode}` file when set.
 | `CITREA_BAPPS_CAMPAIGN` | **ON** | **ON** | Default ON; opt-out via `=false` |
 | `FIRST_SQUEEZER_CAMPAIGN` | **ON** | **ON** | Default ON; opt-out via `=false` |
 | `CEX_TRANSFER_ENABLED` | **OFF** | **OFF** | Default OFF; opt-in via `=true` |
-| `CROSS_CHAIN_SWAPS` | **OFF** | **OFF** | Default OFF; opt-in via `=true`, URL override `?cross-chain-swaps=false` |
+| `CROSS_CHAIN_SWAPS` | **OFF** | **OFF** | Default OFF; opt-in via env `=true` or URL/localStorage override `?cross-chain-swaps=true` (force-off: `=false`) |
 | `JUICE_POINTS_PROGRAM` | **ON** (set in `.env.development`) | **OFF** | Default OFF; PRD re-enablement tracked in issue #748 |
 
 When you flip a flag in either env file, **update this table in the same PR** so the
