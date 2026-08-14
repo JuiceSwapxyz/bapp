@@ -32,10 +32,9 @@ interface BridgeLimitsQueryParams {
 }
 
 const useChainBridge = (params?: { enabled: boolean }): ReturnType<typeof useQuery<ChainPairsResponse>> => {
-  const ldsBridge = getLdsBridgeManager()
   return useQuery<ChainPairsResponse>({
     queryKey: ['chain-bridge'],
-    queryFn: () => ldsBridge.getChainPairs(),
+    queryFn: () => getLdsBridgeManager().getChainPairs(),
     enabled: params?.enabled,
     refetchInterval: 600000,
   })
@@ -44,10 +43,9 @@ const useChainBridge = (params?: { enabled: boolean }): ReturnType<typeof useQue
 const useReverseBridge = (params?: {
   enabled: boolean
 }): ReturnType<typeof useQuery<LightningBridgeReverseGetResponse>> => {
-  const ldsBridge = getLdsBridgeManager()
   return useQuery<LightningBridgeReverseGetResponse>({
     queryKey: ['reverse-bridge'],
-    queryFn: () => ldsBridge.getReversePairs(),
+    queryFn: () => getLdsBridgeManager().getReversePairs(),
     enabled: params?.enabled,
     refetchInterval: 600000,
   })
@@ -56,10 +54,9 @@ const useReverseBridge = (params?: {
 const useSubmarineBridge = (params?: {
   enabled: boolean
 }): ReturnType<typeof useQuery<LightningBridgeSubmarineGetResponse>> => {
-  const ldsBridge = getLdsBridgeManager()
   return useQuery<LightningBridgeSubmarineGetResponse>({
     queryKey: ['submarine-bridge'],
-    queryFn: () => ldsBridge.getSubmarinePairs(),
+    queryFn: () => getLdsBridgeManager().getSubmarinePairs(),
     enabled: params?.enabled,
     refetchInterval: 600000,
   })
