@@ -4,6 +4,9 @@ import { TestID } from 'uniswap/src/test/fixtures/testIDs'
 
 test.describe('TokenSelector', () => {
   test('output - should show bridging and top tokens sections if empty', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('crossChainSwapsOverride', 'true')
+    })
     await page.goto('/swap')
     await page.getByTestId(TestID.ChooseOutputToken).click()
 
@@ -41,6 +44,9 @@ test.describe('TokenSelector', () => {
   })
 
   test('input - should show bridging and top tokens sections if empty', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('crossChainSwapsOverride', 'true')
+    })
     await page.goto('/swap')
     await page.getByTestId(TestID.SwitchCurrenciesButton).click()
     await page.getByTestId(TestID.ChooseInputToken).click()
