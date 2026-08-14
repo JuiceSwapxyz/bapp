@@ -16,7 +16,7 @@ export const WebFeatureFlags = {
 
   // Enable/disable Cross-Chain Swaps (Bitcoin, Lightning, ERC20 bridges)
   // The swap backend and claim indexer this feature depends on have been
-  // decommissioned (see JuiceSwapxyz/api#282), so it's off until a
+  // decommissioned (see JuiceSwapxyz/api#283), so it's off until a
   // replacement backend is wired up.
   // Set REACT_APP_CROSS_CHAIN_SWAPS=true in .env to re-enable
   CROSS_CHAIN_SWAPS: process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true', // Default to false unless explicitly enabled
