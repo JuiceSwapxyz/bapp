@@ -14,6 +14,7 @@ import type {
   LightningBridgeSubmarineGetResponse,
 } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { CurrencyField } from 'uniswap/src/types/currency'
+import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 
 export interface BridgeLimits {
   min: CurrencyAmount<Currency>
@@ -136,9 +137,10 @@ const getErc20ApiSymbol = (symbol: string | undefined, chainId: UniverseChainId 
 const usePairInfo = (
   params: BridgeLimitsQueryParams,
 ): ChainPairsResponse | LightningBridgeReverseGetResponse | LightningBridgeSubmarineGetResponse | undefined => {
-  const { data: chainPairs, isLoading: isChainPairsLoading } = useChainBridge()
-  const { data: reversePairs, isLoading: isReversePairsLoading } = useReverseBridge()
-  const { data: submarinePairs, isLoading: isSubmarinePairsLoading } = useSubmarineBridge()
+  const enabled = isCrossChainSwapsEnabled()
+  const { data: chainPairs, isLoading: isChainPairsLoading } = useChainBridge({ enabled })
+  const { data: reversePairs, isLoading: isReversePairsLoading } = useReverseBridge({ enabled })
+  const { data: submarinePairs, isLoading: isSubmarinePairsLoading } = useSubmarineBridge({ enabled })
 
   if (isChainPairsLoading || isReversePairsLoading || isSubmarinePairsLoading) {
     return undefined

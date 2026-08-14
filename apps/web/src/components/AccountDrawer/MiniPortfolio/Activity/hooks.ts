@@ -9,6 +9,7 @@ import {
   useCreateCancelTransactionRequest,
 } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
 import { useBridgeSwaps } from 'hooks/useBridgeSwaps'
+import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { GasFeeResult, GasSpeed, useTransactionGasFee } from 'hooks/useTransactionGasFee'
 import { useEffect, useMemo } from 'react'
 import { usePendingOrders } from 'state/signatures/hooks'
@@ -134,7 +135,8 @@ export function useAllActivities(account: string) {
     [account, activities, formatNumberOrString],
   )
 
-  const { data: bridgeSwaps } = useBridgeSwaps()
+  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
+  const { data: bridgeSwaps } = useBridgeSwaps({ enabled: crossChainSwapsEnabled })
 
   const bridgeMap = useMemo(() => {
     if (!bridgeSwaps) {
@@ -204,7 +206,11 @@ export function useOpenLimitOrders(account: string) {
 
 const pendiingSwapStatuses = Object.values(swapStatusPending).filter((status) => status !== LdsSwapStatus.SwapCreated)
 export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading: boolean } {
-  const { data: bridgeSwaps, isLoading: loading } = useBridgeSwaps({ statuses: pendiingSwapStatuses })
+  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
+  const { data: bridgeSwaps, isLoading: loading } = useBridgeSwaps({
+    statuses: pendiingSwapStatuses,
+    enabled: crossChainSwapsEnabled,
+  })
   return { bridgeSwaps: bridgeSwaps?.swaps ?? ([] as unknown as SomeSwap[]), loading }
 }
 
