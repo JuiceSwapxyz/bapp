@@ -22,6 +22,7 @@ import {
   toTradingApiSupportedChainId,
 } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { buildCurrencyId, buildNativeCurrencyId } from 'uniswap/src/utils/currencyId'
+import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 import { logger } from 'utilities/src/logger/logger'
 
 export function useBridgingTokenWithHighestBalance({
@@ -223,6 +224,10 @@ function useBridgingTokensToTokenOptions(
 
 export function useCommonBridgeTokensOptions(): GqlResult<BridgePairOption[] | undefined> {
   const bridgePairOptions = useMemo(() => {
+    if (!isCrossChainSwapsEnabled()) {
+      return []
+    }
+
     return BRIDGE_PAIR_DISPLAYS.map((pair): BridgePairOption | undefined => {
       const fromChainId = toSupportedChainId(pair.fromChain)
       const toChainId = toSupportedChainId(pair.toChain)
