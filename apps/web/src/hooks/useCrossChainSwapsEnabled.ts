@@ -1,24 +1,46 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { CROSS_CHAIN_SWAPS_STORAGE_KEY, isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 
-type CrossChainSwapsOverride = 'true' | 'false' | undefined
+// Shared across every useCrossChainSwapsEnabled() instance so that whichever
+// one processes a change (a URL param, a cross-tab storage event) notifies
+// all the others - a plain per-instance useState cannot do this, since
+// history.replaceState synchronously strips the URL param, so only the
+// first instance's effect to run ever sees it and the rest never re-render.
+const listeners = new Set<() => void>()
+
+function notifyListeners(): void {
+  listeners.forEach((listener) => listener())
+}
+
+function subscribe(onStoreChange: () => void): () => void {
+  listeners.add(onStoreChange)
+
+  const handleStorageChange = (e: StorageEvent): void => {
+    if (e.key === CROSS_CHAIN_SWAPS_STORAGE_KEY) {
+      onStoreChange()
+    }
+  }
+  window.addEventListener('storage', handleStorageChange)
+
+  return () => {
+    listeners.delete(onStoreChange)
+    window.removeEventListener('storage', handleStorageChange)
+  }
+}
+
+function getServerSnapshot(): boolean {
+  return process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
+}
 
 /**
- * Hook to handle URL-based cross-chain swaps override
- * Detects ?cross-chain-swaps=true/false and manages localStorage
- * Returns 'true'/'false' if explicitly overridden via URL/localStorage, undefined otherwise
+ * Applies a ?cross-chain-swaps=true/false URL param to localStorage (once
+ * per navigation, idempotent across co-mounted instances) and notifies
+ * every subscribed useCrossChainSwapsEnabled() instance of the change.
  * @internal
  */
-function useCrossChainSwapsOverride(): CrossChainSwapsOverride {
+function useApplyCrossChainSwapsUrlParam(): void {
   const queryClient = useQueryClient()
-  const [override, setOverride] = useState<CrossChainSwapsOverride>(() => {
-    if (typeof window === 'undefined') {
-      return undefined
-    }
-    const stored = localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY)
-    return stored === 'true' || stored === 'false' ? stored : undefined
-  })
 
   useEffect(() => {
     const checkUrlParams = (): void => {
@@ -35,7 +57,7 @@ function useCrossChainSwapsOverride(): CrossChainSwapsOverride {
 
           // Invalidate all queries to refetch with new flag status
           queryClient.invalidateQueries()
-          setOverride(param)
+          notifyListeners()
 
           // Remove query param from URL without full page refresh
           const url = new URL(window.location.href)
@@ -48,44 +70,27 @@ function useCrossChainSwapsOverride(): CrossChainSwapsOverride {
     // Check on mount
     checkUrlParams()
 
-    // Listen for manual localStorage changes (from other tabs/windows)
-    const handleStorageChange = (e: StorageEvent): void => {
-      if (e.key === CROSS_CHAIN_SWAPS_STORAGE_KEY) {
-        setOverride(e.newValue === 'true' || e.newValue === 'false' ? e.newValue : undefined)
-        // Invalidate queries when another tab changes the setting
-        queryClient.invalidateQueries()
-      }
-    }
-
     // Listen for URL changes (navigation)
     const handlePopState = (): void => {
       checkUrlParams()
     }
 
-    window.addEventListener('storage', handleStorageChange)
     window.addEventListener('popstate', handlePopState)
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('popstate', handlePopState)
     }
   }, [queryClient])
-
-  return override
 }
 
 /**
- * Hook to check if cross-chain swaps are enabled
- * Checks both env variable and URL/localStorage override.
- * `useCrossChainSwapsOverride()` only drives re-renders (URL-param handling,
- * cross-tab storage sync) - the boolean itself always comes from
- * `isCrossChainSwapsEnabled()`, which reads localStorage/env fresh. Deriving
- * it from local state instead would let multiple co-mounted instances of
- * this hook (nav, page body, etc.) disagree on the very render where a URL
- * param is first processed, since only one instance's effect wins the race
- * to strip the param from the URL.
+ * Hook to check if cross-chain swaps are enabled.
+ * Checks both env variable and URL/localStorage override. Backed by
+ * useSyncExternalStore so every co-mounted instance (nav, page body, etc.)
+ * re-renders together on any change, instead of each holding independent
+ * local state that only the "winning" instance's effect would update.
  */
 export function useCrossChainSwapsEnabled(): boolean {
-  useCrossChainSwapsOverride()
-  return isCrossChainSwapsEnabled()
+  useApplyCrossChainSwapsUrlParam()
+  return useSyncExternalStore(subscribe, isCrossChainSwapsEnabled, getServerSnapshot)
 }
