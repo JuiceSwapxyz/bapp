@@ -5,7 +5,7 @@ export function isCrossChainSwapsEnabled(): boolean {
   // decommissioned (see JuiceSwapxyz/api#283), so it's off until a
   // replacement backend is wired up. A URL/localStorage override (see
   // apps/web/src/hooks/useCrossChainSwapsEnabled.ts) can force it either way.
-  if (typeof window !== 'undefined') {
+  if (typeof localStorage !== 'undefined') {
     const override = localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY)
     if (override === 'true' || override === 'false') {
       return override === 'true'

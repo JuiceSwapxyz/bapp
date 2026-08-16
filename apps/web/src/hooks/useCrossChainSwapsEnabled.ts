@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useSyncExternalStore } from 'react'
+import { SharedQueryClient } from 'uniswap/src/data/apiClients/SharedQueryClient'
 import { CROSS_CHAIN_SWAPS_STORAGE_KEY, isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
 
 // Shared across every useCrossChainSwapsEnabled() instance so that whichever
@@ -18,6 +19,9 @@ function subscribe(onStoreChange: () => void): () => void {
 
   const handleStorageChange = (e: StorageEvent): void => {
     if (e.key === CROSS_CHAIN_SWAPS_STORAGE_KEY) {
+      // Another tab changed the override - refetch already-mounted queries
+      // gated on this flag, same as the in-tab URL-param path does.
+      SharedQueryClient.invalidateQueries()
       onStoreChange()
     }
   }
@@ -51,19 +55,22 @@ function useApplyCrossChainSwapsUrlParam(): void {
         const stored = localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY)
         const currentOverride = stored === 'true' || stored === 'false' ? stored : undefined
 
-        // Only update if value changed
+        // Only write/notify if value changed, but always strip the param -
+        // otherwise an already-matching param survives in the URL and can
+        // silently re-apply a stale value on a later reload/popstate (e.g.
+        // after another tab changes the override in between).
         if (param !== currentOverride) {
           localStorage.setItem(CROSS_CHAIN_SWAPS_STORAGE_KEY, param)
 
           // Invalidate all queries to refetch with new flag status
           queryClient.invalidateQueries()
           notifyListeners()
-
-          // Remove query param from URL without full page refresh
-          const url = new URL(window.location.href)
-          url.searchParams.delete('cross-chain-swaps')
-          window.history.replaceState({}, '', url.toString())
         }
+
+        // Remove query param from URL without full page refresh
+        const url = new URL(window.location.href)
+        url.searchParams.delete('cross-chain-swaps')
+        window.history.replaceState({}, '', url.toString())
       }
     }
 
