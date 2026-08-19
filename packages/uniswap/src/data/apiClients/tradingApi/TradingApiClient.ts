@@ -1428,6 +1428,9 @@ export const fetchClaimRefund = async (): Promise<UserClaimsAndRefundsResponse> 
 }
 
 export const fetchBridgeSwapByPreimageHash = async (params: { preimageHash: string }): Promise<SomeSwap> => {
+  if (!isCrossChainSwapsEnabled()) {
+    throw new Error('Cross-chain swaps are disabled')
+  }
   return await TradingApiClient.get<SomeSwap>(`/v1/bridge-swap/preimage-hash/${params.preimageHash}`)
 }
 
