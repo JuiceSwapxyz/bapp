@@ -152,6 +152,7 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
   // ===================
   test('Test 1: Load swap page Citrea JUSD -> Polygon USDT', async () => {
     const page = await context.newPage()
+    await page.addInitScript(() => localStorage.setItem('crossChainSwapsOverride', 'true'))
 
     // Step 1: Navigate to swap page
     await page.goto('/swap?chain=citrea_testnet&outputChain=polygon&inputCurrency=JUSD&outputCurrency=USDT')
@@ -173,6 +174,7 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
   // ===================
   test('Test 2: Load swap page Polygon USDT -> Citrea JUSD', async () => {
     const page = await context.newPage()
+    await page.addInitScript(() => localStorage.setItem('crossChainSwapsOverride', 'true'))
 
     // Step 1: Navigate to swap page
     await page.goto('/swap?chain=polygon&outputChain=citrea_testnet&inputCurrency=USDT&outputCurrency=JUSD')
@@ -194,6 +196,7 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
   // ===================
   test('Test 3: Connect MetaMask wallet', async () => {
     const page = await context.newPage()
+    await page.addInitScript(() => localStorage.setItem('crossChainSwapsOverride', 'true'))
 
     // Step 1: Navigate to swap page
     await page.goto('/swap?chain=citrea_testnet&outputChain=polygon&inputCurrency=JUSD&outputCurrency=USDT')
@@ -240,6 +243,7 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
   // ===================
   test('Test 4: Switch network when prompted', async () => {
     const page = await context.newPage()
+    await page.addInitScript(() => localStorage.setItem('crossChainSwapsOverride', 'true'))
 
     // Step 1: Switch MetaMask to Polygon first
     await metamask.switchNetwork('Polygon')
@@ -287,6 +291,7 @@ test.describe('Cross-Chain Swap: JUSD (Citrea) <-> USDT (Polygon)', () => {
   test('Test 5: Execute cross-chain swap USDT (Polygon) -> JUSD (Citrea)', async () => {
     test.setTimeout(300000) // 5 minutes - need extra time for approval mining + swap tx
     const page = await context.newPage()
+    await page.addInitScript(() => localStorage.setItem('crossChainSwapsOverride', 'true'))
     const SWAP_AMOUNT = '1'
 
     // Capture browser console logs

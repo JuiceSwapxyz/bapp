@@ -816,20 +816,24 @@ export async function fetchQuote({
   isUSDQuote: _isUSDQuote,
   ...params
 }: QuoteRequest & { isUSDQuote?: boolean }): Promise<DiscriminatedQuoteResponse> {
-  if (isBitcoinBridgeQuote(params)) {
-    return await getBitcoinCrossChainQuote(params)
-  }
+  // Cross-chain swaps disabled: fall through to normal Uniswap routing below
+  // instead of routing bridge pairs to the decommissioned Boltz/LDS backend.
+  if (isCrossChainSwapsEnabled()) {
+    if (isBitcoinBridgeQuote(params)) {
+      return await getBitcoinCrossChainQuote(params)
+    }
 
-  if (isLnBitcoinBridgeQuote(params)) {
-    return await getLightningBridgeQuote(params)
-  }
+    if (isLnBitcoinBridgeQuote(params)) {
+      return await getLightningBridgeQuote(params)
+    }
 
-  if (isErc20ChainSwapQuote(params)) {
-    return await getErc20ChainSwapQuote(params)
-  }
+    if (isErc20ChainSwapQuote(params)) {
+      return await getErc20ChainSwapQuote(params)
+    }
 
-  if (isWbtcBridgeQuote(params)) {
-    return await getWbtcBridgeQuote(params)
+    if (isWbtcBridgeQuote(params)) {
+      return await getWbtcBridgeQuote(params)
+    }
   }
 
   return await swapQuote(params)
@@ -1374,6 +1378,12 @@ export async function fetchSvJusdSharePrice(params: { chainId: number }): Promis
 }
 
 export const saveBridgeSwap = async (params: CreateBridgeSwapRequest): Promise<CreateBridgeSwapResponse> => {
+  // The gating query's `enabled` option can lag one render behind a
+  // mid-session override change (see useCrossChainSwapsEnabled.ts), so this
+  // re-checks the flag at call time rather than relying solely on callers.
+  if (!isCrossChainSwapsEnabled()) {
+    throw new Error('Cross-chain swaps are disabled')
+  }
   return await TradingApiClient.post<CreateBridgeSwapResponse>('/v1/bridge-swap', {
     body: JSON.stringify({
       ...params,
@@ -1384,6 +1394,12 @@ export const saveBridgeSwap = async (params: CreateBridgeSwapRequest): Promise<C
 export const fetchBridgeSwaps = async (params: {
   statuses?: LdsSwapStatus[]
 }): Promise<GetBridgeSwapsByUserResponse> => {
+  if (!isCrossChainSwapsEnabled()) {
+    return {
+      summary: { total: 0, totalRefundable: 0, totalClaimable: 0, totalSuccess: 0, totalPending: 0 },
+      swaps: [],
+    }
+  }
   const statusFilter = params.statuses?.length
     ? params.statuses.map((s) => `status=${encodeURIComponent(s)}`).join('&')
     : ''
@@ -1391,6 +1407,9 @@ export const fetchBridgeSwaps = async (params: {
 }
 
 export const saveBridgeSwapBulk = async (params: CreateBridgeSwapRequest[]): Promise<BulkCreateBridgeSwapResponse> => {
+  if (!isCrossChainSwapsEnabled()) {
+    throw new Error('Cross-chain swaps are disabled')
+  }
   return await TradingApiClient.post<BulkCreateBridgeSwapResponse>('/v1/bridge-swap/bulk', {
     body: JSON.stringify({
       swaps: params,
@@ -1399,10 +1418,19 @@ export const saveBridgeSwapBulk = async (params: CreateBridgeSwapRequest[]): Pro
 }
 
 export const fetchClaimRefund = async (): Promise<UserClaimsAndRefundsResponse> => {
+  if (!isCrossChainSwapsEnabled()) {
+    return {
+      btc: { readyToRefund: [], locked: [] },
+      evm: { readyToRefund: [], readyToClaim: [], locked: [] },
+    }
+  }
   return await TradingApiClient.get<UserClaimsAndRefundsResponse>('/v1/bridge-swap/claim-refund')
 }
 
 export const fetchBridgeSwapByPreimageHash = async (params: { preimageHash: string }): Promise<SomeSwap> => {
+  if (!isCrossChainSwapsEnabled()) {
+    throw new Error('Cross-chain swaps are disabled')
+  }
   return await TradingApiClient.get<SomeSwap>(`/v1/bridge-swap/preimage-hash/${params.preimageHash}`)
 }
 

@@ -72,9 +72,20 @@ export function useEvmRefund() {
         })
       }
 
-      const swap = await fetchBridgeSwapByPreimageHash({ preimageHash: lockup.preimageHash })
-      swap.refundTx = txHash
-      await getLdsBridgeManager().updateSwapRefundTx(swap.id, txHash)
+      // The on-chain refund above already succeeded - a failure syncing its
+      // metadata (e.g. the backend rejecting the lookup because cross-chain
+      // swaps got disabled mid-flow) must not surface as a refund failure to
+      // the caller, or a successful refund would get reported as failed.
+      try {
+        const swap = await fetchBridgeSwapByPreimageHash({ preimageHash: lockup.preimageHash })
+        swap.refundTx = txHash
+        await getLdsBridgeManager().updateSwapRefundTx(swap.id, txHash)
+      } catch (error) {
+        logger.warn('useEvmRefund', 'executeRefund', 'Refund succeeded but failed to sync its metadata', {
+          error,
+          txHash,
+        })
+      }
 
       logger.info('useEvmRefund', 'executeRefund', `Refund successful: ${txHash}`)
       return txHash

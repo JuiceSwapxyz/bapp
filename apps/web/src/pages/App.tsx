@@ -30,9 +30,10 @@ export default function App() {
   const currentPage = getCurrentPageFromLocation(pathname)
 
   useFeatureFlagUrlOverrides()
-  useCrossChainSwapsEnabled() // Handle ?cross-chain-swaps=true/false URL parameter
-  useSyncBridgeSwaps() // Sync bridge swaps with GraphQL data on app init
-  useWarmBridgePairInfo()
+  // Also handles ?cross-chain-swaps=true/false URL parameter as a side effect
+  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
+  useSyncBridgeSwaps(crossChainSwapsEnabled) // Sync bridge swaps with GraphQL data on app init
+  useWarmBridgePairInfo(crossChainSwapsEnabled)
 
   useEffect(() => {
     initializeScrollWatcher()
