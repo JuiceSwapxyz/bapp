@@ -8,6 +8,7 @@ import { CitreaCampaignProgress } from 'components/swap/CitreaCampaignProgress'
 import { PageWrapper } from 'components/swap/styled'
 import { useAccount } from 'hooks/useAccount'
 import { useBAppsSwapTracking } from 'hooks/useBAppsSwapTracking'
+import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { useLaunchpadTokenLogoUrl } from 'hooks/useLaunchpadTokens'
 import { useModalState } from 'hooks/useModalState'
 import { useRefundsAndClaims } from 'hooks/useRefundsAndClaims'
@@ -88,7 +89,8 @@ export default function SwapPage() {
     triggerConnect,
   } = useInitialCurrencyState()
 
-  const { data: refundsAndClaims, isLoading: isLoadingRefundsAndClaims } = useRefundsAndClaims()
+  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
+  const { data: refundsAndClaims, isLoading: isLoadingRefundsAndClaims } = useRefundsAndClaims(crossChainSwapsEnabled)
 
   useEffect(() => {
     if (triggerConnect) {
@@ -108,7 +110,7 @@ export default function SwapPage() {
       }
       return now - Number(lockup.createdAt) * 1000 > CLAIMABLE_NOTIFY_DELAY_MS
     }).length
-    const hasPendingActions = refundableCount > 0 || matureClaimableCount > 0
+    const hasPendingActions = crossChainSwapsEnabled && (refundableCount > 0 || matureClaimableCount > 0)
 
     if (hasPendingActions && !isLoadingRefundsAndClaims) {
       popupRegistry.addPopup(
@@ -125,7 +127,11 @@ export default function SwapPage() {
     return () => {
       popupRegistry.removePopup('refundable-swaps')
     }
-  }, [refundsAndClaims, isLoadingRefundsAndClaims])
+    // crossChainSwapsEnabled is a dep so a mid-session disable re-runs this
+    // effect and clears an already-shown popup - enabled:false doesn't
+    // clear refundsAndClaims' cached data, so hasPendingActions above must
+    // gate on it explicitly too.
+  }, [refundsAndClaims, isLoadingRefundsAndClaims, crossChainSwapsEnabled])
 
   return (
     <Trace logImpression page={InterfacePageName.SwapPage}>

@@ -9,6 +9,7 @@ import {
   useCreateCancelTransactionRequest,
 } from 'components/AccountDrawer/MiniPortfolio/Activity/utils'
 import { useBridgeSwaps } from 'hooks/useBridgeSwaps'
+import { useCrossChainSwapsEnabled } from 'hooks/useCrossChainSwapsEnabled'
 import { GasFeeResult, GasSpeed, useTransactionGasFee } from 'hooks/useTransactionGasFee'
 import { useEffect, useMemo } from 'react'
 import { usePendingOrders } from 'state/signatures/hooks'
@@ -134,16 +135,20 @@ export function useAllActivities(account: string) {
     [account, activities, formatNumberOrString],
   )
 
-  const { data: bridgeSwaps } = useBridgeSwaps()
+  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
+  const { data: bridgeSwaps } = useBridgeSwaps({ enabled: crossChainSwapsEnabled })
 
   const bridgeMap = useMemo(() => {
-    if (!bridgeSwaps) {
+    // Query enabled:false doesn't clear already-cached data, so this must be
+    // gated explicitly - otherwise a disabled-mid-session toggle would keep
+    // showing bridge activity fetched before the toggle.
+    if (!crossChainSwapsEnabled || !bridgeSwaps) {
       return {}
     }
     const swapsWithoutCreated = bridgeSwaps.swaps.filter((s) => s.status !== LdsSwapStatus.SwapCreated)
     const activityMap = swapsToActivityMap(swapsWithoutCreated)
     return keepActivitiesForChains(activityMap, chains)
-  }, [bridgeSwaps, chains])
+  }, [crossChainSwapsEnabled, bridgeSwaps, chains])
 
   // Fetch Ponder activities (DEX swaps + launchpad trades) for Citrea chains
   const { data: ponderResponse } = usePonderActivitiesQuery({
@@ -204,7 +209,16 @@ export function useOpenLimitOrders(account: string) {
 
 const pendiingSwapStatuses = Object.values(swapStatusPending).filter((status) => status !== LdsSwapStatus.SwapCreated)
 export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading: boolean } {
-  const { data: bridgeSwaps, isLoading: loading } = useBridgeSwaps({ statuses: pendiingSwapStatuses })
+  const crossChainSwapsEnabled = useCrossChainSwapsEnabled()
+  const { data: bridgeSwaps, isLoading: loading } = useBridgeSwaps({
+    statuses: pendiingSwapStatuses,
+    enabled: crossChainSwapsEnabled,
+  })
+  // Query enabled:false doesn't clear already-cached data, so this must be
+  // gated explicitly - see useAllActivities' bridgeMap above.
+  if (!crossChainSwapsEnabled) {
+    return { bridgeSwaps: [], loading: false }
+  }
   return { bridgeSwaps: bridgeSwaps?.swaps ?? ([] as unknown as SomeSwap[]), loading }
 }
 

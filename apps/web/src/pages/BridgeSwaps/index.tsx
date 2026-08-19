@@ -39,7 +39,11 @@ export default function BridgeSwaps(): JSX.Element {
     refetch,
   } = useBridgeSwaps({ enabled: crossChainSwapsEnabled })
 
-  const { data, isLoading: isLoadingRefundable, refetch: refetchRefundable } = useRefundsAndClaims()
+  const {
+    data,
+    isLoading: isLoadingRefundable,
+    refetch: refetchRefundable,
+  } = useRefundsAndClaims(crossChainSwapsEnabled)
 
   const refundableSwaps = useMemo(() => (data ? data.btc.readyToRefund : []), [data])
   const evmRefundableSwaps = useMemo(() => (data ? data.evm.readyToRefund : []), [data])

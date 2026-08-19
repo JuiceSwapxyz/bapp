@@ -1,6 +1,7 @@
 import { parseUnits } from '@ethersproject/units'
 import { Currency, CurrencyAmount } from '@juiceswapxyz/sdk-core'
 import { useQuery } from '@tanstack/react-query'
+import { useSyncExternalStore } from 'react'
 import { UniverseChainId } from 'uniswap/src/features/chains/types'
 import { fetchLdsOnChainBalance } from 'uniswap/src/features/lds-bridge/api/ldsOnChainBalance'
 import {
@@ -14,6 +15,11 @@ import type {
   LightningBridgeSubmarineGetResponse,
 } from 'uniswap/src/features/lds-bridge/lds-types/api'
 import { CurrencyField } from 'uniswap/src/types/currency'
+import {
+  getCrossChainSwapsServerSnapshot,
+  isCrossChainSwapsEnabled,
+  subscribeCrossChainSwapsEnabled,
+} from 'uniswap/src/utils/featureFlags'
 
 export interface BridgeLimits {
   min: CurrencyAmount<Currency>
@@ -30,45 +36,42 @@ interface BridgeLimitsQueryParams {
   currencyOut: Currency | null | undefined
 }
 
-const useChainBridge = (params?: { enabled: boolean }): ReturnType<typeof useQuery<ChainPairsResponse>> => {
-  const ldsBridge = getLdsBridgeManager()
+const useChainBridge = (params: { enabled: boolean }): ReturnType<typeof useQuery<ChainPairsResponse>> => {
   return useQuery<ChainPairsResponse>({
     queryKey: ['chain-bridge'],
-    queryFn: () => ldsBridge.getChainPairs(),
-    enabled: params?.enabled,
+    queryFn: () => getLdsBridgeManager().getChainPairs(),
+    enabled: params.enabled,
     refetchInterval: 600000,
   })
 }
 
-const useReverseBridge = (params?: {
+const useReverseBridge = (params: {
   enabled: boolean
 }): ReturnType<typeof useQuery<LightningBridgeReverseGetResponse>> => {
-  const ldsBridge = getLdsBridgeManager()
   return useQuery<LightningBridgeReverseGetResponse>({
     queryKey: ['reverse-bridge'],
-    queryFn: () => ldsBridge.getReversePairs(),
-    enabled: params?.enabled,
+    queryFn: () => getLdsBridgeManager().getReversePairs(),
+    enabled: params.enabled,
     refetchInterval: 600000,
   })
 }
 
-const useSubmarineBridge = (params?: {
+const useSubmarineBridge = (params: {
   enabled: boolean
 }): ReturnType<typeof useQuery<LightningBridgeSubmarineGetResponse>> => {
-  const ldsBridge = getLdsBridgeManager()
   return useQuery<LightningBridgeSubmarineGetResponse>({
     queryKey: ['submarine-bridge'],
-    queryFn: () => ldsBridge.getSubmarinePairs(),
-    enabled: params?.enabled,
+    queryFn: () => getLdsBridgeManager().getSubmarinePairs(),
+    enabled: params.enabled,
     refetchInterval: 600000,
   })
 }
 
 /** Prefetches Boltz/LDS pair config into the React Query cache so bridge limits resolve faster on first open. */
-export function useWarmBridgePairInfo(): void {
-  useChainBridge({ enabled: true })
-  useReverseBridge({ enabled: true })
-  useSubmarineBridge({ enabled: true })
+export function useWarmBridgePairInfo(enabled: boolean): void {
+  useChainBridge({ enabled })
+  useReverseBridge({ enabled })
+  useSubmarineBridge({ enabled })
 }
 
 const isChainBridge = ({ currencyIn, currencyOut }: BridgeLimitsQueryParams): boolean => {
@@ -136,9 +139,22 @@ const getErc20ApiSymbol = (symbol: string | undefined, chainId: UniverseChainId 
 const usePairInfo = (
   params: BridgeLimitsQueryParams,
 ): ChainPairsResponse | LightningBridgeReverseGetResponse | LightningBridgeSubmarineGetResponse | undefined => {
-  const { data: chainPairs, isLoading: isChainPairsLoading } = useChainBridge()
-  const { data: reversePairs, isLoading: isReversePairsLoading } = useReverseBridge()
-  const { data: submarinePairs, isLoading: isSubmarinePairsLoading } = useSubmarineBridge()
+  const enabled = useSyncExternalStore(
+    subscribeCrossChainSwapsEnabled,
+    isCrossChainSwapsEnabled,
+    getCrossChainSwapsServerSnapshot,
+  )
+  const { data: chainPairs, isLoading: isChainPairsLoading } = useChainBridge({ enabled })
+  const { data: reversePairs, isLoading: isReversePairsLoading } = useReverseBridge({ enabled })
+  const { data: submarinePairs, isLoading: isSubmarinePairsLoading } = useSubmarineBridge({ enabled })
+
+  if (!enabled) {
+    // Disabling mid-session doesn't clear an already-populated query cache
+    // (TanStack Query keeps the last data across an enabled:true -> false
+    // transition), so this must be an explicit gate, not just a side effect
+    // of the queries never having fetched.
+    return undefined
+  }
 
   if (isChainPairsLoading || isReversePairsLoading || isSubmarinePairsLoading) {
     return undefined
