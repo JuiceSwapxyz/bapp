@@ -9,7 +9,6 @@
 - **Limit orders** for delayed execution at a target price
 - **Send** tokens to another address
 - **Buy / Sell** crypto via on-ramps (Moonpay)
-- **Bridge** assets between Citrea and supported networks
 - **Launch a token** through the integrated launchpad
 - **Track positions** and on-chain activity in the wallet drawer
 
