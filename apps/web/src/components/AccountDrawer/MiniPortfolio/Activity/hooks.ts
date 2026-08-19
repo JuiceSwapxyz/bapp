@@ -139,13 +139,16 @@ export function useAllActivities(account: string) {
   const { data: bridgeSwaps } = useBridgeSwaps({ enabled: crossChainSwapsEnabled })
 
   const bridgeMap = useMemo(() => {
-    if (!bridgeSwaps) {
+    // Query enabled:false doesn't clear already-cached data, so this must be
+    // gated explicitly - otherwise a disabled-mid-session toggle would keep
+    // showing bridge activity fetched before the toggle.
+    if (!crossChainSwapsEnabled || !bridgeSwaps) {
       return {}
     }
     const swapsWithoutCreated = bridgeSwaps.swaps.filter((s) => s.status !== LdsSwapStatus.SwapCreated)
     const activityMap = swapsToActivityMap(swapsWithoutCreated)
     return keepActivitiesForChains(activityMap, chains)
-  }, [bridgeSwaps, chains])
+  }, [crossChainSwapsEnabled, bridgeSwaps, chains])
 
   // Fetch Ponder activities (DEX swaps + launchpad trades) for Citrea chains
   const { data: ponderResponse } = usePonderActivitiesQuery({
@@ -211,6 +214,11 @@ export function usePendingBridgeActivities(): { bridgeSwaps: SomeSwap[]; loading
     statuses: pendiingSwapStatuses,
     enabled: crossChainSwapsEnabled,
   })
+  // Query enabled:false doesn't clear already-cached data, so this must be
+  // gated explicitly - see useAllActivities' bridgeMap above.
+  if (!crossChainSwapsEnabled) {
+    return { bridgeSwaps: [], loading: false }
+  }
   return { bridgeSwaps: bridgeSwaps?.swaps ?? ([] as unknown as SomeSwap[]), loading }
 }
 

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { filter } from 'uniswap/src/components/TokenSelector/filter'
 import { usePortfolioBalancesForAddressById } from 'uniswap/src/components/TokenSelector/hooks/usePortfolioBalancesForAddressById'
 import { createEmptyTokenOptionFromBridgingToken } from 'uniswap/src/components/TokenSelector/utils'
@@ -22,7 +22,11 @@ import {
   toTradingApiSupportedChainId,
 } from 'uniswap/src/features/transactions/swap/utils/tradingApi'
 import { buildCurrencyId, buildNativeCurrencyId } from 'uniswap/src/utils/currencyId'
-import { isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
+import {
+  getCrossChainSwapsServerSnapshot,
+  isCrossChainSwapsEnabled,
+  subscribeCrossChainSwapsEnabled,
+} from 'uniswap/src/utils/featureFlags'
 import { logger } from 'utilities/src/logger/logger'
 
 export function useBridgingTokenWithHighestBalance({
@@ -223,11 +227,20 @@ function useBridgingTokensToTokenOptions(
 }
 
 export function useCommonBridgeTokensOptions(): GqlResult<BridgePairOption[] | undefined> {
-  // Not memoized: isCrossChainSwapsEnabled() reads a mutable localStorage
-  // override, so this must re-evaluate on every render to stay in sync when
-  // the override changes mid-session. BRIDGE_PAIR_DISPLAYS.map is cheap.
-  const bridgePairOptions = ((): BridgePairOption[] => {
-    if (!isCrossChainSwapsEnabled()) {
+  // Subscribed via useSyncExternalStore (not just called inline) so this
+  // hook's component re-renders when the override changes mid-session (a
+  // URL param, a cross-tab storage event) even if nothing else happens to
+  // trigger a re-render - a plain isCrossChainSwapsEnabled() call would only
+  // reflect a change whenever the component happened to re-render for an
+  // unrelated reason.
+  const crossChainSwapsEnabled = useSyncExternalStore(
+    subscribeCrossChainSwapsEnabled,
+    isCrossChainSwapsEnabled,
+    getCrossChainSwapsServerSnapshot,
+  )
+
+  const bridgePairOptions = useMemo((): BridgePairOption[] => {
+    if (!crossChainSwapsEnabled) {
       return []
     }
 
@@ -288,7 +301,7 @@ export function useCommonBridgeTokensOptions(): GqlResult<BridgePairOption[] | u
         url: pair.url,
       }
     }).filter((option): option is BridgePairOption => option !== undefined)
-  })()
+  }, [crossChainSwapsEnabled])
 
   return {
     data: bridgePairOptions,

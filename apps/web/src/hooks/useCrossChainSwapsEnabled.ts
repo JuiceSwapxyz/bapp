@@ -1,93 +1,62 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { useEffect, useSyncExternalStore } from 'react'
-import { SharedQueryClient } from 'uniswap/src/data/apiClients/SharedQueryClient'
-import { CROSS_CHAIN_SWAPS_STORAGE_KEY, isCrossChainSwapsEnabled } from 'uniswap/src/utils/featureFlags'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
+import {
+  CROSS_CHAIN_SWAPS_STORAGE_KEY,
+  applyCrossChainSwapsOverride,
+  getCrossChainSwapsServerSnapshot,
+  isCrossChainSwapsEnabled,
+  subscribeCrossChainSwapsEnabled,
+} from 'uniswap/src/utils/featureFlags'
 
-// Shared across every useCrossChainSwapsEnabled() instance so that whichever
-// one processes a change (a URL param, a cross-tab storage event) notifies
-// all the others - a plain per-instance useState cannot do this, since
-// history.replaceState synchronously strips the URL param, so only the
-// first instance's effect to run ever sees it and the rest never re-render.
-const listeners = new Set<() => void>()
+function checkUrlParams(): void {
+  const urlParams = new URLSearchParams(window.location.search)
+  const param = urlParams.get('cross-chain-swaps')
 
-function notifyListeners(): void {
-  listeners.forEach((listener) => listener())
-}
+  if (param === 'true' || param === 'false') {
+    const stored = localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY)
+    const currentOverride = stored === 'true' || stored === 'false' ? stored : undefined
 
-function subscribe(onStoreChange: () => void): () => void {
-  listeners.add(onStoreChange)
-
-  const handleStorageChange = (e: StorageEvent): void => {
-    if (e.key === CROSS_CHAIN_SWAPS_STORAGE_KEY) {
-      // Another tab changed the override - refetch already-mounted queries
-      // gated on this flag, same as the in-tab URL-param path does.
-      SharedQueryClient.invalidateQueries()
-      onStoreChange()
+    // Only write/notify if value changed, but always strip the param -
+    // otherwise an already-matching param survives in the URL and can
+    // silently re-apply a stale value on a later reload/popstate (e.g.
+    // after another tab changes the override in between).
+    if (param !== currentOverride) {
+      applyCrossChainSwapsOverride(param === 'true')
     }
-  }
-  window.addEventListener('storage', handleStorageChange)
 
-  return () => {
-    listeners.delete(onStoreChange)
-    window.removeEventListener('storage', handleStorageChange)
+    // Remove query param from URL without full page refresh
+    const url = new URL(window.location.href)
+    url.searchParams.delete('cross-chain-swaps')
+    window.history.replaceState({}, '', url.toString())
   }
-}
-
-function getServerSnapshot(): boolean {
-  return process.env.REACT_APP_CROSS_CHAIN_SWAPS === 'true'
 }
 
 /**
- * Applies a ?cross-chain-swaps=true/false URL param to localStorage (once
- * per navigation, idempotent across co-mounted instances) and notifies
- * every subscribed useCrossChainSwapsEnabled() instance of the change.
+ * Applies a ?cross-chain-swaps=true/false URL param to localStorage and
+ * notifies every subscribed useCrossChainSwapsEnabled() instance of the
+ * change.
  * @internal
  */
 function useApplyCrossChainSwapsUrlParam(): void {
-  const queryClient = useQueryClient()
+  // Applied synchronously during the first render, not in a useEffect: a
+  // component can bail to a redirect based on this same render's flag value
+  // (e.g. BridgeSwaps -> <Navigate> when the flag reads false) whose own
+  // effect fires *before* this component's effects - React commits child
+  // effects before parent effects. A useEffect here would run too late: the
+  // replace navigation already strips the URL param this is meant to apply,
+  // before this component gets a chance to read it. Idempotent, so the
+  // double-invoke under StrictMode/dev remount is harmless.
+  const appliedRef = useRef(false)
+  if (!appliedRef.current) {
+    appliedRef.current = true
+    checkUrlParams()
+  }
 
   useEffect(() => {
-    const checkUrlParams = (): void => {
-      const urlParams = new URLSearchParams(window.location.search)
-      const param = urlParams.get('cross-chain-swaps')
-
-      if (param === 'true' || param === 'false') {
-        const stored = localStorage.getItem(CROSS_CHAIN_SWAPS_STORAGE_KEY)
-        const currentOverride = stored === 'true' || stored === 'false' ? stored : undefined
-
-        // Only write/notify if value changed, but always strip the param -
-        // otherwise an already-matching param survives in the URL and can
-        // silently re-apply a stale value on a later reload/popstate (e.g.
-        // after another tab changes the override in between).
-        if (param !== currentOverride) {
-          localStorage.setItem(CROSS_CHAIN_SWAPS_STORAGE_KEY, param)
-
-          // Invalidate all queries to refetch with new flag status
-          queryClient.invalidateQueries()
-          notifyListeners()
-        }
-
-        // Remove query param from URL without full page refresh
-        const url = new URL(window.location.href)
-        url.searchParams.delete('cross-chain-swaps')
-        window.history.replaceState({}, '', url.toString())
-      }
-    }
-
-    // Check on mount
-    checkUrlParams()
-
-    // Listen for URL changes (navigation)
-    const handlePopState = (): void => {
-      checkUrlParams()
-    }
-
-    window.addEventListener('popstate', handlePopState)
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState)
-    }
-  }, [queryClient])
+    // Handle subsequent in-app URL changes (browser back/forward) that carry
+    // the param without a full page load.
+    window.addEventListener('popstate', checkUrlParams)
+    return () => window.removeEventListener('popstate', checkUrlParams)
+  }, [])
 }
 
 /**
@@ -99,5 +68,9 @@ function useApplyCrossChainSwapsUrlParam(): void {
  */
 export function useCrossChainSwapsEnabled(): boolean {
   useApplyCrossChainSwapsUrlParam()
-  return useSyncExternalStore(subscribe, isCrossChainSwapsEnabled, getServerSnapshot)
+  return useSyncExternalStore(
+    subscribeCrossChainSwapsEnabled,
+    isCrossChainSwapsEnabled,
+    getCrossChainSwapsServerSnapshot,
+  )
 }

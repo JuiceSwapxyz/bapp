@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useJuiceswapAuth } from 'hooks/useJuiceswapAuth'
 import { fetchClaimRefund } from 'uniswap/src/data/apiClients/tradingApi/TradingApiClient'
 
-export function useRefundsAndClaims(enabled = true) {
+export function useRefundsAndClaims(enabled: boolean) {
   const { isAuthenticated } = useJuiceswapAuth()
   return useQuery({
     queryKey: ['refunds-and-claims'],

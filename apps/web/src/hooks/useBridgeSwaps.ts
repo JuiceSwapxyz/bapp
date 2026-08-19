@@ -5,12 +5,12 @@ import { fetchBridgeSwaps } from 'uniswap/src/data/apiClients/tradingApi/Trading
 import { LdsSwapStatus } from 'uniswap/src/features/lds-bridge/lds-types/websocket'
 
 interface UseBridgeSwapsProps {
-  enabled?: boolean
+  enabled: boolean
   statuses?: LdsSwapStatus[]
 }
 
-export function useBridgeSwaps(props: UseBridgeSwapsProps = {}) {
-  const { enabled = true, statuses = [] } = props
+export function useBridgeSwaps(props: UseBridgeSwapsProps) {
+  const { enabled, statuses = [] } = props
   const { data: syncBridgeSwaps, isLoading: isLoadingSyncBridgeSwaps } = useSyncBridgeSwaps(enabled)
   const { isAuthenticated, autenticationSignal } = useJuiceswapAuth()
 

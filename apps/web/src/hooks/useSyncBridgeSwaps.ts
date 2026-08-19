@@ -24,7 +24,7 @@ function getSwapKey(swap: SomeSwap | CreateBridgeSwapRequest): string {
   return `${swap.preimageHash}:${swap.status}`
 }
 
-export function useSyncBridgeSwaps(enabled = true) {
+export function useSyncBridgeSwaps(enabled: boolean) {
   const { isAuthenticated, currentAddress } = useJuiceswapAuth()
 
   const syncBridgeSwaps = useQuery({
