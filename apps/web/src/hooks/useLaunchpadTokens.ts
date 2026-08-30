@@ -16,6 +16,7 @@ export type LaunchpadSortType = 'newest' | 'volume' | 'trades'
 export interface LaunchpadToken {
   id: string
   address: `0x${string}`
+  factory: `0x${string}`
   chainId: number
   name: string
   symbol: string
@@ -34,6 +35,11 @@ export interface LaunchpadToken {
   totalVolumeBase: string // bigint as string
   lastTradeAt: string | null
   progress: number // Bonding curve progress in basis points (0-10000)
+  devBuyEnabled: boolean
+  devBuyBaseAmount: string | null
+  devBuyTokenAmount: string | null
+  devBuyTxHash: `0x${string}` | null
+  devBuyAtBlock: string | null
 }
 
 export interface LaunchpadTokensResponse {
@@ -60,6 +66,7 @@ export interface LaunchpadTrade {
   tokenAddress: `0x${string}`
   trader: `0x${string}`
   isBuy: boolean
+  isDevBuy: boolean
   baseAmount: string
   tokenAmount: string
   timestamp: string

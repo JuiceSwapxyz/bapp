@@ -375,6 +375,16 @@ export default function TokenDetail() {
 
   const volume = volumeValue?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? '0'
   const totalTrades = (launchpadData?.token.totalBuys ?? 0) + (launchpadData?.token.totalSells ?? 0)
+  const devBuyBaseAmount = launchpadData?.token.devBuyBaseAmount
+    ? Number(formatUnits(BigInt(launchpadData.token.devBuyBaseAmount), 18)).toLocaleString(undefined, {
+        maximumFractionDigits: 6,
+      })
+    : null
+  const devBuyTokenAmount = launchpadData?.token.devBuyTokenAmount
+    ? Number(formatUnits(BigInt(launchpadData.token.devBuyTokenAmount), 18)).toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+      })
+    : null
 
   const latestCandle = candlesData?.candles[candlesData.candles.length - 1]
   const latestChartPriceValue = candlesData?.latest?.price ?? latestCandle?.close ?? null
@@ -743,6 +753,18 @@ export default function TokenDetail() {
                     <StatLabel variant="body2">Total supply</StatLabel>
                     <StatValue variant="body2">1,000,000,000</StatValue>
                   </StatRow>
+                  {launchpadData?.token.devBuyEnabled && (
+                    <>
+                      <StatRow paddingVertical="$spacing4">
+                        <StatLabel variant="body2">Dev buy</StatLabel>
+                        <StatValue variant="body2">{devBuyBaseAmount ?? '0'} JUSD</StatValue>
+                      </StatRow>
+                      <StatRow paddingVertical="$spacing4">
+                        <StatLabel variant="body2">Dev buy tokens</StatLabel>
+                        <StatValue variant="body2">{devBuyTokenAmount ?? '0'}</StatValue>
+                      </StatRow>
+                    </>
+                  )}
                   <StatRow paddingVertical="$spacing4">
                     <StatLabel variant="body2">Creator</StatLabel>
                     <InlineLink
