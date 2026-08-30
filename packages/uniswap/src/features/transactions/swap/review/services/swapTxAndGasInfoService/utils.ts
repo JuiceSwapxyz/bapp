@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import type {
   BridgeQuoteResponse,
   ClassicQuoteResponse,
+  DirectPoolQuoteResponse,
   DiscriminatedQuoteResponse,
   GatewayJusdQuoteResponse,
   SatsumaQuoteResponse,
@@ -418,7 +419,9 @@ const EMPTY_PERMIT_TX_INFO: PermitTxInfo = {
 export function usePermitTxInfo({
   quote,
 }: {
-  quote?: DiscriminatedQuoteResponse | GatewayJusdQuoteResponse | SatsumaQuoteResponse
+  // Accepts any trade quote; only Classic quotes carry a permit, everything else (Gateway,
+  // Satsuma, DIRECT_POOL, bridges, …) falls through to EMPTY_PERMIT_TX_INFO.
+  quote?: DiscriminatedQuoteResponse | GatewayJusdQuoteResponse | SatsumaQuoteResponse | DirectPoolQuoteResponse
 }): PermitTxInfo {
   const classicQuote = quote && isClassic(quote) ? quote : undefined
   const gasStrategy = useActiveGasStrategy(classicQuote?.quote.chainId, 'swap')

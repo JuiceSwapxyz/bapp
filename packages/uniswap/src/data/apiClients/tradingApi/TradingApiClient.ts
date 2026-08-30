@@ -203,6 +203,33 @@ export type SatsumaQuoteResponse = {
   permitData: null
 }
 
+// DIRECT_POOL is a client-side routing type: unlike SATSUMA/GATEWAY the quote is NOT emitted by
+// the api. It is computed locally in `tradeService.getTrade` from on-chain JUSD/WCBTC pool state
+// (see features/transactions/swap/utils/jusdDirectPool.ts) and carries everything the local swap
+// service needs to build calldata without any further network calls.
+export type DirectPoolQuote = {
+  chainId: number
+  swapper: string
+  // Raw (wei) input/output amounts computed from the pool.
+  amountIn: string
+  amountOut: string
+  // On-chain pool + routing details used to build the SwapRouter02 calldata.
+  poolAddress: string
+  fee: number
+  tokenIn: string
+  tokenOut: string
+  // True when the user selected native cBTC as output (requires unwrapWETH9).
+  outputIsNative: boolean
+  slippageToleranceBps: number
+}
+
+export type DirectPoolQuoteResponse = {
+  requestId: string
+  quote: DirectPoolQuote
+  routing: 'DIRECT_POOL'
+  permitData: null
+}
+
 export type WrapQuoteResponse<T extends Routing.WRAP | Routing.UNWRAP> = QuoteResponse & {
   quote: WrapUnwrapQuote
   routing: T

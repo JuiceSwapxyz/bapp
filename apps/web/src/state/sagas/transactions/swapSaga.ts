@@ -66,6 +66,7 @@ import {
   isClassic,
   isErc20ChainSwap,
   isGatewayJusd,
+  isJusdDirectPool,
   isLightningBridge,
   isWbtcBridge,
 } from 'uniswap/src/features/transactions/swap/utils/routing'
@@ -311,8 +312,10 @@ function* swap(params: SwapParams) {
         }
         case TransactionStepType.SwapTransaction:
         case TransactionStepType.SwapTransactionAsync: {
-          // Gateway trades execute like Classic trades but have different routing type
-          if (!isGatewayJusd(swapTxContext)) {
+          // Gateway and direct-pool trades execute like Classic trades (single ERC20-router call
+          // from swapTxContext.txRequests) but carry a custom routing type, so skip the strict
+          // routing assertion for them.
+          if (!isGatewayJusd(swapTxContext) && !isJusdDirectPool(swapTxContext)) {
             requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
           }
           yield* call(handleSwapTransactionStep, {
@@ -328,8 +331,8 @@ function* swap(params: SwapParams) {
           break
         }
         case TransactionStepType.SwapTransactionBatched: {
-          // Gateway trades execute like Classic trades but have different routing type
-          if (!isGatewayJusd(swapTxContext)) {
+          // Gateway and direct-pool trades execute like Classic trades but carry a custom routing type.
+          if (!isGatewayJusd(swapTxContext) && !isJusdDirectPool(swapTxContext)) {
             requireRouting(trade, [Routing.CLASSIC, Routing.BRIDGE])
           }
           yield* call(handleSwapTransactionBatchedStep, {

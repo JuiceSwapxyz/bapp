@@ -18,6 +18,7 @@ import { MAX_AUTO_SLIPPAGE_TOLERANCE } from 'uniswap/src/constants/transactions'
 import {
   BridgeQuoteResponse,
   ClassicQuoteResponse,
+  DirectPoolQuoteResponse,
   DutchQuoteResponse,
   DutchV3QuoteResponse,
   GatewayJusdQuoteResponse,
@@ -436,6 +437,7 @@ export type Trade<
   | BridgeTrade
   | GatewayJusdTrade
   | SatsumaTrade
+  | JusdDirectPoolTrade
   | BitcoinBridgeTrade
   | LightningBridgeTrade
   | WrapTrade
@@ -883,6 +885,89 @@ export class SatsumaTrade {
   // routes so the swap UI can warn on bad quotes (issue #764).
   public get priceImpact(): Percent | undefined {
     return parseJuiceSwapPriceImpact(this.quote.quote.priceImpact)
+  }
+
+  public get quoteOutputAmount(): CurrencyAmount<Currency> {
+    return this.outputAmount
+  }
+
+  public get quoteOutputAmountUserWillReceive(): CurrencyAmount<Currency> {
+    return this.outputAmount
+  }
+}
+
+/**
+ * JusdDirectPoolTrade handles the client-side JUSD-sell fallback. Unlike SatsumaTrade/GatewayJusdTrade
+ * (whose quotes are emitted by the api), this trade's quote is computed locally in
+ * `tradeService.getTrade` from on-chain JUSD/WCBTC pool state when the JuiceSwap Gateway is paused.
+ * The swap calldata is likewise built locally (see utils/jusdDirectPool.ts) — there is no api call.
+ */
+export class JusdDirectPoolTrade {
+  readonly quote: DirectPoolQuoteResponse
+  readonly inputAmount: CurrencyAmount<Currency>
+  readonly outputAmount: CurrencyAmount<Currency>
+  readonly maxAmountIn: CurrencyAmount<Currency>
+  readonly minAmountOut: CurrencyAmount<Currency>
+  readonly executionPrice: Price<Currency, Currency>
+
+  readonly tradeType: TradeType
+  // Custom literal type to keep this distinct from ClassicTrade in unions
+  readonly routing = 'DIRECT_POOL' as const
+  readonly indicative = false
+  readonly swapFee?: SwapFee
+  readonly inputTax: Percent = ZERO_PERCENT
+  readonly outputTax: Percent = ZERO_PERCENT
+
+  readonly slippageTolerance: number
+  readonly priceImpact: undefined
+  readonly deadline: undefined
+
+  constructor({
+    quote,
+    currencyIn,
+    currencyOut,
+    tradeType,
+  }: {
+    quote: DirectPoolQuoteResponse
+    currencyIn: Currency
+    currencyOut: Currency
+    tradeType: TradeType
+  }) {
+    this.quote = quote
+
+    const inputRaw = quote.quote.amountIn
+    const outputRaw = quote.quote.amountOut
+    if (!inputRaw || !outputRaw) {
+      throw new Error('Error parsing direct-pool quote currency amounts')
+    }
+
+    const inputAmount = getCurrencyAmount({ value: inputRaw, valueType: ValueType.Raw, currency: currencyIn })
+    const outputAmount = getCurrencyAmount({ value: outputRaw, valueType: ValueType.Raw, currency: currencyOut })
+    if (!inputAmount || !outputAmount) {
+      throw new Error('Error parsing direct-pool quote currency amounts')
+    }
+
+    this.inputAmount = inputAmount
+    this.outputAmount = outputAmount
+    this.executionPrice = new Price(currencyIn, currencyOut, inputRaw, outputRaw)
+    this.tradeType = tradeType
+
+    // Single source of truth for slippage: `quote.slippageToleranceBps` is baked from the user's
+    // live setting at getTrade time and is the SAME value the swap calldata uses for
+    // amountOutMinimum (see directPoolSwapTxAndGasInfo). So `slippageTolerance` (display %) and
+    // `minAmountOut` (the "minimum received" the UI promises) both reflect the real on-chain floor
+    // — no divergence between what the user sees and what executes.
+    const bps = quote.quote.slippageToleranceBps
+    this.slippageTolerance = bps / 100
+    const minOutRaw = (BigInt(outputRaw) * BigInt(10_000 - bps)) / BigInt(10_000)
+    const minAmountOut = getCurrencyAmount({
+      value: minOutRaw.toString(),
+      valueType: ValueType.Raw,
+      currency: currencyOut,
+    })
+
+    this.maxAmountIn = this.inputAmount
+    this.minAmountOut = minAmountOut ?? this.outputAmount
   }
 
   public get quoteOutputAmount(): CurrencyAmount<Currency> {

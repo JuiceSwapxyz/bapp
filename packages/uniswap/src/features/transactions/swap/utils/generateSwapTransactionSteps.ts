@@ -33,6 +33,7 @@ import {
   isClassic,
   isErc20ChainSwap,
   isGatewayJusd,
+  isJusdDirectPool,
   isLightningBridge,
   isSatsuma,
   isUniswapX,
@@ -49,10 +50,11 @@ export function generateSwapTransactionSteps(txContext: SwapTxAndGasInfo, _v4Ena
     const revocation = createRevocationTransactionStep(revocationTxRequest, trade.inputAmount.currency.wrapped)
     const approval = createApprovalTransactionStep({ txRequest: approveTxRequest, amountIn: trade.inputAmount })
 
-    if (isClassic(txContext) || isGatewayJusd(txContext) || isSatsuma(txContext)) {
+    if (isClassic(txContext) || isGatewayJusd(txContext) || isSatsuma(txContext) || isJusdDirectPool(txContext)) {
       // Cast to the union type since TypeScript has trouble narrowing with || on complex unions.
-      // Satsuma rides the same shape as Gateway here (single ERC20-router call, no Permit2 sign);
-      // see validateSwapTxContext in swapTxAndGasInfo.ts for the matching validation branch.
+      // Satsuma/DIRECT_POOL ride the same shape as Gateway here (single ERC20-router call, no
+      // Permit2 sign); DIRECT_POOL additionally carries a plain approve in approveTxRequest.
+      // See validateSwapTxContext in swapTxAndGasInfo.ts for the matching validation branch.
       const classicContext = txContext as ClassicSwapTxAndGasInfo | GatewayJusdSwapTxAndGasInfo
       const { swapRequestArgs } = classicContext
 

@@ -11,12 +11,20 @@ export const GATEWAY_JUICE_OUT_ROUTING = 'GATEWAY_JUICE_OUT' as const
 // Satsuma USDC.e/ctUSD pool over the thin JuiceSwap V3 Classic pool.
 export const SATSUMA_ROUTING = 'SATSUMA' as const
 
+// Direct-pool routing — client-side fallback for selling JUSD when the JuiceSwap Gateway is
+// paused (savings rate 0%). The quote and swap calldata are computed locally against a real
+// on-chain JUSD/WCBTC V3 pool, bypassing the remote quote API entirely.
+// See utils/jusdDirectPool.ts.
+export const DIRECT_POOL_ROUTING = 'DIRECT_POOL' as const
+
 export type GatewayJusdRouting =
   | typeof GATEWAY_JUSD_ROUTING
   | typeof GATEWAY_JUICE_IN_ROUTING
   | typeof GATEWAY_JUICE_OUT_ROUTING
 
 export type SatsumaRouting = typeof SATSUMA_ROUTING
+
+export type DirectPoolRouting = typeof DIRECT_POOL_ROUTING
 
 // All Gateway routing variants
 // Note: SUSD is routed through Gateway via registerBridgedToken() - no separate routing type needed
@@ -27,7 +35,7 @@ export const GATEWAY_ROUTING_VARIANTS = [
 ] as const
 
 // TradeRouting encompasses all routing types including custom ones not in the Routing enum
-export type TradeRouting = Routing | GatewayJusdRouting | SatsumaRouting
+export type TradeRouting = Routing | GatewayJusdRouting | SatsumaRouting | DirectPoolRouting
 
 export const UNISWAPX_ROUTING_VARIANTS = [
   Routing.DUTCH_V2,
@@ -51,6 +59,12 @@ export function isGatewayJusd<T extends { routing: TradeRouting }>(obj: T): obj 
 
 export function isSatsuma<T extends { routing: TradeRouting }>(obj: T): obj is T & { routing: SatsumaRouting } {
   return obj.routing === SATSUMA_ROUTING
+}
+
+export function isJusdDirectPool<T extends { routing: TradeRouting }>(
+  obj: T,
+): obj is T & { routing: DirectPoolRouting } {
+  return obj.routing === DIRECT_POOL_ROUTING
 }
 
 export function isBridge<T extends { routing: TradeRouting }>(

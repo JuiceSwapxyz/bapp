@@ -2,7 +2,7 @@ import { Routing, CreateSwapRequest } from "uniswap/src/data/tradingApi/__genera
 import { GasEstimate } from "uniswap/src/data/tradingApi/types"
 import { GasFeeResult, ValidatedGasFeeResult, validateGasFeeResult } from "uniswap/src/features/gas/types"
 import { BridgeTrade, BitcoinBridgeTrade, LightningBridgeTrade, ClassicTrade, GatewayJusdTrade, UniswapXTrade, UnwrapTrade, WrapTrade } from "uniswap/src/features/transactions/swap/types/trade"
-import { isBridge, isBitcoinBridge, isErc20ChainSwap, isLightningBridge, isClassic, isGatewayJusd, isSatsuma, isUniswapX, isWrap, isWbtcBridge, GatewayJusdRouting } from "uniswap/src/features/transactions/swap/utils/routing"
+import { isBridge, isBitcoinBridge, isErc20ChainSwap, isLightningBridge, isClassic, isGatewayJusd, isJusdDirectPool, isSatsuma, isUniswapX, isWrap, isWbtcBridge, GatewayJusdRouting } from "uniswap/src/features/transactions/swap/utils/routing"
 import { isInterface } from "utilities/src/platform"
 import { Prettify } from "viem"
 import { ValidatedPermit } from "uniswap/src/features/transactions/swap/utils/trade"
@@ -196,14 +196,13 @@ function validateSwapTxContext(swapTxContext: SwapTxAndGasInfo): ValidatedSwapTx
       return validateClassicStyleSwap<ClassicSwapTxAndGasInfo, ValidatedClassicSwapTxAndGasInfo>({
         swapTxContext, context: swapTxContext, gasFee
       })
-    } else if (isGatewayJusd(swapTxContext) || isSatsuma(swapTxContext)) {
-      // Satsuma trades take the same validation path as Gateway-JUSD: both are
-      // string-literal routing variants that go through the JuiceSwap API
-      // /swap endpoint and produce a single ERC20-router call. There is no
-      // dedicated SatsumaSwapTxAndGasInfo type — `getClassicSwapTxAndGasInfo`
-      // (called from useSwapTxAndGasInfo) builds a ClassicSwapTxAndGasInfo-
-      // shaped object with the trade's routing carried through, so the cast
-      // here is structurally sound at runtime.
+    } else if (isGatewayJusd(swapTxContext) || isSatsuma(swapTxContext) || isJusdDirectPool(swapTxContext)) {
+      // Satsuma, Gateway-JUSD and DIRECT_POOL all take the Classic validation
+      // path: they are string-literal routing variants that produce a
+      // ClassicSwapTxAndGasInfo-shaped object (single ERC20-router call, no
+      // Permit2 sign). Satsuma/Gateway build theirs from the api /swap
+      // endpoint; DIRECT_POOL builds its txRequests + approve locally
+      // (see directPoolSwapTxAndGasInfo). The cast is structurally sound at runtime.
       return validateClassicStyleSwap<GatewayJusdSwapTxAndGasInfo, ValidatedGatewayJusdSwapTxAndGasInfo>({
         swapTxContext, context: swapTxContext as unknown as GatewayJusdSwapTxAndGasInfo, gasFee
       })

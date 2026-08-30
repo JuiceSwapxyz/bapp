@@ -15,6 +15,7 @@ import { useTokenApprovalInfo } from 'uniswap/src/features/transactions/swap/rev
 import { createBitcoinBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/bitcoin/bitcoinBridgeSwapTxAndGasInfoService'
 import { createBridgeSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/bridge/bridgeSwapTxAndGasInfoService'
 import { createClassicSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/classic/classicSwapTxAndGasInfoService'
+import { createDirectPoolSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/directPool/directPoolSwapTxAndGasInfoService'
 import { FALLBACK_SWAP_REQUEST_POLL_INTERVAL_MS } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/constants'
 import { createErc20ChainSwapTxAndGasInfoService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/erc20ChainSwap/erc20ChainSwapTxAndGasInfoService'
 import { createEVMSwapInstructionsService } from 'uniswap/src/features/transactions/swap/review/services/swapTxAndGasInfoService/evm/evmSwapInstructionsService'
@@ -39,6 +40,7 @@ import type { DerivedSwapInfo } from 'uniswap/src/features/transactions/swap/typ
 import type { SwapTxAndGasInfo } from 'uniswap/src/features/transactions/swap/types/swapTxAndGasInfo'
 import type { Trade } from 'uniswap/src/features/transactions/swap/types/trade'
 import {
+  DIRECT_POOL_ROUTING,
   GATEWAY_JUICE_IN_ROUTING,
   GATEWAY_JUICE_OUT_ROUTING,
   GATEWAY_JUSD_ROUTING,
@@ -156,6 +158,10 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     })
   }, [swapConfig.gasStrategy, transactionSettings])
 
+  const directPoolSwapTxInfoService = useMemo(() => {
+    return createDirectPoolSwapTxAndGasInfoService()
+  }, [])
+
   const services = useMemo(() => {
     return {
       [Routing.CLASSIC]: classicSwapTxInfoService,
@@ -178,6 +184,8 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
       [GATEWAY_JUICE_OUT_ROUTING]: gatewayJusdSwapTxInfoService as unknown as SwapTxAndGasInfoService,
       // Satsuma direct routing (USDC.e/ctUSD on Citrea Mainnet)
       [SATSUMA_ROUTING]: satsumaSwapTxInfoService as unknown as SwapTxAndGasInfoService,
+      // Direct-pool routing (client-side JUSD-sell fallback when the Gateway is paused)
+      [DIRECT_POOL_ROUTING]: directPoolSwapTxInfoService as unknown as SwapTxAndGasInfoService,
     } satisfies RoutingServicesMap
   }, [
     classicSwapTxInfoService,
@@ -189,6 +197,7 @@ export function useSwapTxAndGasInfoService(): SwapTxAndGasInfoService {
     erc20ChainSwapTxInfoService,
     gatewayJusdSwapTxInfoService,
     satsumaSwapTxInfoService,
+    directPoolSwapTxInfoService,
   ])
 
   return useMemo(() => {
