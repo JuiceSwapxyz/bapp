@@ -11,7 +11,6 @@ import { iconSizes } from 'ui/src/theme'
 import { AddressDisplay } from 'uniswap/src/components/accounts/AddressDisplay'
 import { useUnitagsAddressQuery } from 'uniswap/src/data/apiClients/unitagsApi/useUnitagsAddressQuery'
 import { AccountType } from 'uniswap/src/features/accounts/types'
-import { useEnabledChains } from 'uniswap/src/features/chains/hooks/useEnabledChains'
 import { useENS } from 'uniswap/src/features/ens/useENS'
 import { useLocalizationContext } from 'uniswap/src/features/language/LocalizationContext'
 import { pushNotification } from 'uniswap/src/features/notifications/slice'
@@ -81,8 +80,7 @@ export function AccountCardItem({
 }: AccountCardItemProps): JSX.Element {
   const { t } = useTranslation()
   const dispatch = useDispatch()
-  const { defaultChainId } = useEnabledChains()
-  const ensName = useENS({ nameOrAddress: address, chainId: defaultChainId }).name
+  const ensName = useENS({ nameOrAddress: address }).name
   const { data: unitag } = useUnitagsAddressQuery({
     params: address ? { address } : undefined,
   })

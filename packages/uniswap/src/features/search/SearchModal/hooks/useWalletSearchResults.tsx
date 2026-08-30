@@ -31,7 +31,7 @@ export function useWalletSearchResults(
 
   const querySkippedIfValidAddress = validAddress ? null : query
 
-  // Search for matching .eth if not a valid address
+  // Search for matching .citrea if not a valid address
   const {
     address: dotEthAddress,
     name: dotEthName,
